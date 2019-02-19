@@ -1,5 +1,6 @@
 from core.task_generator.TaskGeneratorAlgorithm import TaskGeneratorAlgorithm
 
+
 class UUniFast(TaskGeneratorAlgorithm):
 
     def __init__(self, number_of_tasks: int, utilization: float):
