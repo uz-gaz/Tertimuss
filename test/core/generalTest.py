@@ -21,8 +21,5 @@ def prueba(i,j):
     print("Primero")
 
 
-def prueba(i):
-    print("SegundoPrimero")
-
 
 prueba(1,2)
