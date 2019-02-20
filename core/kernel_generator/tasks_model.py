@@ -4,12 +4,14 @@ import numpy as np
 
 
 class TasksModel(object):
-    def __init__(self, c_tau, lambda_tau, pi_tau, c_tau_alloc, m_tau_o):
+    def __init__(self, c_tau, lambda_tau, pi_tau, c_tau_alloc, m_tau_o, pre, post):
         self.c_tau = c_tau
         self.lambda_tau = lambda_tau
         self.pi_tau = pi_tau
         self.c_tau_alloc = c_tau_alloc
         self.m_tau_o = m_tau_o
+        self.pre = pre
+        self.post = post
         # TODO: Analyze if is necessary return Pre,Post
 
 
@@ -31,7 +33,7 @@ def generate_tasks_model(tasks_specification: TasksSpecification, cpu_specificat
     post = np.zeros((p, t))
     pre_alloc = np.zeros((p, t_alloc))
     post_alloc = np.zeros((p, t_alloc))
-    lambda_vector = np.zeros((1, t))
+    lambda_vector = np.zeros(t)
     pi = np.zeros((t, p))
     mo = np.zeros((p, 1))
 
@@ -48,7 +50,7 @@ def generate_tasks_model(tasks_specification: TasksSpecification, cpu_specificat
         k = k + 1
 
         # Construction of Pre an Post matrix for Transitions alloc
-        j = n + k  # n + 1 + k -1
+        j = n + k - 1  # n + 1 + k -1
         while j <= t:
             pre[i, j - 1] = 1
             pi[j - 1, i] = 1
@@ -60,4 +62,4 @@ def generate_tasks_model(tasks_specification: TasksSpecification, cpu_specificat
     c_alloc = post_alloc - pre_alloc
     lambda_tau = np.diag(lambda_vector)
 
-    return TasksModel(c, lambda_tau, pi, c_alloc, mo)
+    return TasksModel(c, lambda_tau, pi, c_alloc, mo, pre, post)
