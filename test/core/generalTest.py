@@ -10,13 +10,19 @@
 import numpy as np
 from scipy import linalg
 
+from core.problem_specification_models.EnvironmentSpecification import EnvironmentSpecification
+
 b = np.array([[4, 5], [6, 7]])
 
-#c = np.transpose(b)
+# c = np.transpose(b)
 
-c = b.T
 
-print(b)
-print(c)
+def prueba(i,j):
+    print("Primero")
 
-print(c.dot(b))
+
+def prueba(i):
+    print("SegundoPrimero")
+
+
+prueba(1,2)
