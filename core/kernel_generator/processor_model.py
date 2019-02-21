@@ -49,7 +49,7 @@ def generate_processor_model(tasks_specification: TasksSpecification, cpu_specif
     # exec places: pn+1-p2n->p^exec_{1,1},...,p^exec_{n,1}
     # idle place:  p2n+1->p^idle_1
 
-    for k in range(1, m):
+    for k in range(1, m + 1):
         i = (2 * n + 1) * (k - 1) + 1
 
         # Construction of matrix Post and Pre for busy and exec places (connections to transitions alloc and exec)
@@ -58,27 +58,29 @@ def generate_processor_model(tasks_specification: TasksSpecification, cpu_specif
 
         # Construction of matrix Post and Pre for idle place (connections to transitions alloc and exec)
         pre[k * (2 * n + 1) - 1, (k - 1) * (2 * n): (k - 1) * (2 * n) + n] = eta * np.ones(n)
-        post[k * (2 * n + 1) - 1, (k - 1) * (2 * n) + n: (k - 1) * (2 * n) + (2 * n)] = eta * np.ones(n)
+        post[k * (2 * n + 1) - 1, (k - 1) * (2 * n) + n: k * (2 * n)] = eta * np.ones(n)
 
         # Construction of Pre an Post matrix for Transitions alloc
-        pre_alloc[i - 1:i + (n - 1), (k - 1) * n: (k - 1) * n + n] = \
+        pre_alloc[i - 1:i + (n - 1), (k - 1) * n: k * n] = \
             pre[i - 1:i + (n - 1), (k - 1) * (2 * n): (k - 1) * (2 * n) + n]
         post_alloc[i - 1:i + (n - 1), (k - 1) * n: (k - 1) * n + n] = \
             post[i - 1:i + (n - 1), (k - 1) * (2 * n): (k - 1) * (2 * n) + n]
 
         # Execution rates for transitions exec for CPU_k \lambda^exec= eta*F
-        lambda_vector[0, (k - 1) * (2 * n) + n:(k - 1) * (2 * n) + 2 * n] = eta * f * np.ones(n)
+        lambda_vector[(k - 1) * (2 * n) + n:(k - 1) * (2 * n) + 2 * n] = eta * f * np.ones(n)
 
         # Execution rates for transitions alloc \lambda^alloc= eta*\lambda^exec
-        lambda_vector[0, (k - 1) * (2 * n):(k - 1) * (2 * n) + n] = \
-            eta * lambda_vector[0, (k - 1) * (2 * n) + n:(k - 1) * (2 * n) + 2 * n]
-        lambda_alloc[0, (k - 1) * n:k * n] = lambda_vector[0, (k - 1) * (2 * n):(k - 1) * (2 * n) + n]
+        lambda_vector[(k - 1) * (2 * n):(k - 1) * (2 * n) + n] = \
+            eta * lambda_vector[(k - 1) * (2 * n) + n:(k - 1) * (2 * n) + 2 * n]
+        lambda_alloc[(k - 1) * n:k * n] = lambda_vector[(k - 1) * (2 * n):(k - 1) * (2 * n) + n]
 
         # Configuration Matrix
         pi[(k - 1) * (2 * n) + n:(k - 1) * (2 * n) + 2 * n, i - 1:i + (n - 1)] = np.identity(n)
 
         # Initial condition
         mo[k * (2 * n + 1) - 1, 0] = 1
+
+        print(k * (2 * n + 1) - 1)
 
         # Output matrix of the processor model, ( m^exec )
         s_busy[(k - 1) * n:k * n, i - 1:(2 * n + 1) * (k - 1) + n] = np.identity(n)
