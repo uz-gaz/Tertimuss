@@ -1,4 +1,4 @@
-from task_generator.TaskGeneratorAlgorithm import TaskGeneratorAlgorithm
+from core.task_generator.TaskGeneratorAlgorithm import TaskGeneratorAlgorithm
 
 
 class UUniFast(TaskGeneratorAlgorithm):
