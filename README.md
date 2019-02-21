@@ -1,8 +1,11 @@
-# Requisitos
-Se requiere la distribución de Python Anaconda 2018.12 o superior con Python version 3.7.
-Esta puede ser obtenida en el siguiente enlace [https://www.anaconda.com/distribution/](https://www.anaconda.com/distribution/)
+# System requirements
+- Anaconda 2018.12 Python distribution or higher with a Python version 3.7 installed (Anaconda can be downloaded from: [https://www.anaconda.com/distribution/](https://www.anaconda.com/distribution/))
 
-Por otro lado se requiere la biblioteca scipy 1.2.0 o superior así como todas sus dependencias
-También se requiere matplotlib 3.0.2 o superior así como todas sus dependencias
-### References
-https://docs.scipy.org/doc/scipy/reference/tutorial/linalg.html
+## Python environment libraries requirements
+- Basic libraries installed by Anaconda
+- scipi 1.2.0 or higher and all its dependencies
+- matplotlib 3.0.2 or higher and all its dependencies
+
+# References
+- [1] Original implementation of the code in matlab, [https://www.gdl.cinvestav.mx/art/uploads/SchedulerFrameworkTCPN.zip](https://www.gdl.cinvestav.mx/art/uploads/SchedulerFrameworkTCPN.zip )
+- [2] Lineal Algebra libraries usage in scipi, [https://docs.scipy.org/doc/scipy/reference/tutorial/linalg.html](https://docs.scipy.org/doc/scipy/reference/tutorial/linalg.html)

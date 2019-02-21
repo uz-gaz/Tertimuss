@@ -10,4 +10,3 @@ cpu_specification: CpuSpecification = CpuSpecification(MaterialCuboid(x=50, y=50
                                                        2, 1)
 
 processor_model: ProcessorModel = generate_processor_model(tasks_specification, cpu_specification)
-
