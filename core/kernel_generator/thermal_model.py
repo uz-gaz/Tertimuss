@@ -106,8 +106,10 @@ def generate_tasks_model(tasks_specification: TasksSpecification, cpu_specificat
                    cpu_specification, simulation_specification)
 
     # Heat generation
-    cp_exec = []  # TODO: Create with the correct size
-    lambda_generated = []  # TODO: Create with the correct size
+    cp_exec = np.zeros((r_pre, cpu_specification.number_of_cores * len(
+        tasks_specification.tasks)))
+    lambda_generated = np.zeros(
+        (cpu_specification.number_of_cores * len(tasks_specification.tasks)))
 
     add_heat(cp_exec, lambda_generated, pre_sis, post_sis, lambda_vector, board_conductivity, micro_conductivity,
              cpu_specification, simulation_specification)
