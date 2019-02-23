@@ -1,5 +1,7 @@
 import math
 
+from core.problem_specification_models.SimulationSpecification import SimulationSpecification
+
 
 class MaterialCuboid(object):
 
@@ -60,3 +62,6 @@ class CpuSpecification(object):
             self.cpu_cores = cpu_cores  # Spec of heterogeneous CPU cores
         
     '''
+
+    def coordinates(self, simulation_specification: SimulationSpecification) -> list:
+        pass
