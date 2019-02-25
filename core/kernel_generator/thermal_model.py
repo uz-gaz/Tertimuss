@@ -17,8 +17,67 @@ class ConductivityModel(object):
 
 def simple_conductivity(material_cuboid: MaterialCuboid,
                         simulation_specification: SimulationSpecification) -> ConductivityModel:
-    # TODO:
-    pass
+    dx = simulation_specification.step
+    dy = simulation_specification.step
+    dz = simulation_specification.step
+
+    x = material_cuboid.x / dx
+    y = material_cuboid.y / dy
+
+    rho = material_cuboid.p
+    k = material_cuboid.k
+    cp = material_cuboid.c_p
+
+    volume = dx * dy * dz  # Volumen, igual para todos los elementos
+    horizontal_area = dy * dz  # Area de contacto para lugares contiguos horizontales
+    vertical_area = dx * dz  # Area de contacto para lugares contiguos verticales
+
+    dx_horizontal = dx / 2
+    dx_vertical = dy / 2
+
+    horizontal_lambda = (1 / (volume * rho * cp)) * (k * k * horizontal_area) / (k * dx_horizontal + k * dx_horizontal)
+    vertical_lambda = (1 / (volume * rho * cp)) * (k * k * vertical_area) / (k * dx_vertical + k * dx_vertical)
+
+    # Total de lugares de la RP
+    p = x * y
+
+    # Total de transiciones
+    t = (x * y * 4) - 8 - 2 * (x - 2) - 2 * (y - 2)
+
+    # Matriz de incidencia C
+    i_pre = [[1, 0], [0, 1]]
+    i_post = [[0, 1], [1, 0]]
+
+    # Los lugares se numeran en forma de "serpiente"
+    # ie. 1 2 3
+    #     6 5 4
+    #     7 8 9 [...]
+    # Con eso se forma la matriz de incidencia
+    # con las transiciones que conectan 1-2 (las dos), 2-3 [...], 8-9
+    # hasta la transicion t=[(x*2)*(y-1)] + (x-1)*2
+    pre = np.zeros((p, t))
+    post = np.zeros((p, t))
+
+    lambda_vector = np.zeros(p)
+
+    for i in range(0, p):
+        j = i * 3
+        pre[i:i + 2, j:j + 2] = i_pre
+        post[i:i + 2, j:j + 2] = i_post
+
+        if(i + 1) % x == 0:
+            lambda_vector[j, j + 2] = [vertical_lambda, vertical_lambda]
+        else:
+            lambda_vector[j, j + 2] = [horizontal_lambda, horizontal_lambda]
+
+    # Para la siguiente parte de C se numeran las transiciones que
+    # conectan 1-6, 2-5, 4-9 y 5-8 (ie. t18 y t17 asociadas a 1-6)
+    v_pre = [1, 0]
+    v_post = [0, 1]
+
+    start = 1
+    # TODO: Continuar
+
 
 
 def add_interactions_layer(rel_micro, pre_sis, post_sis, lambda_vector, board_conductivity: ConductivityModel,
@@ -127,7 +186,7 @@ def generate_tasks_model(tasks_specification: TasksSpecification, cpu_specificat
     for i in range(0, cpu_specification.number_of_cores):
         l_measurement[i] = board_conductivity.p + i * micro_conductivity.p + np.math.ceil(micro_conductivity.p / 2)
 
-    c = np.zeros((len(l_measurement, len(a))))  # TODO: Check if is correct
+    c = np.zeros((len(l_measurement), len(a)))  # TODO: Check if is correct
 
     for i in range(0, len(l_measurement)):
         c[i, l_measurement[i]] = 1
