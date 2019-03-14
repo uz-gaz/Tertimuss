@@ -65,7 +65,7 @@ def simple_conductivity(material_cuboid: MaterialCuboid,
         pre[i:i + 2, j:j + 2] = i_pre
         post[i:i + 2, j:j + 2] = i_post
 
-        if(i + 1) % x == 0:
+        if (i + 1) % x == 0:
             lambda_vector[j, j + 2] = [vertical_lambda, vertical_lambda]
         else:
             lambda_vector[j, j + 2] = [horizontal_lambda, horizontal_lambda]
@@ -76,15 +76,76 @@ def simple_conductivity(material_cuboid: MaterialCuboid,
     v_post = [0, 1]
 
     start = 1
-    # TODO: Continuar
+    # TODO: REVISAR
+    j = 1 + 2 * (p - 1)
 
+    for count in range(2, y + 1):
+        xx = count * x
+        for i in range(1, x):
+            pre[start - 1, j - 1: j + 1] = v_pre
+            pre[xx - 1, j - 1: j + 1] = v_post
+
+            post[start - 1, j - 1: j + 1] = v_post
+            post[xx - 1, j - 1: j + 1] = v_pre
+            lambda_vector[j - 1: j + 1] = [vertical_lambda, vertical_lambda]
+
+            xx = xx - 1
+            j = j + 2
+            start = start + 1
+        start = xx
+
+    return ConductivityModel(pre, post, t, p, lambda_vector)
 
 
 def add_interactions_layer(rel_micro, pre_sis, post_sis, lambda_vector, board_conductivity: ConductivityModel,
                            micro_conductivity: ConductivityModel, cpu_specification: CpuSpecification,
                            simulation_specification: SimulationSpecification):
-    # TODO:
-    pass
+    # TODO: REVISAR
+    dx_p1 = cpu_specification.cpu_core.x
+    dy_p1 = cpu_specification.cpu_core.y
+    dz_p1 = cpu_specification.cpu_core.z
+
+    rho_p1 = cpu_specification.cpu_core.p
+    k_p1 = cpu_specification.cpu_core.k
+    cp_p1 = cpu_specification.cpu_core.c_p
+
+    dx_p2 = cpu_specification.board.x
+    dy_p2 = cpu_specification.board.y
+    dz_p2 = cpu_specification.board.z
+
+    rho_p2 = cpu_specification.board.p
+    k_p2 = cpu_specification.board.k
+    cp_p2 = cpu_specification.board.c_p
+
+    a = dx_p1 * dy_p1
+
+    v_p1 = a * dz_p1
+    deltax_p1 = dz_p1 / 2
+
+    v_p2 = dx_p2 * dy_p2 * dz_p2
+    deltax_p2 = dz_p2 / 2
+
+    lambda1 = (1 / (v_p1 * rho_p1 * cp_p1)) * (k_p1 * k_p2 * a) / (k_p2 * deltax_p1 + k_p1 * deltax_p2)
+    lambda2 = (1 / (v_p2 * rho_p2 * cp_p2)) * (k_p1 * k_p2 * a) / (k_p2 * deltax_p1 + k_p1 * deltax_p2)
+
+    l_lug = len(rel_micro)
+
+    len_pre = len(pre_sis)
+
+    j = len_pre + 1
+
+    v_pre = [1, 0]
+    v_post = [0, 1]
+
+    for i in range(1, l_lug + 1):
+        pre_sis[rel_micro[i - 1], j - 1, j + 1] = v_pre
+        pre_sis[i + cpu_specification.board.p, j - 1: j + 1] = v_post
+
+        post_sis[rel_micro[i - 1], j - 1, j + 1] = [0, lambda1 / lambda2]
+        post_sis[i + cpu_specification.board.p, j - 1: j + 1] = [lambda2 / lambda1, 0]
+
+        lambda_vector[j - 1, j + 1] = [lambda1, lambda2]
+        j = j + 2
 
 
 def add_convection(diagonal, rel_micro, pre_sis, post_sis, lambda_vector, board_conductivity: ConductivityModel,
@@ -110,9 +171,9 @@ class ThermalModel(object):
         self.lambda_gen = lambda_gen
 
 
-def generate_tasks_model(tasks_specification: TasksSpecification, cpu_specification: CpuSpecification,
-                         environment_specification: EnvironmentSpecification,
-                         simulation_specification: SimulationSpecification) -> ThermalModel:
+def generate_thermal_model(tasks_specification: TasksSpecification, cpu_specification: CpuSpecification,
+                           environment_specification: EnvironmentSpecification,
+                           simulation_specification: SimulationSpecification) -> ThermalModel:
     # TODO: Try to improve implementation
     # Board and micros conductivity
     board_conductivity = simple_conductivity(cpu_specification.board, simulation_specification)
