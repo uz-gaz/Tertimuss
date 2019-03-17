@@ -156,27 +156,19 @@ def add_interactions_layer(rel_micro: np.ndarray, pre_sis: np.ndarray, post_sis:
     return pre_sis, post_sis, lambda_vector
 
 
-def add_convection(rel_micro, pre_sis, post_sis, lambda_vector, board_conductivity: ConductivityModel,
+def add_convection(pre_sis, post_sis, lambda_vector, board_conductivity: ConductivityModel,
                    micro_conductivity: ConductivityModel, cpu_specification: CpuSpecification,
-                   simulation_specification: SimulationSpecification,
                    environment_specification: EnvironmentSpecification) -> [np.ndarray, np.ndarray, np.ndarray,
                                                                             np.ndarray]:
     # D,Pre,Post,Lambda
-    # TODO: REVISAR
-    dx_p1 = simulation_specification.step / 1000  # cpu_specification.cpu_core.x
-    dy_p1 = simulation_specification.step / 1000  # cpu_specification.cpu_core.y
     dz_p1 = cpu_specification.board.z / 1000
 
     rho_p1 = cpu_specification.board.p
-    k_p1 = cpu_specification.board.k
     cp_p1 = cpu_specification.board.c_p
 
-    dx_p2 = simulation_specification.step / 1000  # cpu_specification.board.x
-    dy_p2 = simulation_specification.step / 1000  # cpu_specification.board.y
     dz_p2 = cpu_specification.cpu_core.z / 1000
 
     rho_p2 = cpu_specification.cpu_core.p
-    k_p2 = cpu_specification.cpu_core.k
     cp_p2 = cpu_specification.cpu_core.c_p
 
     h = environment_specification.h
@@ -184,46 +176,53 @@ def add_convection(rel_micro, pre_sis, post_sis, lambda_vector, board_conductivi
     lambda_1 = (h / (dz_p1 * rho_p1 * cp_p1))
     lambda_2 = (h / (dz_p2 * rho_p2 * cp_p2))
 
-    lambda_conv = [lambda_1, lambda_2]
+    lambda_conv = [lambda_1, lambda_1]
 
-    l_lug = len(rel_micro)
+    p_micros = micro_conductivity.p * cpu_specification.number_of_cores
 
     # vector con el numero de lugares expuestos a temp. ambiente
-    places = range(1, board_conductivity.p + 1)  # TODO: Revisar
+    places = list(range(1, board_conductivity.p + 1))
 
     # Eliminamos los lugares bajo la CPU
 
-    len_pre = len(pre_sis)
-    f = len(pre_sis[0])
+    f = len(pre_sis)
 
-    j = len_pre + 1
-    l_places = len(places)  # TODO: Revisar, debería de ser board_conductivity.p
+    l_places = len(places)
 
-    cota_micros = l_places - micro_conductivity.p
+    cota_micros = l_places - p_micros
 
-    pre_conv = np.zeros((f, 2))
+    pre_conv = np.zeros((f, 2))  # TODO: Review, i think second index can go out of bound, inside loop
+    # I think this variable is unused too
 
-    post_conv = np.zeros((f, 2))  # TODO: Comprobar
+    post_conv = np.zeros((f, 2))
+
+    pre_it = np.zeros((f, l_places))
+    post_it = np.zeros((f, l_places))
+
+    lambda_it = np.zeros((l_places, 1))
 
     k = 1
-
     for i in range(1, l_places):
-        pre_sis[places[i - 1] - 1, j - 1] = 1
+        pre_it[places[i - 1] - 1, i - 1] = 1
         pre_conv[places[i - 1] - 1, k - 1] = 0
 
-        post_sis[places[i - 1] - 1, j - 1] = 0
+        post_it[places[i - 1] - 1, i - 1] = 0
         post_conv[places[i - 1] - 1, k - 1] = 1
 
-        if i > cota_micros:
+        if i == cota_micros:
             k = k + 1
 
-        lambda_vector[j - 1] = lambda_1
-        j = j + 1
+        lambda_it[i - 1] = lambda_1
 
     pi = [1, 1]
 
+    pre_sis = np.concatenate((pre_sis, pre_it), axis=1)
+    post_sis = np.concatenate((post_sis, post_it), axis=1)
+
+    lambda_vector = np.concatenate((lambda_vector, lambda_it), axis=0)
+
     return post_conv.dot(np.diag(lambda_conv)).dot(
-        pi), pre_sis, post_conv, lambda_vector
+        pi), pre_sis, post_sis, lambda_vector
 
 
 def add_heat(pre_sis, post_sis, board_conductivity: ConductivityModel,
@@ -231,41 +230,39 @@ def add_heat(pre_sis, post_sis, board_conductivity: ConductivityModel,
              task_specification: TasksSpecification, simulation_specification: SimulationSpecification) \
         -> [np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     # Cp_exec,Lambda_gen, Pre,Post
-    # TODO:
-    dx = simulation_specification.step  # cpu_specification.cpu_core.x
-    dy = simulation_specification.step  # cpu_specification.cpu_core.y
-    dz = cpu_specification.cpu_core.z  # TODO: Seguramente el valor sea entre cpu specification
+    dx = simulation_specification.step / 1000
+    dy = simulation_specification.step / 1000
+    dz = cpu_specification.cpu_core.z / 1000
 
-    x = cpu_specification.cpu_core.x
-    y = cpu_specification.cpu_core.y
-    z = cpu_specification.cpu_core.z
+    x = cpu_specification.cpu_core.x / 1000
+    y = cpu_specification.cpu_core.y / 1000
+    z = cpu_specification.cpu_core.z / 1000
 
     rho = cpu_specification.cpu_core.p
     cp = cpu_specification.cpu_core.c_p
 
-    v_d = dx * dy * dz
     v_cpu = x * y * z
-
-    cte = 5e8 / len(task_specification.tasks)  # constante para compensar (amerita revision)
 
     # Lambdas
     # Como la generacion es igual para cada lugar del procesador las lambdas
     # son iguales para todos los lugares de un mismo procesador
-    lambda_gen = np.ones((1, len(task_specification.tasks) * cpu_specification.number_of_cores))
+    lambda_gen = np.ones(len(task_specification.tasks) * cpu_specification.number_of_cores)
 
     for j in range(1, cpu_specification.number_of_cores + 1):
         for i in range(1, len(task_specification.tasks) + 1):
             lambda_gen[i - 1] = cpu_specification.clock_frequency
             # TODO: Cambiar Actualmente estoy suponiendo frecuencia uniforme
+            # Por otro lado, se esta quedando siempre la frecuencia del ultimo procesador, el bucle no tiene sentido,
+            # creo que debería de ser (i - 1) * (j - 1)
             # Pero en el codigo original a cada lugar se le asigna la frecuencia de cada
             # procesador Lambda_gen(i)=F(j);
 
-    places_proc = list(range(board_conductivity.p + 1, board_conductivity.p * micro_conductivity.p + 1))
+    places_proc = list(range(board_conductivity.p + 1,
+                             board_conductivity.p + cpu_specification.number_of_cores * micro_conductivity.p + 1))
 
     l_places = len(places_proc)
 
-    len_pre = len(pre_sis)
-    f = len(pre_sis[0])
+    f = len(pre_sis)
 
     pre_gen = np.zeros((f, len(task_specification.tasks) * cpu_specification.number_of_cores))
     post_gen = np.zeros((f, len(task_specification.tasks) * cpu_specification.number_of_cores))
@@ -274,13 +271,13 @@ def add_heat(pre_sis, post_sis, board_conductivity: ConductivityModel,
 
     for i in range(1, l_places + 1):
         for k in range(0, len(task_specification.tasks)):
-            post_gen[places_proc[i] - 1, j + k - 1] = (1 / (v_cpu * rho * cp * task_specification.tasks[k].e))
+            post_gen[places_proc[i - 1] - 1, j + k - 1] = ((1 / (v_cpu * rho * cp)) * task_specification.tasks[k].e)
 
         if i % micro_conductivity.p == 0:
             j = j + len(task_specification.tasks)
 
-    pre_sis = [pre_sis, pre_gen]
-    post_sis = [post_sis, post_gen]
+    pre_sis = np.concatenate((pre_sis, pre_gen), axis=1)
+    post_sis = np.concatenate((post_sis, post_gen), axis=1)
 
     cp_exec = post_gen.dot(np.diag(lambda_gen))
 
@@ -330,7 +327,6 @@ class ThermalModel(object):
 def generate_thermal_model(tasks_specification: TasksSpecification, cpu_specification: CpuSpecification,
                            environment_specification: EnvironmentSpecification,
                            simulation_specification: SimulationSpecification) -> ThermalModel:
-    # TODO: Try to improve implementation
     # Board and micros conductivity
     board_conductivity = simple_conductivity(cpu_specification.board, simulation_specification)
     micro_conductivity = simple_conductivity(cpu_specification.cpu_core, simulation_specification)
@@ -374,19 +370,16 @@ def generate_thermal_model(tasks_specification: TasksSpecification, cpu_specific
             cpu_specification.board,
             simulation_specification)
 
-    # TODO: hasta aqui bien
-
     # Pre,Post,lambda
     pre_sis, post_sis, lambda_vector = add_interactions_layer(rel_micro, pre_sis, post_sis, lambda_vector,
                                                               board_conductivity, cpu_specification,
                                                               simulation_specification)
 
     # Convection
-    # diagonal = np.zeros((r_pre, 1))
-    diagonal, pre_sis, post_sis, lambda_vector = add_convection(rel_micro, pre_sis, post_sis, lambda_vector,
+    # TODO: Check if return is correct
+    diagonal, pre_sis, post_sis, lambda_vector = add_convection(pre_sis, post_sis, lambda_vector,
                                                                 board_conductivity, micro_conductivity,
-                                                                cpu_specification, simulation_specification,
-                                                                environment_specification)
+                                                                cpu_specification, environment_specification)
 
     # Heat generation
     cp_exec, lambda_generated, pre_sis, post_sis = add_heat(pre_sis, post_sis, board_conductivity, micro_conductivity,
