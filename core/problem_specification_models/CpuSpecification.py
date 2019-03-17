@@ -62,6 +62,3 @@ class CpuSpecification(object):
             self.cpu_cores = cpu_cores  # Spec of heterogeneous CPU cores
         
     '''
-
-    def coordinates(self, simulation_specification: SimulationSpecification) -> list:
-        return self.cpu_origins

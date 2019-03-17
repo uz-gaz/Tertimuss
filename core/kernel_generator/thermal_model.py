@@ -100,23 +100,21 @@ def simple_conductivity(material_cuboid: MaterialCuboid,
 def add_interactions_layer(rel_micro: np.ndarray, pre_sis: np.ndarray, post_sis: np.ndarray, lambda_vector: np.ndarray,
                            board_conductivity: ConductivityModel, cpu_specification: CpuSpecification,
                            simulation_specification: SimulationSpecification) -> [np.ndarray, np.ndarray, np.ndarray]:
-    # Return: Pre,Post,lambda
-    # TODO: REVISAR V2
-    dx_p1 = simulation_specification.step  # cpu_specification.cpu_core.x
-    dy_p1 = simulation_specification.step  # cpu_specification.cpu_core.y
-    dz_p1 = cpu_specification.cpu_core.z
+    dx_p1 = simulation_specification.step / 1000  # cpu_specification.cpu_core.x
+    dy_p1 = simulation_specification.step / 1000  # cpu_specification.cpu_core.y
+    dz_p1 = cpu_specification.board.z / 1000
 
-    rho_p1 = cpu_specification.cpu_core.p
-    k_p1 = cpu_specification.cpu_core.k
-    cp_p1 = cpu_specification.cpu_core.c_p
+    rho_p1 = cpu_specification.board.p
+    k_p1 = cpu_specification.board.k
+    cp_p1 = cpu_specification.board.c_p
 
-    dx_p2 = simulation_specification.step  # cpu_specification.board.x
-    dy_p2 = simulation_specification.step  # cpu_specification.board.y
-    dz_p2 = cpu_specification.board.z
+    dx_p2 = simulation_specification.step / 1000  # cpu_specification.board.x
+    dy_p2 = simulation_specification.step / 1000  # cpu_specification.board.y
+    dz_p2 = cpu_specification.cpu_core.z / 1000
 
-    rho_p2 = cpu_specification.board.p
-    k_p2 = cpu_specification.board.k
-    cp_p2 = cpu_specification.board.c_p
+    rho_p2 = cpu_specification.cpu_core.p
+    k_p2 = cpu_specification.cpu_core.k
+    cp_p2 = cpu_specification.cpu_core.c_p
 
     a = dx_p1 * dy_p1
 
@@ -131,22 +129,29 @@ def add_interactions_layer(rel_micro: np.ndarray, pre_sis: np.ndarray, post_sis:
 
     l_lug = len(rel_micro)
 
-    len_pre = len(pre_sis)
-
-    j = len_pre + 1
-
     v_pre = [1, 0]
     v_post = [0, 1]
 
+    pre_int = np.zeros((len(pre_sis), 2 * l_lug))
+    post_int = np.zeros((len(post_sis), 2 * l_lug))
+
+    lambda_int = np.zeros((2 * l_lug, 1))
+
+    j = 1
     for i in range(1, l_lug + 1):
-        pre_sis[rel_micro[i - 1], j - 1, j + 1] = v_pre
-        pre_sis[i + board_conductivity.p, j - 1: j + 1] = v_post
+        pre_int[rel_micro[i - 1] - 1, j - 1: j + 1] = v_pre
+        pre_int[i + board_conductivity.p - 1, j - 1: j + 1] = v_post
 
-        post_sis[rel_micro[i - 1], j - 1, j + 1] = [0, lambda1 / lambda2]
-        post_sis[i + board_conductivity.p, j - 1: j + 1] = [lambda2 / lambda1, 0]
+        post_int[rel_micro[i - 1] - 1, j - 1: j + 1] = [0, lambda1 / lambda2]
+        post_int[i + board_conductivity.p - 1, j - 1: j + 1] = [lambda2 / lambda1, 0]
 
-        lambda_vector[j - 1, j + 1] = [lambda1, lambda2]
+        lambda_int[j - 1: j + 1, 0] = [lambda1, lambda2]
         j = j + 2
+
+    pre_sis = np.concatenate((pre_sis, pre_int), axis=1)
+    post_sis = np.concatenate((post_sis, post_int), axis=1)
+
+    lambda_vector = np.concatenate((lambda_vector, lambda_int), axis=0)
 
     return pre_sis, post_sis, lambda_vector
 
@@ -158,23 +163,23 @@ def add_convection(rel_micro, pre_sis, post_sis, lambda_vector, board_conductivi
                                                                             np.ndarray]:
     # D,Pre,Post,Lambda
     # TODO: REVISAR
-    dx_p1 = simulation_specification.step  # cpu_specification.cpu_core.x
-    dy_p1 = simulation_specification.step  # cpu_specification.cpu_core.y
-    dz_p1 = cpu_specification.cpu_core.z
+    dx_p1 = simulation_specification.step / 1000  # cpu_specification.cpu_core.x
+    dy_p1 = simulation_specification.step / 1000  # cpu_specification.cpu_core.y
+    dz_p1 = cpu_specification.board.z / 1000
 
-    rho_p1 = cpu_specification.cpu_core.p
-    k_p1 = cpu_specification.cpu_core.k
-    cp_p1 = cpu_specification.cpu_core.c_p
+    rho_p1 = cpu_specification.board.p
+    k_p1 = cpu_specification.board.k
+    cp_p1 = cpu_specification.board.c_p
+
+    dx_p2 = simulation_specification.step / 1000  # cpu_specification.board.x
+    dy_p2 = simulation_specification.step / 1000  # cpu_specification.board.y
+    dz_p2 = cpu_specification.cpu_core.z / 1000
+
+    rho_p2 = cpu_specification.cpu_core.p
+    k_p2 = cpu_specification.cpu_core.k
+    cp_p2 = cpu_specification.cpu_core.c_p
 
     h = environment_specification.h
-
-    dx_p2 = simulation_specification.step  # cpu_specification.board.x
-    dy_p2 = simulation_specification.step  # cpu_specification.board.y
-    dz_p2 = cpu_specification.board.z  # TODO: Seguramente el valor sea entre cpu specification
-
-    rho_p2 = cpu_specification.board.p
-    k_p2 = cpu_specification.board.k
-    cp_p2 = cpu_specification.board.c_p
 
     lambda_1 = (h / (dz_p1 * rho_p1 * cp_p1))
     lambda_2 = (h / (dz_p2 * rho_p2 * cp_p2))
@@ -293,26 +298,24 @@ def getCpuCoordinates(origin: Origin, cpu_spec: MaterialCuboid, board_spec: Mate
     x_1: int = x_0 + x
     y_1: int = y_0 + y
 
-    lugares = np.zeros(x * y)
+    places = []
 
-    x_placa = board_spec.x // simulation_specification.step
+    x_board = board_spec.x // simulation_specification.step
 
-    count = 1
     for j in range(y_0, y_1):
+        local_places = []
         for i in range(x_0, x_1):
             if j % 2 == 0:
-                lugares[count - 1] = j * x_placa - (i - 1)
+                local_places.append(j * x_board - (i - 1))
             else:
-                lugares[count - 1] = (j - 1) * x_placa + i
-
-            count = count + 1
+                local_places.append((j - 1) * x_board + i)
 
         if j % 2 == 1:
-            # TODO: Revisar que se pretende hacer y corregirlo
-            aux = np.flip(lugares[count - x - 1: count - 1])
-            lugares = lugares[0: count - x - 1] + aux
+            local_places.reverse()
 
-    return lugares
+        places = places + local_places
+
+    return places
 
 
 class ThermalModel(object):
@@ -362,15 +365,16 @@ def generate_thermal_model(tasks_specification: TasksSpecification, cpu_specific
 
     # Add transitions between micro and board
     # Connections between micro places and board places
-    rel_micro = np.zeros(p_micros)
-
-    coordinates = cpu_specification.cpu_origins
+    rel_micro = np.zeros(p_micros, dtype=int)
 
     for i in range(1, cpu_specification.number_of_cores + 1):
-        rel_micro[(i - 1) * micro_conductivity.p: i * micro_conductivity.p] = getCpuCoordinates(coordinates[i - 1],
-                                                                                                cpu_specification.cpu_core,
-                                                                                                cpu_specification.board,
-                                                                                                simulation_specification)
+        rel_micro[(i - 1) * micro_conductivity.p: i * micro_conductivity.p] = getCpuCoordinates(
+            cpu_specification.cpu_origins[i - 1],
+            cpu_specification.cpu_core,
+            cpu_specification.board,
+            simulation_specification)
+
+    # TODO: hasta aqui bien
 
     # Pre,Post,lambda
     pre_sis, post_sis, lambda_vector = add_interactions_layer(rel_micro, pre_sis, post_sis, lambda_vector,
