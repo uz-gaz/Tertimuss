@@ -17,12 +17,13 @@ class ConductivityModel(object):
 
 def simple_conductivity(material_cuboid: MaterialCuboid,
                         simulation_specification: SimulationSpecification) -> ConductivityModel:
-    dx = simulation_specification.step
-    dy = simulation_specification.step
-    dz = material_cuboid.z
+    dx = simulation_specification.step / 1000
+    dy = simulation_specification.step / 1000
+    dz = material_cuboid.z / 1000
 
-    x: int = material_cuboid.x // dx  # TODO: Preguntar autores originales, pero x e y han de ser enteros para mi
-    y: int = material_cuboid.y // dy
+    x: int = int(
+        material_cuboid.x / simulation_specification.step)  # TODO: Preguntar autores originales, pero x e y han de ser enteros para mi
+    y: int = int(material_cuboid.y / simulation_specification.step)
 
     rho: float = material_cuboid.p
     k: float = material_cuboid.k
@@ -39,10 +40,10 @@ def simple_conductivity(material_cuboid: MaterialCuboid,
     vertical_lambda = (1 / (volume * rho * cp)) * (k * k * vertical_area) / (k * dx_vertical + k * dx_vertical)
 
     # Total de lugares de la RP
-    p: int = x * y
+    p: int = int(x * y)
 
     # Total de transiciones
-    t: int = (x * y * 4) - 8 - 2 * (x - 2) - 2 * (y - 2)
+    t: int = int((x * y * 4) - 8 - 2 * (x - 2) - 2 * (y - 2))
 
     # Matriz de incidencia C
     i_pre = [[1, 0], [0, 1]]
@@ -58,17 +59,19 @@ def simple_conductivity(material_cuboid: MaterialCuboid,
     pre = np.zeros((p, t))
     post = np.zeros((p, t))
 
-    lambda_vector = np.zeros(p)
+    lambda_vector = np.zeros((p - 1) * 2)  # TODO: Revisar el tamaño del vector
 
-    for i in range(0, p):
-        j = i * 3
-        pre[i:i + 2, j:j + 2] = i_pre
-        post[i:i + 2, j:j + 2] = i_post
+    for i in range(1, p):
+        j = 1 + ((i - 1) * 2)
+        pre[i - 1:i + 1, j - 1:j + 1] = i_pre
+        post[i - 1:i + 1, j - 1:j + 1] = i_post
 
-        if (i + 1) % x == 0:
-            lambda_vector[j, j + 2] = [vertical_lambda, vertical_lambda]
+        print(j)
+
+        if i % x == 0:
+            lambda_vector[j - 1: j + 1] = [vertical_lambda, vertical_lambda]
         else:
-            lambda_vector[j, j + 2] = [horizontal_lambda, horizontal_lambda]
+            lambda_vector[j - 1:  j + 1] = [horizontal_lambda, horizontal_lambda]
 
     # Para la siguiente parte de C se numeran las transiciones que
     # conectan 1-6, 2-5, 4-9 y 5-8 (ie. t18 y t17 asociadas a 1-6)
