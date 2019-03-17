@@ -386,9 +386,9 @@ def generate_thermal_model(tasks_specification: TasksSpecification, cpu_specific
                                                             cpu_specification, tasks_specification,
                                                             simulation_specification)
 
-    lambda_vector = [lambda_vector,
-                     lambda_generated]  # TODO: Check if this assignation is the same as Lambda =[Lambda;Lambda_gen']
+    lambda_vector = np.concatenate((lambda_vector, lambda_generated.reshape((len(lambda_generated), 1))), axis=0)
 
+    # TODO: Seguir desde aqui
     # Lineal system
     pi = pre_sis.copy()
     a = (((post_sis - pre_sis).dot(lambda_vector)).dot(pi))
