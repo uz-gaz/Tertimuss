@@ -21,8 +21,7 @@ def simple_conductivity(material_cuboid: MaterialCuboid,
     dy = simulation_specification.step / 1000
     dz = material_cuboid.z / 1000
 
-    x: int = int(
-        material_cuboid.x / simulation_specification.step)  # TODO: Preguntar autores originales, pero x e y han de ser enteros para mi
+    x: int = int(material_cuboid.x / simulation_specification.step)
     y: int = int(material_cuboid.y / simulation_specification.step)
 
     rho: float = material_cuboid.p
@@ -40,10 +39,10 @@ def simple_conductivity(material_cuboid: MaterialCuboid,
     vertical_lambda = (1 / (volume * rho * cp)) * (k * k * vertical_area) / (k * dx_vertical + k * dx_vertical)
 
     # Total de lugares de la RP
-    p: int = int(x * y)
+    p: int = x * y
 
     # Total de transiciones
-    t: int = int((x * y * 4) - 8 - 2 * (x - 2) - 2 * (y - 2))
+    t: int = 4 * p - 2 * (x + y)  # Original = (x * y * 4) - 8 - 2 * (x - 2) - 2 * (y - 2)
 
     # Matriz de incidencia C
     i_pre = [[1, 0], [0, 1]]
@@ -59,14 +58,12 @@ def simple_conductivity(material_cuboid: MaterialCuboid,
     pre = np.zeros((p, t))
     post = np.zeros((p, t))
 
-    lambda_vector = np.zeros((p - 1) * 2)  # TODO: Revisar el tamaño del vector
+    lambda_vector = np.zeros(t)
 
     for i in range(1, p):
         j = 1 + ((i - 1) * 2)
         pre[i - 1:i + 1, j - 1:j + 1] = i_pre
         post[i - 1:i + 1, j - 1:j + 1] = i_post
-
-        print(j)
 
         if i % x == 0:
             lambda_vector[j - 1: j + 1] = [vertical_lambda, vertical_lambda]
@@ -79,7 +76,6 @@ def simple_conductivity(material_cuboid: MaterialCuboid,
     v_post = [0, 1]
 
     start = 1
-    # TODO: REVISAR V2
     j = 1 + 2 * (p - 1)
 
     for count in range(2, y + 1):
@@ -90,6 +86,7 @@ def simple_conductivity(material_cuboid: MaterialCuboid,
 
             post[start - 1, j - 1: j + 1] = v_post
             post[xx - 1, j - 1: j + 1] = v_pre
+
             lambda_vector[j - 1: j + 1] = [vertical_lambda, vertical_lambda]
 
             xx = xx - 1
