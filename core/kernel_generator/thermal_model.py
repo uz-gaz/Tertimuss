@@ -1,6 +1,6 @@
 import numpy as np
 
-from core.problem_specification_models.CpuSpecification import CpuSpecification, MaterialCuboid
+from core.problem_specification_models.CpuSpecification import CpuSpecification, MaterialCuboid, Origin
 from core.problem_specification_models.EnvironmentSpecification import EnvironmentSpecification
 from core.problem_specification_models.SimulationSpecification import SimulationSpecification
 from core.problem_specification_models.TasksSpecification import TasksSpecification
@@ -282,6 +282,39 @@ def add_heat(pre_sis, post_sis, board_conductivity: ConductivityModel,
     return cp_exec, lambda_gen, pre_sis, post_sis
 
 
+def getCpuCoordinates(origin: Origin, cpu_spec: MaterialCuboid, board_spec: MaterialCuboid,
+                      simulation_specification: SimulationSpecification) -> list:
+    x = cpu_spec.x // simulation_specification.step
+    y = cpu_spec.y // simulation_specification.step
+
+    x_0: int = round(origin.x / simulation_specification.step)
+    y_0: int = round(origin.y / simulation_specification.step)
+
+    x_1: int = x_0 + x
+    y_1: int = y_0 + y
+
+    lugares = np.zeros(x * y)
+
+    x_placa = board_spec.x // simulation_specification.step
+
+    count = 1
+    for j in range(y_0, y_1):
+        for i in range(x_0, x_1):
+            if j % 2 == 0:
+                lugares[count - 1] = j * x_placa - (i - 1)
+            else:
+                lugares[count - 1] = (j - 1) * x_placa + i
+
+            count = count + 1
+
+        if j % 2 == 1:
+            # TODO: Revisar que se pretende hacer y corregirlo
+            aux = np.flip(lugares[count - x - 1: count - 1])
+            lugares = lugares[0: count - x - 1] + aux
+
+    return lugares
+
+
 class ThermalModel(object):
     def __init__(self, a_t, ct_exec, s_t, b_ta, lambda_gen):
         self.a_t = a_t
@@ -303,8 +336,8 @@ def generate_thermal_model(tasks_specification: TasksSpecification, cpu_specific
     p_micros = micro_conductivity.p * cpu_specification.number_of_cores
 
     # Create pre, post and lambda from the system with board and number of CPUs
-    r_pre = micro_conductivity.p + cpu_specification.number_of_cores * micro_conductivity.p
-    c_pre = micro_conductivity.t + cpu_specification.number_of_cores * micro_conductivity.t
+    r_pre = board_conductivity.p + p_micros
+    c_pre = board_conductivity.t + cpu_specification.number_of_cores * micro_conductivity.t
 
     pre_sis: np.ndarray = np.zeros((r_pre, c_pre))
     pre_sis[0:board_conductivity.p, 0:board_conductivity.t] = board_conductivity.pre
@@ -328,14 +361,16 @@ def generate_thermal_model(tasks_specification: TasksSpecification, cpu_specific
         lambda_vector[c_in:c_fin, 0] = micro_conductivity.lambda_vector
 
     # Add transitions between micro and board
-
     # Connections between micro places and board places
     rel_micro = np.zeros(p_micros)
 
-    coordinates = cpu_specification.coordinates(simulation_specification)
+    coordinates = cpu_specification.cpu_origins
 
     for i in range(1, cpu_specification.number_of_cores + 1):
-        rel_micro[(i - 1) * micro_conductivity.p: i * micro_conductivity.p] = coordinates[i - 1]
+        rel_micro[(i - 1) * micro_conductivity.p: i * micro_conductivity.p] = getCpuCoordinates(coordinates[i - 1],
+                                                                                                cpu_specification.cpu_core,
+                                                                                                cpu_specification.board,
+                                                                                                simulation_specification)
 
     # Pre,Post,lambda
     pre_sis, post_sis, lambda_vector = add_interactions_layer(rel_micro, pre_sis, post_sis, lambda_vector,

@@ -64,4 +64,4 @@ class CpuSpecification(object):
     '''
 
     def coordinates(self, simulation_specification: SimulationSpecification) -> list:
-        pass
+        return self.cpu_origins
