@@ -4,7 +4,8 @@ import numpy as np
 
 
 class TasksModel(object):
-    def __init__(self, c_tau, lambda_tau, pi_tau, c_tau_alloc, m_tau_o, a_tau):
+    def __init__(self, c_tau: np.ndarray, lambda_tau: np.ndarray, pi_tau: np.ndarray, c_tau_alloc: np.ndarray,
+                 m_tau_o: np.ndarray, a_tau: np.ndarray):
         self.c_tau = c_tau
         self.lambda_tau = lambda_tau
         self.pi_tau = pi_tau

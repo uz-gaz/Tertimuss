@@ -316,7 +316,7 @@ def getCpuCoordinates(origin: Origin, cpu_spec: MaterialCuboid, board_spec: Mate
 
 
 class ThermalModel(object):
-    def __init__(self, a_t, ct_exec, s_t, b_ta, lambda_gen):
+    def __init__(self, a_t: np.ndarray, ct_exec: np.ndarray, s_t: np.ndarray, b_ta: np.ndarray, lambda_gen: np.ndarray):
         self.a_t = a_t
         self.ct_exec = ct_exec
         self.s_t = s_t

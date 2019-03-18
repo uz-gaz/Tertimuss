@@ -5,7 +5,8 @@ from core.problem_specification_models.TasksSpecification import TasksSpecificat
 
 
 class ProcessorModel(object):
-    def __init__(self, c_proc, lambda_proc, pi_proc, c_proc_alloc, s_exec, s_busy, m_proc_o, a_proc):
+    def __init__(self, c_proc: np.ndarray, lambda_proc: np.ndarray, pi_proc: np.ndarray, c_proc_alloc: np.ndarray,
+                 s_exec: np.ndarray, s_busy: np.ndarray, m_proc_o: np.ndarray, a_proc: np.ndarray):
         self.c_proc = c_proc
         self.lambda_proc = lambda_proc
         self.pi_proc = pi_proc
@@ -79,8 +80,6 @@ def generate_processor_model(tasks_specification: TasksSpecification, cpu_specif
 
         # Initial condition
         mo[k * (2 * n + 1) - 1, 0] = 1
-
-        print(k * (2 * n + 1) - 1)
 
         # Output matrix of the processor model, ( m^exec )
         s_busy[(k - 1) * n:k * n, i - 1:(2 * n + 1) * (k - 1) + n] = np.identity(n)
