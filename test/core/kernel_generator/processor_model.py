@@ -6,7 +6,7 @@ import hashlib
 import unittest
 
 
-class TestStringMethods(unittest.TestCase):
+class TestProcessorModel(unittest.TestCase):
 
     def test_basic_processor_model(self):
         tasks_specification: TasksSpecification = TasksSpecification([Task(2, 4, 6.4),
@@ -18,7 +18,7 @@ class TestStringMethods(unittest.TestCase):
 
         processor_model: ProcessorModel = generate_processor_model(tasks_specification, cpu_specification)
 
-        # Test with hashes
+        # Test with hashes, the probability of collision is low
         self.assertEqual(hashlib.md5(processor_model.m_proc_o).hexdigest(), "a7a41fb2b42bf12daa87fa51608c0745")
         self.assertEqual(hashlib.md5(processor_model.a_proc).hexdigest(), "c3839e30f3821b282cd294b406ebd94b")
         self.assertEqual(hashlib.md5(processor_model.s_exec).hexdigest(), "937fcb903b3f54526cb2df22c146ee5f")
