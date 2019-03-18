@@ -100,16 +100,16 @@ def simple_conductivity(material_cuboid: MaterialCuboid,
 def add_interactions_layer(rel_micro: np.ndarray, pre_sis: np.ndarray, post_sis: np.ndarray, lambda_vector: np.ndarray,
                            board_conductivity: ConductivityModel, cpu_specification: CpuSpecification,
                            simulation_specification: SimulationSpecification) -> [np.ndarray, np.ndarray, np.ndarray]:
-    dx_p1 = simulation_specification.step / 1000  # cpu_specification.cpu_core.x
-    dy_p1 = simulation_specification.step / 1000  # cpu_specification.cpu_core.y
+    dx_p1 = simulation_specification.step / 1000
+    dy_p1 = simulation_specification.step / 1000
     dz_p1 = cpu_specification.board.z / 1000
 
     rho_p1 = cpu_specification.board.p
     k_p1 = cpu_specification.board.k
     cp_p1 = cpu_specification.board.c_p
 
-    dx_p2 = simulation_specification.step / 1000  # cpu_specification.board.x
-    dy_p2 = simulation_specification.step / 1000  # cpu_specification.board.y
+    dx_p2 = simulation_specification.step / 1000
+    dy_p2 = simulation_specification.step / 1000
     dz_p2 = cpu_specification.cpu_core.z / 1000
 
     rho_p2 = cpu_specification.cpu_core.p
@@ -191,8 +191,8 @@ def add_convection(pre_sis, post_sis, lambda_vector, board_conductivity: Conduct
 
     cota_micros = l_places - p_micros
 
-    pre_conv = np.zeros((f, 2))  # TODO: Review, i think second index can go out of bound, inside loop
-    # I think this variable is unused too
+    pre_conv = np.zeros((f, 2))  # TODO Review: I think second index can go out of bound at loop
+    # And that this variable is unused too
 
     post_conv = np.zeros((f, 2))
 
