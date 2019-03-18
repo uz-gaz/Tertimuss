@@ -387,9 +387,10 @@ def generate_thermal_model(tasks_specification: TasksSpecification, cpu_specific
 
     lambda_vector = np.concatenate((lambda_vector, lambda_generated.reshape((len(lambda_generated), 1))), axis=0)
 
-    # TODO: Seguir desde aqui
     # Lineal system
-    a = (((post_sis - pre_sis).dot(lambda_vector)).dot(pre_sis))
+    pi = pre_sis.transpose()
+    a = ((post_sis - pre_sis).dot(np.diag((lambda_vector.transpose())[0]))).dot(
+        pi)  # Access to lambda_vector.transpose())[0]) is the way to archive a diagonal matrix
 
     # Output places
     l_measurement = np.zeros(cpu_specification.number_of_cores)
@@ -397,9 +398,9 @@ def generate_thermal_model(tasks_specification: TasksSpecification, cpu_specific
     for i in range(0, cpu_specification.number_of_cores):
         l_measurement[i] = board_conductivity.p + i * micro_conductivity.p + np.math.ceil(micro_conductivity.p / 2)
 
-    c = np.zeros((len(l_measurement), len(a)))  # TODO: Check if is correct
+    c = np.zeros((len(l_measurement), len(a)))
 
     for i in range(0, len(l_measurement)):
-        c[i, l_measurement[i]] = 1
+        c[i, int(l_measurement[i]) - 1] = 1
 
     return ThermalModel(a, cp_exec, c, diagonal, lambda_generated)
