@@ -202,7 +202,7 @@ def add_convection(pre_sis, post_sis, lambda_vector, board_conductivity: Conduct
     lambda_it = np.zeros((l_places, 1))
 
     k = 1
-    for i in range(1, l_places):
+    for i in range(1, l_places + 1):
         pre_it[places[i - 1] - 1, i - 1] = 1
         pre_conv[places[i - 1] - 1, k - 1] = 0
 
@@ -376,7 +376,6 @@ def generate_thermal_model(tasks_specification: TasksSpecification, cpu_specific
                                                               simulation_specification)
 
     # Convection
-    # TODO: Check if return is correct
     diagonal, pre_sis, post_sis, lambda_vector = add_convection(pre_sis, post_sis, lambda_vector,
                                                                 board_conductivity, micro_conductivity,
                                                                 cpu_specification, environment_specification)
@@ -390,8 +389,7 @@ def generate_thermal_model(tasks_specification: TasksSpecification, cpu_specific
 
     # TODO: Seguir desde aqui
     # Lineal system
-    pi = pre_sis.copy()
-    a = (((post_sis - pre_sis).dot(lambda_vector)).dot(pi))
+    a = (((post_sis - pre_sis).dot(lambda_vector)).dot(pre_sis))
 
     # Output places
     l_measurement = np.zeros(cpu_specification.number_of_cores)
