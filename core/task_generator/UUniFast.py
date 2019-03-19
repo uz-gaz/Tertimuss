@@ -8,4 +8,5 @@ class UUniFast(TaskGeneratorAlgorithm):
         self.utilization = utilization
 
     def generate(self) -> list:
+        # TODO: Implement function
         return [self.number_of_tasks]
