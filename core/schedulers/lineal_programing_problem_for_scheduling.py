@@ -31,7 +31,7 @@ def solve_lineal_programing_problem_for_scheduling(tasks_specification: TasksSpe
     a_int = - ((thermal_model.s_t.dot(np.linalg.inv(thermal_model.a_t))).dot(thermal_model.ct_exec)).dot(c_h)
     b_int = environment_specification.t_max * np.ones((m, 1)) + (
         (thermal_model.s_t.dot(np.linalg.inv(thermal_model.a_t))).dot(
-            thermal_model.b_ta)) * environment_specification.t_env
+            thermal_model.b_ta.reshape((len(thermal_model.a_t), 1)))) * environment_specification.t_env
 
     au = np.zeros((m, m * n))
 
@@ -55,9 +55,31 @@ def solve_lineal_programing_problem_for_scheduling(tasks_specification: TasksSpe
 
     # Optimization
     a = np.concatenate((a_int, au))
-    b = np.concatenate((b_int, bu))
+    b = np.concatenate((b_int.transpose(), bu.transpose()), axis=1)
 
-    scipy.optimize.linprog(c=objetive, A_ub=a, b_ub=b, A_eq=a_eq,
-                           b_eq=beq, bounds=bounds, method='interior-point')
+    res = scipy.optimize.linprog(c=objetive, A_ub=a, b_ub=b, A_eq=a_eq,
+                                 b_eq=beq, bounds=bounds, method='interior-point')
+
+    if not res.success:
+        # No solution found
+        print("No solution")
+        return None
+
+    jBi = res.x
+
+    jFSCi = jBi * ch_vector
+
+    walloc = jFSCi
+
+    # Solve differential equation to get a initial condition
+    theta = scipy.linalg.expm(np.linalg.inv(thermal_model.a_t) * h)
+
+    beta_1 = scipy.linalg.inv(thermal_model.a_t).dot(theta - np.identity(len(thermal_model.a_t)))
+    beta_2 = beta_1.dot(thermal_model.b_ta.reshape((len(thermal_model.a_t), 1)))
+    beta_1 = beta_1.dot(thermal_model.ct_exec)
+
+    # Inicializa la condicion inicial en ceros para obtener una condicion inicial=final SmT(0)=Y(H)
+    mT0 = np.zeros((len(thermal_model.a_t), 1))
+    mT = theta.dot(mT0) + beta_1.dot(walloc) + beta_2*environment_specification.t_env
 
     pass
