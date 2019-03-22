@@ -80,6 +80,16 @@ def solve_lineal_programing_problem_for_scheduling(tasks_specification: TasksSpe
 
     # Inicializa la condicion inicial en ceros para obtener una condicion inicial=final SmT(0)=Y(H)
     mT0 = np.zeros((len(thermal_model.a_t), 1))
-    mT = theta.dot(mT0) + beta_1.dot(walloc) + beta_2*environment_specification.t_env
+    mT = theta.dot(mT0) + beta_1.dot(walloc) + beta_2 * environment_specification.t_env
+    temp = thermal_model.s_t.dot(mT)
+
+    # Quantum calc
+    jobs = ia
+    diagonal = np.zeros((len(tasks_specification.tasks), int(jobs.max())))
+
+    for i in range(0, len(tasks_specification.tasks)):
+        diagonal[i, 0: jobs[i]] = list(range(ti[i], h + 1, ti[i]))  # TODO: REVISAR tiene algun problema
+
+    # TODO: Continuar
 
     pass
