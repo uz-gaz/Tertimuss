@@ -39,7 +39,7 @@ def solve_lineal_programing_problem_for_scheduling(tasks_specification: TasksSpe
 
     for j in range(0, m):
         for i in range(0, n):
-            au[j, i + 1 + (j - 1) * n] = tasks_specification.tasks[i] / h
+            au[j, i + 1 + (j - 1) * n] = tasks_specification.tasks[i].c / h
 
     beq = np.transpose(ia)
     bu = np.ones((m, 1))
