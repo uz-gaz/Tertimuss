@@ -90,6 +90,26 @@ def solve_lineal_programing_problem_for_scheduling(tasks_specification: TasksSpe
     for i in range(0, len(tasks_specification.tasks)):
         diagonal[i, 0: jobs[i]] = list(range(ti[i], h + 1, ti[i]))  # TODO: REVISAR tiene algun problema
 
-    # TODO: Continuar
+    # TODO: Revisar
+    sd = diagonal[0, 0:jobs[0]]
 
-    pass
+    for i in range(2, n + 1):
+        sd = np.union1d(sd, diagonal[i - 1, 0:jobs[i - 1]])
+
+    sd = np.union1d(sd, 0)
+
+    quantum = 0.0
+
+    for i in range(2, len(sd[0])):
+        quantum = np.gcd(np.round([quantum, sd[i] * jFSCi], 4))
+
+    if quantum < simulation_specification.step:
+        quantum = simulation_specification.step
+
+    walloc_Max = jFSCi / quantum
+    mT_max = theta*mT0 + beta_1*walloc_Max + beta_2*environment_specification.t_env
+    temp_max = thermal_model.s_t * mT_max
+
+    if temp_max / m > environment_specification.t_max:
+        print("No solution...")
+        # TODO: Return error or throw exception
