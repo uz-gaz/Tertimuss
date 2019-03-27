@@ -80,11 +80,9 @@ def solve_lineal_programing_problem_for_scheduling(tasks_specification: TasksSpe
     beta_2 = beta_1.dot(thermal_model.b_ta.reshape((len(thermal_model.a_t), 1)))
     beta_1 = beta_1.dot(thermal_model.ct_exec)
 
-    # TODO: Revisar a partir de aqui [8,20;32,20]
-
     # Inicializa la condicion inicial en ceros para obtener una condicion inicial=final SmT(0)=Y(H)
     mT0 = np.zeros((len(thermal_model.a_t), 1))
-    mT = theta.dot(mT0) + beta_1.dot(walloc) + beta_2 * environment_specification.t_env
+    mT = theta.dot(mT0) + beta_1.dot(walloc.reshape((len(walloc), 1))) + beta_2 * environment_specification.t_env
     temp = thermal_model.s_t.dot(mT)
 
     # Quantum calc
@@ -94,7 +92,6 @@ def solve_lineal_programing_problem_for_scheduling(tasks_specification: TasksSpe
     for i in range(0, len(tasks_specification.tasks)):
         diagonal[i, 0: int(jobs[i])] = list(range(ti[i], h + 1, ti[i]))
 
-    # TODO: Revisar
     sd = diagonal[0, 0:int(jobs[0])]
 
     for i in range(2, n + 1):
@@ -104,9 +101,14 @@ def solve_lineal_programing_problem_for_scheduling(tasks_specification: TasksSpe
 
     quantum = 0.0
 
+    # TODO: Revisar a partir de aqui [8,20;32,20]
+    # Ver como en matlab se obtiene el gcd de floats
     for i in range(2, len(sd)):
         rounded = np.round([quantum] + sd[i] * jFSCi, 4)
-        quantum = np.gcd.reduce(rounded.transpose())
+        xxx = np.gcd.reduce([5, 10, 15])
+        rounded_as_list = rounded.tolist()
+        quantum = np.gcd.reduce(rounded.tolist())
+
 
     if quantum < simulation_specification.step:
         quantum = simulation_specification.step
