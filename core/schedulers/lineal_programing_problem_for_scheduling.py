@@ -75,9 +75,10 @@ def solve_lineal_programing_problem_for_scheduling(tasks_specification: TasksSpe
     # Solve differential equation to get a initial condition
     theta = scipy.linalg.expm(thermal_model.a_t * h)
 
-    beta_1 = ((scipy.linalg.inv(thermal_model.a_t)).dot(
-        theta - np.identity(len(thermal_model.a_t)))).dot(thermal_model.ct_exec)
+    beta_1 = (scipy.linalg.inv(thermal_model.a_t)).dot(
+        theta - np.identity(len(thermal_model.a_t)))
     beta_2 = beta_1.dot(thermal_model.b_ta.reshape((len(thermal_model.a_t), 1)))
+    beta_1 = beta_1.dot(thermal_model.ct_exec)
 
     # TODO: Revisar a partir de aqui [8,20;32,20]
 
