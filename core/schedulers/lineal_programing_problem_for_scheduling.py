@@ -15,17 +15,16 @@ def solve_lineal_programing_problem_for_scheduling(tasks_specification: TasksSpe
                                                    simulation_specification: SimulationSpecification,
                                                    thermal_model: ThermalModel) -> [np.ndarray, np.ndarray, float,
                                                                                     np.ndarray]:
-    # TODO: Implement function
     h = tasks_specification.h
-    ti = np.asarray(list(map(lambda a: a.t, tasks_specification.tasks)))
-    cci = np.asarray(list(map(lambda a: a.c, tasks_specification.tasks)))
+    ti = np.asarray(list(map(lambda task: task.t, tasks_specification.tasks)))
+    cci = np.asarray(list(map(lambda task: task.c, tasks_specification.tasks)))
     ia = h / ti
     n = len(tasks_specification.tasks)
     m = cpu_specification.number_of_cores
 
     # Inequality constraint
     # Create matrix diag([cc1/H ... ccn/H cc1/H .....]) of n*m
-    ch_vector = np.asarray(m * list(map(lambda a: a.c / h, tasks_specification.tasks)))
+    ch_vector = np.asarray(m * list(map(lambda task: task.c / h, tasks_specification.tasks)))
 
     c_h = np.diag(ch_vector)
 
@@ -40,7 +39,7 @@ def solve_lineal_programing_problem_for_scheduling(tasks_specification: TasksSpe
 
     for j in range(0, m):
         for i in range(0, n):
-            au[j, i + 1 + (j - 1) * n] = tasks_specification.tasks[i].c / h
+            au[j, i + j * n] = tasks_specification.tasks[i].c / h
 
     beq = np.transpose(ia)
     bu = np.ones((m, 1))
@@ -74,11 +73,13 @@ def solve_lineal_programing_problem_for_scheduling(tasks_specification: TasksSpe
     walloc = jFSCi
 
     # Solve differential equation to get a initial condition
-    theta = scipy.linalg.expm(np.linalg.inv(thermal_model.a_t) * h)
+    theta = scipy.linalg.expm(thermal_model.a_t * h)
 
-    beta_1 = scipy.linalg.inv(thermal_model.a_t).dot(theta - np.identity(len(thermal_model.a_t)))
+    beta_1 = ((scipy.linalg.inv(thermal_model.a_t)).dot(
+        theta - np.identity(len(thermal_model.a_t)))).dot(thermal_model.ct_exec)
     beta_2 = beta_1.dot(thermal_model.b_ta.reshape((len(thermal_model.a_t), 1)))
-    beta_1 = beta_1.dot(thermal_model.ct_exec)
+
+    # TODO: Revisar a partir de aqui [8,20;32,20]
 
     # Inicializa la condicion inicial en ceros para obtener una condicion inicial=final SmT(0)=Y(H)
     mT0 = np.zeros((len(thermal_model.a_t), 1))
