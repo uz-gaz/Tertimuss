@@ -25,10 +25,17 @@ def solve_lineal_programing_problem_for_scheduling(tasks_specification: TasksSpe
     # Inequality constraint
     # Create matrix diag([cc1/H ... ccn/H cc1/H .....]) of n*m
     ch_vector = np.asarray(m * list(map(lambda task: task.c / h, tasks_specification.tasks)))
-
     c_h = np.diag(ch_vector)
 
-    a_int = - ((thermal_model.s_t.dot(np.linalg.inv(thermal_model.a_t))).dot(thermal_model.ct_exec)).dot(c_h)
+    c_h = np.round(c_h, 4)  # FIXME: Lose decimals to archive the same behaviour of Matlab
+
+    a_t = thermal_model.a_t  # FIXME: Lose decimals to archive the same behaviour of Matlab
+
+    b = np.round(thermal_model.ct_exec, 4)  # FIXME: Lose decimals to archive the same behaviour of Matlab
+
+    # FIXME: Decimales a partir de aqui[8,20;32,20]
+    a_t_inv = np.linalg.inv(a_t)
+    a_int = - ((thermal_model.s_t.dot(np.linalg.inv(a_t))).dot(b)).dot(c_h)
     b_int = environment_specification.t_max * np.ones((m, 1)) + (
         (thermal_model.s_t.dot(np.linalg.inv(thermal_model.a_t))).dot(
             thermal_model.b_ta.reshape((len(thermal_model.a_t), 1)))) * environment_specification.t_env
@@ -101,21 +108,23 @@ def solve_lineal_programing_problem_for_scheduling(tasks_specification: TasksSpe
 
     quantum = 0.0
 
-    # TODO: Revisar a partir de aqui [8,20;32,20]
-    # Ver como en matlab se obtiene el gcd de floats
-    for i in range(2, len(sd)):
-        rounded = np.round([quantum] + sd[i] * jFSCi, 4)
-        xxx = np.gcd.reduce([5, 10, 15])
-        rounded_as_list = rounded.tolist()
-        quantum = np.gcd.reduce(rounded.tolist())
+    round_factor = 4
+    fraction_denominator = 10 ** round_factor
 
+    for i in range(2, len(sd)):
+        rounded = np.round(np.concatenate(([quantum], sd[i - 1] * jFSCi)), round_factor)
+        rounded_as_fraction = list(map(lambda actual: int(actual * fraction_denominator), rounded))
+        quantum = np.gcd.reduce(
+            rounded_as_fraction) / fraction_denominator  # TODO: Review, como jFSCi es muy exacto, el quantum es diferente
 
     if quantum < simulation_specification.step:
         quantum = simulation_specification.step
 
+    # Ver como en matlab se obtiene el gcd de floats
     walloc_Max = jFSCi / quantum
-    mT_max = theta * mT0 + beta_1 * walloc_Max + beta_2 * environment_specification.t_env
-    temp_max = thermal_model.s_t * mT_max
+    mT_max = theta.dot(mT0) + beta_1.dot(
+        walloc_Max.reshape((len(walloc_Max), 1))) + environment_specification.t_env * beta_2
+    temp_max = thermal_model.s_t.dot(mT_max)
 
     if temp_max / m > environment_specification.t_max:
         print("No solution...")
