@@ -1,22 +1,19 @@
 import numpy as np
+import scipy.integrate
 
 from core.kernel_generator.global_model import GlobalModel
-from core.kernel_generator.processor_model import ProcessorModel
-from core.kernel_generator.tasks_model import TasksModel
-from core.kernel_generator.thermal_model import ThermalModel
-from core.problem_specification_models.CpuSpecification import CpuSpecification
-from core.problem_specification_models.EnvironmentSpecification import EnvironmentSpecification
-from core.problem_specification_models.SimulationSpecification import SimulationSpecification
-from core.problem_specification_models.TasksSpecification import TasksSpecification
 
 
-def solve_global_model(self, tasks_specification: TasksSpecification,
-                       cpu_specification: CpuSpecification,
-                       environment_specification: EnvironmentSpecification,
-                       simulation_specification: SimulationSpecification,
-                       global_model: GlobalModel,
-                       processor_model: ProcessorModel,
-                       tasks_model: TasksModel,
-                       thermal_model: ThermalModel) -> [np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray,
-                                                        np.ndarray, np.ndarray]:
+def solve_global_model(global_model: GlobalModel, mo: np.ndarray, walloc: np.ndarray, ma: float,
+                       TimeSol: np.ndarray) -> [np.ndarray, np.ndarray, np.ndarray,
+                                                np.ndarray, np.ndarray,
+                                                np.ndarray, np.ndarray]:
+    scipy.integrate.ode(lambda t, m: GLOBAL(m, global_model.a, global_model.b, global_model.bp, walloc,
+                                            ma))  # TODO: Analyze and use mo and TimeSol
+
+    # TODO: Continue
     pass
+
+
+def GLOBAL(m, a: np.ndarray, b: np.ndarray, bp: np.ndarray, walloc: np.ndarray, ma: np.ndarray):
+    return a.dot(m) + b.dot(walloc) + bp.dot(ma)
