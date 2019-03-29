@@ -27,6 +27,7 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
                                                                                  thermal_model)
         n = len(tasks_specification.tasks)
         m = cpu_specification.number_of_cores
+        step = simulation_specification.dt
 
         ti = [i.t for i in tasks_specification.tasks]
 
@@ -55,5 +56,7 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
         zeta = 0
         time = 0
         zeta_q = 1
+
+        sd = sd[kd]
 
         # TODO: Continue

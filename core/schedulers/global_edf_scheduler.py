@@ -18,4 +18,5 @@ class GlobalEDFScheduler(AbstractScheduler):
                  environment_specification: EnvironmentSpecification, simulation_specification: SimulationSpecification,
                  global_model: GlobalModel, processor_model: ProcessorModel, tasks_model: TasksModel,
                  thermal_model: ThermalModel):
+        # TODO
         pass
