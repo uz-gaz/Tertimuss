@@ -47,6 +47,8 @@ class TestLinealProgramingProblem(unittest.TestCase):
                            tasks_model,
                            thermal_model)
 
+        # TODO: Continue
+
 
 if __name__ == '__main__':
     unittest.main()

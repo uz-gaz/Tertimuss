@@ -59,4 +59,24 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
 
         sd = sd[kd]
 
+        m_exec = np.zeros(len(jFSCi))
+        m_busy = np.zeros(len(jFSCi))
+        Mexec = np.zeros(len(jFSCi))
+        TIMEZ = []
+        TIMEstep = []
+        TIME_Temp = []
+        TEMPERATURE_CONT = []
+        TEMPERATURE_DISC = []
+        MEXEC = []
+        MEXEC_TCPN = []
+        moDisc = global_model.mo
+        M = []
+
+        while round(zeta) <= tasks_specification.h:
+            while round(time) <= zeta + quantum:
+                for j in range(0, m):
+                    for i in range(0, n):
+                        # Calculo del error, y la superficie para el sliding mode control
+                        e_iFSCj[i + j * n] = jFSCi[i + j * n] * zeta - m_exec[i + j * n]
+
         # TODO: Continue

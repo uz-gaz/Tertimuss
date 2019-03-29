@@ -32,6 +32,8 @@ class TestLinealProgramingProblem(unittest.TestCase):
                                                        simulation_specification,
                                                        thermal_model)
 
+        # TODO: Continue
+
 
 if __name__ == '__main__':
     unittest.main()
