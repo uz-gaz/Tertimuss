@@ -46,4 +46,5 @@ thermal_model: ThermalModel = generate_thermal_model(tasks_specification, cpu_sp
 global_model: GlobalModel = generate_global_model(tasks_model, processor_model, thermal_model,
                                                   environment_specification)
 
-solve_global_model(global_model, mo, w_alloc, ma, TimeSol)
+m, m_exec, m_busy, temp, tout, temp_time, m_tcpn = solve_global_model(global_model, mo, w_alloc, ma, TimeSol)
+
