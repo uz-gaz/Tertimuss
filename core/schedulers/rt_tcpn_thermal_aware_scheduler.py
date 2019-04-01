@@ -91,16 +91,17 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
                         # Control Para tareas temporal en cada procesador w_alloc control en I_tau
                         walloc[i + j * n] = (jFSCi[i + j * n] * np.sign(s[i + j * n]) + jFSCi[i + j * n]) / 2
 
-                mo_next, m_exec, m_busy, Temp, tout, TempTime, m_TCPN_cont = solve_global_model(global_model, mo,
+                mo_next, m_exec, m_busy, Temp, tout, TempTime, m_TCPN_cont = solve_global_model(global_model,
+                                                                                                mo.reshape(len(mo)),
                                                                                                 walloc,
                                                                                                 environment_specification.t_env,
                                                                                                 np.asarray([time,
                                                                                                             time + step]))  # FIXME: Array orientation
 
                 mo = mo_next
-                TEMPERATURE_CONT = np.concatenate((TEMPERATURE_CONT, Temp), axis=1)
-                TIMEstep = np.concatenate((TIMEstep, time))
-                MEXEC_TCPN = np.concatenate((MEXEC_TCPN, m_exec))
+                TEMPERATURE_CONT = TEMPERATURE_CONT + [Temp]
+                TIMEstep = TIMEstep + [time]
+                MEXEC_TCPN = MEXEC_TCPN + [m_exec]
                 time = time + step
 
             # DISCRETIZATION
@@ -144,30 +145,30 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
                         k = k + 1
 
                     # Se toma la tarea de mayor prioridad en el conjunto ET
-                    IndMaxPr = ET[j, IndMaxPr[k]]
+                    IndMaxPr = int(ET[j, IndMaxPr[k]])
 
                     # si se asigna la procesador j la tarea de mayor prioridad IndMaxPr(1), entonces si en el
                     # conjunto ET para los procesadores restantes debe pasar que ET(k,IndMaxPr(1))=0,
                     # para evitar que las tareas se ejecuten de manera paralela
                     for k in range(0, m):
                         if j != k:
-                            ET[k, IndMaxPr[0]] = 0
+                            ET[k, IndMaxPr] = 0
 
-                    i_tau_disc[IndMaxPr[0] + j * n, zeta_q - 1] = 1
+                    i_tau_disc[IndMaxPr + j * n, zeta_q - 1] = 1
 
-                    Mexec[IndMaxPr[0] + j * n] += quantum
+                    Mexec[IndMaxPr + j * n] += quantum
 
             MEXEC = np.concatenate((MEXEC, Mexec))
             mo_nextDisc, m_execDisc, m_busyDisc, TempDisc, toutDisc, TempTimeDisc, m_TCPN = solve_global_model(
-                global_model, moDisc, i_tau_disc[:, zeta_q - 1], environment_specification.t_env,
-                np.ndarray(list(range(zeta, zeta + quantum + 1, step))))
+                global_model, moDisc.reshape(len(moDisc)), i_tau_disc[:, zeta_q - 1], environment_specification.t_env,
+                np.asarray(list(np.arange(zeta, zeta + quantum + 1, step))))
 
             moDisc = mo_nextDisc
-            M = np.concatenate((M, m_TCPN))
+            M = M + [m_TCPN]
 
-            TEMPERATURE_DISC = np.concatenate((TEMPERATURE_DISC, TempTimeDisc))
-            TIME_Temp = np.concatenate((TIME_Temp, toutDisc))
-            TIMEZ = np.concatenate((TIMEZ, zeta))
+            TEMPERATURE_DISC = TEMPERATURE_DISC + [TempTimeDisc]
+            TIME_Temp = TIME_Temp + [toutDisc]
+            TIMEZ = TIMEZ + [zeta]
 
             if np.array_equal(round(zeta, 3), sd):
                 kd = kd + 1
