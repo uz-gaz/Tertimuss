@@ -39,14 +39,14 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
         kd = 1
         sd_u = []
         for i in range(0, n):
-            diagonal[i, 0: jobs[i]] = list(range(ti[i], ti[i], tasks_specification.h + 1))
+            diagonal[i, 0: jobs[i]] = list(range(ti[i], tasks_specification.h + 1, ti[i]))
             sd_u = np.union1d(sd_u, diagonal[i, 0: jobs[i]])
 
         sd_u = np.union1d(sd_u, [0])
 
         walloc = np.zeros(len(jFSCi))
 
-        i_tau_disc = np.zeros((len(jFSCi), tasks_specification.h / quantum))
+        i_tau_disc = np.zeros((len(jFSCi), int(tasks_specification.h / quantum)))
         e_iFSCj = np.zeros(len(walloc))
         x1 = np.zeros(len(e_iFSCj))  # ==np.zeros(walloc)
         x2 = np.zeros(len(e_iFSCj))
@@ -94,8 +94,8 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
                 mo_next, m_exec, m_busy, Temp, tout, TempTime, m_TCPN_cont = solve_global_model(global_model, mo,
                                                                                                 walloc,
                                                                                                 environment_specification.t_env,
-                                                                                                np.ndarray([time,
-                                                                                                            time + step]))
+                                                                                                np.asarray([time,
+                                                                                                            time + step]))  # FIXME: Array orientation
 
                 mo = mo_next
                 TEMPERATURE_CONT = np.concatenate((TEMPERATURE_CONT, Temp), axis=1)
@@ -110,7 +110,7 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
             # Se inicializa el conjunto ET de transiciones de tareas para el modelo discreto
             ET = np.zeros((m, n))
 
-            FSC = []  # TODO: Initialize with correct size
+            FSC = np.zeros(m * n)
 
             # Se calcula el remaining jobs execution Re_tau(j,i)
             for j in range(0, m):

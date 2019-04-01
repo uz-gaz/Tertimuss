@@ -9,7 +9,7 @@ def solve_global_model(global_model: GlobalModel, mo: np.ndarray, w_alloc: np.nd
                                                  np.ndarray, np.ndarray,
                                                  np.ndarray, np.ndarray]:
     res = scipy.integrate.solve_ivp(
-        lambda t, m: GLOBAL(m, global_model.a, global_model.b, global_model.bp, w_alloc, ma), time_sol, mo
+        lambda t, m: global_function(m, global_model.a, global_model.b, global_model.bp, w_alloc, ma), time_sol, mo, dense_output=True
     )  # Review final dimensions
 
     m_aux = res.y.transpose()
@@ -29,6 +29,6 @@ def solve_global_model(global_model: GlobalModel, mo: np.ndarray, w_alloc: np.nd
     return m_aux, m_exec, m_busy, temp, res.t, temp_time, res.y
 
 
-def GLOBAL(m: np.ndarray, a: np.ndarray, b: np.ndarray, bp: np.ndarray, w_alloc: np.ndarray, ma: float):
+def global_function(m: np.ndarray, a: np.ndarray, b: np.ndarray, bp: np.ndarray, w_alloc: np.ndarray, ma: float):
     res = a.dot(m.reshape((len(m), 1))) + b.dot(w_alloc) + bp * ma
     return res.reshape(len(res))
