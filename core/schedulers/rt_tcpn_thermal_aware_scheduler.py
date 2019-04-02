@@ -56,7 +56,7 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
 
         zeta = 0
         time = 0
-        zeta_q = 1
+        zeta_q = 0
 
         sd = sd_u[kd]
 
@@ -66,7 +66,7 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
         TIMEZ = []
         TIMEstep = []
         TIME_Temp = []
-        TEMPERATURE_CONT = []
+        TEMPERATURE_CONT = [] # np.asarray([])
         TEMPERATURE_DISC = []
         MEXEC = []
         MEXEC_TCPN = []
@@ -99,12 +99,17 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
                                                                                                             time + step]))  # FIXME: Array orientation
 
                 mo = mo_next
+                # TEMP_2 = Temp.reshape((-1, 1))
+                # TEMPERATURE_CONT = np.concatenate((TEMPERATURE_CONT, TEMP_2), axis=0)  #
                 TEMPERATURE_CONT = TEMPERATURE_CONT + [Temp]
                 TIMEstep = TIMEstep + [time]
                 MEXEC_TCPN = MEXEC_TCPN + [m_exec]
                 time = time + step
 
             # DISCRETIZATION
+            if zeta_q > 239:
+                i = 111
+                pass
             # Todas las tareas se expulsan de los procesadores
             i_tau_disc[:, zeta_q] = 0
 
@@ -154,13 +159,13 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
                         if j != k:
                             ET[k, IndMaxPr] = 0
 
-                    i_tau_disc[IndMaxPr + j * n, zeta_q - 1] = 1
+                    i_tau_disc[IndMaxPr + j * n, zeta_q] = 1
 
                     Mexec[IndMaxPr + j * n] += quantum
 
             MEXEC = np.concatenate((MEXEC, Mexec))
             mo_nextDisc, m_execDisc, m_busyDisc, TempDisc, toutDisc, TempTimeDisc, m_TCPN = solve_global_model(
-                global_model, moDisc.reshape(len(moDisc)), i_tau_disc[:, zeta_q - 1], environment_specification.t_env,
+                global_model, moDisc.reshape(len(moDisc)), i_tau_disc[:, zeta_q], environment_specification.t_env,
                 np.asarray(list(np.arange(zeta, zeta + quantum + 1, step))))
 
             moDisc = mo_nextDisc

@@ -117,7 +117,7 @@ def solve_lineal_programing_problem_for_scheduling(tasks_specification: TasksSpe
     if quantum < simulation_specification.dt:
         quantum = simulation_specification.dt
 
-    # FIXME: Decimales a partir de aqui [8,20;32,20]
+    # FIXME: Decimales a partir de aqui
 
     # Ver como en matlab se obtiene el gcd de floats
     walloc_Max = jFSCi / quantum
