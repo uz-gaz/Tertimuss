@@ -45,7 +45,6 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
         sd_u = np.union1d(sd_u, [0])
 
         walloc = np.zeros(len(jFSCi))
-
         i_tau_disc = np.zeros((len(jFSCi), int(tasks_specification.h / quantum)))
         e_iFSCj = np.zeros(len(walloc))
         x1 = np.zeros(len(e_iFSCj))  # ==np.zeros(walloc)
@@ -56,7 +55,6 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
 
         zeta = 0
         time = 0
-        zeta_q = 0
 
         sd = sd_u[kd]
 
@@ -74,7 +72,7 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
         M = []
         mo = global_model.mo
 
-        while round(zeta) <= tasks_specification.h:
+        for zeta_q in range(0, int(tasks_specification.h / quantum)):
             while round(time) <= zeta + quantum:
                 for j in range(0, m):
                     for i in range(0, n):
@@ -107,9 +105,6 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
                 time = time + step
 
             # DISCRETIZATION
-            if zeta_q > 239:
-                i = 111
-                pass
             # Todas las tareas se expulsan de los procesadores
             i_tau_disc[:, zeta_q] = 0
 
@@ -181,7 +176,6 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
                     sd = sd_u[kd]
 
             zeta = zeta + quantum
-            zeta_q = zeta_q + 1
 
         SCH_OLDTFS = i_tau_disc
 
