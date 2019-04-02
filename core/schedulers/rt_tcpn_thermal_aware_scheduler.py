@@ -62,12 +62,12 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
         m_busy = np.zeros(len(jFSCi))
         Mexec = np.zeros(len(jFSCi))
         TIMEZ = []
-        TIMEstep = []
+        TIMEstep = np.ndarray((0, 1))
         TIME_Temp = []
-        TEMPERATURE_CONT = [] # np.asarray([])
+        TEMPERATURE_CONT = np.ndarray((len(global_model.s) - 2 * len(walloc), 0))
         TEMPERATURE_DISC = []
         MEXEC = []
-        MEXEC_TCPN = []
+        MEXEC_TCPN = np.ndarray((len(walloc), 0))
         moDisc = global_model.mo
         M = []
         mo = global_model.mo
@@ -94,12 +94,12 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
                                                                                                 walloc,
                                                                                                 environment_specification.t_env,
                                                                                                 np.asarray([time,
-                                                                                                            time + step]))  # FIXME: Array orientation
+                                                                                                            time + step]))
 
                 mo = mo_next
                 # TEMP_2 = Temp.reshape((-1, 1))
                 # TEMPERATURE_CONT = np.concatenate((TEMPERATURE_CONT, TEMP_2), axis=0)  #
-                TEMPERATURE_CONT = TEMPERATURE_CONT + [Temp]
+                TEMPERATURE_CONT = np.concatenate((TEMPERATURE_CONT, Temp))
                 TIMEstep = TIMEstep + [time]
                 MEXEC_TCPN = MEXEC_TCPN + [m_exec]
                 time = time + step

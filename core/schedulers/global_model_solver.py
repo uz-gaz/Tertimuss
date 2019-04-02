@@ -27,7 +27,7 @@ def solve_global_model(global_model: GlobalModel, mo: np.ndarray, w_alloc: np.nd
     m_exec = y_m[len(w_alloc): 2 * len(w_alloc)]
     temp = y_m[2 * len(w_alloc): len(y_m)]
 
-    return m_aux, m_exec, m_busy, temp, res.t, temp_time, res.y
+    return m_aux.reshape((-1, 1)), m_exec.reshape((-1, 1)), m_busy.reshape((-1, 1)), temp.reshape((-1, 1)), res.t.reshape((-1, 1)), temp_time, res.y
 
 
 def global_function(m: np.ndarray, a: np.ndarray, b: np.ndarray, bp: np.ndarray, w_alloc: np.ndarray, ma: float):
