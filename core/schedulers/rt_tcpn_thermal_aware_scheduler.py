@@ -66,7 +66,7 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
         TIME_Temp = np.ndarray((0, 1))
         TEMPERATURE_CONT = np.ndarray((len(global_model.s) - 2 * len(walloc), 0))
         TEMPERATURE_DISC = np.ndarray((len(global_model.s) - 2 * len(walloc), 0))
-        MEXEC = []
+        MEXEC = np.ndarray((len(jFSCi), 0))
         MEXEC_TCPN = np.ndarray((len(walloc), 0))
         moDisc = global_model.mo
         M = np.zeros((len(global_model.mo), 0))
@@ -156,7 +156,7 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
 
                     Mexec[IndMaxPr + j * n] += quantum
 
-            MEXEC = np.concatenate((MEXEC, Mexec))
+            MEXEC = np.concatenate((MEXEC, Mexec.reshape(-1, 1)), axis=1)
             mo_nextDisc, m_execDisc, m_busyDisc, TempDisc, toutDisc, TempTimeDisc, m_TCPN = solve_global_model(
                 global_model, moDisc.reshape(len(moDisc)), i_tau_disc[:, zeta_q], environment_specification.t_env,
                 np.asarray(list(np.arange(zeta, zeta + quantum + 1, step))))
