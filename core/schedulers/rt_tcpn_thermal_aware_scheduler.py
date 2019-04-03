@@ -132,7 +132,7 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
                     # Se ordenan de manera descendente por orden de prioridad,
                     # IndMaxPr contiene los indices de las tareas ordenado de mayor a
                     # menor prioridad
-                    IndMaxPr = np.flip(np.argsort(iPRj[j, :]))  # FIXME: Check if is descend
+                    IndMaxPr = np.flip(np.argsort(iPRj[j, :]))
 
                     # Si en el vector ET(j,k) existe un cero entonces significa que en
                     # la posicion k la tarea no tine a Re_tau(j,k)>0 (es decir la tarea ya ejecuto lo que debía)
@@ -176,8 +176,6 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
             zeta = zeta + quantum
 
         SCH_OLDTFS = i_tau_disc
-
-        # TODO: MEXEC está mal, debería de ser 6 x 240
 
         return M, mo, TIMEZ, SCH_OLDTFS, MEXEC, MEXEC_TCPN, TIMEstep.reshape(
             (-1, 1)), TIME_Temp, TEMPERATURE_CONT, TEMPERATURE_DISC

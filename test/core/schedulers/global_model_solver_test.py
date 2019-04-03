@@ -22,7 +22,7 @@ ma: float = 45
 w_alloc: np.ndarray = np.asarray(
     [0.250000000000003, 0.187500000000001, 0.125000000000000, 0.250000000000001, 0.187500000000001, 0.125000000000000])
 
-w_alloc = w_alloc.reshape((len(w_alloc), 1))
+#w_alloc = w_alloc.reshape((len(w_alloc), 1))
 
 tasks_specification: TasksSpecification = TasksSpecification([Task(2, 4, 6.4),
                                                               Task(3, 8, 8),
