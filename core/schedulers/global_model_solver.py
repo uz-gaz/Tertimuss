@@ -9,7 +9,7 @@ def solve_global_model(global_model: GlobalModel, mo: np.ndarray, w_alloc: np.nd
                                                  np.ndarray, np.ndarray,
                                                  np.ndarray, np.ndarray]:
     res = scipy.integrate.solve_ivp(
-        lambda t, m: global_function(m, global_model.a, global_model.b, global_model.bp.reshape(len(global_model.bp)),
+        lambda t, m: global_function(m, global_model.a, global_model.b, global_model.bp.reshape(-1),
                                      w_alloc, ma), time_sol, mo
     )  # Review final dimensions
 

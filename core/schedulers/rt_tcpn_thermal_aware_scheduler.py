@@ -61,15 +61,15 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
         m_exec = np.zeros(len(jFSCi))
         m_busy = np.zeros(len(jFSCi))
         Mexec = np.zeros(len(jFSCi))
-        TIMEZ = []
+        TIMEZ = np.ndarray((0, 1))
         TIMEstep = np.asarray([])
-        TIME_Temp = []
+        TIME_Temp = np.ndarray((0, 1))
         TEMPERATURE_CONT = np.ndarray((len(global_model.s) - 2 * len(walloc), 0))
-        TEMPERATURE_DISC = []
+        TEMPERATURE_DISC = np.ndarray((len(global_model.s) - 2 * len(walloc), 0))
         MEXEC = []
         MEXEC_TCPN = np.ndarray((len(walloc), 0))
         moDisc = global_model.mo
-        M = []
+        M = np.zeros((len(global_model.mo), 0))
         mo = global_model.mo
 
         for zeta_q in range(0, int(tasks_specification.h / quantum)):
@@ -162,11 +162,11 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
                 np.asarray(list(np.arange(zeta, zeta + quantum + 1, step))))
 
             moDisc = mo_nextDisc
-            M = M + [m_TCPN]  # FIXME: Rep as np array
+            M = np.concatenate((M, m_TCPN), axis=1)
 
-            TEMPERATURE_DISC = TEMPERATURE_DISC + [TempTimeDisc]# FIXME: Rep as np array
-            TIME_Temp = TIME_Temp + [toutDisc] # FIXME: Rep as np array
-            TIMEZ = TIMEZ + [zeta]  # FIXME: Rep as np array
+            TEMPERATURE_DISC = np.concatenate((TEMPERATURE_DISC, TempTimeDisc), axis=1)
+            TIME_Temp = np.concatenate((TIME_Temp, toutDisc))
+            TIMEZ = np.concatenate((TIMEZ, np.asarray([zeta]).reshape((1, 1))))
 
             if np.array_equal(round(zeta, 3), sd):
                 kd = kd + 1
@@ -179,4 +179,5 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
 
         # TODO: MEXEC está mal, debería de ser 6 x 240
 
-        return M, mo, TIMEZ, SCH_OLDTFS, MEXEC, MEXEC_TCPN, TIMEstep.reshape((-1,1)), TIME_Temp, TEMPERATURE_CONT, TEMPERATURE_DISC
+        return M, mo, TIMEZ, SCH_OLDTFS, MEXEC, MEXEC_TCPN, TIMEstep.reshape(
+            (-1, 1)), TIME_Temp, TEMPERATURE_CONT, TEMPERATURE_DISC
