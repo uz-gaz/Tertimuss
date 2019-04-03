@@ -62,7 +62,7 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
         m_busy = np.zeros(len(jFSCi))
         Mexec = np.zeros(len(jFSCi))
         TIMEZ = []
-        TIMEstep = np.ndarray((0, 1))
+        TIMEstep = np.asarray([])
         TIME_Temp = []
         TEMPERATURE_CONT = np.ndarray((len(global_model.s) - 2 * len(walloc), 0))
         TEMPERATURE_DISC = []
@@ -97,11 +97,9 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
                                                                                                             time + step]))
 
                 mo = mo_next
-                # TEMP_2 = Temp.reshape((-1, 1))
-                # TEMPERATURE_CONT = np.concatenate((TEMPERATURE_CONT, TEMP_2), axis=0)  #
-                TEMPERATURE_CONT = np.concatenate((TEMPERATURE_CONT, Temp))
-                TIMEstep = TIMEstep + [time]
-                MEXEC_TCPN = MEXEC_TCPN + [m_exec]
+                TEMPERATURE_CONT = np.concatenate((TEMPERATURE_CONT, Temp), axis=1)
+                TIMEstep = np.concatenate((TIMEstep, np.asarray([time])))
+                MEXEC_TCPN = np.concatenate((MEXEC_TCPN, m_exec), axis=1)
                 time = time + step
 
             # DISCRETIZATION
@@ -164,11 +162,11 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
                 np.asarray(list(np.arange(zeta, zeta + quantum + 1, step))))
 
             moDisc = mo_nextDisc
-            M = M + [m_TCPN]
+            M = M + [m_TCPN]  # FIXME: Rep as np array
 
-            TEMPERATURE_DISC = TEMPERATURE_DISC + [TempTimeDisc]
-            TIME_Temp = TIME_Temp + [toutDisc]
-            TIMEZ = TIMEZ + [zeta]
+            TEMPERATURE_DISC = TEMPERATURE_DISC + [TempTimeDisc]# FIXME: Rep as np array
+            TIME_Temp = TIME_Temp + [toutDisc] # FIXME: Rep as np array
+            TIMEZ = TIMEZ + [zeta]  # FIXME: Rep as np array
 
             if np.array_equal(round(zeta, 3), sd):
                 kd = kd + 1
@@ -179,4 +177,6 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
 
         SCH_OLDTFS = i_tau_disc
 
-        return M, mo, TIMEZ, SCH_OLDTFS, MEXEC, MEXEC_TCPN, TIMEstep, TIME_Temp, TEMPERATURE_CONT, TEMPERATURE_DISC
+        # TODO: MEXEC está mal, debería de ser 6 x 240
+
+        return M, mo, TIMEZ, SCH_OLDTFS, MEXEC, MEXEC_TCPN, TIMEstep.reshape((-1,1)), TIME_Temp, TEMPERATURE_CONT, TEMPERATURE_DISC
