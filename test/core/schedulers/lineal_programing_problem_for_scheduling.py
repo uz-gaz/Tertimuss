@@ -1,3 +1,4 @@
+import hashlib
 import unittest
 
 from core.kernel_generator.thermal_model import ThermalModel, generate_thermal_model
@@ -26,13 +27,16 @@ class TestLinealProgramingProblem(unittest.TestCase):
                                                              environment_specification,
                                                              simulation_specification)
 
-        solve_lineal_programing_problem_for_scheduling(tasks_specification,
-                                                       cpu_specification,
-                                                       environment_specification,
-                                                       simulation_specification,
-                                                       thermal_model)
+        j_b_i, j_fsc_i, quantum, m_t = solve_lineal_programing_problem_for_scheduling(tasks_specification,
+                                                                                      cpu_specification,
+                                                                                      environment_specification,
+                                                                                      simulation_specification,
+                                                                                      thermal_model)
 
-        # TODO: Continue
+        self.assertEqual(hashlib.md5(j_b_i).hexdigest(), "9f27b8f2716783f6118312dc40b86cc8")
+        self.assertEqual(hashlib.md5(j_fsc_i).hexdigest(), "72c9f516bafd2ac121cc6b7a98b533d6")
+        self.assertEqual(hashlib.md5(quantum).hexdigest(), "b90f3c2eaed17bb20343fc1e2d147efc")
+        self.assertEqual(hashlib.md5(m_t).hexdigest(), "296bcf556c46a697923ae3f8a188964a")
 
 
 if __name__ == '__main__':

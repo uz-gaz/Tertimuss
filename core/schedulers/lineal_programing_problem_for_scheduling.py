@@ -1,6 +1,6 @@
 import scipy.optimize
 
-#import numpy as np
+# import numpy as np
 
 import scipy
 
@@ -26,8 +26,7 @@ def solve_lineal_programing_problem_for_scheduling(tasks_specification: TasksSpe
 
     # Inequality constraint
     # Create matrix diag([cc1/H ... ccn/H cc1/H .....]) of n*m
-    ch_vector = scipy.asarray(m * list(map(lambda task: task.c / h, tasks_specification.tasks)))
-
+    ch_vector = scipy.asarray(m * list(cci)) / h
     c_h = scipy.diag(ch_vector)
 
     a_t = thermal_model.a_t
@@ -37,21 +36,17 @@ def solve_lineal_programing_problem_for_scheduling(tasks_specification: TasksSpe
     a_int = - ((thermal_model.s_t.dot(scipy.linalg.inv(a_t))).dot(b)).dot(c_h)  # Fixme: Problem in inverse precision
     b_int = environment_specification.t_max * scipy.ones((m, 1)) + (
         (thermal_model.s_t.dot(scipy.linalg.inv(thermal_model.a_t))).dot(
-            thermal_model.b_ta.reshape((len(thermal_model.a_t), 1)))) * environment_specification.t_env
+            thermal_model.b_ta.reshape((-1, 1)))) * environment_specification.t_env
 
     au = scipy.zeros((m, m * n))
 
     a_eq = scipy.tile(scipy.eye(n), m)
 
-    for j in range(0, m):
-        for i in range(0, n):
-            au[j, i + j * n] = tasks_specification.tasks[i].c / h
+    for j in range(m):
+        au[j, j * n:(j + 1) * n] = scipy.asarray(list(cci)) / h
 
     beq = scipy.transpose(ia)
     bu = scipy.ones((m, 1))
-
-    # Initial condition
-    x0 = scipy.zeros((n * m, 1))
 
     # Variable bounds
     bounds = (n * m) * [(0, None)]
@@ -107,11 +102,11 @@ def solve_lineal_programing_problem_for_scheduling(tasks_specification: TasksSpe
 
     quantum = 0.0
 
-    round_factor = 4  # FIXME: 4 in original implementation
+    round_factor = 1  # FIXME: 4 in original implementation
     fraction_denominator = 10 ** round_factor
 
     for i in range(2, len(sd)):
-        not_round = scipy.concatenate(([quantum], jFSCi * sd[i - 1] ))
+        not_round = scipy.concatenate(([quantum], sd[i - 1] * jFSCi))
         rounded = scipy.around(scipy.concatenate(([quantum], sd[i - 1] * jFSCi)), round_factor)
         rounded_as_fraction = list(map(lambda actual: int(actual * fraction_denominator), rounded))
         quantum = scipy.gcd.reduce(
