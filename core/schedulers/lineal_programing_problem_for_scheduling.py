@@ -33,6 +33,7 @@ def solve_lineal_programing_problem_for_scheduling(tasks_specification: TasksSpe
 
     b = thermal_model.ct_exec
 
+    a_t_inv = scipy.linalg.inv(a_t)
     a_int = - ((thermal_model.s_t.dot(scipy.linalg.inv(a_t))).dot(b)).dot(c_h)  # Fixme: Problem in inverse precision
     b_int = environment_specification.t_max * scipy.ones((m, 1)) + (
         (thermal_model.s_t.dot(scipy.linalg.inv(thermal_model.a_t))).dot(

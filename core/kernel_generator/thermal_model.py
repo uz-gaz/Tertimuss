@@ -403,4 +403,5 @@ def generate_thermal_model(tasks_specification: TasksSpecification, cpu_specific
     for i in range(0, len(l_measurement)):
         c[i, int(l_measurement[i]) - 1] = 1
 
+    # Fixme error accumulated in A_T
     return ThermalModel(a, cp_exec, c, diagonal, lambda_generated)
