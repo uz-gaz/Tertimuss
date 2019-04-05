@@ -1,12 +1,12 @@
-import numpy as np
+import scipy
 
 from core.problem_specification_models.CpuSpecification import CpuSpecification
 from core.problem_specification_models.TasksSpecification import TasksSpecification
 
 
 class ProcessorModel(object):
-    def __init__(self, c_proc: np.ndarray, lambda_proc: np.ndarray, pi_proc: np.ndarray, c_proc_alloc: np.ndarray,
-                 s_exec: np.ndarray, s_busy: np.ndarray, m_proc_o: np.ndarray, a_proc: np.ndarray):
+    def __init__(self, c_proc: scipy.ndarray, lambda_proc: scipy.ndarray, pi_proc: scipy.ndarray, c_proc_alloc: scipy.ndarray,
+                 s_exec: scipy.ndarray, s_busy: scipy.ndarray, m_proc_o: scipy.ndarray, a_proc: scipy.ndarray):
         self.c_proc = c_proc
         self.lambda_proc = lambda_proc
         self.pi_proc = pi_proc
@@ -33,16 +33,16 @@ def generate_processor_model(tasks_specification: TasksSpecification, cpu_specif
     t = m * (2 * n)  # m processors*(n transitions alloc and n tramsition exec)
     t_alloc = n * m  # m processors*(n transitions alloc)
 
-    pre = np.zeros((p, t))
-    post = np.zeros((p, t))
-    pre_alloc = np.zeros((p, t_alloc))
-    post_alloc = np.zeros((p, t_alloc))
-    lambda_vector = np.zeros(t)
-    lambda_alloc = np.zeros(t_alloc)
-    pi = np.zeros((t, p))
-    mo = np.zeros((p, 1))  # Different from np.zeros(p), column array
-    s_exec = np.zeros((n * m, p))
-    s_busy = np.zeros((n * m, p))
+    pre = scipy.zeros((p, t))
+    post = scipy.zeros((p, t))
+    pre_alloc = scipy.zeros((p, t_alloc))
+    post_alloc = scipy.zeros((p, t_alloc))
+    lambda_vector = scipy.zeros(t)
+    lambda_alloc = scipy.zeros(t_alloc)
+    pi = scipy.zeros((t, p))
+    mo = scipy.zeros((p, 1))  # Different from np.zeros(p), column array
+    s_exec = scipy.zeros((n * m, p))
+    s_busy = scipy.zeros((n * m, p))
 
     # Incidence Matrix C construction
     # numeration of places and the corresponding label in the model for CPU_1:
@@ -54,12 +54,12 @@ def generate_processor_model(tasks_specification: TasksSpecification, cpu_specif
         i = (2 * n + 1) * (k - 1) + 1
 
         # Construction of matrix Post and Pre for busy and exec places (connections to transitions alloc and exec)
-        pre[i - 1:i + (n - 1), (k - 1) * (2 * n) + n: (k - 1) * (2 * n) + (2 * n)] = np.identity(n)
-        post[i - 1:i + (2 * n - 1), (k - 1) * (2 * n):(k - 1) * (2 * n) + (2 * n)] = np.identity(2 * n)
+        pre[i - 1:i + (n - 1), (k - 1) * (2 * n) + n: (k - 1) * (2 * n) + (2 * n)] = scipy.identity(n)
+        post[i - 1:i + (2 * n - 1), (k - 1) * (2 * n):(k - 1) * (2 * n) + (2 * n)] = scipy.identity(2 * n)
 
         # Construction of matrix Post and Pre for idle place (connections to transitions alloc and exec)
-        pre[k * (2 * n + 1) - 1, (k - 1) * (2 * n): (k - 1) * (2 * n) + n] = eta * np.ones(n)
-        post[k * (2 * n + 1) - 1, (k - 1) * (2 * n) + n: k * (2 * n)] = eta * np.ones(n)
+        pre[k * (2 * n + 1) - 1, (k - 1) * (2 * n): (k - 1) * (2 * n) + n] = eta * scipy.ones(n)
+        post[k * (2 * n + 1) - 1, (k - 1) * (2 * n) + n: k * (2 * n)] = eta * scipy.ones(n)
 
         # Construction of Pre an Post matrix for Transitions alloc
         pre_alloc[i - 1:i + (n - 1), (k - 1) * n: k * n] = \
@@ -68,7 +68,7 @@ def generate_processor_model(tasks_specification: TasksSpecification, cpu_specif
             post[i - 1:i + (n - 1), (k - 1) * (2 * n): (k - 1) * (2 * n) + n]
 
         # Execution rates for transitions exec for CPU_k \lambda^exec= eta*F
-        lambda_vector[(k - 1) * (2 * n) + n:(k - 1) * (2 * n) + 2 * n] = eta * f * np.ones(n)
+        lambda_vector[(k - 1) * (2 * n) + n:(k - 1) * (2 * n) + 2 * n] = eta * f * scipy.ones(n)
 
         # Execution rates for transitions alloc \lambda^alloc= eta*\lambda^exec
         lambda_vector[(k - 1) * (2 * n):(k - 1) * (2 * n) + n] = \
@@ -76,17 +76,17 @@ def generate_processor_model(tasks_specification: TasksSpecification, cpu_specif
         lambda_alloc[(k - 1) * n:k * n] = lambda_vector[(k - 1) * (2 * n):(k - 1) * (2 * n) + n]
 
         # Configuration Matrix
-        pi[(k - 1) * (2 * n) + n:(k - 1) * (2 * n) + 2 * n, i - 1:i + (n - 1)] = np.identity(n)
+        pi[(k - 1) * (2 * n) + n:(k - 1) * (2 * n) + 2 * n, i - 1:i + (n - 1)] = scipy.identity(n)
 
         # Initial condition
         mo[k * (2 * n + 1) - 1, 0] = 1
 
         # Output matrix of the processor model, ( m^exec )
-        s_busy[(k - 1) * n:k * n, i - 1:(2 * n + 1) * (k - 1) + n] = np.identity(n)
-        s_exec[(k - 1) * n:k * n, i + n - 1:(2 * n + 1) * (k - 1) + 2 * n] = np.identity(n)
+        s_busy[(k - 1) * n:k * n, i - 1:(2 * n + 1) * (k - 1) + n] = scipy.identity(n)
+        s_exec[(k - 1) * n:k * n, i + n - 1:(2 * n + 1) * (k - 1) + 2 * n] = scipy.identity(n)
 
     c = post - pre
     c_alloc = post_alloc - pre_alloc
-    lambda_proc = np.diag(lambda_vector)
+    lambda_proc = scipy.diag(lambda_vector)
 
     return ProcessorModel(c, lambda_proc, pi, c_alloc, s_exec, s_busy, mo, (c.dot(lambda_proc)).dot(pi))

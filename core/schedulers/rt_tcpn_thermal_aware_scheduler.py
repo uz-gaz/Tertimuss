@@ -1,13 +1,7 @@
-import numpy as np
+import scipy
 
-from core.kernel_generator.global_model import GlobalModel
-from core.kernel_generator.processor_model import ProcessorModel
-from core.kernel_generator.tasks_model import TasksModel
-from core.kernel_generator.thermal_model import ThermalModel
-from core.problem_specification_models.CpuSpecification import CpuSpecification
-from core.problem_specification_models.EnvironmentSpecification import EnvironmentSpecification
-from core.problem_specification_models.SimulationSpecification import SimulationSpecification
-from core.problem_specification_models.TasksSpecification import TasksSpecification
+from core.kernel_generator.kernel import SimulationKernel
+from core.problem_specification_models.GlobalSpecification import GlobalSpecification
 from core.schedulers.abstract_scheduler import AbstractScheduler
 from core.schedulers.global_model_solver import solve_global_model
 from core.schedulers.lineal_programing_problem_for_scheduling import solve_lineal_programing_problem_for_scheduling
@@ -18,61 +12,59 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
     def __init__(self) -> None:
         super().__init__()
 
-    def simulate(self, tasks_specification: TasksSpecification, cpu_specification: CpuSpecification,
-                 environment_specification: EnvironmentSpecification, simulation_specification: SimulationSpecification,
-                 global_model: GlobalModel, processor_model: ProcessorModel, tasks_model: TasksModel,
-                 thermal_model: ThermalModel):
-        jBi, jFSCi, quantum, mT = solve_lineal_programing_problem_for_scheduling(tasks_specification, cpu_specification,
-                                                                                 environment_specification,
-                                                                                 simulation_specification,
-                                                                                 thermal_model)
-        n = len(tasks_specification.tasks)
-        m = cpu_specification.number_of_cores
-        step = simulation_specification.dt
+    def simulate(self, global_specification: GlobalSpecification, simulation_kernel: SimulationKernel):
+        jBi, jFSCi, quantum, mT = solve_lineal_programing_problem_for_scheduling(
+            global_specification.tasks_specification, global_specification.cpu_specification,
+            global_specification.environment_specification,
+            global_specification.simulation_specification,
+            simulation_kernel.thermal_model)
+        n = len(global_specification.tasks_specification.tasks)
+        m = global_specification.cpu_specification.number_of_cores
+        step = global_specification.simulation_specification.dt
 
-        ti = [i.t for i in tasks_specification.tasks]
+        ti = [i.t for i in global_specification.tasks_specification.tasks]
 
-        jobs = [int(i) for i in tasks_specification.h / ti]
+        jobs = [int(i) for i in global_specification.tasks_specification.h / ti]
 
-        diagonal = np.zeros((n, np.max(jobs)))
+        diagonal = scipy.zeros((n, scipy.amax(jobs)))
 
         kd = 1
         sd_u = []
         for i in range(0, n):
-            diagonal[i, 0: jobs[i]] = list(range(ti[i], tasks_specification.h + 1, ti[i]))
-            sd_u = np.union1d(sd_u, diagonal[i, 0: jobs[i]])
+            diagonal[i, 0: jobs[i]] = list(range(ti[i], global_specification.tasks_specification.h + 1, ti[i]))
+            sd_u = scipy.union1d(sd_u, diagonal[i, 0: jobs[i]])
 
-        sd_u = np.union1d(sd_u, [0])
+        sd_u = scipy.union1d(sd_u, [0])
 
-        walloc = np.zeros(len(jFSCi))
-        i_tau_disc = np.zeros((len(jFSCi), int(tasks_specification.h / quantum)))
-        e_iFSCj = np.zeros(len(walloc))
-        x1 = np.zeros(len(e_iFSCj))  # ==np.zeros(walloc)
-        x2 = np.zeros(len(e_iFSCj))
-        s = np.zeros(len(e_iFSCj))
-        iREj = np.zeros(len(walloc))
-        iPRj = np.zeros((m, n))
+        walloc = scipy.zeros(len(jFSCi))
+        i_tau_disc = scipy.zeros((len(jFSCi), int(global_specification.tasks_specification.h / quantum)))
+        e_iFSCj = scipy.zeros(len(walloc))
+        x1 = scipy.zeros(len(e_iFSCj))  # ==np.zeros(walloc)
+        x2 = scipy.zeros(len(e_iFSCj))
+        s = scipy.zeros(len(e_iFSCj))
+        iREj = scipy.zeros(len(walloc))
+        iPRj = scipy.zeros((m, n))
 
         zeta = 0
         time = 0
 
         sd = sd_u[kd]
 
-        m_exec = np.zeros(len(jFSCi))
-        m_busy = np.zeros(len(jFSCi))
-        Mexec = np.zeros(len(jFSCi))
-        TIMEZ = np.ndarray((0, 1))
-        TIMEstep = np.asarray([])
-        TIME_Temp = np.ndarray((0, 1))
-        TEMPERATURE_CONT = np.ndarray((len(global_model.s) - 2 * len(walloc), 0))
-        TEMPERATURE_DISC = np.ndarray((len(global_model.s) - 2 * len(walloc), 0))
-        MEXEC = np.ndarray((len(jFSCi), 0))
-        MEXEC_TCPN = np.ndarray((len(walloc), 0))
-        moDisc = global_model.mo
-        M = np.zeros((len(global_model.mo), 0))
-        mo = global_model.mo
+        m_exec = scipy.zeros(len(jFSCi))
+        m_busy = scipy.zeros(len(jFSCi))
+        Mexec = scipy.zeros(len(jFSCi))
+        TIMEZ = scipy.ndarray((0, 1))
+        TIMEstep = scipy.asarray([])
+        TIME_Temp = scipy.ndarray((0, 1))
+        TEMPERATURE_CONT = scipy.ndarray((len(simulation_kernel.global_model.s) - 2 * len(walloc), 0))
+        TEMPERATURE_DISC = scipy.ndarray((len(simulation_kernel.global_model.s) - 2 * len(walloc), 0))
+        MEXEC = scipy.ndarray((len(jFSCi), 0))
+        MEXEC_TCPN = scipy.ndarray((len(walloc), 0))
+        moDisc = simulation_kernel.mo
+        M = scipy.zeros((len(simulation_kernel.mo), 0))
+        mo = simulation_kernel.mo
 
-        for zeta_q in range(0, int(tasks_specification.h / quantum)):
+        for zeta_q in range(0, int(global_specification.tasks_specification.h / quantum)):
             while round(time) <= zeta + quantum:
                 for j in range(0, m):
                     for i in range(0, n):
@@ -87,19 +79,20 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
                         s[i + j * n] = x1[i + j * n] - x2[i + j * n] + jFSCi[i + j * n]
 
                         # Control Para tareas temporal en cada procesador w_alloc control en I_tau
-                        walloc[i + j * n] = (jFSCi[i + j * n] * np.sign(s[i + j * n]) + jFSCi[i + j * n]) / 2
+                        walloc[i + j * n] = (jFSCi[i + j * n] * scipy.sign(s[i + j * n]) + jFSCi[i + j * n]) / 2
 
-                mo_next, m_exec, m_busy, Temp, tout, TempTime, m_TCPN_cont = solve_global_model(global_model,
-                                                                                                mo.reshape(len(mo)),
-                                                                                                walloc,
-                                                                                                environment_specification.t_env,
-                                                                                                np.asarray([time,
-                                                                                                            time + step]))
+                mo_next, m_exec, m_busy, Temp, tout, TempTime, m_TCPN_cont = solve_global_model(
+                    simulation_kernel.global_model,
+                    mo.reshape(len(mo)),
+                    walloc,
+                    global_specification.environment_specification.t_env,
+                    scipy.asarray([time,
+                                   time + step]))
 
                 mo = mo_next
-                TEMPERATURE_CONT = np.concatenate((TEMPERATURE_CONT, Temp), axis=1)
-                TIMEstep = np.concatenate((TIMEstep, np.asarray([time])))
-                MEXEC_TCPN = np.concatenate((MEXEC_TCPN, m_exec), axis=1)
+                TEMPERATURE_CONT = scipy.concatenate((TEMPERATURE_CONT, Temp), axis=1)
+                TIMEstep = scipy.concatenate((TIMEstep, scipy.asarray([time])))
+                MEXEC_TCPN = scipy.concatenate((MEXEC_TCPN, m_exec), axis=1)
                 time = time + step
 
             # DISCRETIZATION
@@ -107,9 +100,9 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
             i_tau_disc[:, zeta_q] = 0
 
             # Se inicializa el conjunto ET de transiciones de tareas para el modelo discreto
-            ET = np.zeros((m, n))
+            ET = scipy.zeros((m, n))
 
-            FSC = np.zeros(m * n)
+            FSC = scipy.zeros(m * n)
 
             # Se calcula el remaining jobs execution Re_tau(j,i)
             for j in range(0, m):
@@ -125,14 +118,14 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
             for j in range(0, m):
                 # Si el conjunto no es vacio por cada j-esimo CPU, entonces se procede a
                 # calcular la prioridad de cada tarea a ser asignada
-                if not np.array_equal(ET[j, :], np.zeros((1, len(ET[0])))):
+                if not scipy.array_equal(ET[j, :], scipy.zeros((1, len(ET[0])))):
                     # Prioridad es igual al marcado del lugar continuo menos el marcado del lugar discreto
                     iPRj[j, :] = jFSCi[j * n: j * n + n] * sd - Mexec[j * n:j * n + n]
 
                     # Se ordenan de manera descendente por orden de prioridad,
                     # IndMaxPr contiene los indices de las tareas ordenado de mayor a
                     # menor prioridad
-                    IndMaxPr = np.flip(np.argsort(iPRj[j, :]))
+                    IndMaxPr = scipy.flip(scipy.argsort(iPRj[j, :]))
 
                     # Si en el vector ET(j,k) existe un cero entonces significa que en
                     # la posicion k la tarea no tine a Re_tau(j,k)>0 (es decir la tarea ya ejecuto lo que debía)
@@ -156,19 +149,20 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
 
                     Mexec[IndMaxPr + j * n] += quantum
 
-            MEXEC = np.concatenate((MEXEC, Mexec.reshape(-1, 1)), axis=1)
+            MEXEC = scipy.concatenate((MEXEC, Mexec.reshape(-1, 1)), axis=1)
             mo_nextDisc, m_execDisc, m_busyDisc, TempDisc, toutDisc, TempTimeDisc, m_TCPN = solve_global_model(
-                global_model, moDisc.reshape(len(moDisc)), i_tau_disc[:, zeta_q], environment_specification.t_env,
-                np.asarray(list(np.arange(zeta, zeta + quantum + 1, step))))
+                simulation_kernel.global_model, moDisc.reshape(len(moDisc)), i_tau_disc[:, zeta_q],
+                global_specification.environment_specification.t_env,
+                scipy.asarray(list(scipy.arange(zeta, zeta + quantum + 1, step))))
 
             moDisc = mo_nextDisc
-            M = np.concatenate((M, m_TCPN), axis=1)
+            M = scipy.concatenate((M, m_TCPN), axis=1)
 
-            TEMPERATURE_DISC = np.concatenate((TEMPERATURE_DISC, TempTimeDisc), axis=1)
-            TIME_Temp = np.concatenate((TIME_Temp, toutDisc))
-            TIMEZ = np.concatenate((TIMEZ, np.asarray([zeta]).reshape((1, 1))))
+            TEMPERATURE_DISC = scipy.concatenate((TEMPERATURE_DISC, TempTimeDisc), axis=1)
+            TIME_Temp = scipy.concatenate((TIME_Temp, toutDisc))
+            TIMEZ = scipy.concatenate((TIMEZ, scipy.asarray([zeta]).reshape((1, 1))))
 
-            if np.array_equal(round(zeta, 3), sd):
+            if scipy.array_equal(round(zeta, 3), sd):
                 kd = kd + 1
                 if kd + 1 <= len(sd_u):
                     sd = sd_u[kd]

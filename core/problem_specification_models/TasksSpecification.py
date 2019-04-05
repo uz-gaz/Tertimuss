@@ -1,11 +1,11 @@
-import numpy as np
+import scipy
 
 
 class TasksSpecification(object):
 
     def __init__(self, tasks: list):
         self.tasks = tasks  # tasks
-        self.h = np.lcm.reduce(list(map(lambda a: a.t, tasks)))  # Hyper period
+        self.h = scipy.lcm.reduce(list(map(lambda a: a.t, tasks)))  # Hyper period
 
 
 class Task(object):

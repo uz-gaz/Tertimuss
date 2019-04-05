@@ -1,4 +1,3 @@
-# import numpy as np
 import scipy
 
 from core.problem_specification_models.CpuSpecification import CpuSpecification, MaterialCuboid, Origin
@@ -127,8 +126,11 @@ def add_interactions_layer(rel_micro: scipy.ndarray, pre_sis: scipy.ndarray, pos
     v_p2 = dx_p2 * dy_p2 * dz_p2
     deltax_p2 = dz_p2 / 2
 
-    lambda1 = (1 / (v_p1 * rho_p1 * cp_p1)) * (k_p1 * k_p2 * a) / (k_p2 * deltax_p1 + k_p1 * deltax_p2)
-    lambda2 = (1 / (v_p2 * rho_p2 * cp_p2)) * (k_p1 * k_p2 * a) / (k_p2 * deltax_p1 + k_p1 * deltax_p2)
+    lambda1 = (k_p1 * k_p2 * a) / (v_p1 * rho_p1 * cp_p1) / (k_p2 * deltax_p1 + k_p1 * deltax_p2)
+    lambda2 = (k_p1 * k_p2 * a) / (v_p2 * rho_p2 * cp_p2) / (k_p2 * deltax_p1 + k_p1 * deltax_p2)
+
+    lambda1_div_lambda2 = (v_p2 * rho_p2 * cp_p2) / (v_p1 * rho_p1 * cp_p1)
+    lambda2_div_lambda1 = (v_p1 * rho_p1 * cp_p1) / (v_p2 * rho_p2 * cp_p2)
 
     l_lug = len(rel_micro)
 
@@ -145,8 +147,8 @@ def add_interactions_layer(rel_micro: scipy.ndarray, pre_sis: scipy.ndarray, pos
         pre_int[rel_micro[i - 1] - 1, j - 1: j + 1] = v_pre
         pre_int[i + board_conductivity.p - 1, j - 1: j + 1] = v_post
 
-        post_int[rel_micro[i - 1] - 1, j - 1: j + 1] = [0, lambda1 / lambda2]
-        post_int[i + board_conductivity.p - 1, j - 1: j + 1] = [lambda2 / lambda1, 0]
+        post_int[rel_micro[i - 1] - 1, j - 1: j + 1] = [0, lambda1_div_lambda2]
+        post_int[i + board_conductivity.p - 1, j - 1: j + 1] = [lambda2_div_lambda1, 0]
 
         lambda_int[j - 1: j + 1, 0] = [lambda1, lambda2]
         j = j + 2
@@ -177,9 +179,8 @@ def add_convection(pre_sis, post_sis, lambda_vector, board_conductivity: Conduct
     h = environment_specification.h
 
     lambda_1 = (h / (dz_p1 * rho_p1 * cp_p1))
-    lambda_2 = (h / (dz_p2 * rho_p2 * cp_p2))
 
-    lambda_conv = [lambda_1, lambda_1]
+    lambda_conv = [lambda_1, lambda_1]  # TODO: Check, it might be lambda1, lambda2 (Ask authors)
 
     p_micros = micro_conductivity.p * cpu_specification.number_of_cores
 
@@ -187,15 +188,13 @@ def add_convection(pre_sis, post_sis, lambda_vector, board_conductivity: Conduct
     places = list(range(1, board_conductivity.p + 1))
 
     # Eliminamos los lugares bajo la CPU
-
     f = len(pre_sis)
 
     l_places = len(places)
 
     cota_micros = l_places - p_micros
 
-    pre_conv = scipy.zeros((f, 2))  # TODO Review: I think second index can go out of bound at loop
-    # And that this variable is unused too
+    # pre_conv = scipy.zeros((f, 2)) # It was unused
 
     post_conv = scipy.zeros((f, 2))
 
@@ -207,7 +206,7 @@ def add_convection(pre_sis, post_sis, lambda_vector, board_conductivity: Conduct
     k = 1
     for i in range(1, l_places + 1):
         pre_it[places[i - 1] - 1, i - 1] = 1
-        pre_conv[places[i - 1] - 1, k - 1] = 0
+        # pre_conv[places[i - 1] - 1, k - 1] = 0
 
         post_it[places[i - 1] - 1, i - 1] = 0
         post_conv[places[i - 1] - 1, k - 1] = 1

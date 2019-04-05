@@ -1,11 +1,12 @@
+import scipy
+
 from core.problem_specification_models.CpuSpecification import CpuSpecification
 from core.problem_specification_models.TasksSpecification import TasksSpecification
-import numpy as np
 
 
 class TasksModel(object):
-    def __init__(self, c_tau: np.ndarray, lambda_tau: np.ndarray, pi_tau: np.ndarray, c_tau_alloc: np.ndarray,
-                 m_tau_o: np.ndarray, a_tau: np.ndarray):
+    def __init__(self, c_tau: scipy.ndarray, lambda_tau: scipy.ndarray, pi_tau: scipy.ndarray, c_tau_alloc: scipy.ndarray,
+                 m_tau_o: scipy.ndarray, a_tau: scipy.ndarray):
         self.c_tau = c_tau
         self.lambda_tau = lambda_tau
         self.pi_tau = pi_tau
@@ -29,13 +30,13 @@ def generate_tasks_model(tasks_specification: TasksSpecification, cpu_specificat
     t_alloc = n * m
 
     # Incidence Matrix C
-    pre = np.zeros((p, t))
-    post = np.zeros((p, t))
-    pre_alloc = np.zeros((p, t_alloc))
-    post_alloc = np.zeros((p, t_alloc))
-    lambda_vector = np.zeros(t)
-    pi = np.zeros((t, p))
-    mo = np.zeros((p, 1))
+    pre = scipy.zeros((p, t))
+    post = scipy.zeros((p, t))
+    pre_alloc = scipy.zeros((p, t_alloc))
+    post_alloc = scipy.zeros((p, t_alloc))
+    lambda_vector = scipy.zeros(t)
+    pi = scipy.zeros((t, p))
+    mo = scipy.zeros((p, 1))
 
     k = 1
 
@@ -61,6 +62,6 @@ def generate_tasks_model(tasks_specification: TasksSpecification, cpu_specificat
 
     c = post - pre
     c_alloc = post_alloc - pre_alloc
-    lambda_tau = np.diag(lambda_vector)
+    lambda_tau = scipy.diag(lambda_vector)
 
     return TasksModel(c, lambda_tau, pi, c_alloc, mo, (c.dot(lambda_tau)).dot(pi))

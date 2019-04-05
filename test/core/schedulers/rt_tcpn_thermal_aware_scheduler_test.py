@@ -1,11 +1,13 @@
 import unittest
 
 from core.kernel_generator.global_model import generate_global_model, GlobalModel
+from core.kernel_generator.kernel import SimulationKernel
 from core.kernel_generator.processor_model import ProcessorModel, generate_processor_model
 from core.kernel_generator.tasks_model import TasksModel, generate_tasks_model
 from core.kernel_generator.thermal_model import ThermalModel, generate_thermal_model
 from core.problem_specification_models.CpuSpecification import CpuSpecification, MaterialCuboid
 from core.problem_specification_models.EnvironmentSpecification import EnvironmentSpecification
+from core.problem_specification_models.GlobalSpecification import GlobalSpecification
 from core.problem_specification_models.SimulationSpecification import SimulationSpecification
 from core.problem_specification_models.TasksSpecification import TasksSpecification, Task
 from core.schedulers.rt_tcpn_thermal_aware_scheduler import RTTcpnThermalAwareScheduler
@@ -33,19 +35,20 @@ class TestLinealProgramingProblem(unittest.TestCase):
                                                              environment_specification,
                                                              simulation_specification)
 
-        global_model: GlobalModel = generate_global_model(tasks_model, processor_model, thermal_model,
-                                                          environment_specification)
+        global_model, mo = generate_global_model(tasks_model, processor_model, thermal_model, environment_specification)
+
+        simulation_kernel: SimulationKernel = SimulationKernel(tasks_model, processor_model, thermal_model,
+                                                               global_model, mo)
+
+        global_specification: GlobalSpecification = GlobalSpecification(tasks_specification, cpu_specification,
+                                                                        environment_specification,
+                                                                        simulation_specification)
 
         scheduler = RTTcpnThermalAwareScheduler()
 
-        scheduler.simulate(tasks_specification,
-                           cpu_specification,
-                           environment_specification,
-                           simulation_specification,
-                           global_model,
-                           processor_model,
-                           tasks_model,
-                           thermal_model)
+        scheduler.simulate(global_specification, simulation_kernel)
+
+        i = 0
 
         # TODO: Continue
 

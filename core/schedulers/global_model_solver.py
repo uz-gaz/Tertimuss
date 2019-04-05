@@ -1,23 +1,22 @@
-import numpy as np
+import scipy
 import scipy.integrate
 
 from core.kernel_generator.global_model import GlobalModel
 
 
-def solve_global_model(global_model: GlobalModel, mo: np.ndarray, w_alloc: np.ndarray, ma: float,
-                       time_sol: np.ndarray) -> [np.ndarray, np.ndarray, np.ndarray,
-                                                 np.ndarray, np.ndarray,
-                                                 np.ndarray, np.ndarray]:
+def solve_global_model(global_model: GlobalModel, mo: scipy.ndarray, w_alloc: scipy.ndarray, ma: float,
+                       time_sol: scipy.ndarray) -> [scipy.ndarray, scipy.ndarray, scipy.ndarray,
+                                                    scipy.ndarray, scipy.ndarray,
+                                                    scipy.ndarray, scipy.ndarray]:
+
     res = scipy.integrate.solve_ivp(
-        lambda t, m: global_function(m, global_model.a, global_model.b, global_model.bp.reshape(-1),
-                                     w_alloc, ma, t), time_sol, mo
-    )  # Review final dimensions
+        lambda t, m: global_model.a.dot(m.transpose()) + global_model.b.dot(w_alloc) + global_model.bp.reshape(-1) * ma,
+        time_sol, mo
+    )
 
-    m_aux = res.y.transpose()
+    m_m = res.y.transpose()[- 1]
 
-    m_aux = m_aux[len(m_aux) - 1]
-
-    y_m = global_model.s.dot(m_aux)
+    y_m = global_model.s.dot(m_m)
 
     t_aux = global_model.s.dot(res.y)
 
@@ -27,9 +26,5 @@ def solve_global_model(global_model: GlobalModel, mo: np.ndarray, w_alloc: np.nd
     m_exec = y_m[len(w_alloc): 2 * len(w_alloc)]
     temp = y_m[2 * len(w_alloc): len(y_m)]
 
-    return m_aux.reshape((-1, 1)), m_exec.reshape((-1, 1)), m_busy.reshape((-1, 1)), temp.reshape((-1, 1)), res.t.reshape((-1, 1)), temp_time, res.y
-
-
-def global_function(m: np.ndarray, a: np.ndarray, b: np.ndarray, bp: np.ndarray, w_alloc: np.ndarray, ma: float, t):
-    res = a.dot(m.transpose()) + b.dot(w_alloc) + bp * ma
-    return res
+    return m_m.reshape((-1, 1)), m_exec.reshape((-1, 1)), m_busy.reshape((-1, 1)), temp.reshape(
+        (-1, 1)), res.t.reshape((-1, 1)), temp_time, res.y

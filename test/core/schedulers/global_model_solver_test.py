@@ -1,6 +1,6 @@
-import numpy as np
+import scipy
 
-from core.kernel_generator.global_model import GlobalModel, generate_global_model
+from core.kernel_generator.global_model import generate_global_model
 from core.kernel_generator.processor_model import generate_processor_model, ProcessorModel
 from core.kernel_generator.tasks_model import TasksModel, generate_tasks_model
 from core.kernel_generator.thermal_model import ThermalModel, generate_thermal_model
@@ -12,14 +12,14 @@ from core.schedulers.global_model_solver import solve_global_model
 
 mo = [1, 2, 1, 3, 1, 3, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1] + 675 * [45]
 
-mo = np.asarray(mo)
+mo = scipy.asarray(mo)
 
-TimeSol: np.ndarray = np.asarray([0, 0.0100000000000000])
+TimeSol: scipy.ndarray = scipy.asarray([0, 0.0100000000000000])
 TimeSol = TimeSol.reshape((len(TimeSol), 1))
 
 ma: float = 45
 
-w_alloc: np.ndarray = np.asarray(
+w_alloc: scipy.ndarray = scipy.asarray(
     [0.250000000000003, 0.187500000000001, 0.125000000000000, 0.250000000000001, 0.187500000000001, 0.125000000000000])
 
 tasks_specification: TasksSpecification = TasksSpecification([Task(2, 4, 6.4),
@@ -41,8 +41,7 @@ thermal_model: ThermalModel = generate_thermal_model(tasks_specification, cpu_sp
                                                      environment_specification,
                                                      simulation_specification)
 
-global_model: GlobalModel = generate_global_model(tasks_model, processor_model, thermal_model,
-                                                  environment_specification)
+global_model, _ = generate_global_model(tasks_model, processor_model, thermal_model,
+                                        environment_specification)
 
 m, m_exec, m_busy, temp, tout, temp_time, m_tcpn = solve_global_model(global_model, mo, w_alloc, ma, TimeSol)
-

@@ -1,7 +1,5 @@
 import math
 
-from core.problem_specification_models.SimulationSpecification import SimulationSpecification
-
 
 class MaterialCuboid(object):
 
@@ -30,8 +28,6 @@ class CoreSpecification(object):
 
 
 class CpuSpecification(object):
-
-    # TODO: Check if is necessary that board/cpu_core x, y, z parameters becomes x/step, y/step, z/step
 
     def __init__(self, board: MaterialCuboid, cpu_core: MaterialCuboid, number_of_cores: int, clock_frequency: float):
         self.board = board  # Spec of board
