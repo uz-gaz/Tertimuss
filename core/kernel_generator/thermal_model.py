@@ -1,4 +1,5 @@
-import numpy as np
+# import numpy as np
+import scipy
 
 from core.problem_specification_models.CpuSpecification import CpuSpecification, MaterialCuboid, Origin
 from core.problem_specification_models.EnvironmentSpecification import EnvironmentSpecification
@@ -7,7 +8,7 @@ from core.problem_specification_models.TasksSpecification import TasksSpecificat
 
 
 class ConductivityModel(object):
-    def __init__(self, pre: np.ndarray, post: np.ndarray, t: int, p: int, lambda_vector: np.ndarray):
+    def __init__(self, pre: scipy.ndarray, post: scipy.ndarray, t: int, p: int, lambda_vector: scipy.ndarray):
         self.pre = pre
         self.post = post
         self.t = t
@@ -55,10 +56,10 @@ def simple_conductivity(material_cuboid: MaterialCuboid,
     # Con eso se forma la matriz de incidencia
     # con las transiciones que conectan 1-2 (las dos), 2-3 [...], 8-9
     # hasta la transicion t=[(x*2)*(y-1)] + (x-1)*2
-    pre = np.zeros((p, t))
-    post = np.zeros((p, t))
+    pre = scipy.zeros((p, t))
+    post = scipy.zeros((p, t))
 
-    lambda_vector = np.zeros(t)
+    lambda_vector = scipy.zeros(t)
 
     for i in range(1, p):
         j = 1 + ((i - 1) * 2)
@@ -97,9 +98,11 @@ def simple_conductivity(material_cuboid: MaterialCuboid,
     return ConductivityModel(pre, post, t, p, lambda_vector)
 
 
-def add_interactions_layer(rel_micro: np.ndarray, pre_sis: np.ndarray, post_sis: np.ndarray, lambda_vector: np.ndarray,
+def add_interactions_layer(rel_micro: scipy.ndarray, pre_sis: scipy.ndarray, post_sis: scipy.ndarray,
+                           lambda_vector: scipy.ndarray,
                            board_conductivity: ConductivityModel, cpu_specification: CpuSpecification,
-                           simulation_specification: SimulationSpecification) -> [np.ndarray, np.ndarray, np.ndarray]:
+                           simulation_specification: SimulationSpecification) -> [scipy.ndarray, scipy.ndarray,
+                                                                                  scipy.ndarray]:
     dx_p1 = simulation_specification.step / 1000
     dy_p1 = simulation_specification.step / 1000
     dz_p1 = cpu_specification.board.z / 1000
@@ -132,10 +135,10 @@ def add_interactions_layer(rel_micro: np.ndarray, pre_sis: np.ndarray, post_sis:
     v_pre = [1, 0]
     v_post = [0, 1]
 
-    pre_int = np.zeros((len(pre_sis), 2 * l_lug))
-    post_int = np.zeros((len(post_sis), 2 * l_lug))
+    pre_int = scipy.zeros((len(pre_sis), 2 * l_lug))
+    post_int = scipy.zeros((len(post_sis), 2 * l_lug))
 
-    lambda_int = np.zeros((2 * l_lug, 1))
+    lambda_int = scipy.zeros((2 * l_lug, 1))
 
     j = 1
     for i in range(1, l_lug + 1):
@@ -148,18 +151,18 @@ def add_interactions_layer(rel_micro: np.ndarray, pre_sis: np.ndarray, post_sis:
         lambda_int[j - 1: j + 1, 0] = [lambda1, lambda2]
         j = j + 2
 
-    pre_sis = np.concatenate((pre_sis, pre_int), axis=1)
-    post_sis = np.concatenate((post_sis, post_int), axis=1)
+    pre_sis = scipy.concatenate((pre_sis, pre_int), axis=1)
+    post_sis = scipy.concatenate((post_sis, post_int), axis=1)
 
-    lambda_vector = np.concatenate((lambda_vector, lambda_int), axis=0)
+    lambda_vector = scipy.concatenate((lambda_vector, lambda_int), axis=0)
 
     return pre_sis, post_sis, lambda_vector
 
 
 def add_convection(pre_sis, post_sis, lambda_vector, board_conductivity: ConductivityModel,
                    micro_conductivity: ConductivityModel, cpu_specification: CpuSpecification,
-                   environment_specification: EnvironmentSpecification) -> [np.ndarray, np.ndarray, np.ndarray,
-                                                                            np.ndarray]:
+                   environment_specification: EnvironmentSpecification) -> [scipy.ndarray, scipy.ndarray, scipy.ndarray,
+                                                                            scipy.ndarray]:
     # D,Pre,Post,Lambda
     dz_p1 = cpu_specification.board.z / 1000
 
@@ -191,15 +194,15 @@ def add_convection(pre_sis, post_sis, lambda_vector, board_conductivity: Conduct
 
     cota_micros = l_places - p_micros
 
-    pre_conv = np.zeros((f, 2))  # TODO Review: I think second index can go out of bound at loop
+    pre_conv = scipy.zeros((f, 2))  # TODO Review: I think second index can go out of bound at loop
     # And that this variable is unused too
 
-    post_conv = np.zeros((f, 2))
+    post_conv = scipy.zeros((f, 2))
 
-    pre_it = np.zeros((f, l_places))
-    post_it = np.zeros((f, l_places))
+    pre_it = scipy.zeros((f, l_places))
+    post_it = scipy.zeros((f, l_places))
 
-    lambda_it = np.zeros((l_places, 1))
+    lambda_it = scipy.zeros((l_places, 1))
 
     k = 1
     for i in range(1, l_places + 1):
@@ -216,19 +219,19 @@ def add_convection(pre_sis, post_sis, lambda_vector, board_conductivity: Conduct
 
     pi = [1, 1]
 
-    pre_sis = np.concatenate((pre_sis, pre_it), axis=1)
-    post_sis = np.concatenate((post_sis, post_it), axis=1)
+    pre_sis = scipy.concatenate((pre_sis, pre_it), axis=1)
+    post_sis = scipy.concatenate((post_sis, post_it), axis=1)
 
-    lambda_vector = np.concatenate((lambda_vector, lambda_it), axis=0)
+    lambda_vector = scipy.concatenate((lambda_vector, lambda_it), axis=0)
 
-    return post_conv.dot(np.diag(lambda_conv)).dot(
+    return post_conv.dot(scipy.diag(lambda_conv)).dot(
         pi), pre_sis, post_sis, lambda_vector
 
 
 def add_heat(pre_sis, post_sis, board_conductivity: ConductivityModel,
              micro_conductivity: ConductivityModel, cpu_specification: CpuSpecification,
              task_specification: TasksSpecification, simulation_specification: SimulationSpecification) \
-        -> [np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+        -> [scipy.ndarray, scipy.ndarray, scipy.ndarray, scipy.ndarray]:
     # Cp_exec,Lambda_gen, Pre,Post
     dx = simulation_specification.step / 1000
     dy = simulation_specification.step / 1000
@@ -246,7 +249,7 @@ def add_heat(pre_sis, post_sis, board_conductivity: ConductivityModel,
     # Lambdas
     # Como la generacion es igual para cada lugar del procesador las lambdas
     # son iguales para todos los lugares de un mismo procesador
-    lambda_gen = np.ones(len(task_specification.tasks) * cpu_specification.number_of_cores)
+    lambda_gen = scipy.ones(len(task_specification.tasks) * cpu_specification.number_of_cores)
 
     for j in range(1, cpu_specification.number_of_cores + 1):
         for i in range(1, len(task_specification.tasks) + 1):
@@ -264,8 +267,8 @@ def add_heat(pre_sis, post_sis, board_conductivity: ConductivityModel,
 
     f = len(pre_sis)
 
-    pre_gen = np.zeros((f, len(task_specification.tasks) * cpu_specification.number_of_cores))
-    post_gen = np.zeros((f, len(task_specification.tasks) * cpu_specification.number_of_cores))
+    pre_gen = scipy.zeros((f, len(task_specification.tasks) * cpu_specification.number_of_cores))
+    post_gen = scipy.zeros((f, len(task_specification.tasks) * cpu_specification.number_of_cores))
 
     j = 1
 
@@ -276,10 +279,10 @@ def add_heat(pre_sis, post_sis, board_conductivity: ConductivityModel,
         if i % micro_conductivity.p == 0:
             j = j + len(task_specification.tasks)
 
-    pre_sis = np.concatenate((pre_sis, pre_gen), axis=1)
-    post_sis = np.concatenate((post_sis, post_gen), axis=1)
+    pre_sis = scipy.concatenate((pre_sis, pre_gen), axis=1)
+    post_sis = scipy.concatenate((post_sis, post_gen), axis=1)
 
-    cp_exec = post_gen.dot(np.diag(lambda_gen))
+    cp_exec = post_gen.dot(scipy.diag(lambda_gen))
 
     return cp_exec, lambda_gen, pre_sis, post_sis
 
@@ -316,7 +319,8 @@ def getCpuCoordinates(origin: Origin, cpu_spec: MaterialCuboid, board_spec: Mate
 
 
 class ThermalModel(object):
-    def __init__(self, a_t: np.ndarray, ct_exec: np.ndarray, s_t: np.ndarray, b_ta: np.ndarray, lambda_gen: np.ndarray):
+    def __init__(self, a_t: scipy.ndarray, ct_exec: scipy.ndarray, s_t: scipy.ndarray, b_ta: scipy.ndarray,
+                 lambda_gen: scipy.ndarray):
         self.a_t = a_t
         self.ct_exec = ct_exec
         self.s_t = s_t
@@ -338,13 +342,13 @@ def generate_thermal_model(tasks_specification: TasksSpecification, cpu_specific
     r_pre = board_conductivity.p + p_micros
     c_pre = board_conductivity.t + cpu_specification.number_of_cores * micro_conductivity.t
 
-    pre_sis: np.ndarray = np.zeros((r_pre, c_pre))
+    pre_sis: scipy.ndarray = scipy.zeros((r_pre, c_pre))
     pre_sis[0:board_conductivity.p, 0:board_conductivity.t] = board_conductivity.pre
 
-    post_sis: np.ndarray = np.zeros((r_pre, c_pre))
+    post_sis: scipy.ndarray = scipy.zeros((r_pre, c_pre))
     post_sis[0:board_conductivity.p, 0:board_conductivity.t] = board_conductivity.post
 
-    lambda_vector = np.zeros((c_pre, 1))
+    lambda_vector = scipy.zeros((c_pre, 1))
     lambda_vector[0:board_conductivity.t, 0] = board_conductivity.lambda_vector
 
     for i in range(1, cpu_specification.number_of_cores + 1):
@@ -361,7 +365,7 @@ def generate_thermal_model(tasks_specification: TasksSpecification, cpu_specific
 
     # Add transitions between micro and board
     # Connections between micro places and board places
-    rel_micro = np.zeros(p_micros, dtype=int)
+    rel_micro = scipy.zeros(p_micros, dtype=int)
 
     for i in range(1, cpu_specification.number_of_cores + 1):
         rel_micro[(i - 1) * micro_conductivity.p: i * micro_conductivity.p] = getCpuCoordinates(
@@ -385,20 +389,20 @@ def generate_thermal_model(tasks_specification: TasksSpecification, cpu_specific
                                                             cpu_specification, tasks_specification,
                                                             simulation_specification)
 
-    lambda_vector = np.concatenate((lambda_vector, lambda_generated.reshape((len(lambda_generated), 1))), axis=0)
+    lambda_vector = scipy.concatenate((lambda_vector, lambda_generated.reshape((-1, 1))), axis=0)
 
     # Lineal system
     pi = pre_sis.transpose()
-    a = ((post_sis - pre_sis).dot(np.diag((lambda_vector.transpose())[0]))).dot(
+    a = ((post_sis - pre_sis).dot(scipy.diag(lambda_vector.reshape(-1)))).dot(
         pi)  # Access to lambda_vector.transpose())[0]) is the way to archive a diagonal matrix
 
     # Output places
-    l_measurement = np.zeros(cpu_specification.number_of_cores)
+    l_measurement = scipy.zeros(cpu_specification.number_of_cores)
 
     for i in range(0, cpu_specification.number_of_cores):
-        l_measurement[i] = board_conductivity.p + i * micro_conductivity.p + np.math.ceil(micro_conductivity.p / 2)
+        l_measurement[i] = board_conductivity.p + i * micro_conductivity.p + scipy.math.ceil(micro_conductivity.p / 2)
 
-    c = np.zeros((len(l_measurement), len(a)))
+    c = scipy.zeros((len(l_measurement), len(a)))
 
     for i in range(0, len(l_measurement)):
         c[i, int(l_measurement[i]) - 1] = 1
