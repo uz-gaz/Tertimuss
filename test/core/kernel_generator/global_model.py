@@ -36,7 +36,7 @@ class TestGlobalModel(unittest.TestCase):
         global_model, mo = generate_global_model(tasks_model, processor_model, thermal_model,
                                                  environment_specification)
 
-        self.assertEqual(hashlib.md5(global_model.a).hexdigest(), "322bccabcb5438b447e9c595f938103a")
+        self.assertEqual(hashlib.md5(global_model.a).hexdigest(), "c82f12857d2be2eb1e09e07c1cb2fc14")
         self.assertEqual(hashlib.md5(mo).hexdigest(), "dfa9268c3a1c4479f8aff825d729cf59")
         self.assertEqual(hashlib.md5(global_model.b).hexdigest(), "d8609949db9452878b94854aabf0be29")
         self.assertEqual(hashlib.md5(global_model.bp).hexdigest(), "631e354953429412a9177770b8eb5775")

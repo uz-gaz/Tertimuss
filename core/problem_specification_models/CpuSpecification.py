@@ -2,29 +2,58 @@ import math
 
 
 class MaterialCuboid(object):
+    """
+    Material object with cuboid' shape
+    """
 
     def __init__(self, x: float, y: float, z: float, p: float, c_p: float, k: float):
-        self.x = x  # X coordinate (mm)
-        self.y = y  # Y coordinate (mm)
-        self.z = z  # Z coordinate (mm)
-        self.p = p  # Density (Kg/cm^3)
-        self.c_p = c_p  # Specific heat capacities (J/Kg K)
-        self.k = k  # Thermal conductivity (W/m ºC)
+        """
+
+        :param x: X coordinate size (mm)
+        :param y: Y coordinate size (mm)
+        :param z: Z coordinate size (mm)
+        :param p: Density (Kg/cm^3)
+        :param c_p: Specific heat capacities (J/Kg K)
+        :param k: Thermal conductivity (W/m ºC)
+        """
+        self.x = x
+        self.y = y
+        self.z = z
+        self.p = p
+        self.c_p = c_p
+        self.k = k
 
 
 class Origin(object):
+    """
+    Origins of material cuboid
+    """
 
     def __init__(self, x: float, y: float):
-        self.x = x  # X coordinate (mm)
-        self.y = y  # Y coordinate (mm)
+        """
+
+        :param x: X coordinate (mm)
+        :param y: Y coordinate (mm)
+        """
+        self.x = x
+        self.y = y
 
 
 class CoreSpecification(object):
+    """
+    Spec of a core
+    """
 
     def __init__(self, cpu_core: MaterialCuboid, clock_frequency: float, origin: Origin):
-        self.cpu_core = cpu_core  # Spec of core
-        self.clock_frequency = clock_frequency  # Frequency
-        self.origin = origin  # Origin position of core
+        """
+
+        :param cpu_core: Spec of core
+        :param clock_frequency: Frequency
+        :param origin: Origin position of core
+        """
+        self.cpu_core = cpu_core
+        self.clock_frequency = clock_frequency
+        self.origin = origin
 
 
 class CpuSpecification(object):
