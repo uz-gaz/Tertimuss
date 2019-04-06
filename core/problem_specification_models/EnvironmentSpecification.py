@@ -10,6 +10,6 @@ class EnvironmentSpecification(object):
         :param t_env: Environment temperature (ºC)
         :param t_max: Maximum temperature (ºC)
         """
-        self.h = h * (1000 * 1000)
+        self.h = h * (1000 ** 2)
         self.t_env = t_env
         self.t_max = t_max

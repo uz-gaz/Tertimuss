@@ -76,7 +76,7 @@ def solve_lineal_programing_problem_for_scheduling(tasks_specification: TasksSpe
 
     beta_1 = (scipy.linalg.inv(thermal_model.a_t)).dot(
         theta - scipy.identity(len(thermal_model.a_t)))
-    beta_2 = beta_1.dot(thermal_model.b_ta.reshape((len(thermal_model.a_t), 1)))
+    beta_2 = beta_1.dot(thermal_model.b_ta.reshape((- 1, 1)))
     beta_1 = beta_1.dot(thermal_model.ct_exec)
 
     # Inicializa la condicion inicial en ceros para obtener una condicion inicial=final SmT(0)=Y(H)

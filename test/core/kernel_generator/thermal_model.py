@@ -30,7 +30,7 @@ class TestThermalModel(unittest.TestCase):
         self.assertEqual(hashlib.md5(thermal_model.a_t).hexdigest(), "5bcfdc9c7a849c0935c9ae822a7c9e32")
         self.assertEqual(hashlib.md5(thermal_model.s_t).hexdigest(), "a85eecf3696207bab2885c80afe431ed")
         self.assertEqual(hashlib.md5(thermal_model.b_ta).hexdigest(), "823913eb86ac188e94da606c19275e62")
-        self.assertEqual(hashlib.md5(thermal_model.ct_exec).hexdigest(), "1a51e0466adf0f4dbe1e044e7fed392d")
+        self.assertEqual(hashlib.md5(thermal_model.ct_exec).hexdigest(), "3ebb3fc4224b5dd3e3b6ec4f9fe1faee")
         self.assertEqual(hashlib.md5(thermal_model.lambda_gen).hexdigest(), "1c507ed6c044af516be945b78605f1d2")
 
 
