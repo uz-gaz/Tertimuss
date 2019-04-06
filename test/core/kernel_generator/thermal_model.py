@@ -27,7 +27,7 @@ class TestThermalModel(unittest.TestCase):
                                                              simulation_specification)
 
         # Test with hashes, the probability of collision is low
-        self.assertEqual(hashlib.md5(thermal_model.a_t).hexdigest(), "35177a8f534b6ad0f56bc7ddad3ad147")
+        self.assertEqual(hashlib.md5(thermal_model.a_t).hexdigest(), "5bcfdc9c7a849c0935c9ae822a7c9e32")
         self.assertEqual(hashlib.md5(thermal_model.s_t).hexdigest(), "a85eecf3696207bab2885c80afe431ed")
         self.assertEqual(hashlib.md5(thermal_model.b_ta).hexdigest(), "823913eb86ac188e94da606c19275e62")
         self.assertEqual(hashlib.md5(thermal_model.ct_exec).hexdigest(), "1a51e0466adf0f4dbe1e044e7fed392d")

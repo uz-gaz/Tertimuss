@@ -15,7 +15,6 @@ class ProcessorModel(object):
         self.s_busy = s_busy
         self.m_proc_o = m_proc_o
         self.a_proc = a_proc
-        # TODO: Analyze if is necessary return Pre and Post matrix
 
 
 def generate_processor_model(tasks_specification: TasksSpecification, cpu_specification: CpuSpecification) \

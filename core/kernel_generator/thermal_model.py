@@ -17,9 +17,14 @@ class ConductivityModel(object):
 
 def simple_conductivity(material_cuboid: MaterialCuboid,
                         simulation_specification: SimulationSpecification) -> ConductivityModel:
+    """
+
+    :param material_cuboid: Board or CPU
+    :param simulation_specification: Specification
+    :return: Model
+    """
     dx = simulation_specification.step / 1000
     dy = simulation_specification.step / 1000
-    dz = material_cuboid.z / 1000
 
     x: int = int(material_cuboid.x / simulation_specification.step)
     y: int = int(material_cuboid.y / simulation_specification.step)
@@ -28,109 +33,87 @@ def simple_conductivity(material_cuboid: MaterialCuboid,
     k: float = material_cuboid.k
     cp: float = material_cuboid.c_p
 
-    volume: float = dx * dy * dz  # Volumen de cada cuadrado, igual para todos los elementos
-    horizontal_area: float = dy * dz  # Area de contacto para lugares contiguos horizontales
-    vertical_area: float = dx * dz  # Area de contacto para lugares contiguos verticales
+    # Horizontal lambda and vertical lambda was refactored to achieve more precision
+    horizontal_lambda = k / (rho * cp * (dx ** 2))
+    vertical_lambda = k / (rho * cp * (dy ** 2))
 
-    dx_horizontal = dx / 2
-    dx_vertical = dy / 2
-
-    horizontal_lambda = (1 / (volume * rho * cp)) * (k * k * horizontal_area) / (k * dx_horizontal + k * dx_horizontal)
-    vertical_lambda = (1 / (volume * rho * cp)) * (k * k * vertical_area) / (k * dx_vertical + k * dx_vertical)
-
-    # Total de lugares de la RP
+    # Total number of PN places
     p: int = x * y
 
-    # Total de transiciones
-    t: int = 4 * p - 2 * (x + y)  # Original = (x * y * 4) - 8 - 2 * (x - 2) - 2 * (y - 2)
+    # Total number of transitions
+    t: int = 4 * p - 2 * (x + y)
 
-    # Matriz de incidencia C
+    # C incidence matrix
     i_pre = [[1, 0], [0, 1]]
     i_post = [[0, 1], [1, 0]]
 
-    # Los lugares se numeran en forma de "serpiente"
+    # The places have been named in snake form
     # ie. 1 2 3
     #     6 5 4
     #     7 8 9 [...]
-    # Con eso se forma la matriz de incidencia
-    # con las transiciones que conectan 1-2 (las dos), 2-3 [...], 8-9
-    # hasta la transicion t=[(x*2)*(y-1)] + (x-1)*2
+    # That is the way to create the incidence matrix with the transitions who connects
+    # 1-2 (both), 2-3 [...], 8-9 until the transition t=[(x*2)*(y-1)] + (x-1)*2
     pre = scipy.zeros((p, t))
     post = scipy.zeros((p, t))
 
     lambda_vector = scipy.zeros(t)
 
-    for i in range(1, p):
-        j = 1 + ((i - 1) * 2)
-        pre[i - 1:i + 1, j - 1:j + 1] = i_pre
-        post[i - 1:i + 1, j - 1:j + 1] = i_post
+    # FIXME: I think we achieve the same in pre if we create a diagonal matrix with [1, 0] p -2 times and [0, 1]
+    # in the last
+    for i in range(p - 1):
+        j = i * 2
+        pre[i:i + 2, j:j + 2] = i_pre
+        post[i:i + 2, j:j + 2] = i_post
 
-        if i % x == 0:
-            lambda_vector[j - 1: j + 1] = [vertical_lambda, vertical_lambda]
-        else:
-            lambda_vector[j - 1:  j + 1] = [horizontal_lambda, horizontal_lambda]
+        lambda_vector[j: j + 2] = [vertical_lambda, vertical_lambda] if i % x == 1 else [horizontal_lambda,
+                                                                                         horizontal_lambda]
 
-    # Para la siguiente parte de C se numeran las transiciones que
-    # conectan 1-6, 2-5, 4-9 y 5-8 (ie. t18 y t17 asociadas a 1-6)
+    # In the next part, we create the transitions that connect 1-6, 2-5, 4-9 y 5-8 (ie. t18 y t17 associated to 1-6)
     v_pre = [1, 0]
     v_post = [0, 1]
 
-    start = 1
-    j = 1 + 2 * (p - 1)
+    for r in range(y - 1):
+        i = (r + 2) * x - 1
+        u = r * x
+        j = 2 * (p - 1 + r * (x - 1))
 
-    for count in range(2, y + 1):
-        xx = count * x
-        for i in range(1, x):
-            pre[start - 1, j - 1: j + 1] = v_pre
-            pre[xx - 1, j - 1: j + 1] = v_post
+        for _ in range(x - 1):
+            pre[u, j: j + 2] = v_pre
+            pre[i, j: j + 2] = v_post
 
-            post[start - 1, j - 1: j + 1] = v_post
-            post[xx - 1, j - 1: j + 1] = v_pre
+            post[u, j: j + 2] = v_post
+            post[i, j: j + 2] = v_pre
 
-            lambda_vector[j - 1: j + 1] = [vertical_lambda, vertical_lambda]
+            lambda_vector[j: j + 2] = [vertical_lambda, vertical_lambda]
 
-            xx = xx - 1
+            i = i - 1
             j = j + 2
-            start = start + 1
-        start = xx
+            u = u + 1
 
     return ConductivityModel(pre, post, t, p, lambda_vector)
 
 
 def add_interactions_layer(rel_micro: scipy.ndarray, pre_sis: scipy.ndarray, post_sis: scipy.ndarray,
                            lambda_vector: scipy.ndarray,
-                           board_conductivity: ConductivityModel, cpu_specification: CpuSpecification,
-                           simulation_specification: SimulationSpecification) -> [scipy.ndarray, scipy.ndarray,
-                                                                                  scipy.ndarray]:
-    dx_p1 = simulation_specification.step / 1000
-    dy_p1 = simulation_specification.step / 1000
-    dz_p1 = cpu_specification.board.z / 1000
-
+                           board_conductivity: ConductivityModel, cpu_specification: CpuSpecification) -> [
+    scipy.ndarray, scipy.ndarray, scipy.ndarray]:
     rho_p1 = cpu_specification.board.p
     k_p1 = cpu_specification.board.k
     cp_p1 = cpu_specification.board.c_p
-
-    dx_p2 = simulation_specification.step / 1000
-    dy_p2 = simulation_specification.step / 1000
-    dz_p2 = cpu_specification.cpu_core.z / 1000
 
     rho_p2 = cpu_specification.cpu_core.p
     k_p2 = cpu_specification.cpu_core.k
     cp_p2 = cpu_specification.cpu_core.c_p
 
-    a = dx_p1 * dy_p1
+    # Refactored to improve precision
+    lambda1 = (k_p1 * k_p2 / (cpu_specification.board.z * rho_p1 * cp_p1 * (
+            k_p2 * cpu_specification.board.z + k_p1 * cpu_specification.cpu_core.z))) * (2 * (1000 ** 2))
 
-    v_p1 = a * dz_p1
-    deltax_p1 = dz_p1 / 2
+    lambda2 = (k_p1 * k_p2 / (cpu_specification.cpu_core.z * rho_p2 * cp_p2 * (
+            k_p2 * cpu_specification.board.z + k_p1 * cpu_specification.cpu_core.z))) * (2 * (1000 ** 2))
 
-    v_p2 = dx_p2 * dy_p2 * dz_p2
-    deltax_p2 = dz_p2 / 2
-
-    lambda1 = (k_p1 * k_p2 * a) / (v_p1 * rho_p1 * cp_p1) / (k_p2 * deltax_p1 + k_p1 * deltax_p2)
-    lambda2 = (k_p1 * k_p2 * a) / (v_p2 * rho_p2 * cp_p2) / (k_p2 * deltax_p1 + k_p1 * deltax_p2)
-
-    lambda1_div_lambda2 = (v_p2 * rho_p2 * cp_p2) / (v_p1 * rho_p1 * cp_p1)
-    lambda2_div_lambda1 = (v_p1 * rho_p1 * cp_p1) / (v_p2 * rho_p2 * cp_p2)
+    lambda1_div_lambda2 = (cpu_specification.cpu_core.z * rho_p2 * cp_p2) / (cpu_specification.board.z * rho_p1 * cp_p1)
+    lambda2_div_lambda1 = (cpu_specification.board.z * rho_p1 * cp_p1) / (cpu_specification.cpu_core.z * rho_p2 * cp_p2)
 
     l_lug = len(rel_micro)
 
@@ -142,21 +125,20 @@ def add_interactions_layer(rel_micro: scipy.ndarray, pre_sis: scipy.ndarray, pos
 
     lambda_int = scipy.zeros((2 * l_lug, 1))
 
-    j = 1
-    for i in range(1, l_lug + 1):
-        pre_int[rel_micro[i - 1] - 1, j - 1: j + 1] = v_pre
-        pre_int[i + board_conductivity.p - 1, j - 1: j + 1] = v_post
+    for i in range(l_lug):
+        j = i * 2
+        pre_int[rel_micro[i] - 1, j: j + 2] = v_pre
+        pre_int[i + board_conductivity.p, j: j + 2] = v_post
 
-        post_int[rel_micro[i - 1] - 1, j - 1: j + 1] = [0, lambda1_div_lambda2]
-        post_int[i + board_conductivity.p - 1, j - 1: j + 1] = [lambda2_div_lambda1, 0]
+        post_int[rel_micro[i] - 1, j: j + 2] = [0, lambda1_div_lambda2]
+        post_int[i + board_conductivity.p, j: j + 2] = [lambda2_div_lambda1, 0]
 
-        lambda_int[j - 1: j + 1, 0] = [lambda1, lambda2]
-        j = j + 2
+        lambda_int[j: j + 2, 0] = [lambda1, lambda2]
 
     pre_sis = scipy.concatenate((pre_sis, pre_int), axis=1)
     post_sis = scipy.concatenate((post_sis, post_int), axis=1)
 
-    lambda_vector = scipy.concatenate((lambda_vector, lambda_int), axis=0)
+    lambda_vector = scipy.concatenate((lambda_vector, lambda_int))
 
     return pre_sis, post_sis, lambda_vector
 
@@ -165,36 +147,24 @@ def add_convection(pre_sis, post_sis, lambda_vector, board_conductivity: Conduct
                    micro_conductivity: ConductivityModel, cpu_specification: CpuSpecification,
                    environment_specification: EnvironmentSpecification) -> [scipy.ndarray, scipy.ndarray, scipy.ndarray,
                                                                             scipy.ndarray]:
-    # D,Pre,Post,Lambda
-    dz_p1 = cpu_specification.board.z / 1000
-
     rho_p1 = cpu_specification.board.p
     cp_p1 = cpu_specification.board.c_p
 
-    dz_p2 = cpu_specification.cpu_core.z / 1000
-
-    rho_p2 = cpu_specification.cpu_core.p
-    cp_p2 = cpu_specification.cpu_core.c_p
-
     h = environment_specification.h
 
-    lambda_1 = (h / (dz_p1 * rho_p1 * cp_p1))
+    lambda_1 = (h / (cpu_specification.board.z * rho_p1 * cp_p1)) * 1000
 
-    lambda_conv = [lambda_1, lambda_1]  # TODO: Check, it might be lambda1, lambda2 (Ask authors)
+    lambda_convection = [lambda_1, lambda_1]  # TODO: Check, it might be lambda1, lambda2 (Ask authors)
 
     p_micros = micro_conductivity.p * cpu_specification.number_of_cores
 
-    # vector con el numero de lugares expuestos a temp. ambiente
-    places = list(range(1, board_conductivity.p + 1))
+    # Number of places exposed at environment temperature
+    l_places = board_conductivity.p
 
-    # Eliminamos los lugares bajo la CPU
+    # Places under CPU
     f = len(pre_sis)
 
-    l_places = len(places)
-
     cota_micros = l_places - p_micros
-
-    # pre_conv = scipy.zeros((f, 2)) # It was unused
 
     post_conv = scipy.zeros((f, 2))
 
@@ -203,39 +173,33 @@ def add_convection(pre_sis, post_sis, lambda_vector, board_conductivity: Conduct
 
     lambda_it = scipy.zeros((l_places, 1))
 
-    k = 1
-    for i in range(1, l_places + 1):
-        pre_it[places[i - 1] - 1, i - 1] = 1
-        # pre_conv[places[i - 1] - 1, k - 1] = 0
+    k = 0
+    for i in range(l_places):
+        pre_it[i, i] = 1
 
-        post_it[places[i - 1] - 1, i - 1] = 0
-        post_conv[places[i - 1] - 1, k - 1] = 1
+        post_it[i, i] = 0
+        post_conv[i, k] = 1
 
-        if i == cota_micros:
+        lambda_it[i] = lambda_1
+
+        if i + 1 == cota_micros:
             k = k + 1
-
-        lambda_it[i - 1] = lambda_1
 
     pi = [1, 1]
 
     pre_sis = scipy.concatenate((pre_sis, pre_it), axis=1)
     post_sis = scipy.concatenate((post_sis, post_it), axis=1)
 
-    lambda_vector = scipy.concatenate((lambda_vector, lambda_it), axis=0)
+    lambda_vector = scipy.concatenate((lambda_vector, lambda_it))
 
-    return post_conv.dot(scipy.diag(lambda_conv)).dot(
+    return post_conv.dot(scipy.diag(lambda_convection)).dot(
         pi), pre_sis, post_sis, lambda_vector
 
 
 def add_heat(pre_sis, post_sis, board_conductivity: ConductivityModel,
              micro_conductivity: ConductivityModel, cpu_specification: CpuSpecification,
-             task_specification: TasksSpecification, simulation_specification: SimulationSpecification) \
+             task_specification: TasksSpecification) \
         -> [scipy.ndarray, scipy.ndarray, scipy.ndarray, scipy.ndarray]:
-    # Cp_exec,Lambda_gen, Pre,Post
-    dx = simulation_specification.step / 1000
-    dy = simulation_specification.step / 1000
-    dz = cpu_specification.cpu_core.z / 1000
-
     x = cpu_specification.cpu_core.x / 1000
     y = cpu_specification.cpu_core.y / 1000
     z = cpu_specification.cpu_core.z / 1000
@@ -375,8 +339,7 @@ def generate_thermal_model(tasks_specification: TasksSpecification, cpu_specific
 
     # Pre,Post,lambda
     pre_sis, post_sis, lambda_vector = add_interactions_layer(rel_micro, pre_sis, post_sis, lambda_vector,
-                                                              board_conductivity, cpu_specification,
-                                                              simulation_specification)
+                                                              board_conductivity, cpu_specification)
 
     # Convection
     diagonal, pre_sis, post_sis, lambda_vector = add_convection(pre_sis, post_sis, lambda_vector,
@@ -385,10 +348,9 @@ def generate_thermal_model(tasks_specification: TasksSpecification, cpu_specific
 
     # Heat generation
     cp_exec, lambda_generated, pre_sis, post_sis = add_heat(pre_sis, post_sis, board_conductivity, micro_conductivity,
-                                                            cpu_specification, tasks_specification,
-                                                            simulation_specification)
+                                                            cpu_specification, tasks_specification)
 
-    lambda_vector = scipy.concatenate((lambda_vector, lambda_generated.reshape((-1, 1))), axis=0)
+    lambda_vector = scipy.concatenate((lambda_vector, lambda_generated.reshape((-1, 1))))
 
     # Lineal system
     pi = pre_sis.transpose()

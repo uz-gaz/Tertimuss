@@ -13,7 +13,6 @@ class TasksModel(object):
         self.c_tau_alloc = c_tau_alloc
         self.m_tau_o = m_tau_o
         self.a_tau = a_tau
-        # TODO: Analyze if is necessary return Pre and Post matrix
 
 
 def generate_tasks_model(tasks_specification: TasksSpecification, cpu_specification: CpuSpecification) -> TasksModel:

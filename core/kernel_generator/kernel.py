@@ -8,6 +8,9 @@ from core.problem_specification_models.GlobalSpecification import GlobalSpecific
 
 
 class SimulationKernel(object):
+    """
+    Encapsulate all TCPN which represent the kernel
+    """
     def __init__(self, tasks_model: TasksModel, processor_model: ProcessorModel, thermal_model: ThermalModel,
                  global_model: GlobalModel, mo: scipy.ndarray):
         self.tasks_model = tasks_model
