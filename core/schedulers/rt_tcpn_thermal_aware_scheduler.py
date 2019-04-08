@@ -30,7 +30,7 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
 
         kd = 1
         sd_u = []
-        for i in range(0, n):
+        for i in range(n):
             diagonal[i, 0: jobs[i]] = list(range(ti[i], global_specification.tasks_specification.h + 1, ti[i]))
             sd_u = scipy.union1d(sd_u, diagonal[i, 0: jobs[i]])
 
@@ -64,10 +64,10 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
         M = scipy.zeros((len(simulation_kernel.mo), 0))
         mo = simulation_kernel.mo
 
-        for zeta_q in range(0, int(global_specification.tasks_specification.h / quantum)):
+        for zeta_q in range(int(global_specification.tasks_specification.h / quantum)):
             while round(time) <= zeta + quantum:
-                for j in range(0, m):
-                    for i in range(0, n):
+                for j in range(m):
+                    for i in range(n):
                         # Calculo del error, y la superficie para el sliding mode control
                         e_iFSCj[i + j * n] = jFSCi[i + j * n] * zeta - m_exec[i + j * n]
 
@@ -105,17 +105,17 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
             FSC = scipy.zeros(m * n)
 
             # Se calcula el remaining jobs execution Re_tau(j,i)
-            for j in range(0, m):
-                for i in range(0, n):
+            for j in range(m):
+                for i in range(n):
                     FSC[i + j * n] = jFSCi[i + j * n] * sd
                     iREj[i + j * n] = m_exec[i + j * n] - Mexec[i + j * n]
 
                     if round(iREj[i + j * n], 4) > 0:
                         ET[j, i] = i + 1
                     else:
-                        ET[j, i] = 0
+                        ET[j, i] = 0  # FIXME: I think it has no effect
 
-            for j in range(0, m):
+            for j in range(m):
                 # Si el conjunto no es vacio por cada j-esimo CPU, entonces se procede a
                 # calcular la prioridad de cada tarea a ser asignada
                 if not scipy.array_equal(ET[j, :], scipy.zeros((1, len(ET[0])))):
