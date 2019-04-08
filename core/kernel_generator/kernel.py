@@ -1,3 +1,5 @@
+from typing import Optional
+
 import scipy
 
 from core.kernel_generator.global_model import GlobalModel, generate_global_model
@@ -11,7 +13,7 @@ class SimulationKernel(object):
     """
     Encapsulate all TCPN which represent the kernel
     """
-    def __init__(self, tasks_model: TasksModel, processor_model: ProcessorModel, thermal_model: ThermalModel,
+    def __init__(self, tasks_model: TasksModel, processor_model: ProcessorModel, thermal_model: Optional[ThermalModel],
                  global_model: GlobalModel, mo: scipy.ndarray):
         self.tasks_model = tasks_model
         self.processor_model = processor_model
