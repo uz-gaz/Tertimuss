@@ -3,7 +3,7 @@ import scipy
 from core.kernel_generator.kernel import SimulationKernel
 from core.problem_specification_models.GlobalSpecification import GlobalSpecification
 from core.schedulers.abstract_scheduler import AbstractScheduler
-from core.schedulers.lineal_programing_problem_for_scheduling import solve_lineal_programing_problem_for_scheduling
+from core.schedulers.global_model_solver import solve_global_model
 
 
 class GlobalEDFScheduler(AbstractScheduler):
@@ -13,8 +13,6 @@ class GlobalEDFScheduler(AbstractScheduler):
 
     def simulate(self, global_specification: GlobalSpecification, simulation_kernel: SimulationKernel):
         idle_task_id = 1023
-        all = 1
-        current = 0
         m = global_specification.cpu_specification.number_of_cores
         n = len(global_specification.tasks_specification.tasks)
         cpu_utilization = 1 / (m * sum(map(lambda a: a.c / a.t, global_specification.tasks_specification.tasks)))
@@ -26,7 +24,7 @@ class GlobalEDFScheduler(AbstractScheduler):
         cc = list(map(lambda a: a.c, global_specification.tasks_specification.tasks))
         abs_arrival = n * [0]
         tasks_instances = n * [0]
-        tasks_alives = n * [0]
+        tasks_alive = n * [0]
         abs_deadline = list(map(lambda a: a.t, global_specification.tasks_specification.tasks))
 
         active_task_id = idle_task_id * scipy.ones((m, 1))
@@ -41,57 +39,94 @@ class GlobalEDFScheduler(AbstractScheduler):
         TIMEZ = scipy.ndarray((0, 1))
         TIMEstep = scipy.asarray([])
         TIME_Temp = scipy.ndarray((0, 1))
-        TEMPERATURE_DISC = scipy.ndarray((len(simulation_kernel.global_model.s) - 2 * len(walloc), 0))
-        MEXEC = scipy.ndarray((len(jFSCi), 0))
-        MEXEC_TCPN = scipy.ndarray((len(walloc), 0))
+        TEMPERATURE_DISC = scipy.ndarray((len(simulation_kernel.global_model.s) - 2 * n * m, 0))
+        MEXEC = scipy.ndarray((n * m, 0))
+        MEXEC_TCPN = scipy.ndarray((n * m, 0))
         M = scipy.zeros((len(simulation_kernel.mo), 0))
 
-        zeta_q = 1
+        zeta_q = 0
+
+        mo = simulation_kernel.mo
 
         while time <= global_specification.tasks_specification.h:
             for j in range(m):
-                if sp_interrupt(time, n, m):
-                    active_task_id = EDF_police(n, m)
+                res, tasks_alive = sp_interrupt(time, n, abs_arrival, tasks_alive)
+                if res:
+                    active_task_id = edf_police(n, m, abs_deadline, tasks_alive)
 
-                if active_task_id[j, 0] != idle_task_id:
-                    if cc[active_task_id[j, 0]] != 0:  # FIXME: Probably errors with float precision
-                        cc[active_task_id[j, 0]] -= global_specification.simulation_specification.step
-                        i_tau_disc[active_task_id[j, 0] + j * n, zeta_q] = 1
+                if active_task_id[j] != idle_task_id:
+                    if cc[active_task_id[j]] != 0:  # FIXME: Probably errors with float precision
+                        cc[active_task_id[j]] -= global_specification.simulation_specification.step
+                        i_tau_disc[active_task_id[j] + j * n, zeta_q] = 1
 
-                        m_exec[active_task_id[j, 0] + j * n] += global_specification.simulation_specification.step
+                        m_exec[active_task_id[j] + j * n] += global_specification.simulation_specification.step
 
-                    if cc[active_task_id[j, 0]] <= 0:
-                        i_tau_disc[active_task_id[j, 0] + j * n, zeta_q] = 0
-                        tasks_instances[active_task_id[j, 0]] += 1
-                        tasks_alives[active_task_id[j, 0]] = 0
-                        # TODO: copy_execution_time(active_task_id(j,1),CURRENT);
-                        # TODO: update_abs_arrival(active_task_id(j,1), task(active_task_id(j,1)).instance,CURRENT);
-                        # TODO: update_abs_deadline(active_task_id(j,1),CURRENT);
-                        active_task_id = EDF_police(n, m)
+                    if cc[active_task_id[j]] <= 0:
+                        i_tau_disc[active_task_id[j] + j * n, zeta_q] = 0
+                        tasks_instances[active_task_id[j]] += 1
+                        tasks_alive[active_task_id[j]] = 0
+
+                        cc[active_task_id[j]] = global_specification.tasks_specification.tasks[
+                            active_task_id[j]].c
+
+                        abs_arrival[active_task_id[j]] += tasks_instances[active_task_id[j]] * \
+                                                          global_specification.tasks_specification.tasks[
+                                                              active_task_id[j]].t
+
+                        abs_deadline[active_task_id[j]] = global_specification.tasks_specification.tasks[
+                                                              active_task_id[j]].t + abs_arrival[
+                                                              active_task_id[j]]
+                        active_task_id = edf_police(n, m, abs_deadline, tasks_alive)
                 else:
                     i_tau_disc[j, zeta_q] = 1
-            # TODO: [mo_next, m_exec, ~, ~, toutDisc, TempTimeDisc, m_TCPN]=SolGlobalModel(TCPNmodel,mo, I_tauDisc(:,ZetaQ), m_amb, [time time+step]);
 
-            """
-                mo=mo_next;
-                M=[M  m_TCPN];
-                TIMEstep=[TIMEstep;time];
-                TEMPERATURE_DISC=[TEMPERATURE_DISC TempTimeDisc];
-                TIME_Temp=[TIME_Temp; toutDisc];
-                MEXEC=[MEXEC Mexec];
-                MEXEC_TCPN=[MEXEC_TCPN m_exec];
-                TIMEZ=[TIMEZ;time];
-                time=time+step;
-                
-                ZetaQ=ZetaQ+1;
-            """
+            mo_next, m_exec_disc, _, _, toutDisc, TempTimeDisc, m_TCPN = solve_global_model(
+                simulation_kernel.global_model,
+                mo.reshape(-1),
+                i_tau_disc[:, zeta_q].reshape(-1),
+                global_specification.environment_specification.t_env,
+                scipy.asarray([time,
+                               time + global_specification.simulation_specification.step]))
+
+            mo = mo_next
+            TIMEstep = scipy.concatenate((TIMEstep, scipy.asarray([time])))
+            TEMPERATURE_DISC = scipy.concatenate((TEMPERATURE_DISC, TempTimeDisc), axis=1)
+            TIME_Temp = scipy.concatenate((TIME_Temp, toutDisc))
+
+            MEXEC = scipy.concatenate((MEXEC, m_exec.reshape(-1, 1)), axis=1)
+            MEXEC_TCPN = scipy.concatenate((MEXEC_TCPN, m_exec_disc), axis=1)
+
+            TIMEZ = scipy.concatenate((TIMEZ, scipy.asarray([time]).reshape((1, 1))))
+
+            time += global_specification.simulation_specification.step
+
+            zeta_q += 1
+        return M, mo, TIMEZ, i_tau_disc, MEXEC, MEXEC_TCPN, TIMEstep.reshape(
+            (-1, 1)), TIME_Temp, None, TEMPERATURE_DISC
 
 
-def sp_interrupt(time: float, n: int, m: int) -> bool:
-    # TODO
-    return True
+def sp_interrupt(time: float, n: int, abs_arrival: list, tasks_alive: list) -> [bool, list]:
+    a = 0
+    n1 = 0
+    for i in range(n):
+        if round(time, 3) == abs_arrival[i]:
+            tasks_alive[i] = 1
+            a = a + 1
+        elif tasks_alive[i] == 0:
+            n1 += 1
+
+    return n1 == n or a != 0, tasks_alive
 
 
-def EDF_police(n: int, m: int) -> int:
-    # TODO
-    pass
+def edf_police(n: int, m: int, abs_deadline: list, tasks_alive: list) -> list:
+    id_task = m * [1023]
+
+    id_task_order = scipy.argsort(abs_deadline)
+
+    for j in range(m):
+        min_value = 32767
+        for i in range(n):
+            if min_value > abs_deadline[id_task_order[j]] and tasks_alive[id_task_order[j]] == 1:
+                min_value = abs_deadline[id_task_order[j]]
+                id_task[j] = id_task_order[i]
+    return id_task

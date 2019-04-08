@@ -83,7 +83,7 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
 
                 mo_next, m_exec, m_busy, Temp, tout, TempTime, m_TCPN_cont = solve_global_model(
                     simulation_kernel.global_model,
-                    mo.reshape(len(mo)),
+                    mo.reshape(-1),
                     walloc,
                     global_specification.environment_specification.t_env,
                     scipy.asarray([time,
