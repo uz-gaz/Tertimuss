@@ -13,7 +13,7 @@ from core.problem_specification_models.TasksSpecification import TasksSpecificat
 from core.schedulers.global_edf_scheduler import GlobalEDFScheduler
 
 
-class TestLinealProgramingProblem(unittest.TestCase):
+class TestGlobalEdfScheduler(unittest.TestCase):
 
     def test_global_edf_scheduler(self):
         tasks_specification: TasksSpecification = TasksSpecification([Task(2, 4, 6.4),

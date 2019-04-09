@@ -13,7 +13,7 @@ from core.problem_specification_models.TasksSpecification import TasksSpecificat
 from core.schedulers.rt_tcpn_thermal_aware_scheduler import RTTcpnThermalAwareScheduler
 
 
-class TestLinealProgramingProblem(unittest.TestCase):
+class RtTcpnThermalAwareScheduler(unittest.TestCase):
 
     def test_rt_tcpn_thermal_aware_scheduler(self):
         tasks_specification: TasksSpecification = TasksSpecification([Task(2, 4, 6.4),

@@ -14,7 +14,7 @@ from core.schedulers.rt_tcpn_scheduler import RtTCPNScheduler
 from core.schedulers.rt_tcpn_thermal_aware_scheduler import RTTcpnThermalAwareScheduler
 
 
-class TestLinealProgramingProblem(unittest.TestCase):
+class RtTcpnScheduler(unittest.TestCase):
 
     def test_rt_tcpn_scheduler(self):
         # LPP 0 0 1 6 3 1

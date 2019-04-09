@@ -30,9 +30,10 @@ class GlobalEDFScheduler(AbstractScheduler):
         active_task_id = idle_task_id * scipy.ones((m, 1))
 
         i_tau_disc = scipy.zeros((n * m, int(
-            global_specification.tasks_specification.h / global_specification.simulation_specification.step)))
+            global_specification.tasks_specification.h / global_specification.simulation_specification.dt)))
 
         time = 0
+        time_int = 0
 
         m_exec = scipy.zeros((n * m, 1))
 
@@ -56,10 +57,10 @@ class GlobalEDFScheduler(AbstractScheduler):
 
                 if active_task_id[j] != idle_task_id:
                     if cc[active_task_id[j]] != 0:  # FIXME: Probably errors with float precision
-                        cc[active_task_id[j]] -= global_specification.simulation_specification.step
+                        cc[active_task_id[j]] -= global_specification.simulation_specification.dt
                         i_tau_disc[active_task_id[j] + j * n, zeta_q] = 1
 
-                        m_exec[active_task_id[j] + j * n] += global_specification.simulation_specification.step
+                        m_exec[active_task_id[j] + j * n] += global_specification.simulation_specification.dt
 
                     if cc[active_task_id[j]] <= 0:
                         i_tau_disc[active_task_id[j] + j * n, zeta_q] = 0
@@ -86,7 +87,7 @@ class GlobalEDFScheduler(AbstractScheduler):
                 i_tau_disc[:, zeta_q].reshape(-1),
                 global_specification.environment_specification.t_env,
                 scipy.asarray([time,
-                               time + global_specification.simulation_specification.step]))
+                               time + global_specification.simulation_specification.dt]))
 
             mo = mo_next
             TIMEstep = scipy.concatenate((TIMEstep, scipy.asarray([time])))
@@ -98,7 +99,8 @@ class GlobalEDFScheduler(AbstractScheduler):
 
             TIMEZ = scipy.concatenate((TIMEZ, scipy.asarray([time]).reshape((1, 1))))
 
-            time += global_specification.simulation_specification.step
+            time_int += 1
+            time = time_int * global_specification.simulation_specification.dt
 
             zeta_q += 1
         return M, mo, TIMEZ, i_tau_disc, MEXEC, MEXEC_TCPN, TIMEstep.reshape(
@@ -128,5 +130,5 @@ def edf_police(n: int, m: int, abs_deadline: list, tasks_alive: list) -> list:
         for i in range(n):
             if min_value > abs_deadline[id_task_order[j]] and tasks_alive[id_task_order[j]] == 1:
                 min_value = abs_deadline[id_task_order[j]]
-                id_task[j] = id_task_order[i]
+                id_task[j] = id_task_order[j]
     return id_task
