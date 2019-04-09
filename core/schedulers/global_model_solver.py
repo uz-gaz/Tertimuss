@@ -8,11 +8,10 @@ def solve_global_model(global_model: GlobalModel, mo: scipy.ndarray, w_alloc: sc
                        time_sol: scipy.ndarray) -> [scipy.ndarray, scipy.ndarray, scipy.ndarray,
                                                     scipy.ndarray, scipy.ndarray,
                                                     scipy.ndarray, scipy.ndarray]:
-
     res = scipy.integrate.solve_ivp(
         lambda t, m: global_model.a.dot(m.transpose()) + global_model.b.dot(w_alloc) + global_model.bp.reshape(-1) * ma,
         time_sol, mo
-    )
+    )  # FIXME: In matlab ode 45 always return x*45 matrix
 
     m_m = res.y.transpose()[- 1]
 

@@ -29,11 +29,10 @@ class GlobalEDFScheduler(AbstractScheduler):
 
         active_task_id = idle_task_id * scipy.ones((m, 1))
 
-        i_tau_disc = scipy.zeros((n * m, int(
-            global_specification.tasks_specification.h / global_specification.simulation_specification.dt)))
+        simulation_time_steps = int(round(
+            global_specification.tasks_specification.h / global_specification.simulation_specification.dt))
 
-        time = 0
-        time_int = 0
+        i_tau_disc = scipy.zeros((n * m, simulation_time_steps))
 
         m_exec = scipy.zeros((n * m, 1))
 
@@ -45,18 +44,18 @@ class GlobalEDFScheduler(AbstractScheduler):
         MEXEC_TCPN = scipy.ndarray((n * m, 0))
         M = scipy.zeros((len(simulation_kernel.mo), 0))
 
-        zeta_q = 0
-
         mo = simulation_kernel.mo
 
-        while time <= global_specification.tasks_specification.h:
+        for zeta_q in range(simulation_time_steps):
+            time = zeta_q * global_specification.simulation_specification.dt
+
             for j in range(m):
                 res, tasks_alive = sp_interrupt(time, n, abs_arrival, tasks_alive)
                 if res:
                     active_task_id = edf_police(n, m, abs_deadline, tasks_alive)
 
                 if active_task_id[j] != idle_task_id:
-                    if cc[active_task_id[j]] != 0:  # FIXME: Probably errors with float precision
+                    if cc[active_task_id[j]] != 0:  # FIXME: Probably errors with float precision because always go into
                         cc[active_task_id[j]] -= global_specification.simulation_specification.dt
                         i_tau_disc[active_task_id[j] + j * n, zeta_q] = 1
 
@@ -99,10 +98,6 @@ class GlobalEDFScheduler(AbstractScheduler):
 
             TIMEZ = scipy.concatenate((TIMEZ, scipy.asarray([time]).reshape((1, 1))))
 
-            time_int += 1
-            time = time_int * global_specification.simulation_specification.dt
-
-            zeta_q += 1
         return M, mo, TIMEZ, i_tau_disc, MEXEC, MEXEC_TCPN, TIMEstep.reshape(
             (-1, 1)), TIME_Temp, None, TEMPERATURE_DISC
 
