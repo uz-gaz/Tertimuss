@@ -3,9 +3,14 @@ import scipy
 from core.problem_specification_models.CpuSpecification import CpuSpecification
 from core.problem_specification_models.TasksSpecification import TasksSpecification
 
+"""
+    Represents the Task arrival and CPU'S Module in the paper
+"""
+
 
 class TasksModel(object):
-    def __init__(self, c_tau: scipy.ndarray, lambda_tau: scipy.ndarray, pi_tau: scipy.ndarray, c_tau_alloc: scipy.ndarray,
+    def __init__(self, c_tau: scipy.ndarray, lambda_tau: scipy.ndarray, pi_tau: scipy.ndarray,
+                 c_tau_alloc: scipy.ndarray,
                  m_tau_o: scipy.ndarray, a_tau: scipy.ndarray):
         self.c_tau = c_tau
         self.lambda_tau = lambda_tau
