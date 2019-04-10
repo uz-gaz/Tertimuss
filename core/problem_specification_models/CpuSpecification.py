@@ -62,7 +62,8 @@ class CpuSpecification(object):
         self.board = board  # Spec of board
         self.cpu_core = cpu_core  # Spec of homogeneous CPU core
         self.number_of_cores = number_of_cores  # Number of homogeneous CPU cores
-        self.clock_frequency = clock_frequency  # Frequency of homogeneous CPU cores
+        self.clock_frequency = clock_frequency  # Frequency scale of homogeneous CPU cores (1 is the base frequency
+        # at which the platform could operate)
 
         def generate_automatic_origins(x0: float, x1: float, y0: float, y1: float, mx: float, my: float,
                                        n: int) -> list:
