@@ -55,11 +55,14 @@ class GlobalEDFScheduler(AbstractScheduler):
                     active_task_id = edf_police(n, m, abs_deadline, tasks_alive)
 
                 if active_task_id[j] != idle_task_id:
-                    if cc[active_task_id[j]] != 0:  # FIXME: Probably errors with float precision because always go into
+                    if round(cc[active_task_id[j]],
+                             5) != 0:  # FIXME: Probably errors with float precision because always go into
                         cc[active_task_id[j]] -= global_specification.simulation_specification.dt
                         i_tau_disc[active_task_id[j] + j * n, zeta_q] = 1
 
                         m_exec[active_task_id[j] + j * n] += global_specification.simulation_specification.dt
+                    else:
+                        cc[active_task_id[j]] = 0
 
                     if cc[active_task_id[j]] <= 0:
                         i_tau_disc[active_task_id[j] + j * n, zeta_q] = 0
@@ -89,6 +92,7 @@ class GlobalEDFScheduler(AbstractScheduler):
                                time + global_specification.simulation_specification.dt]))
 
             mo = mo_next
+            M = scipy.concatenate((M, m_TCPN), axis=1)
             TIMEstep = scipy.concatenate((TIMEstep, scipy.asarray([time])))
             TEMPERATURE_DISC = scipy.concatenate((TEMPERATURE_DISC, TempTimeDisc), axis=1)
             TIME_Temp = scipy.concatenate((TIME_Temp, toutDisc))
@@ -106,7 +110,7 @@ def sp_interrupt(time: float, n: int, abs_arrival: list, tasks_alive: list) -> [
     a = 0
     n1 = 0
     for i in range(n):
-        if round(time, 3) == abs_arrival[i]:
+        if round(time, 5) == round(abs_arrival[i], 5):
             tasks_alive[i] = 1
             a = a + 1
         elif tasks_alive[i] == 0:
