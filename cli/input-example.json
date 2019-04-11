@@ -1,0 +1,14 @@
+{
+  "tasks": [
+    {
+      "worstCaseExecutionTime": "1.2",
+      "period": "1.2",
+      "energyConsumption": "1.2"
+    },
+    {
+      "worstCaseExecutionTime": "2.2",
+      "period": "3.4",
+      "energyConsumption": "6.7"
+    }
+  ]
+}

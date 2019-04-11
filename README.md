@@ -12,3 +12,4 @@
 # References
 - [1] Original implementation of the code in matlab, [https://www.gdl.cinvestav.mx/art/uploads/SchedulerFrameworkTCPN.zip](https://www.gdl.cinvestav.mx/art/uploads/SchedulerFrameworkTCPN.zip )
 - [2] Lineal Algebra libraries usage in scipi, [https://docs.scipy.org/doc/scipy/reference/tutorial/linalg.html](https://docs.scipy.org/doc/scipy/reference/tutorial/linalg.html)
+- [3] JSON input format defined using JSON-SCHEMA, [https://json-schema.org/](https://json-schema.org/)
