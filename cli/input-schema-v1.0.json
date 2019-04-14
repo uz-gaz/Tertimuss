@@ -6,34 +6,50 @@
   "type": "object",
   "properties": {
     "tasks": {
-      "description": "Set of tasks, mutual exclusive usage with taskGenerationAlgorithm",
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "worstCaseExecutionTime": {
-            "description": "Worst case execution time in CPU cycles",
-            "type": "number"
-          },
-          "period": {
-            "description": "Period time in CPU cycles, equal to deadline",
-            "type": "number"
-          },
-          "energyConsumption": {
-            "description": "Energy consumption in Watts",
-            "type": "number"
+      "oneOf": [
+        {
+          "description": "Set of tasks",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "worstCaseExecutionTime": {
+                "description": "Worst case execution time in CPU cycles",
+                "type": "number"
+              },
+              "period": {
+                "description": "Period time in CPU cycles, equal to deadline",
+                "type": "number"
+              },
+              "energyConsumption": {
+                "description": "Energy consumption in Watts",
+                "type": "number"
+              }
+            },
+            "required": [
+              "worstCaseExecutionTime",
+              "period",
+              "energyConsumption"
+            ]
           }
         },
-        "required": [
-          "worstCaseExecutionTime",
-          "period",
-          "energyConsumption"
-        ]
-      }
+        {
+          "description": "TODO: Pass properties Task generation algorithm",
+          "type": "string"
+        }
+      ]
     },
-    "taskGenerationAlgorithm": {
-      "description": "Task generation algorithm, mutual exclusive usage with tasks",
-      "type": "string"
+    "processorProperties": {
+      "description": "Processor properties",
+      "type": "object",
+      "properties": {
+        "coresProperties": {
+          "description": "Processor core properties",
+          "type": "object",
+          "properties": {}
+        },
+        "boardProperties": {}
+      }
     }
   }
 }

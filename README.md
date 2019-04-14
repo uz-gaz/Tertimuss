@@ -5,6 +5,7 @@
 - Basic libraries installed by Anaconda
 - scipi 1.2.0 or higher and all its dependencies
 - matplotlib 3.0.2 or higher and all its dependencies
+- jsonschema 3.0.1 or higher and all its dependencies
 
 # Architecture
 ![Architecture](diagrams/architecture.png)
