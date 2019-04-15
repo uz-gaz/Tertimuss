@@ -15,15 +15,18 @@
             "properties": {
               "worstCaseExecutionTime": {
                 "description": "Task worst case execution time in CPU cycles",
-                "type": "number"
+                "type": "number",
+                "exclusiveMinimum": 0
               },
               "period": {
                 "description": "Task period in CPU cycles, equal to deadline",
-                "type": "number"
+                "type": "number",
+                "exclusiveMinimum": 0
               },
               "energyConsumption": {
                 "description": "Task energy consumption in Watts",
-                "type": "number"
+                "type": "number",
+                "exclusiveMinimum": 0
               }
             },
             "required": [
@@ -34,8 +37,48 @@
           }
         },
         {
-          "description": "TODO: Pass properties Task generation algorithm",
-          "type": "string"
+          "description": "Task generation algorithm properties",
+          "type": "object",
+          "properties": {
+            "energyConsumption": {
+              "description": "Energy consumption of tasks",
+              "type": "array",
+              "items": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              }
+            },
+            "numberOfTasks": {
+              "description": "Number of tasks",
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            "utilizationOfTheTaskSet": {
+              "description": "Number of tasks",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "intervalForPeriods": {
+              "description": "Periods intervals",
+              "type": "object",
+              "properties": {
+                "min": {
+                  "description": "Min period",
+                  "type": "integer",
+                  "exclusiveMinimum": 0
+                },
+                "max": {
+                  "description": "Max period",
+                  "type": "integer",
+                  "exclusiveMinimum": 0
+                }
+              }
+            },
+            "name": {
+              "description": "Task generation algorithm name",
+              "type": "string"
+            }
+          }
         }
       ]
     },
@@ -49,11 +92,13 @@
           "properties": {
             "numberOfCores": {
               "description": "Number of homogeneous CPU cores",
-              "type": "number"
+              "type": "integer",
+              "exclusiveMinimum": 0
             },
             "frequencyScale": {
               "description": "Frequency scale of homogeneous CPU cores (1 is the base frequency at which the platform could operate)",
-              "type": "number"
+              "type": "number",
+              "exclusiveMinimum": 0
             },
             "physicalProperties": {
               "description": "Physical properties of object",
@@ -65,15 +110,18 @@
                   "properties": {
                     "x": {
                       "description": "X coordinate size (mm)",
-                      "type": "number"
+                      "type": "number",
+                      "exclusiveMinimum": 0
                     },
                     "y": {
                       "description": "Y coordinate size (mm)",
-                      "type": "number"
+                      "type": "number",
+                      "exclusiveMinimum": 0
                     },
                     "z": {
                       "description": "Z coordinate size (mm)",
-                      "type": "number"
+                      "type": "number",
+                      "exclusiveMinimum": 0
                     }
                   },
                   "required": [
@@ -84,15 +132,18 @@
                 },
                 "specificHeatCapacities": {
                   "description": "Specific heat capacities (J/Kg K)",
-                  "type": "number"
+                  "type": "number",
+                  "exclusiveMinimum": 0
                 },
                 "density": {
                   "description": "Density (Kg/cm^3)",
-                  "type": "number"
+                  "type": "number",
+                  "exclusiveMinimum": 0
                 },
                 "thermalConductivity": {
                   "description": "Thermal conductivity (W/m ºC)",
-                  "type": "number"
+                  "type": "number",
+                  "exclusiveMinimum": 0
                 }
               },
               "required": [
@@ -112,11 +163,13 @@
                     "properties": {
                       "x": {
                         "description": "X coordinate (mm)",
-                        "type": "number"
+                        "type": "number",
+                        "exclusiveMinimum": 0
                       },
                       "y": {
                         "description": "Y coordinate (mm)",
-                        "type": "number"
+                        "type": "number",
+                        "exclusiveMinimum": 0
                       }
                     },
                     "required": [
@@ -153,15 +206,18 @@
                   "properties": {
                     "x": {
                       "description": "X coordinate size (mm)",
-                      "type": "number"
+                      "type": "number",
+                      "exclusiveMinimum": 0
                     },
                     "y": {
                       "description": "Y coordinate size (mm)",
-                      "type": "number"
+                      "type": "number",
+                      "exclusiveMinimum": 0
                     },
                     "z": {
                       "description": "Z coordinate size (mm)",
-                      "type": "number"
+                      "type": "number",
+                      "exclusiveMinimum": 0
                     }
                   },
                   "required": [
@@ -172,15 +228,18 @@
                 },
                 "specificHeatCapacities": {
                   "description": "Specific heat capacities (J/Kg K)",
-                  "type": "number"
+                  "type": "number",
+                  "exclusiveMinimum": 0
                 },
                 "density": {
                   "description": "Density (Kg/cm^3)",
-                  "type": "number"
+                  "type": "number",
+                  "exclusiveMinimum": 0
                 },
                 "thermalConductivity": {
                   "description": "Thermal conductivity (W/m ºC)",
-                  "type": "number"
+                  "type": "number",
+                  "exclusiveMinimum": 0
                 }
               },
               "required": [
@@ -207,15 +266,18 @@
       "properties": {
         "convectionFactor": {
           "description": "Convection factor (W/mm^2 ºC)",
-          "type": "number"
+          "type": "number",
+          "exclusiveMinimum": 0
         },
         "environmentTemperature": {
           "description": "Environment temperature (ºC)",
-          "type": "number"
+          "type": "number",
+          "exclusiveMinimum": -273.15
         },
         "maximumTemperature": {
           "description": "Maximum temperature (ºC)",
-          "type": "number"
+          "type": "number",
+          "exclusiveMinimum": -273.15
         }
       },
       "required": [
