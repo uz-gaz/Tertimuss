@@ -22,7 +22,7 @@ class Task(object):
     def __init__(self, c: float, t: int, e: float):
         """
 
-        :param c: Task WCET
+        :param c: Task worst case execution time in CPU cycles
         :param t: Task period, equal to deadline
         :param e: Energy consumption
         """

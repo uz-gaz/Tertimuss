@@ -59,11 +59,17 @@ class CoreSpecification(object):
 class CpuSpecification(object):
 
     def __init__(self, board: MaterialCuboid, cpu_core: MaterialCuboid, number_of_cores: int, clock_frequency: float):
-        self.board = board  # Spec of board
-        self.cpu_core = cpu_core  # Spec of homogeneous CPU core
-        self.number_of_cores = number_of_cores  # Number of homogeneous CPU cores
-        self.clock_frequency = clock_frequency  # Frequency scale of homogeneous CPU cores (1 is the base frequency
-        # at which the platform could operate)
+        """
+        CPU specification
+        :param board: Spec of board
+        :param cpu_core: Spec of homogeneous CPU core
+        :param number_of_cores: Number of homogeneous CPU cores
+        :param clock_frequency: Frequency scale of homogeneous CPU cores (1 is the base frequency at which the platform could operate)
+        """
+        self.board = board
+        self.cpu_core = cpu_core
+        self.number_of_cores = number_of_cores
+        self.clock_frequency = clock_frequency
 
         def generate_automatic_origins(x0: float, x1: float, y0: float, y1: float, mx: float, my: float,
                                        n: int) -> list:

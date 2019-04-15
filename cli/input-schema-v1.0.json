@@ -14,15 +14,15 @@
             "type": "object",
             "properties": {
               "worstCaseExecutionTime": {
-                "description": "Worst case execution time in CPU cycles",
+                "description": "Task worst case execution time in CPU cycles",
                 "type": "number"
               },
               "period": {
-                "description": "Period time in CPU cycles, equal to deadline",
+                "description": "Task period in CPU cycles, equal to deadline",
                 "type": "number"
               },
               "energyConsumption": {
-                "description": "Energy consumption in Watts",
+                "description": "Task energy consumption in Watts",
                 "type": "number"
               }
             },
@@ -39,17 +39,209 @@
         }
       ]
     },
-    "processorProperties": {
+    "processor": {
       "description": "Processor properties",
       "type": "object",
       "properties": {
         "coresProperties": {
-          "description": "Processor core properties",
+          "description": "Spec of homogeneous CPU core",
           "type": "object",
-          "properties": {}
+          "properties": {
+            "numberOfCores": {
+              "description": "Number of homogeneous CPU cores",
+              "type": "number"
+            },
+            "frequencyScale": {
+              "description": "Frequency scale of homogeneous CPU cores (1 is the base frequency at which the platform could operate)",
+              "type": "number"
+            },
+            "physicalProperties": {
+              "description": "Physical properties of object",
+              "type": "object",
+              "properties": {
+                "shape": {
+                  "description": "Object shape",
+                  "type": "object",
+                  "properties": {
+                    "x": {
+                      "description": "X coordinate size (mm)",
+                      "type": "number"
+                    },
+                    "y": {
+                      "description": "Y coordinate size (mm)",
+                      "type": "number"
+                    },
+                    "z": {
+                      "description": "Z coordinate size (mm)",
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "x",
+                    "y",
+                    "z"
+                  ]
+                },
+                "specificHeatCapacities": {
+                  "description": "Specific heat capacities (J/Kg K)",
+                  "type": "number"
+                },
+                "density": {
+                  "description": "Density (Kg/cm^3)",
+                  "type": "number"
+                },
+                "thermalConductivity": {
+                  "description": "Thermal conductivity (W/m ºC)",
+                  "type": "number"
+                }
+              },
+              "required": [
+                "shape",
+                "specificHeatCapacities",
+                "density",
+                "thermalConductivity"
+              ]
+            },
+            "coresOrigins": {
+              "oneOf": [
+                {
+                  "description": "Origins of cpu cores",
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "x": {
+                        "description": "X coordinate (mm)",
+                        "type": "number"
+                      },
+                      "y": {
+                        "description": "Y coordinate (mm)",
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "x",
+                      "y"
+                    ]
+                  }
+                },
+                {
+                  "description": "Core origin generation algorithm name",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "required": [
+            "numberOfCores",
+            "frequencyScale",
+            "physicalProperties",
+            "coresOrigins"
+          ]
         },
-        "boardProperties": {}
-      }
+        "boardProperties": {
+          "description": "Spec of CPU board",
+          "type": "object",
+          "properties": {
+            "physicalProperties": {
+              "description": "Physical properties of object",
+              "type": "object",
+              "properties": {
+                "shape": {
+                  "description": "Object shape",
+                  "type": "object",
+                  "properties": {
+                    "x": {
+                      "description": "X coordinate size (mm)",
+                      "type": "number"
+                    },
+                    "y": {
+                      "description": "Y coordinate size (mm)",
+                      "type": "number"
+                    },
+                    "z": {
+                      "description": "Z coordinate size (mm)",
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "x",
+                    "y",
+                    "z"
+                  ]
+                },
+                "specificHeatCapacities": {
+                  "description": "Specific heat capacities (J/Kg K)",
+                  "type": "number"
+                },
+                "density": {
+                  "description": "Density (Kg/cm^3)",
+                  "type": "number"
+                },
+                "thermalConductivity": {
+                  "description": "Thermal conductivity (W/m ºC)",
+                  "type": "number"
+                }
+              },
+              "required": [
+                "shape",
+                "specificHeatCapacities",
+                "density",
+                "thermalConductivity"
+              ]
+            }
+          },
+          "required": [
+            "physicalProperties"
+          ]
+        }
+      },
+      "required": [
+        "coresProperties",
+        "boardProperties"
+      ]
+    },
+    "environment": {
+      "description": "Specification of the environment",
+      "type": "object",
+      "properties": {
+        "convectionFactor": {
+          "description": "Convection factor (W/mm^2 ºC)",
+          "type": "number"
+        },
+        "environmentTemperature": {
+          "description": "Environment temperature (ºC)",
+          "type": "number"
+        },
+        "maximumTemperature": {
+          "description": "Maximum temperature (ºC)",
+          "type": "number"
+        }
+      },
+      "required": [
+        "convectionFactor",
+        "environmentTemperature",
+        "maximumTemperature"
+      ]
+    },
+    "scheduler": {
+      "description": "Scheduler properties",
+      "type": "object",
+      "properties": {
+        "name": {
+          "description": "Scheduler name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ]
     }
-  }
+  },
+  "required": [
+    "tasks",
+    "processor",
+    "environment",
+    "scheduler"
+  ]
 }

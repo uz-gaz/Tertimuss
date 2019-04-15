@@ -9,7 +9,7 @@
 
   "task_generation_algorithm [optional g1]": "string",
 
-  "processorProperties": {
+  "processor": {
     "coresProperties":{
       "numberOfCores": "Int",
       "frequencyScale": "Float",
@@ -51,7 +51,7 @@
     "maximumTemperature": "Float"
   },
 
-  "schedulerProperties": {
+  "scheduler": {
     "name": "string"
   }
 }
