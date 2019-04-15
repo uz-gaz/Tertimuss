@@ -2,10 +2,12 @@ import argparse
 import json
 from jsonschema import validate, ValidationError
 
+from core.problem_specification_models.CpuSpecification import CpuSpecification, MaterialCuboid
+
 
 def main(args):
     # Path of the input validate schema
-    input_schema_path = "input-schema-v1.0.json"
+    input_schema_path = "input-schema-thermal-v1.0.json"
 
     # Read schema for validation
     try:
@@ -38,17 +40,47 @@ def main(args):
         print("Error: Wrong fields validation in ", args.file)
         return 1
 
-    specifications = []
-    # Create problem instances
-    for problem_specification in scenario_description:
-        # TODO: Fill actual specification
-        pass
+    cpu_origins = None
+    processor = scenario_description.get("processor")
 
-    for problem_specification in specifications:
-        # TODO: Create process to solve actual specification (Create thread pool)
-        pass
+    board_prop = processor.get("boardProperties")
+    board_physical_properties = board_prop.get("physicalProperties")
 
-    # TODO: Join all process
+    core_properties = processor.get("coresProperties")
+    core_physical_properties = core_properties.get("physicalProperties")
+
+    # TODO: Add core origins (iterate over it and create a list)
+
+    cpu_specification = CpuSpecification(
+        MaterialCuboid(board_physical_properties.get("shape").get("x"),
+                       board_physical_properties.get("shape").get("y"),
+                       board_physical_properties.get("shape").get("z"),
+                       board_physical_properties.get("density"),
+                       board_physical_properties.get("specificHeatCapacity"),
+                       board_physical_properties.get("thermalConductivity")
+                       ),
+        MaterialCuboid(core_physical_properties.get("shape").get("x"),
+                       core_physical_properties.get("shape").get("y"),
+                       core_physical_properties.get("shape").get("z"),
+                       core_physical_properties.get("density"),
+                       core_physical_properties.get("specificHeatCapacity"),
+                       core_physical_properties.get("thermalConductivity")),
+        core_properties.get("numberOfCores"),
+        core_properties.get("frequencyScale"))
+
+    ii = 0
+
+    # specifications = []
+    #  Create problem instances
+    # for problem_specification in scenario_description:
+    #     # TODO: Fill actual specification
+    #    pass
+
+    # for problem_specification in specifications:
+    #     # TODO: Create process to solve actual specification (Create thread pool)
+    #     pass
+
+    # # TODO: Join all process
 
 
 if __name__ == "__main__":

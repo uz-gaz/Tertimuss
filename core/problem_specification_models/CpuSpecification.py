@@ -1,4 +1,5 @@
 import math
+from typing import Optional
 
 
 class MaterialCuboid(object):
@@ -58,7 +59,8 @@ class CoreSpecification(object):
 
 class CpuSpecification(object):
 
-    def __init__(self, board: MaterialCuboid, cpu_core: MaterialCuboid, number_of_cores: int, clock_frequency: float):
+    def __init__(self, board: MaterialCuboid, cpu_core: MaterialCuboid, number_of_cores: int, clock_frequency: float,
+                 cpu_origins: Optional[list] = None):
         """
         CPU specification
         :param board: Spec of board
@@ -84,8 +86,11 @@ class CpuSpecification(object):
                     return generate_automatic_origins(x0, x1, y0, y0 + (y1 - y0) / 2, mx, my, math.ceil(n / 2)) + \
                            generate_automatic_origins(x0, x1, y0 + (y1 - y0) / 2, y1, mx, my, math.floor(n / 2))
 
-        self.cpu_origins = generate_automatic_origins(0, self.board.x, 0, self.board.y, self.cpu_core.x,
-                                                      self.cpu_core.y, self.number_of_cores)
+        if cpu_origins is None:
+            self.cpu_origins = generate_automatic_origins(0, self.board.x, 0, self.board.y, self.cpu_core.x,
+                                                          self.cpu_core.y, self.number_of_cores)
+        else:
+            self.cpu_origins = cpu_origins
 
     '''
         # Constructor for heterogeneous CPU cores  

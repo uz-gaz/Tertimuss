@@ -1,18 +1,23 @@
 {
-  "$schema": "./input-schema-v1.0.json",
+  "$schema": "input-schema-thermal-v1.0.json",
   "$id": "scheduler.framework.TCPN.schema.example1",
   "title": "Example input specification",
   "description": "Input for Scheduler Framework TCPN v1.0",
   "tasks": [
     {
-      "worstCaseExecutionTime": 1.2,
-      "period": 1.2,
-      "energyConsumption": 1.2
+      "worstCaseExecutionTime": 2,
+      "period": 4,
+      "energyConsumption": 6.4
     },
     {
-      "worstCaseExecutionTime": 2.2,
-      "period": 3.4,
-      "energyConsumption": 6.7
+      "worstCaseExecutionTime": 3,
+      "period": 8,
+      "energyConsumption": 8
+    },
+    {
+      "worstCaseExecutionTime": 3,
+      "period": 12,
+      "energyConsumption": 9.6
     }
   ],
   "processor": {
@@ -21,38 +26,46 @@
       "frequencyScale": 1.0,
       "physicalProperties": {
         "shape": {
-          "x": 1,
-          "y": 1,
-          "z": 1
+          "x": 10,
+          "y": 10,
+          "z": 2
         },
-        "specificHeatCapacities": 1,
-        "density": 1,
-        "thermalConductivity": 1
+        "specificHeatCapacities": 712,
+        "density": 2330,
+        "thermalConductivity": 148
       }
     },
     "boardProperties": {
       "physicalProperties": {
         "shape": {
-          "x": 1,
-          "y": 1,
+          "x": 50,
+          "y": 50,
           "z": 1
         },
-        "specificHeatCapacities": 1,
-        "density": 1,
-        "thermalConductivity": 1
+        "specificHeatCapacities": 8933,
+        "density": 385,
+        "thermalConductivity": 400
       }
     }
   },
   "environment": {
-    "convectionFactor": 1,
-    "maximumTemperature": 1,
-    "environmentTemperature": 1
+    "convectionFactor": 0.001,
+    "maximumTemperature": 110,
+    "environmentTemperature": 45
   },
   "simulation": {
-    "meshStepSize": 1,
-    "timeStep": 1
+    "meshStepSize": 2,
+    "timeStep": 0.01
   },
   "scheduler": {
     "name": "rt_tcpn_thermal_aware_scheduler"
+  },
+  "output": {
+    "path": "out/",
+    "baseName": "simulation_example",
+    "generate": [
+      "temperatureEvolution",
+      "allocationAndExecution"
+    ]
   }
 }

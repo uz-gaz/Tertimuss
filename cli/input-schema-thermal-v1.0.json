@@ -1,8 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "scheduler.framework.TCPN.schema.json",
+  "$id": "scheduler.framework.TCPN.schema.thermal.json",
   "title": "Scheduler Framework TCPN",
-  "description": "Input for Scheduler Framework TCPN v1.0",
+  "description": "Input for Scheduler Framework TCPN with thermal v1.0",
   "type": "object",
   "properties": {
     "tasks": {
