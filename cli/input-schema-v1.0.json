@@ -154,42 +154,33 @@
               ]
             },
             "coresOrigins": {
-              "oneOf": [
-                {
-                  "description": "Origins of cpu cores",
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "x": {
-                        "description": "X coordinate (mm)",
-                        "type": "number",
-                        "exclusiveMinimum": 0
-                      },
-                      "y": {
-                        "description": "Y coordinate (mm)",
-                        "type": "number",
-                        "exclusiveMinimum": 0
-                      }
-                    },
-                    "required": [
-                      "x",
-                      "y"
-                    ]
+              "description": "Origins of cpu cores",
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "x": {
+                    "description": "X coordinate (mm)",
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "y": {
+                    "description": "Y coordinate (mm)",
+                    "type": "number",
+                    "exclusiveMinimum": 0
                   }
                 },
-                {
-                  "description": "Core origin generation algorithm name",
-                  "type": "string"
-                }
-              ]
+                "required": [
+                  "x",
+                  "y"
+                ]
+              }
             }
           },
           "required": [
             "numberOfCores",
             "frequencyScale",
-            "physicalProperties",
-            "coresOrigins"
+            "physicalProperties"
           ]
         },
         "boardProperties": {
@@ -286,6 +277,26 @@
         "maximumTemperature"
       ]
     },
+    "simulation": {
+      "description": "Simulation properties",
+      "type": "object",
+      "properties": {
+        "meshStepSize": {
+          "description": "Mesh step size (mm)",
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "timeStep": {
+          "description": "Time accuracy (s)",
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      },
+      "required": [
+        "meshStepSize",
+        "timeStep"
+      ]
+    },
     "scheduler": {
       "description": "Scheduler properties",
       "type": "object",
@@ -298,12 +309,45 @@
       "required": [
         "name"
       ]
+    },
+    "output": {
+      "description": "Output naming properties",
+      "type": "object",
+      "properties": {
+        "path": {
+          "description": "Contained directory path",
+          "type": "string"
+        },
+        "baseName": {
+          "description": "Naming prefix for all files",
+          "type": "string"
+        },
+        "generate": {
+          "description": "Files to generate",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "allocationAndExecution",
+              "temperatureEvolution"
+            ]
+          },
+          "minLength": 1
+        }
+      },
+      "required": [
+        "path",
+        "baseName",
+        "generate"
+      ]
     }
   },
   "required": [
     "tasks",
     "processor",
     "environment",
-    "scheduler"
+    "simulation",
+    "scheduler",
+    "output"
   ]
 }

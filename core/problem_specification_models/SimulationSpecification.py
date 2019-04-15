@@ -6,7 +6,7 @@ class SimulationSpecification(object):
     def __init__(self, step: float, dt: float):
         """
 
-        :param step: Geometry mesh, mesh step (mm)
+        :param step: Mesh step size (mm)
         :param dt:  Accuracy (s)
         """
         self.step = step

@@ -1,4 +1,8 @@
 {
+  "$schema": "./input-schema-v1.0.json",
+  "$id": "scheduler.framework.TCPN.schema.example1",
+  "title": "Example input specification",
+  "description": "Input for Scheduler Framework TCPN v1.0",
   "tasks": [
     {
       "worstCaseExecutionTime": 1.2,
@@ -10,5 +14,45 @@
       "period": 3.4,
       "energyConsumption": 6.7
     }
-  ]
+  ],
+  "processor": {
+    "coresProperties": {
+      "numberOfCores": 2,
+      "frequencyScale": 1.0,
+      "physicalProperties": {
+        "shape": {
+          "x": 1,
+          "y": 1,
+          "z": 1
+        },
+        "specificHeatCapacities": 1,
+        "density": 1,
+        "thermalConductivity": 1
+      }
+    },
+    "boardProperties": {
+      "physicalProperties": {
+        "shape": {
+          "x": 1,
+          "y": 1,
+          "z": 1
+        },
+        "specificHeatCapacities": 1,
+        "density": 1,
+        "thermalConductivity": 1
+      }
+    }
+  },
+  "environment": {
+    "convectionFactor": 1,
+    "maximumTemperature": 1,
+    "environmentTemperature": 1
+  },
+  "simulation": {
+    "meshStepSize": 1,
+    "timeStep": 1
+  },
+  "scheduler": {
+    "name": "rt_tcpn_thermal_aware_scheduler"
+  }
 }
