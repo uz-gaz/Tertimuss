@@ -97,5 +97,15 @@ class CpuSpecification(object):
         def __init__(self, board: MaterialCuboid, cpu_cores: list):
             self.board = board  # Spec of board
             self.cpu_cores = cpu_cores  # Spec of heterogeneous CPU cores
-        
+
     '''
+
+
+def check_origins(cpu_origins: list) -> bool:
+    """
+    Return true if no core overlap
+    :param cpu_origins:
+    :return:
+    """
+    # TODO: Do it
+    return True

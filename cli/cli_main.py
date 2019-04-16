@@ -2,7 +2,7 @@ import argparse
 import json
 from jsonschema import validate, ValidationError
 
-from core.problem_specification_models.CpuSpecification import CpuSpecification, MaterialCuboid
+from core.problem_specification_models.CpuSpecification import CpuSpecification, MaterialCuboid, Origin, check_origins
 
 
 def main(args):
@@ -36,11 +36,11 @@ def main(args):
     # Validate the input
     try:
         validate(scenario_description, input_schema)
-    except ValidationError:
-        print("Error: Wrong fields validation in ", args.file)
+    except ValidationError as ve:
+        print("Error: Wrong fields validation in", '/'.join(map(lambda x: str(x), ve.absolute_path)), "with message",
+              ve.message)
         return 1
 
-    cpu_origins = None
     processor = scenario_description.get("processor")
 
     board_prop = processor.get("boardProperties")
@@ -49,7 +49,14 @@ def main(args):
     core_properties = processor.get("coresProperties")
     core_physical_properties = core_properties.get("physicalProperties")
 
-    # TODO: Add core origins (iterate over it and create a list)
+    cpu_origins = core_properties.get("coresOrigins")
+
+    if cpu_origins is not None:
+        cpu_origins = list(map(lambda x: Origin(x.get("x"), x.get("y")), cpu_origins))
+
+        if not check_origins(cpu_origins):
+            print("Error: Wrong cpu origins specification")
+            return 1
 
     cpu_specification = CpuSpecification(
         MaterialCuboid(board_physical_properties.get("shape").get("x"),
@@ -66,7 +73,8 @@ def main(args):
                        core_physical_properties.get("specificHeatCapacity"),
                        core_physical_properties.get("thermalConductivity")),
         core_properties.get("numberOfCores"),
-        core_properties.get("frequencyScale"))
+        core_properties.get("frequencyScale"),
+        cpu_origins)
 
     ii = 0
 
