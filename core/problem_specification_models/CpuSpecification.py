@@ -1,3 +1,4 @@
+import itertools
 import math
 from typing import Optional
 
@@ -101,11 +102,32 @@ class CpuSpecification(object):
     '''
 
 
-def check_origins(cpu_origins: list) -> bool:
+def check_origins(cpu_origins: list, x_size_cpu: float, y_size_cpu: float, x_size_board: float,
+                  y_size_board: float) -> bool:
     """
     Return true if no core overlap
-    :param cpu_origins:
-    :return:
+    :param x_size_board: x size of board
+    :param y_size_cpu: y size of core
+    :param x_size_cpu: x size of core
+    :param y_size_board: y size of board
+    :param cpu_origins: cpu core origins list
+    :return: true if no core overlap with others and all are valid
     """
-    # TODO: Do it
-    return True
+
+    def overlaps(cpu_1_origin: Origin, cpu_2_origin: Origin, x_size: float, y_size: float):
+        """
+        Return true if cpu 1 and cpu 2 overlaps
+        Ref: https://www.geeksforgeeks.org/find-two-rectangles-overlap/
+
+        :param cpu_1_origin: cpu 1 origins
+        :param cpu_2_origin: cpu 2 origins
+        :param x_size: cpus x size
+        :param y_size: cpus y size
+        :return: true if overlaps false otherwise
+        """
+        return not ((cpu_1_origin.x > cpu_2_origin.x + x_size or cpu_2_origin.x > cpu_1_origin.x + x_size) or (
+                cpu_1_origin.y < cpu_2_origin.y + y_size or cpu_2_origin.y < cpu_1_origin.y))
+
+    return all(
+        map(lambda a: a.x + x_size_cpu <= x_size_board and a.y + y_size_cpu <= y_size_board, cpu_origins)) and not any(
+        map(lambda a: overlaps(a[0], a[1], x_size_cpu, y_size_cpu), itertools.combinations(cpu_origins, 2)))

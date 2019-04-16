@@ -3,6 +3,10 @@ import json
 from jsonschema import validate, ValidationError
 
 from core.problem_specification_models.CpuSpecification import CpuSpecification, MaterialCuboid, Origin, check_origins
+from core.problem_specification_models.EnvironmentSpecification import EnvironmentSpecification
+from core.problem_specification_models.SimulationSpecification import SimulationSpecification
+from core.problem_specification_models.TasksSpecification import TasksSpecification, Task
+from core.task_generator.task_generator_naming_selector import select_task_generator
 
 
 def main(args):
@@ -51,10 +55,15 @@ def main(args):
 
     cpu_origins = core_properties.get("coresOrigins")
 
+    # Check cpu origins spec
     if cpu_origins is not None:
         cpu_origins = list(map(lambda x: Origin(x.get("x"), x.get("y")), cpu_origins))
 
-        if not check_origins(cpu_origins):
+        if not check_origins(cpu_origins, core_physical_properties.get("shape").get("x"),
+                             core_physical_properties.get("shape").get("y"),
+                             board_physical_properties.get("shape").get("x"),
+                             board_physical_properties.get("shape").get("y")) or len(
+            cpu_origins) != core_properties.get("numberOfCores"):
             print("Error: Wrong cpu origins specification")
             return 1
 
@@ -76,7 +85,22 @@ def main(args):
         core_properties.get("frequencyScale"),
         cpu_origins)
 
-    ii = 0
+    simulation_specification = SimulationSpecification(scenario_description.get("simulation").get("meshStepSize"),
+                                                       scenario_description.get("simulation").get("timeStep"))
+
+    environment_specification = EnvironmentSpecification(
+        scenario_description.get("environment").get("convectionFactor"),
+        scenario_description.get("environment").get("environmentTemperature"),
+        scenario_description.get("environment").get("maximumTemperature"))
+
+    tasks = scenario_description.get("tasks")
+
+    if tasks is list:
+        tasks_specification = TasksSpecification(list(
+            map(lambda a: Task(a.get("worstCaseExecutionTime"), a.get("period"), a.get("energyConsumption")), tasks)))
+    else:
+        # tasks_specification = select_task_generator() TODO
+        pass
 
     # specifications = []
     #  Create problem instances
