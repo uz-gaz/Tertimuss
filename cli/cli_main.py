@@ -2,10 +2,17 @@ import argparse
 import json
 from jsonschema import validate, ValidationError
 
+from core.kernel_generator.global_model import generate_global_model
+from core.kernel_generator.kernel import SimulationKernel
+from core.kernel_generator.processor_model import ProcessorModel, generate_processor_model
+from core.kernel_generator.tasks_model import TasksModel, generate_tasks_model
+from core.kernel_generator.thermal_model import ThermalModel, generate_thermal_model
 from core.problem_specification_models.CpuSpecification import CpuSpecification, MaterialCuboid, Origin, check_origins
 from core.problem_specification_models.EnvironmentSpecification import EnvironmentSpecification
+from core.problem_specification_models.GlobalSpecification import GlobalSpecification
 from core.problem_specification_models.SimulationSpecification import SimulationSpecification
 from core.problem_specification_models.TasksSpecification import TasksSpecification, Task
+from core.schedulers.scheduler_naming_selector import select_scheduler
 from core.task_generator.task_generator_naming_selector import select_task_generator
 
 
@@ -63,7 +70,7 @@ def main(args):
                              core_physical_properties.get("shape").get("y"),
                              board_physical_properties.get("shape").get("x"),
                              board_physical_properties.get("shape").get("y")) or len(
-            cpu_origins) != core_properties.get("numberOfCores"):
+                             cpu_origins) != core_properties.get("numberOfCores"):
             print("Error: Wrong cpu origins specification")
             return 1
 
@@ -99,8 +106,44 @@ def main(args):
         tasks_specification = TasksSpecification(list(
             map(lambda a: Task(a.get("worstCaseExecutionTime"), a.get("period"), a.get("energyConsumption")), tasks)))
     else:
-        # tasks_specification = select_task_generator() TODO
-        pass
+        tasks_specification = select_task_generator(tasks.get("name"), tasks.get("numberOfTasks"),
+                                                    tasks.get("utilizationOfTheTaskSet"), (
+                                                        tasks.get("intervalForPeriods").get("min"),
+                                                        tasks.get("intervalForPeriods").get("min")),
+                                                    core_properties.get("frequencyScale"))
+        if tasks_specification is None:
+            print("Error: Wrong tasks specification")
+            return 1
+        else:
+            tasks_specification = TasksSpecification(tasks_specification.generate())
+
+    scheduler = select_scheduler(scenario_description.get("scheduler").get("name"))
+
+    if scheduler is None:
+        print("Error: Wrong scheduler specification")
+        return 1
+
+    # Run the simulation
+    processor_model: ProcessorModel = generate_processor_model(tasks_specification, cpu_specification)
+
+    tasks_model: TasksModel = generate_tasks_model(tasks_specification, cpu_specification)
+
+    thermal_model: ThermalModel = generate_thermal_model(tasks_specification, cpu_specification,
+                                                         environment_specification,
+                                                         simulation_specification)
+
+    global_model, mo = generate_global_model(tasks_model, processor_model, thermal_model, environment_specification)
+
+    simulation_kernel: SimulationKernel = SimulationKernel(tasks_model, processor_model, thermal_model,
+                                                           global_model, mo)
+
+    global_specification: GlobalSpecification = GlobalSpecification(tasks_specification, cpu_specification,
+                                                                    environment_specification,
+                                                                    simulation_specification)
+
+    scheduler.simulate(global_specification, simulation_kernel)
+
+    # TODO: Do output part
 
     # specifications = []
     #  Create problem instances

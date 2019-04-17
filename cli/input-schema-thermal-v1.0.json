@@ -40,14 +40,6 @@
           "description": "Task generation algorithm properties",
           "type": "object",
           "properties": {
-            "energyConsumption": {
-              "description": "Energy consumption of tasks",
-              "type": "array",
-              "items": {
-                "type": "number",
-                "exclusiveMinimum": 0
-              }
-            },
             "numberOfTasks": {
               "description": "Number of tasks",
               "type": "integer",
