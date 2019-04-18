@@ -2,7 +2,7 @@ import scipy
 
 from core.kernel_generator.kernel import SimulationKernel
 from core.problem_specification_models.GlobalSpecification import GlobalSpecification
-from core.schedulers.abstract_scheduler import AbstractScheduler
+from core.schedulers.abstract_scheduler import AbstractScheduler, SchedulerResult
 from core.schedulers.global_model_solver import solve_global_model
 
 
@@ -11,9 +11,8 @@ class GlobalEDFScheduler(AbstractScheduler):
     def __init__(self) -> None:
         super().__init__()
 
-    def simulate(self, global_specification: GlobalSpecification, simulation_kernel: SimulationKernel) -> [
-        scipy.ndarray, scipy.ndarray, scipy.ndarray, scipy.ndarray, scipy.ndarray, scipy.ndarray, scipy.ndarray,
-        scipy.ndarray, scipy.ndarray, scipy.ndarray]:
+    def simulate(self, global_specification: GlobalSpecification,
+                 simulation_kernel: SimulationKernel) -> SchedulerResult:
 
         idle_task_id = 1023
         m = global_specification.cpu_specification.number_of_cores
@@ -105,8 +104,8 @@ class GlobalEDFScheduler(AbstractScheduler):
 
             TIMEZ = scipy.concatenate((TIMEZ, scipy.asarray([time]).reshape((1, 1))))
 
-        return M, mo, TIMEZ, i_tau_disc, MEXEC, MEXEC_TCPN, TIMEstep.reshape(
-            (-1, 1)), TIME_Temp, None, TEMPERATURE_DISC
+        return SchedulerResult(M, mo, TIMEZ, i_tau_disc, MEXEC, MEXEC_TCPN, TIMEstep.reshape(
+            (-1, 1)), TIME_Temp, scipy.asarray([]), TEMPERATURE_DISC)
 
 
 def sp_interrupt(time: float, n: int, abs_arrival: list, tasks_alive: list) -> [bool, list]:

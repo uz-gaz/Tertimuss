@@ -53,7 +53,7 @@ def get_heat_matrix(temp, global_specification: GlobalSpecification) -> scipy.nd
 
 
 def plot_heat_map(heat_map):
-    sleep_between_frames = 0.3
+    sleep_between_frames = 0.1
 
     min_temp = min(map(lambda x: scipy.amin(x), heat_map)) - 0.5
     max_temp = max(map(lambda x: scipy.amax(x), heat_map)) + 0.5
