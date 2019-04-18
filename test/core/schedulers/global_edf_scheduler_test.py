@@ -11,7 +11,7 @@ from core.problem_specification_models.GlobalSpecification import GlobalSpecific
 from core.problem_specification_models.SimulationSpecification import SimulationSpecification
 from core.problem_specification_models.TasksSpecification import TasksSpecification, Task
 from core.schedulers.global_edf_scheduler import GlobalEDFScheduler
-from gui.output_generator import draw_heat_matrix
+from gui.output_generator import draw_heat_matrix, plot_cpu_utilization
 
 
 class TestGlobalEdfScheduler(unittest.TestCase):
@@ -51,7 +51,8 @@ class TestGlobalEdfScheduler(unittest.TestCase):
 
         # TODO: Check outputs
 
-        draw_heat_matrix(global_specification, simulation_kernel, scheduler_simulation)
+        # draw_heat_matrix(global_specification, simulation_kernel, scheduler_simulation)
+        plot_cpu_utilization(global_specification, scheduler_simulation)
 
 
 if __name__ == '__main__':

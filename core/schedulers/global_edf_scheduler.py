@@ -2,11 +2,20 @@ import scipy
 
 from core.kernel_generator.kernel import SimulationKernel
 from core.problem_specification_models.GlobalSpecification import GlobalSpecification
+from core.problem_specification_models.TasksSpecification import Task
 from core.schedulers.abstract_scheduler import AbstractScheduler, SchedulerResult
 from core.schedulers.global_model_solver import solve_global_model
 
 
 class GlobalEDFScheduler(AbstractScheduler):
+    class EDFTask(Task):
+        def __init__(self, task_specification: Task, task_id: int):
+            super().__init__(task_specification.c, task_specification.t, task_specification.e)
+            self.next_deadline = task_specification.t
+            self.next_arrival = 0
+            self.pending_c = task_specification.c
+            self.instances = 0
+            self.id = task_id
 
     def __init__(self) -> None:
         super().__init__()
@@ -14,29 +23,30 @@ class GlobalEDFScheduler(AbstractScheduler):
     def simulate(self, global_specification: GlobalSpecification,
                  simulation_kernel: SimulationKernel) -> SchedulerResult:
 
-        idle_task_id = 1023
+        idle_task_id = -1
         m = global_specification.cpu_specification.number_of_cores
         n = len(global_specification.tasks_specification.tasks)
-        cpu_utilization = 1 / (m * sum(map(lambda a: a.c / a.t, global_specification.tasks_specification.tasks)))
+        cpu_utilization = sum(map(lambda a: a.c / a.t, global_specification.tasks_specification.tasks))
         if cpu_utilization >= m:
             print("Schedule is not feasible")
             # TODO: Return error or throw exception
             return None
 
-        cc = list(map(lambda a: a.c, global_specification.tasks_specification.tasks))
-        abs_arrival = n * [0]
-        tasks_instances = n * [0]
-        tasks_alive = n * [0]
-        abs_deadline = list(map(lambda a: a.t, global_specification.tasks_specification.tasks))
+        # Tasks set
+        tasks = [self.EDFTask(global_specification.tasks_specification.tasks[i], i) for i in
+                 range(len(global_specification.tasks_specification.tasks))]
 
-        active_task_id = idle_task_id * scipy.ones((m, 1))
+        # Active task in each core
+        active_task_id = m * [idle_task_id]
 
         simulation_time_steps = int(round(
             global_specification.tasks_specification.h / global_specification.simulation_specification.dt))
 
+        # Allocation of each task in each simulation step
         i_tau_disc = scipy.zeros((n * m, simulation_time_steps))
 
-        m_exec = scipy.zeros((n * m, 1))
+        # Accumulated execution time in each step
+        m_exec = scipy.zeros(n * m)
 
         TIMEZ = scipy.ndarray((0, 1))
         TIMEstep = scipy.asarray([])
@@ -52,38 +62,28 @@ class GlobalEDFScheduler(AbstractScheduler):
             time = zeta_q * global_specification.simulation_specification.dt
 
             for j in range(m):
-                res, tasks_alive = sp_interrupt(time, n, abs_arrival, tasks_alive)
+                res = sp_interrupt(time, tasks, active_task_id)
+
                 if res:
-                    active_task_id = edf_police(n, m, abs_deadline, tasks_alive)
+                    active_task_id = edf_police(time, tasks, m)
 
                 if active_task_id[j] != idle_task_id:
-                    if round(cc[active_task_id[j]],
-                             5) != 0:  # FIXME: Probably errors with float precision because always go into
-                        cc[active_task_id[j]] -= global_specification.simulation_specification.dt
+                    if round(tasks[active_task_id[j]].pending_c, 5) > 0:
+                        # Not end yet
+                        tasks[active_task_id[j]].pending_c -= global_specification.simulation_specification.dt
                         i_tau_disc[active_task_id[j] + j * n, zeta_q] = 1
-
                         m_exec[active_task_id[j] + j * n] += global_specification.simulation_specification.dt
+
                     else:
-                        cc[active_task_id[j]] = 0
+                        # Ended
+                        tasks[active_task_id[j]].instances += 1
 
-                    if cc[active_task_id[j]] <= 0:
-                        i_tau_disc[active_task_id[j] + j * n, zeta_q] = 0
-                        tasks_instances[active_task_id[j]] += 1
-                        tasks_alive[active_task_id[j]] = 0
+                        tasks[active_task_id[j]].pending_c = tasks[active_task_id[j]].c
 
-                        cc[active_task_id[j]] = global_specification.tasks_specification.tasks[
-                            active_task_id[j]].c
+                        tasks[active_task_id[j]].next_arrival += tasks[active_task_id[j]].t
+                        tasks[active_task_id[j]].next_deadline += tasks[active_task_id[j]].t
 
-                        abs_arrival[active_task_id[j]] += tasks_instances[active_task_id[j]] * \
-                                                          global_specification.tasks_specification.tasks[
-                                                              active_task_id[j]].t
-
-                        abs_deadline[active_task_id[j]] = global_specification.tasks_specification.tasks[
-                                                              active_task_id[j]].t + abs_arrival[
-                                                              active_task_id[j]]
-                        active_task_id = edf_police(n, m, abs_deadline, tasks_alive)
-                else:
-                    i_tau_disc[j, zeta_q] = 1
+                        active_task_id[j] = edf_police(time, tasks, 1)[0]
 
             mo_next, m_exec_disc, _, _, toutDisc, TempTimeDisc, m_TCPN = solve_global_model(
                 simulation_kernel.global_model,
@@ -108,28 +108,12 @@ class GlobalEDFScheduler(AbstractScheduler):
             (-1, 1)), TIME_Temp, scipy.asarray([]), TEMPERATURE_DISC)
 
 
-def sp_interrupt(time: float, n: int, abs_arrival: list, tasks_alive: list) -> [bool, list]:
-    a = 0
-    n1 = 0
-    for i in range(n):
-        if round(time, 5) == round(abs_arrival[i], 5):
-            tasks_alive[i] = 1
-            a = a + 1
-        elif tasks_alive[i] == 0:
-            n1 += 1
-
-    return n1 == n or a != 0, tasks_alive
+def sp_interrupt(time: float, tasks: list, active_task_id: list) -> bool:
+    return len([x for x in active_task_id if x == -1]) == len(active_task_id) or len(
+        [x for x in tasks if round(time, 5) == round(x.next_arrival, 5)]) > 0
 
 
-def edf_police(n: int, m: int, abs_deadline: list, tasks_alive: list) -> list:
-    id_task = m * [1023]
-
-    id_task_order = scipy.argsort(abs_deadline)
-
-    for j in range(m):
-        min_value = 32767
-        for i in range(n):
-            if min_value > abs_deadline[id_task_order[j]] and tasks_alive[id_task_order[j]] == 1:
-                min_value = abs_deadline[id_task_order[j]]
-                id_task[j] = id_task_order[j]
-    return id_task
+def edf_police(time: float, tasks: list, m: int) -> list:
+    alive_tasks = [x for x in tasks if x.next_arrival >= time]
+    task_order = scipy.argsort(list(map(lambda x: x.next_deadline, alive_tasks)))
+    return [alive_tasks[i].id for i in task_order] + (m - len(alive_tasks)) * [-1]

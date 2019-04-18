@@ -73,3 +73,18 @@ def plot_heat_map(heat_map):
     for i in range(len(heat_map) - 1):
         ax.imshow(heat_map[i], cmap='viridis', vmax=max_temp, vmin=min_temp)
         plt.pause(sleep_between_frames)
+
+
+def plot_cpu_utilization(global_specification: GlobalSpecification, scheduler_result: SchedulerResult):
+    # TODO: Revisar esto
+    i_tau_disc = scheduler_result.sch_oldtfs
+    time_z = scheduler_result.timez
+    n = len(global_specification.tasks_specification.tasks)
+    m = global_specification.cpu_specification.number_of_cores
+    f, axarr = plt.subplots(m, sharex=True)
+    f.suptitle('CPU utilization')
+    for i in range(m):
+        for j in range(n):
+            axarr[i].plot(i_tau_disc[i * n + j])
+    plt.show()
+    plt.pause(10)

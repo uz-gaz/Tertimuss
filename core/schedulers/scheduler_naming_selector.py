@@ -1,7 +1,7 @@
 from typing import Optional
 
 from core.schedulers.abstract_scheduler import AbstractScheduler
-from core.schedulers.global_edf_scheduler import GlobalEDFScheduler
+from core.schedulers.global_edf_scheduler_original import GlobalEDFScheduler
 from core.schedulers.rt_tcpn_scheduler import RtTCPNScheduler
 from core.schedulers.rt_tcpn_thermal_aware_scheduler import RTTcpnThermalAwareScheduler
 
