@@ -15,7 +15,10 @@ class RtTCPNScheduler(AbstractScheduler):
     def __init__(self) -> None:
         super().__init__()
 
-    def simulate(self, global_specification: GlobalSpecification, simulation_kernel: SimulationKernel):
+    def simulate(self, global_specification: GlobalSpecification, simulation_kernel: SimulationKernel) -> [
+        scipy.ndarray, scipy.ndarray, scipy.ndarray, scipy.ndarray, scipy.ndarray, scipy.ndarray, scipy.ndarray,
+        scipy.ndarray, scipy.ndarray, scipy.ndarray]:
+
         jBi, jFSCi, quantum, mT = solve_lineal_programing_problem_for_scheduling(
             global_specification.tasks_specification, global_specification.cpu_specification,
             global_specification.environment_specification,

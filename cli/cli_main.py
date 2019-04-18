@@ -102,7 +102,7 @@ def main(args):
 
     tasks = scenario_description.get("tasks")
 
-    if tasks is list:
+    if type(tasks) is list:
         tasks_specification = TasksSpecification(list(
             map(lambda a: Task(a.get("worstCaseExecutionTime"), a.get("period"), a.get("energyConsumption")), tasks)))
     else:
@@ -143,19 +143,9 @@ def main(args):
 
     scheduler.simulate(global_specification, simulation_kernel)
 
+    i = 0
+
     # TODO: Do output part
-
-    # specifications = []
-    #  Create problem instances
-    # for problem_specification in scenario_description:
-    #     # TODO: Fill actual specification
-    #    pass
-
-    # for problem_specification in specifications:
-    #     # TODO: Create process to solve actual specification (Create thread pool)
-    #     pass
-
-    # # TODO: Join all process
 
 
 if __name__ == "__main__":

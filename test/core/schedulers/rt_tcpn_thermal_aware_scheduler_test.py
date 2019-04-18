@@ -11,6 +11,7 @@ from core.problem_specification_models.GlobalSpecification import GlobalSpecific
 from core.problem_specification_models.SimulationSpecification import SimulationSpecification
 from core.problem_specification_models.TasksSpecification import TasksSpecification, Task
 from core.schedulers.rt_tcpn_thermal_aware_scheduler import RTTcpnThermalAwareScheduler
+from gui.output_generator import draw_heat_matrix
 
 
 class RtTcpnThermalAwareScheduler(unittest.TestCase):
@@ -46,11 +47,11 @@ class RtTcpnThermalAwareScheduler(unittest.TestCase):
 
         scheduler = RTTcpnThermalAwareScheduler()
 
-        scheduler.simulate(global_specification, simulation_kernel)
+        scheduler_simulation = scheduler.simulate(global_specification, simulation_kernel)
 
-        i = 0
+        # TODO: Check outputs
 
-        # TODO: Continue
+        draw_heat_matrix(global_specification, simulation_kernel, scheduler_simulation)
 
 
 if __name__ == '__main__':

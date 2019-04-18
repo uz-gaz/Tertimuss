@@ -122,7 +122,7 @@
                     "z"
                   ]
                 },
-                "specificHeatCapacities": {
+                "specificHeatCapacity": {
                   "description": "Specific heat capacities (J/Kg K)",
                   "type": "number",
                   "exclusiveMinimum": 0
@@ -140,7 +140,7 @@
               },
               "required": [
                 "shape",
-                "specificHeatCapacities",
+                "specificHeatCapacity",
                 "density",
                 "thermalConductivity"
               ]
@@ -209,7 +209,7 @@
                     "z"
                   ]
                 },
-                "specificHeatCapacities": {
+                "specificHeatCapacity": {
                   "description": "Specific heat capacities (J/Kg K)",
                   "type": "number",
                   "exclusiveMinimum": 0
@@ -227,7 +227,7 @@
               },
               "required": [
                 "shape",
-                "specificHeatCapacities",
+                "specificHeatCapacity",
                 "density",
                 "thermalConductivity"
               ]

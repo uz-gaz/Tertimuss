@@ -1,27 +1,19 @@
-# from core.task_generator import TaskGeneratorAlgorithm
-# from core.task_generator.UUniFast import UUniFast
-
-##tga: TaskGeneratorAlgorithm = UUniFast(12, 0.12)
-
-# taskList: list = tga.generate()
-
-# print(taskList)
-
+import matplotlib.pyplot as plt
 import numpy as np
-from scipy import linalg
 
-from core.problem_specification_models.EnvironmentSpecification import EnvironmentSpecification
+plt.ion()
 
-b = np.array([[4, 5], [6, 7]])
+fig, ax = plt.subplots()
 
-# c = np.transpose(b)
+a = np.random.random((16, 16))
+im = ax.imshow(a, cmap='hot', vmax=100, vmin=0)
 
+# Create colorbar
+cbar = ax.figure.colorbar(im, ax=ax)
+cbar.ax.set_ylabel("Temperature", rotation=-90, va="bottom")
 
-def prueba(i,j):
-    print("Primero")
-
-
-
-prueba(1,2)
-
-
+for i in range(10):
+    a = np.random.random((16, 16))
+    im = ax.imshow(a, cmap='hot', vmax=100, vmin=0)
+    # plt.imshow(a, cmap='hot')
+    plt.pause(0.3)

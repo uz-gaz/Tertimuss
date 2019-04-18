@@ -11,7 +11,10 @@ class GlobalEDFScheduler(AbstractScheduler):
     def __init__(self) -> None:
         super().__init__()
 
-    def simulate(self, global_specification: GlobalSpecification, simulation_kernel: SimulationKernel):
+    def simulate(self, global_specification: GlobalSpecification, simulation_kernel: SimulationKernel) -> [
+        scipy.ndarray, scipy.ndarray, scipy.ndarray, scipy.ndarray, scipy.ndarray, scipy.ndarray, scipy.ndarray,
+        scipy.ndarray, scipy.ndarray, scipy.ndarray]:
+
         idle_task_id = 1023
         m = global_specification.cpu_specification.number_of_cores
         n = len(global_specification.tasks_specification.tasks)

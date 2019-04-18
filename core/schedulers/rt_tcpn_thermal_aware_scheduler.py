@@ -2,7 +2,7 @@ import scipy
 
 from core.kernel_generator.kernel import SimulationKernel
 from core.problem_specification_models.GlobalSpecification import GlobalSpecification
-from core.schedulers.abstract_scheduler import AbstractScheduler
+from core.schedulers.abstract_scheduler import AbstractScheduler, SchedulerResult
 from core.schedulers.global_model_solver import solve_global_model
 from core.schedulers.lineal_programing_problem_for_scheduling import solve_lineal_programing_problem_for_scheduling
 
@@ -12,7 +12,9 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
     def __init__(self) -> None:
         super().__init__()
 
-    def simulate(self, global_specification: GlobalSpecification, simulation_kernel: SimulationKernel):
+    def simulate(self, global_specification: GlobalSpecification,
+                 simulation_kernel: SimulationKernel) -> SchedulerResult:
+
         jBi, jFSCi, quantum, mT = solve_lineal_programing_problem_for_scheduling(
             global_specification.tasks_specification, global_specification.cpu_specification,
             global_specification.environment_specification,
@@ -100,7 +102,7 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
             i_tau_disc[:, zeta_q] = 0
 
             # Se inicializa el conjunto ET de transiciones de tareas para el modelo discreto
-            ET = scipy.zeros((m, n))
+            ET = scipy.zeros((m, n), dtype=int)
 
             FSC = scipy.zeros(m * n)
 
@@ -112,13 +114,11 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
 
                     if round(iREj[i + j * n], 4) > 0:
                         ET[j, i] = i + 1
-                    else:
-                        ET[j, i] = 0  # FIXME: I think it has no effect
 
             for j in range(m):
                 # Si el conjunto no es vacio por cada j-esimo CPU, entonces se procede a
                 # calcular la prioridad de cada tarea a ser asignada
-                if not scipy.array_equal(ET[j, :], scipy.zeros((1, len(ET[0])))):
+                if scipy.count_nonzero(ET[j]) > 0:
                     # Prioridad es igual al marcado del lugar continuo menos el marcado del lugar discreto
                     iPRj[j, :] = jFSCi[j * n: j * n + n] * sd - Mexec[j * n:j * n + n]
 
@@ -131,8 +131,8 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
                     # la posicion k la tarea no tine a Re_tau(j,k)>0 (es decir la tarea ya ejecuto lo que debía)
                     # entonces hay que incrementar a la siguiente posicion k+1 para tomar a la tarea de
                     # mayor prioridad
-                    k = 1
-                    while ET[j, IndMaxPr[k - 1]] == 0:
+                    k = 0
+                    while ET[j, IndMaxPr[k]] == 0:
                         k = k + 1
 
                     # Se toma la tarea de mayor prioridad en el conjunto ET
@@ -141,7 +141,7 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
                     # si se asigna la procesador j la tarea de mayor prioridad IndMaxPr(1), entonces si en el
                     # conjunto ET para los procesadores restantes debe pasar que ET(k,IndMaxPr(1))=0,
                     # para evitar que las tareas se ejecuten de manera paralela
-                    for k in range(0, m):
+                    for k in range(m):
                         if j != k:
                             ET[k, IndMaxPr] = 0
 
@@ -171,5 +171,5 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
 
         SCH_OLDTFS = i_tau_disc
 
-        return M, mo, TIMEZ, SCH_OLDTFS, MEXEC, MEXEC_TCPN, TIMEstep.reshape(
-            (-1, 1)), TIME_Temp, TEMPERATURE_CONT, TEMPERATURE_DISC
+        return SchedulerResult(M, mo, TIMEZ, SCH_OLDTFS, MEXEC, MEXEC_TCPN, TIMEstep.reshape(
+            (-1, 1)), TIME_Temp, TEMPERATURE_CONT, TEMPERATURE_DISC)
