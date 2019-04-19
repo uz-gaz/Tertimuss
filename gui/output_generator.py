@@ -23,7 +23,7 @@ def draw_heat_matrix(global_specification: GlobalSpecification, simulation_kerne
         heat_map.append(__get_heat_matrix(actual_temp, global_specification))
 
     # Plot heat map
-    sleep_between_frames = 0.1
+    sleep_between_frames = 0.01
 
     min_temp = min(map(lambda x: scipy.amin(x), heat_map)) - 0.5
     max_temp = max(map(lambda x: scipy.amax(x), heat_map)) + 0.5
@@ -40,9 +40,10 @@ def draw_heat_matrix(global_specification: GlobalSpecification, simulation_kerne
 
     plt.pause(sleep_between_frames)
 
-    for i in range(len(heat_map) - 1):
+    for i in range(1, len(heat_map)):
         ax.imshow(heat_map[i], cmap='viridis', vmax=max_temp, vmin=min_temp)
         plt.pause(sleep_between_frames)
+        print(i)
 
 
 def __get_heat_matrix(temp, global_specification: GlobalSpecification) -> scipy.ndarray:

@@ -1,29 +1,27 @@
+import os
+import subprocess
 import matplotlib.pyplot as plt
 import numpy as np
 
-x = [[1, 1, 1, 1, 1, 0, 0, 0, 0], [0, 0, 0, 0, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 0, 0, 0, 0],
-     [0, 0, 0, 0, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 0, 0, 0, 0], [0, 0, 0, 0, 1, 1, 1, 1, 1]]
-x = np.asarray(x)
+# Fixing random state for reproducibility
+np.random.seed(19680801)
 
-# f, axarr = plt.subplots(2, sharex=True)
-# f.suptitle('CPU utilization')
-# axarr[0].plot(x[0])
-# axarr[1].plot(x[1])
 
-# plt.plot(x[0])
-# plt.plot(x[1])
-# plt.show()
+files = []
 
-# TODO: Revisar esto
-i_tau_disc = x
-n = 3
-m = 2
+fig, ax = plt.subplots(figsize=(5, 5))
+for i in range(50):  # 50 frames
+    plt.cla()
+    plt.imshow(np.random.rand(5, 5), interpolation='nearest')
+    fname = '_tmp%03d.png' % i
+    print('Saving frame', fname)
+    plt.savefig(fname)
+    files.append(fname)
 
-f, axarr = plt.subplots(m, num="titulo de prueba")
-#f.figure(num="titulo de prueba")
-f.suptitle('CPU utilization')
-for i in range(m):
-    for j in range(n):
-        axarr[i].plot(i_tau_disc[i * n + j], label="CPU " + str(m))
-    axarr[i].legend(loc='upper left')
-plt.show()
+print('Making movie animation.mpg - this may take a while')
+subprocess.call("mencoder 'mf://_tmp*.png' -mf type=png:fps=10 -ovc lavc "
+                "-lavcopts vcodec=wmv2 -oac copy -o animation.mpg", shell=True)
+
+# cleanup
+for fname in files:
+    os.remove(fname)

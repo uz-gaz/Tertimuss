@@ -52,11 +52,11 @@ class TestGlobalEdfScheduler(unittest.TestCase):
 
         # TODO: Check outputs
 
-        # draw_heat_matrix(global_specification, simulation_kernel, scheduler_simulation)
-        plot_cpu_utilization(global_specification, scheduler_simulation)
-        plot_task_execution(global_specification, scheduler_simulation)
-        plot_cpu_temperature(global_specification, scheduler_simulation)
-        plot_accumulated_execution_time(global_specification, scheduler_simulation)
+        draw_heat_matrix(global_specification, simulation_kernel, scheduler_simulation)
+        # plot_cpu_utilization(global_specification, scheduler_simulation)
+        # plot_task_execution(global_specification, scheduler_simulation)
+        # plot_cpu_temperature(global_specification, scheduler_simulation)
+        # plot_accumulated_execution_time(global_specification, scheduler_simulation)
 
 
 if __name__ == '__main__':

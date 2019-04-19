@@ -15,6 +15,8 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
     def simulate(self, global_specification: GlobalSpecification,
                  simulation_kernel: SimulationKernel) -> SchedulerResult:
 
+        # TODO: Corregir esta mal
+
         jBi, jFSCi, quantum, mT = solve_lineal_programing_problem_for_scheduling(
             global_specification.tasks_specification, global_specification.cpu_specification,
             global_specification.environment_specification,
