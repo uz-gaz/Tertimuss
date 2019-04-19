@@ -37,7 +37,7 @@ class GlobalEDFScheduler(AbstractScheduler):
                  range(len(global_specification.tasks_specification.tasks))]
 
         # Active task in each core
-        active_task_id = m * [idle_task_id]
+        # active_task_id = m * [idle_task_id]
 
         simulation_time_steps = int(round(
             global_specification.tasks_specification.h / global_specification.simulation_specification.dt))
@@ -61,12 +61,10 @@ class GlobalEDFScheduler(AbstractScheduler):
         for zeta_q in range(simulation_time_steps):
             time = zeta_q * global_specification.simulation_specification.dt
 
+            # Get active task in this step
+            active_task_id = edf_police(time, tasks, m)
+
             for j in range(m):
-                res = sp_interrupt(time, tasks, active_task_id)
-
-                if res:
-                    active_task_id = edf_police(time, tasks, m)
-
                 if active_task_id[j] != idle_task_id:
                     if round(tasks[active_task_id[j]].pending_c, 5) > 0:
                         # Not end yet
@@ -83,8 +81,7 @@ class GlobalEDFScheduler(AbstractScheduler):
                         tasks[active_task_id[j]].next_arrival += tasks[active_task_id[j]].t
                         tasks[active_task_id[j]].next_deadline += tasks[active_task_id[j]].t
 
-                        active_task_id[j] = edf_police(time, tasks, 1)[0]
-
+            # TODO: Revisar de aqui para abajo
             mo_next, m_exec_disc, _, _, toutDisc, TempTimeDisc, m_TCPN = solve_global_model(
                 simulation_kernel.global_model,
                 mo.reshape(-1),
@@ -108,12 +105,7 @@ class GlobalEDFScheduler(AbstractScheduler):
             (-1, 1)), TIME_Temp, scipy.asarray([]), TEMPERATURE_DISC)
 
 
-def sp_interrupt(time: float, tasks: list, active_task_id: list) -> bool:
-    return len([x for x in active_task_id if x == -1]) == len(active_task_id) or len(
-        [x for x in tasks if round(time, 5) == round(x.next_arrival, 5)]) > 0
-
-
 def edf_police(time: float, tasks: list, m: int) -> list:
-    alive_tasks = [x for x in tasks if x.next_arrival >= time]
+    alive_tasks = [x for x in tasks if x.next_arrival <= time]
     task_order = scipy.argsort(list(map(lambda x: x.next_deadline, alive_tasks)))
-    return [alive_tasks[i].id for i in task_order] + (m - len(alive_tasks)) * [-1]
+    return ([alive_tasks[i].id for i in task_order] + (m - len(alive_tasks)) * [-1])[0:m]

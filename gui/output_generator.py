@@ -76,15 +76,39 @@ def plot_heat_map(heat_map):
 
 
 def plot_cpu_utilization(global_specification: GlobalSpecification, scheduler_result: SchedulerResult):
-    # TODO: Revisar esto
     i_tau_disc = scheduler_result.sch_oldtfs
-    time_z = scheduler_result.timez
     n = len(global_specification.tasks_specification.tasks)
     m = global_specification.cpu_specification.number_of_cores
     f, axarr = plt.subplots(m, sharex=True)
     f.suptitle('CPU utilization')
     for i in range(m):
+        axarr[i].set_title("CPU " + str(i))
         for j in range(n):
             axarr[i].plot(i_tau_disc[i * n + j])
     plt.show()
-    plt.pause(10)
+
+
+def plot_task_execution(global_specification: GlobalSpecification, scheduler_result: SchedulerResult):
+    i_tau_disc = scheduler_result.sch_oldtfs
+    n = len(global_specification.tasks_specification.tasks)
+    m = global_specification.cpu_specification.number_of_cores
+    f, axarr = plt.subplots(n, sharex=True)
+    f.suptitle('Task execution')
+    utilization_by_task = scipy.zeros((n, len(i_tau_disc[0])))
+    deadline_by_task = scipy.zeros((n, len(i_tau_disc[0])))
+
+    for i in range(n):
+        actual_deadline = int(
+            global_specification.tasks_specification.tasks[i].t / global_specification.simulation_specification.dt)
+        for j in range(len(i_tau_disc[0])):
+            if j % actual_deadline == 0:
+                deadline_by_task[i, j] = - 1
+            for k in range(m):
+                utilization_by_task[i, j] += i_tau_disc[n * k + i, j]
+
+    for j in range(n):
+        axarr[j].set_title("Task " + str(j))
+        axarr[j].plot(deadline_by_task[j])
+        axarr[j].plot(utilization_by_task[j])
+
+    plt.show()
