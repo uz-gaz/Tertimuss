@@ -36,31 +36,39 @@ class GlobalEDFScheduler(AbstractScheduler):
         tasks = [self.EDFTask(global_specification.tasks_specification.tasks[i], i) for i in
                  range(len(global_specification.tasks_specification.tasks))]
 
-        # Active task in each core
-        # active_task_id = m * [idle_task_id]
-
+        # Number of steps in the simulation
         simulation_time_steps = int(round(
             global_specification.tasks_specification.h / global_specification.simulation_specification.dt))
 
         # Allocation of each task in each simulation step
         i_tau_disc = scipy.zeros((n * m, simulation_time_steps))
 
-        # Accumulated execution time in each step
-        m_exec = scipy.zeros(n * m)
-
         # Time of each quantum
         time_step = simulation_time_steps * [0]
 
-        TIME_Temp = scipy.ndarray((0, 1))
-        TEMPERATURE_DISC = scipy.ndarray((len(simulation_kernel.global_model.s) - 2 * n * m, 0))
-        MEXEC = scipy.ndarray((n * m, 0))
-        MEXEC_TCPN = scipy.ndarray((n * m, 0))
+        # Accumulated execution time
+        m_exec = scipy.ndarray((n * m, simulation_time_steps))
 
+        # Accumulated execution time tcpn
+        m_exec_tcpn = scipy.ndarray((n * m, simulation_time_steps))
+
+        # Temperature of cores in each step
+        temperature_disc = scipy.ndarray((len(simulation_kernel.global_model.s) - 2 * n * m, 0))
+
+        # Map with temperatures in each step
         temperature_map = scipy.zeros((len(simulation_kernel.mo), 0))
 
+        # Time where each temperature step have been obtained
+        time_temp = scipy.ndarray((0, 1))
+
+        # Initial marking
         mo = simulation_kernel.mo
 
+        # Accumulated execution time in each step
+        m_exec_step = scipy.zeros(n * m)
+
         for zeta_q in range(simulation_time_steps):
+            # Update time
             time = zeta_q * global_specification.simulation_specification.dt
 
             # Get active task in this step
@@ -72,7 +80,7 @@ class GlobalEDFScheduler(AbstractScheduler):
                         # Not end yet
                         tasks[active_task_id[j]].pending_c -= global_specification.simulation_specification.dt
                         i_tau_disc[active_task_id[j] + j * n, zeta_q] = 1
-                        m_exec[active_task_id[j] + j * n] += global_specification.simulation_specification.dt
+                        m_exec_step[active_task_id[j] + j * n] += global_specification.simulation_specification.dt
 
                     else:
                         # Ended
@@ -82,9 +90,7 @@ class GlobalEDFScheduler(AbstractScheduler):
 
                         tasks[active_task_id[j]].next_arrival += tasks[active_task_id[j]].t
                         tasks[active_task_id[j]].next_deadline += tasks[active_task_id[j]].t
-
-            # TODO: Revisar de aqui para abajo
-            mo_next, m_exec_disc, _, _, toutDisc, TempTimeDisc, m_TCPN = solve_global_model(
+            mo_next, m_exec_disc, _, _, tout_disc, temp_time_disc, temperature_tcpn = solve_global_model(
                 simulation_kernel.global_model,
                 mo.reshape(-1),
                 i_tau_disc[:, zeta_q].reshape(-1),
@@ -93,19 +99,19 @@ class GlobalEDFScheduler(AbstractScheduler):
                                time + global_specification.simulation_specification.dt]))
 
             mo = mo_next
-            temperature_map = scipy.concatenate((temperature_map, m_TCPN), axis=1)
+            temperature_map = scipy.concatenate((temperature_map, temperature_tcpn), axis=1)
+            time_temp = scipy.concatenate((time_temp, tout_disc))
 
-            TEMPERATURE_DISC = scipy.concatenate((TEMPERATURE_DISC, TempTimeDisc), axis=1)
-            TIME_Temp = scipy.concatenate((TIME_Temp, toutDisc))
+            temperature_disc = scipy.concatenate((temperature_disc, temp_time_disc), axis=1)
 
-            MEXEC = scipy.concatenate((MEXEC, m_exec.reshape(-1, 1)), axis=1)
-            MEXEC_TCPN = scipy.concatenate((MEXEC_TCPN, m_exec_disc), axis=1)
+            m_exec[:, zeta_q] = m_exec_step
+            m_exec_tcpn[:, zeta_q] = m_exec_disc.reshape(-1)
 
             time_step[zeta_q] = time
 
         time_step = scipy.asarray(time_step).reshape((-1, 1))
-        return SchedulerResult(temperature_map, mo, time_step, i_tau_disc, MEXEC, MEXEC_TCPN, time_step, TIME_Temp, scipy.asarray([]),
-                               TEMPERATURE_DISC)
+        return SchedulerResult(temperature_map, mo, time_step, i_tau_disc, m_exec, m_exec_tcpn, time_step, time_temp,
+                               scipy.asarray([]), temperature_disc)
 
 
 def edf_police(time: float, tasks: list, m: int) -> list:
