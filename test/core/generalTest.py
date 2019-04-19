@@ -1,27 +1,28 @@
-import os
-import subprocess
-import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 
-# Fixing random state for reproducibility
-np.random.seed(19680801)
+fig = plt.figure()
 
 
-files = []
+def f(x, y):
+    return np.sin(x) + np.cos(y)
 
-fig, ax = plt.subplots(figsize=(5, 5))
-for i in range(50):  # 50 frames
-    plt.cla()
-    plt.imshow(np.random.rand(5, 5), interpolation='nearest')
-    fname = '_tmp%03d.png' % i
-    print('Saving frame', fname)
-    plt.savefig(fname)
-    files.append(fname)
+x = np.linspace(0, 2 * np.pi, 120)
+y = np.linspace(0, 2 * np.pi, 100).reshape(-1, 1)
+# ims is a list of lists, each row is a list of artists to draw in the
+# current frame; here we are just animating one artist, the image, in
+# each frame
+ims = []
+for i in range(60):
+    x += np.pi / 15.
+    y += np.pi / 20.
+    im = plt.imshow(f(x, y), animated=True)
+    ims.append([im])
 
-print('Making movie animation.mpg - this may take a while')
-subprocess.call("mencoder 'mf://_tmp*.png' -mf type=png:fps=10 -ovc lavc "
-                "-lavcopts vcodec=wmv2 -oac copy -o animation.mpg", shell=True)
+ani = animation.ArtistAnimation(fig, ims, interval=50, blit=True,
+                                repeat_delay=1000)
 
-# cleanup
-for fname in files:
-    os.remove(fname)
+# ani.save('dynamic_images.mp4')
+
+plt.show()

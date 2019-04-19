@@ -4,6 +4,10 @@ import unittest
 import scipy
 import matplotlib.pyplot as plt
 
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+
 
 class TestOutput(unittest.TestCase):
 
@@ -17,22 +21,20 @@ class TestOutput(unittest.TestCase):
         min_temp = min(map(lambda x: scipy.amin(x), heat_map)) - 0.5
         max_temp = max(map(lambda x: scipy.amax(x), heat_map)) + 0.5
 
-        plt.ion()
+        fig = plt.figure()
 
-        fig, ax = plt.subplots(num="Heat map")
+        ims = []
 
-        im = ax.imshow(heat_map[0], cmap='viridis', vmax=max_temp, vmin=min_temp)
+        for i in heat_map:
+            im = plt.imshow(i, animated=True)
+            ims.append([im])
 
-        # Create colorbar
-        cbar = ax.figure.colorbar(im, ax=ax)
-        cbar.ax.set_ylabel("Temperature ºC", rotation=-90, va="bottom")
+        ani = animation.ArtistAnimation(fig, ims, interval=2, blit=True,
+                                        repeat_delay=1000)
 
-        plt.pause(sleep_between_frames)
+        # ani.save('dynamic_images.mp4')
 
-        for i in range(1, len(heat_map)):
-            ax.imshow(heat_map[i], cmap='viridis', vmax=max_temp, vmin=min_temp)
-            plt.pause(sleep_between_frames)
-            print(i)
+        plt.show()
 
 
 if __name__ == '__main__':
