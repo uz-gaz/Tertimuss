@@ -51,10 +51,10 @@ class TestOutput(unittest.TestCase):
 
         def plot(i):
             data = heat_map[i]
-            plt.pcolor(data)
+            heatmap = plt.pcolor(data)
             plt.suptitle(str(i))
 
-        animation.FuncAnimation(fig, plot, len(heat_map), interval=1)
+        ani = animation.FuncAnimation(fig, plot, len(heat_map), interval=1)
         plt.show()
 
 

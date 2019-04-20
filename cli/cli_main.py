@@ -109,7 +109,7 @@ def main(args):
         tasks_specification = select_task_generator(tasks.get("name"), tasks.get("numberOfTasks"),
                                                     tasks.get("utilizationOfTheTaskSet"), (
                                                         tasks.get("intervalForPeriods").get("min"),
-                                                        tasks.get("intervalForPeriods").get("min")),
+                                                        tasks.get("intervalForPeriods").get("max")),
                                                     core_properties.get("frequencyScale"))
         if tasks_specification is None:
             print("Error: Wrong tasks specification")

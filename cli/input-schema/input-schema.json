@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "scheduler.framework.TCPN.json",
+  "title": "Scheduler Framework TCPN JSON input specification schema",
+  "description": "Input for Scheduler Framework TCPN v1.0",
+  "type": "object",
+  "properties": {
+    "specification": {
+      "oneOf": [
+        {"$ref": "input-schema-no-thermal-v1.0.json"},
+        {"$ref": "input-schema-thermal-v1.0.json"}
+      ]
+    }
+  },
+  "required": ["specification"]
+}

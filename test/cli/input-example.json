@@ -1,5 +1,5 @@
 {
-  "$schema": "input-schema-thermal-v1.0.json",
+  "$schema": "../../cli/input-schema/input-schema-thermal-v1.0.json",
   "$id": "scheduler.framework.TCPN.schema.example1",
   "title": "Example input specification",
   "description": "Input for Scheduler Framework TCPN v1.0",
@@ -30,18 +30,10 @@
           "y": 10,
           "z": 2
         },
-        "specificHeatCapacities": 712,
+        "specificHeatCapacity": 712,
         "density": 2330,
         "thermalConductivity": 148
-      },
-      "coresOrigins": [{
-        "x": 8,
-        "y": 20
-      },
-      {
-        "x": 32,
-        "y": 20
-      }]
+      }
     },
     "boardProperties": {
       "physicalProperties": {
@@ -50,7 +42,7 @@
           "y": 50,
           "z": 1
         },
-        "specificHeatCapacities": 8933,
+        "specificHeatCapacity": 8933,
         "density": 385,
         "thermalConductivity": 400
       }
