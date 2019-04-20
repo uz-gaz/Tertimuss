@@ -1,4 +1,5 @@
 import scipy
+from matplotlib import animation
 
 from core.kernel_generator.kernel import SimulationKernel
 from core.problem_specification_models.GlobalSpecification import GlobalSpecification
@@ -23,27 +24,65 @@ def draw_heat_matrix(global_specification: GlobalSpecification, simulation_kerne
         heat_map.append(__get_heat_matrix(actual_temp, global_specification))
 
     # Plot heat map
-    sleep_between_frames = 0.01
-
     min_temp = min(map(lambda x: scipy.amin(x), heat_map)) - 0.5
     max_temp = max(map(lambda x: scipy.amax(x), heat_map)) + 0.5
 
-    plt.ion()
-
-    fig, ax = plt.subplots(num="Heat map")
-
-    im = ax.imshow(heat_map[0], cmap='viridis', vmax=max_temp, vmin=min_temp)
+    fig, ax = plt.subplots()
+    quad = ax.pcolormesh(heat_map[0], vmin=min_temp, vmax=max_temp)
 
     # Create colorbar
-    cbar = ax.figure.colorbar(im, ax=ax)
+    cbar = ax.figure.colorbar(quad, ax=ax)
     cbar.ax.set_ylabel("Temperature ºC", rotation=-90, va="bottom")
 
-    plt.pause(sleep_between_frames)
+    def animate(i):
+        ax.set_title("Time: " + '%.2f' % scheduler_result.time_temp[i] + " seconds", loc='left')
+        quad.set_array(heat_map[i].ravel())
+        return quad
 
-    for i in range(1, len(heat_map)):
-        ax.imshow(heat_map[i], cmap='viridis', vmax=max_temp, vmin=min_temp)
-        plt.pause(sleep_between_frames)
-        print(i)
+    anim = animation.FuncAnimation(fig, animate, frames=len(heat_map), interval=1, blit=False, repeat=False)
+    plt.show()
+
+
+def save_heat_matrix(global_specification: GlobalSpecification, simulation_kernel: SimulationKernel,
+                     scheduler_result: SchedulerResult, save_path: str):
+    """
+    Draw heat matrix
+    :param global_specification: problem specification
+    :param simulation_kernel: simulation kernel
+    :param scheduler_result: result of scheduling
+    :param save_path: Path where plot will be saved
+    """
+    temp = simulation_kernel.global_model.s_thermal.dot(scheduler_result.m)
+
+    temp = scipy.transpose(temp)
+
+    heat_map = []
+    for actual_temp in temp:
+        heat_map.append(__get_heat_matrix(actual_temp, global_specification))
+
+    # Plot heat map
+    min_temp = min(map(lambda x: scipy.amin(x), heat_map)) - 0.5
+    max_temp = max(map(lambda x: scipy.amax(x), heat_map)) + 0.5
+
+    fig, ax = plt.subplots()
+    quad = ax.pcolormesh(heat_map[0], vmin=min_temp, vmax=max_temp)
+
+    # Create colorbar
+    cbar = ax.figure.colorbar(quad, ax=ax)
+    cbar.ax.set_ylabel("Temperature ºC", rotation=-90, va="bottom")
+
+    def animate(i):
+        ax.set_title("Time: " + '%.2f' % scheduler_result.time_temp[i] + " seconds", loc='left')
+        quad.set_array(heat_map[i].ravel())
+        return quad
+
+    anim = animation.FuncAnimation(fig, animate, frames=len(heat_map), interval=1, blit=False, repeat=False)
+
+    # Set up formatting for the movie files
+    Writer = animation.writers['ffmpeg']
+    writer = Writer(fps=30, metadata=dict(artist='TCPN Framework'), bitrate=1800)
+
+    anim.save(save_path, writer=writer)
 
 
 def __get_heat_matrix(temp, global_specification: GlobalSpecification) -> scipy.ndarray:
