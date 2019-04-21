@@ -2,7 +2,7 @@ import scipy
 
 from core.kernel_generator.kernel import SimulationKernel
 from core.problem_specification_models.GlobalSpecification import GlobalSpecification
-from core.schedulers.abstract_scheduler import AbstractScheduler
+from core.schedulers.abstract_scheduler import AbstractScheduler, SchedulerResult
 from core.schedulers.global_model_solver import solve_global_model
 from core.schedulers.lineal_programing_problem_for_scheduling import solve_lineal_programing_problem_for_scheduling
 
@@ -87,7 +87,7 @@ class RtTCPNScheduler(AbstractScheduler):
                         # Control Para tareas temporal en cada procesador w_alloc control en I_tau
                         walloc[i + j * n] = (jFSCi[i + j * n] * scipy.sign(s[i + j * n]) + jFSCi[i + j * n]) / 2
 
-                mo_next, m_exec, m_busy, Temp, tout, TempTime, m_TCPN_cont = solve_global_model(
+                mo_next, m_exec, m_busy, _, _, _, _ = solve_global_model(
                     simulation_kernel.global_model,
                     mo.reshape(-1),
                     walloc,
@@ -123,7 +123,7 @@ class RtTCPNScheduler(AbstractScheduler):
             for j in range(m):
                 # Si el conjunto no es vacio por cada j-esimo CPU, entonces se procede a
                 # calcular la prioridad de cada tarea a ser asignada
-                if not scipy.array_equal(ET[j, :], scipy.zeros((1, len(ET[0])))):
+                if scipy.count_nonzero(ET[j]) > 0:
                     # Prioridad es igual al marcado del lugar continuo menos el marcado del lugar discreto
                     iPRj[j, :] = jFSCi[j * n: j * n + n] * sd - Mexec[j * n:j * n + n]
 
@@ -136,8 +136,8 @@ class RtTCPNScheduler(AbstractScheduler):
                     # la posicion k la tarea no tine a Re_tau(j,k)>0 (es decir la tarea ya ejecuto lo que debía)
                     # entonces hay que incrementar a la siguiente posicion k+1 para tomar a la tarea de
                     # mayor prioridad
-                    k = 1
-                    while ET[j, IndMaxPr[k - 1]] == 0:
+                    k = 0
+                    while ET[j, IndMaxPr[k]] == 0:
                         k = k + 1
 
                     # Se toma la tarea de mayor prioridad en el conjunto ET
@@ -155,7 +155,7 @@ class RtTCPNScheduler(AbstractScheduler):
                     Mexec[IndMaxPr + j * n] += quantum
 
             MEXEC = scipy.concatenate((MEXEC, Mexec.reshape(-1, 1)), axis=1)
-            mo_nextDisc, m_execDisc, m_busyDisc, TempDisc, toutDisc, TempTimeDisc, m_TCPN = solve_global_model(
+            mo_nextDisc, m_execDisc, _, TempDisc, toutDisc, TempTimeDisc, m_TCPN = solve_global_model(
                 simulation_kernel.global_model, moDisc.reshape(len(moDisc)), i_tau_disc[:, zeta_q],
                 global_specification.environment_specification.t_env,
                 scipy.asarray(list(scipy.arange(zeta, zeta + quantum + 1, step))))
@@ -176,5 +176,5 @@ class RtTCPNScheduler(AbstractScheduler):
 
         SCH_OLDTFS = i_tau_disc
 
-        return M, mo, TIMEZ, SCH_OLDTFS, MEXEC, MEXEC_TCPN, TIMEstep.reshape(
-            (-1, 1)), TIME_Temp, TEMPERATURE_CONT, TEMPERATURE_DISC
+        return SchedulerResult(M, mo, TIMEZ, SCH_OLDTFS, MEXEC, MEXEC_TCPN, TIMEstep.reshape(
+            (-1, 1)), TIME_Temp, TEMPERATURE_CONT, TEMPERATURE_DISC)

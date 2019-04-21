@@ -1,79 +1,83 @@
 {
-  "$schema": "../../cli/input-schema/input-schema-thermal-v1.0.json",
-  "$id": "scheduler.framework.TCPN.schema.example1",
+  "$schema": "../../cli/input-schema/input-schema.json",
+  "$id": "scheduler.framework.TCPN.schema.example.origins",
   "title": "Example input specification",
   "description": "Input for Scheduler Framework TCPN v1.0",
-  "tasks": [
-    {
-      "worstCaseExecutionTime": 2,
-      "period": 4,
-      "energyConsumption": 6.4
-    },
-    {
-      "worstCaseExecutionTime": 3,
-      "period": 8,
-      "energyConsumption": 8
-    },
-    {
-      "worstCaseExecutionTime": 3,
-      "period": 12,
-      "energyConsumption": 9.6
-    }
-  ],
-  "processor": {
-    "coresProperties": {
-      "numberOfCores": 2,
-      "frequencyScale": 1.0,
-      "physicalProperties": {
-        "shape": {
-          "x": 10,
-          "y": 10,
-          "z": 2
-        },
-        "specificHeatCapacities": 712,
-        "density": 2330,
-        "thermalConductivity": 148
-      },
-      "coresOrigins": [{
-        "x": 8,
-        "y": 20
+  "specification": {
+    "tasks": [
+      {
+        "worstCaseExecutionTime": 2,
+        "period": 4,
+        "energyConsumption": 6.4
       },
       {
-        "x": 32,
-        "y": 20
-      }]
-    },
-    "boardProperties": {
-      "physicalProperties": {
-        "shape": {
-          "x": 50,
-          "y": 50,
-          "z": 1
-        },
-        "specificHeatCapacities": 8933,
-        "density": 385,
-        "thermalConductivity": 400
+        "worstCaseExecutionTime": 3,
+        "period": 8,
+        "energyConsumption": 8
+      },
+      {
+        "worstCaseExecutionTime": 3,
+        "period": 12,
+        "energyConsumption": 9.6
       }
+    ],
+    "processor": {
+      "coresProperties": {
+        "numberOfCores": 2,
+        "frequencyScale": 1.0,
+        "physicalProperties": {
+          "shape": {
+            "x": 10,
+            "y": 10,
+            "z": 2
+          },
+          "specificHeatCapacities": 712,
+          "density": 2330,
+          "thermalConductivity": 148
+        },
+        "coresOrigins": [
+          {
+            "x": 8,
+            "y": 20
+          },
+          {
+            "x": 32,
+            "y": 20
+          }
+        ]
+      },
+      "boardProperties": {
+        "physicalProperties": {
+          "shape": {
+            "x": 50,
+            "y": 50,
+            "z": 1
+          },
+          "specificHeatCapacities": 8933,
+          "density": 385,
+          "thermalConductivity": 400
+        }
+      }
+    },
+    "environment": {
+      "convectionFactor": 0.001,
+      "maximumTemperature": 110,
+      "environmentTemperature": 45
+    },
+    "simulation": {
+      "meshStepSize": 2,
+      "timeStep": 0.01
+    },
+    "scheduler": {
+      "name": "rt_tcpn_thermal_aware_scheduler"
+    },
+    "output": {
+      "path": "out/",
+      "baseName": "simulation_example",
+      "generate": [
+        "allocationAndExecution",
+        "temperatureEvolution"
+      ]
     }
-  },
-  "environment": {
-    "convectionFactor": 0.001,
-    "maximumTemperature": 110,
-    "environmentTemperature": 45
-  },
-  "simulation": {
-    "meshStepSize": 2,
-    "timeStep": 0.01
-  },
-  "scheduler": {
-    "name": "rt_tcpn_thermal_aware_scheduler"
-  },
-  "output": {
-    "path": "out/",
-    "baseName": "simulation_example",
-    "generate": [
-      "temperatureEvolution",
-      "allocationAndExecution"
-    ]
   }
 }
