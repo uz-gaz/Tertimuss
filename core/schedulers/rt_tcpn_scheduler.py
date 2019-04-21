@@ -119,8 +119,6 @@ class RtTCPNScheduler(AbstractScheduler):
 
                     if round(iREj[i + j * n], 4) > 0:
                         ET[j, i] = i + 1
-                    else:
-                        ET[j, i] = 0  # FIXME: I think it has no effect
 
             for j in range(m):
                 # Si el conjunto no es vacio por cada j-esimo CPU, entonces se procede a
