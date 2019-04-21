@@ -15,8 +15,6 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
     def simulate(self, global_specification: GlobalSpecification,
                  simulation_kernel: SimulationKernel) -> SchedulerResult:
 
-        # TODO: Corregir esta mal
-
         jBi, jFSCi, quantum, mT = solve_lineal_programing_problem_for_scheduling(
             global_specification.tasks_specification, global_specification.cpu_specification,
             global_specification.environment_specification,
@@ -32,6 +30,9 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
 
         diagonal = scipy.zeros((n, scipy.amax(jobs)))
 
+        # Number of steps in the simulation
+        simulation_time_steps = int(round(global_specification.tasks_specification.h / quantum))
+
         kd = 1
         sd_u = []
         for i in range(n):
@@ -40,13 +41,13 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
 
         sd_u = scipy.union1d(sd_u, [0])
 
-        walloc = scipy.zeros(len(jFSCi))
-        i_tau_disc = scipy.zeros((len(jFSCi), int(global_specification.tasks_specification.h / quantum)))
-        e_iFSCj = scipy.zeros(len(walloc))
-        x1 = scipy.zeros(len(e_iFSCj))  # ==np.zeros(walloc)
-        x2 = scipy.zeros(len(e_iFSCj))
-        s = scipy.zeros(len(e_iFSCj))
-        iREj = scipy.zeros(len(walloc))
+        walloc = scipy.zeros(n * m)
+        i_tau_disc = scipy.zeros((n * m, simulation_time_steps))
+        e_iFSCj = scipy.zeros(n * m)
+        x1 = scipy.zeros(n * m)
+        x2 = scipy.zeros(n * m)
+        s = scipy.zeros(n * m)
+        iREj = scipy.zeros(n * m)
         iPRj = scipy.zeros((m, n))
 
         zeta = 0
@@ -62,13 +63,13 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
         TIME_Temp = scipy.ndarray((0, 1))
         TEMPERATURE_CONT = scipy.ndarray((len(simulation_kernel.global_model.s) - 2 * len(walloc), 0))
         TEMPERATURE_DISC = scipy.ndarray((len(simulation_kernel.global_model.s) - 2 * len(walloc), 0))
-        MEXEC = scipy.ndarray((len(jFSCi), 0))
-        MEXEC_TCPN = scipy.ndarray((len(walloc), 0))
+        MEXEC = scipy.ndarray((n * m, 0))
+        MEXEC_TCPN = scipy.ndarray((n * m, 0))
         moDisc = simulation_kernel.mo
         M = scipy.zeros((len(simulation_kernel.mo), 0))
         mo = simulation_kernel.mo
 
-        for zeta_q in range(int(global_specification.tasks_specification.h / quantum)):
+        for zeta_q in range(simulation_time_steps):
             while round(time) <= zeta + quantum:
                 for j in range(m):
                     for i in range(n):
@@ -138,7 +139,7 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
                         k = k + 1
 
                     # Se toma la tarea de mayor prioridad en el conjunto ET
-                    IndMaxPr = int(ET[j, IndMaxPr[k]])
+                    IndMaxPr = ET[j, IndMaxPr[k]] - 1
 
                     # si se asigna la procesador j la tarea de mayor prioridad IndMaxPr(1), entonces si en el
                     # conjunto ET para los procesadores restantes debe pasar que ET(k,IndMaxPr(1))=0,
@@ -174,4 +175,4 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
         SCH_OLDTFS = i_tau_disc
 
         return SchedulerResult(M, mo, TIMEZ, SCH_OLDTFS, MEXEC, MEXEC_TCPN, TIMEstep.reshape(
-            (-1, 1)), TIME_Temp, TEMPERATURE_CONT, TEMPERATURE_DISC)
+            (-1, 1)), TIME_Temp, TEMPERATURE_CONT, TEMPERATURE_DISC, quantum)

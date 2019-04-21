@@ -9,7 +9,7 @@ from core.problem_specification_models.GlobalSpecification import GlobalSpecific
 class SchedulerResult(object):
     def __init__(self, m: scipy.ndarray, mo: scipy.ndarray, timez: scipy.ndarray, sch_oldtfs: scipy.ndarray,
                  mexec: scipy.ndarray, mexec_tcpn: scipy.ndarray, time_step: scipy.ndarray, time_temp: scipy.ndarray,
-                 temperature_cont: scipy.ndarray, temperature_disc: scipy.ndarray):
+                 temperature_cont: scipy.ndarray, temperature_disc: scipy.ndarray, quantum:float):
         self.m = m
         self.mo = mo
         self.timez = timez
@@ -20,6 +20,7 @@ class SchedulerResult(object):
         self.time_temp = time_temp
         self.temperature_cont = temperature_cont
         self.temperature_disc = temperature_disc
+        self.quantum = quantum
 
 
 class AbstractScheduler(object, metaclass=abc.ABCMeta):

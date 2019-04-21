@@ -111,7 +111,7 @@ class GlobalEDFScheduler(AbstractScheduler):
 
         time_step = scipy.asarray(time_step).reshape((-1, 1))
         return SchedulerResult(temperature_map, mo, time_step, i_tau_disc, m_exec, m_exec_tcpn, time_step, time_temp,
-                               scipy.asarray([]), temperature_disc)
+                               scipy.asarray([]), temperature_disc, global_specification.simulation_specification.dt )
 
 
 def edf_police(time: float, tasks: list, m: int) -> list:

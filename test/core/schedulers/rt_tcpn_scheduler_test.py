@@ -1,6 +1,6 @@
 import unittest
 
-from core.kernel_generator.global_model import generate_global_model, GlobalModel
+from core.kernel_generator.global_model import generate_global_model
 from core.kernel_generator.kernel import SimulationKernel
 from core.kernel_generator.processor_model import ProcessorModel, generate_processor_model
 from core.kernel_generator.tasks_model import TasksModel, generate_tasks_model
@@ -11,7 +11,8 @@ from core.problem_specification_models.GlobalSpecification import GlobalSpecific
 from core.problem_specification_models.SimulationSpecification import SimulationSpecification
 from core.problem_specification_models.TasksSpecification import TasksSpecification, Task
 from core.schedulers.rt_tcpn_scheduler import RtTCPNScheduler
-from core.schedulers.rt_tcpn_thermal_aware_scheduler import RTTcpnThermalAwareScheduler
+from gui.output_generator import plot_cpu_utilization, plot_task_execution, plot_cpu_temperature, \
+    plot_accumulated_execution_time
 
 
 class RtTcpnScheduler(unittest.TestCase):
@@ -33,9 +34,13 @@ class RtTcpnScheduler(unittest.TestCase):
 
         tasks_model: TasksModel = generate_tasks_model(tasks_specification, cpu_specification)
 
-        global_model, mo = generate_global_model(tasks_model, processor_model, None, environment_specification)
+        thermal_model: ThermalModel = generate_thermal_model(tasks_specification, cpu_specification,
+                                                             environment_specification,
+                                                             simulation_specification)
 
-        simulation_kernel: SimulationKernel = SimulationKernel(tasks_model, processor_model, None,
+        global_model, mo = generate_global_model(tasks_model, processor_model, thermal_model, environment_specification)
+
+        simulation_kernel: SimulationKernel = SimulationKernel(tasks_model, processor_model, thermal_model,
                                                                global_model, mo)
 
         global_specification: GlobalSpecification = GlobalSpecification(tasks_specification, cpu_specification,
@@ -44,11 +49,12 @@ class RtTcpnScheduler(unittest.TestCase):
 
         scheduler = RtTCPNScheduler()
 
-        scheduler.simulate(global_specification, simulation_kernel)
+        scheduler_simulation = scheduler.simulate(global_specification, simulation_kernel)
 
-        i = 0
-
-        # TODO: Continue
+        plot_accumulated_execution_time(global_specification, scheduler_simulation)
+        plot_cpu_utilization(global_specification, scheduler_simulation)
+        plot_task_execution(global_specification, scheduler_simulation)
+        plot_cpu_temperature(global_specification, scheduler_simulation)
 
 
 if __name__ == '__main__':

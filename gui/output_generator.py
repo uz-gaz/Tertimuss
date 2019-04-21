@@ -106,7 +106,7 @@ def plot_cpu_utilization(global_specification: GlobalSpecification, scheduler_re
     for i in range(m):
         axarr[i].set_title("CPU " + str(i))
         for j in range(n):
-            axarr[i].plot(time_u, i_tau_disc[i * n + j], label="Task " + str(j))
+            axarr[i].plot(time_u, i_tau_disc[i * n + j], label="Task " + str(j), drawstyle='steps')
         axarr[i].legend(loc='upper left')
 
     if save_path is None:
@@ -135,7 +135,7 @@ def plot_task_execution(global_specification: GlobalSpecification, scheduler_res
 
     for i in range(n):
         actual_deadline = int(
-            global_specification.tasks_specification.tasks[i].t / global_specification.simulation_specification.dt)
+            global_specification.tasks_specification.tasks[i].t / scheduler_result.quantum)
         for j in range(len(i_tau_disc[0])):
             if j % actual_deadline == 0:
                 deadline_by_task[i, j] = - 1
@@ -144,8 +144,8 @@ def plot_task_execution(global_specification: GlobalSpecification, scheduler_res
 
     for j in range(n):
         axarr[j].set_title("Task " + str(j))
-        axarr[j].plot(time_u, deadline_by_task[j], label="Execution")
-        axarr[j].plot(time_u, utilization_by_task[j], label="Deadline")  # FIXME: Only valid in global edf
+        axarr[j].plot(time_u, deadline_by_task[j], label="Execution", drawstyle='steps')
+        axarr[j].plot(time_u, utilization_by_task[j], label="Deadline", drawstyle='steps')
         axarr[j].legend(loc='upper left')
 
     if save_path is None:
@@ -170,7 +170,7 @@ def plot_cpu_temperature(global_specification: GlobalSpecification, scheduler_re
     f.suptitle('CPU temperature')
     for i in range(m):
         axarr[i].set_title("CPU " + str(i))
-        axarr[i].plot(time_temp, temperature_disc[i], label="Temperature")
+        axarr[i].plot(time_temp, temperature_disc[i], label="Temperature", drawstyle='default')
         axarr[i].legend(loc='upper left')
 
     if save_path is None:

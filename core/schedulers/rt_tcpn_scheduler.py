@@ -15,11 +15,10 @@ class RtTCPNScheduler(AbstractScheduler):
     def __init__(self) -> None:
         super().__init__()
 
-    def simulate(self, global_specification: GlobalSpecification, simulation_kernel: SimulationKernel) -> [
-        scipy.ndarray, scipy.ndarray, scipy.ndarray, scipy.ndarray, scipy.ndarray, scipy.ndarray, scipy.ndarray,
-        scipy.ndarray, scipy.ndarray, scipy.ndarray]:
+    def simulate(self, global_specification: GlobalSpecification,
+                 simulation_kernel: SimulationKernel) -> SchedulerResult:
 
-        jBi, jFSCi, quantum, mT = solve_lineal_programing_problem_for_scheduling(
+        _, j_fsc_i, quantum, _ = solve_lineal_programing_problem_for_scheduling(
             global_specification.tasks_specification, global_specification.cpu_specification,
             global_specification.environment_specification,
             global_specification.simulation_specification, None)
@@ -78,17 +77,17 @@ class RtTCPNScheduler(AbstractScheduler):
                 for j in range(m):
                     for i in range(n):
                         # Calculo del error, y la superficie para el sliding mode control
-                        e_iFSCj[i + j * n] = jFSCi[i + j * n] * zeta - m_exec[i + j * n]
+                        e_iFSCj[i + j * n] = j_fsc_i[i + j * n] * zeta - m_exec[i + j * n]
 
                         # Cambio de variables
                         x1[i + j * n] = e_iFSCj[i + j * n]
                         x2[i + j * n] = m_busy[i + j * n]  # m_bussy
 
                         # Superficie
-                        s[i + j * n] = x1[i + j * n] - x2[i + j * n] + jFSCi[i + j * n]
+                        s[i + j * n] = x1[i + j * n] - x2[i + j * n] + j_fsc_i[i + j * n]
 
                         # Control Para tareas temporal en cada procesador w_alloc control en I_tau
-                        walloc[i + j * n] = (jFSCi[i + j * n] * scipy.sign(s[i + j * n]) + jFSCi[i + j * n]) / 2
+                        walloc[i + j * n] = (j_fsc_i[i + j * n] * scipy.sign(s[i + j * n]) + j_fsc_i[i + j * n]) / 2
 
                 mo_next, m_exec, m_busy, _, _, _, _ = solve_global_model(
                     simulation_kernel.global_model,
@@ -105,17 +104,17 @@ class RtTCPNScheduler(AbstractScheduler):
 
             # DISCRETIZATION
             # Todas las tareas se expulsan de los procesadores
-            i_tau_disc[:, zeta_q] = 0
+            # i_tau_disc[:, zeta_q] = 0
 
             # Se inicializa el conjunto ET de transiciones de tareas para el modelo discreto
-            ET = scipy.zeros((m, n))
+            ET = scipy.zeros((m, n), dtype=int)
 
             FSC = scipy.zeros(m * n)
 
             # Se calcula el remaining jobs execution Re_tau(j,i)
             for j in range(m):
                 for i in range(n):
-                    FSC[i + j * n] = jFSCi[i + j * n] * sd
+                    FSC[i + j * n] = j_fsc_i[i + j * n] * sd
                     iREj[i + j * n] = m_exec[i + j * n] - Mexec[i + j * n]
 
                     if round(iREj[i + j * n], 4) > 0:
@@ -128,7 +127,7 @@ class RtTCPNScheduler(AbstractScheduler):
                 # calcular la prioridad de cada tarea a ser asignada
                 if scipy.count_nonzero(ET[j]) > 0:
                     # Prioridad es igual al marcado del lugar continuo menos el marcado del lugar discreto
-                    iPRj[j, :] = jFSCi[j * n: j * n + n] * sd - Mexec[j * n:j * n + n]
+                    iPRj[j, :] = j_fsc_i[j * n: j * n + n] * sd - Mexec[j * n:j * n + n]
 
                     # Se ordenan de manera descendente por orden de prioridad,
                     # IndMaxPr contiene los indices de las tareas ordenado de mayor a
@@ -144,12 +143,12 @@ class RtTCPNScheduler(AbstractScheduler):
                         k = k + 1
 
                     # Se toma la tarea de mayor prioridad en el conjunto ET
-                    IndMaxPr = int(ET[j, IndMaxPr[k]])
+                    IndMaxPr = ET[j, IndMaxPr[k]] - 1
 
                     # si se asigna la procesador j la tarea de mayor prioridad IndMaxPr(1), entonces si en el
                     # conjunto ET para los procesadores restantes debe pasar que ET(k,IndMaxPr(1))=0,
                     # para evitar que las tareas se ejecuten de manera paralela
-                    for k in range(0, m):
+                    for k in range(m):
                         if j != k:
                             ET[k, IndMaxPr] = 0
 
@@ -180,4 +179,4 @@ class RtTCPNScheduler(AbstractScheduler):
         SCH_OLDTFS = i_tau_disc
 
         return SchedulerResult(M, mo, TIMEZ, SCH_OLDTFS, MEXEC, MEXEC_TCPN, TIMEstep.reshape(
-            (-1, 1)), TIME_Temp, TEMPERATURE_CONT, TEMPERATURE_DISC)
+            (-1, 1)), TIME_Temp, TEMPERATURE_CONT, TEMPERATURE_DISC, quantum)
