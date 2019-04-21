@@ -1,3 +1,5 @@
+from typing import Optional
+
 import scipy
 from matplotlib import animation
 
@@ -8,49 +10,13 @@ import matplotlib.pyplot as plt
 
 
 def draw_heat_matrix(global_specification: GlobalSpecification, simulation_kernel: SimulationKernel,
-                     scheduler_result: SchedulerResult):
+                     scheduler_result: SchedulerResult, save_path: Optional[str] = None):
     """
-    Draw heat matrix
+    Draw heat matrix or save the simulation in file if save_path is not null
     :param global_specification: problem specification
     :param simulation_kernel: simulation kernel
     :param scheduler_result: result of scheduling
-    """
-    temp = simulation_kernel.global_model.s_thermal.dot(scheduler_result.m)
-
-    temp = scipy.transpose(temp)
-
-    heat_map = []
-    for actual_temp in temp:
-        heat_map.append(__get_heat_matrix(actual_temp, global_specification))
-
-    # Plot heat map
-    min_temp = min(map(lambda x: scipy.amin(x), heat_map)) - 0.5
-    max_temp = max(map(lambda x: scipy.amax(x), heat_map)) + 0.5
-
-    fig, ax = plt.subplots()
-    quad = ax.pcolormesh(heat_map[0], vmin=min_temp, vmax=max_temp)
-
-    # Create colorbar
-    cbar = ax.figure.colorbar(quad, ax=ax)
-    cbar.ax.set_ylabel("Temperature ºC", rotation=-90, va="bottom")
-
-    def animate(i):
-        ax.set_title("Time: " + '%.2f' % scheduler_result.time_temp[i] + " seconds", loc='left')
-        quad.set_array(heat_map[i].ravel())
-        return quad
-
-    anim = animation.FuncAnimation(fig, animate, frames=len(heat_map), interval=1, blit=False, repeat=False)
-    plt.show()
-
-
-def save_heat_matrix(global_specification: GlobalSpecification, simulation_kernel: SimulationKernel,
-                     scheduler_result: SchedulerResult, save_path: str):
-    """
-    Draw heat matrix
-    :param global_specification: problem specification
-    :param simulation_kernel: simulation kernel
-    :param scheduler_result: result of scheduling
-    :param save_path: Path where plot will be saved
+    :param save_path: path to save the simulation
     """
     temp = simulation_kernel.global_model.s_thermal.dot(scheduler_result.m)
 
@@ -78,11 +44,15 @@ def save_heat_matrix(global_specification: GlobalSpecification, simulation_kerne
 
     anim = animation.FuncAnimation(fig, animate, frames=len(heat_map), interval=1, blit=False, repeat=False)
 
-    # Set up formatting for the movie files
-    Writer = animation.writers['ffmpeg']
-    writer = Writer(fps=30, metadata=dict(artist='TCPN Framework'), bitrate=1800)
+    # Save file or plot it
+    if save_path is None:
+        plt.show()
+    else:
+        # Set up formatting for the movie files
+        writer_obj = animation.writers['ffmpeg']
+        writer = writer_obj(fps=30, metadata=dict(artist='TCPN Framework'), bitrate=1800)
 
-    anim.save(save_path, writer=writer)
+        anim.save(save_path, writer=writer)
 
 
 def __get_heat_matrix(temp, global_specification: GlobalSpecification) -> scipy.ndarray:
@@ -118,11 +88,13 @@ def __get_heat_matrix(temp, global_specification: GlobalSpecification) -> scipy.
     return board_mat
 
 
-def plot_cpu_utilization(global_specification: GlobalSpecification, scheduler_result: SchedulerResult):
+def plot_cpu_utilization(global_specification: GlobalSpecification, scheduler_result: SchedulerResult,
+                         save_path: Optional[str] = None):
     """
     Plot cpu utilization
     :param global_specification: problem specification
     :param scheduler_result: result of scheduling
+    :param save_path: path to save the simulation
     """
 
     i_tau_disc = scheduler_result.sch_oldtfs
@@ -136,14 +108,20 @@ def plot_cpu_utilization(global_specification: GlobalSpecification, scheduler_re
         for j in range(n):
             axarr[i].plot(time_u, i_tau_disc[i * n + j], label="Task " + str(j))
         axarr[i].legend(loc='upper left')
-    plt.show()
+
+    if save_path is None:
+        plt.show()
+    else:
+        plt.savefig(save_path)
 
 
-def plot_task_execution(global_specification: GlobalSpecification, scheduler_result: SchedulerResult):
+def plot_task_execution(global_specification: GlobalSpecification, scheduler_result: SchedulerResult,
+                        save_path: Optional[str] = None):
     """
     Plot task execution in each cpu
     :param global_specification: problem specification
     :param scheduler_result: result of scheduling
+    :param save_path: path to save the simulation
     """
 
     i_tau_disc = scheduler_result.sch_oldtfs
@@ -170,14 +148,19 @@ def plot_task_execution(global_specification: GlobalSpecification, scheduler_res
         axarr[j].plot(time_u, utilization_by_task[j], label="Deadline")  # FIXME: Only valid in global edf
         axarr[j].legend(loc='upper left')
 
-    plt.show()
+    if save_path is None:
+        plt.show()
+    else:
+        plt.savefig(save_path)
 
 
-def plot_cpu_temperature(global_specification: GlobalSpecification, scheduler_result: SchedulerResult):
+def plot_cpu_temperature(global_specification: GlobalSpecification, scheduler_result: SchedulerResult,
+                         save_path: Optional[str] = None):
     """
     Plot cpu temperature during the simulation
     :param global_specification: problem specification
     :param scheduler_result: result of scheduling
+    :param save_path: path to save the simulation
     """
 
     temperature_disc = scheduler_result.temperature_disc
@@ -189,14 +172,20 @@ def plot_cpu_temperature(global_specification: GlobalSpecification, scheduler_re
         axarr[i].set_title("CPU " + str(i))
         axarr[i].plot(time_temp, temperature_disc[i], label="Temperature")
         axarr[i].legend(loc='upper left')
-    plt.show()
+
+    if save_path is None:
+        plt.show()
+    else:
+        plt.savefig(save_path)
 
 
-def plot_accumulated_execution_time(global_specification: GlobalSpecification, scheduler_result: SchedulerResult):
+def plot_accumulated_execution_time(global_specification: GlobalSpecification, scheduler_result: SchedulerResult,
+                                    save_path: Optional[str] = None):
     """
     Plot tasks accumulated execution time during the simulation
     :param global_specification: problem specification
     :param scheduler_result: result of scheduling
+    :param save_path: path to save the simulation
     """
 
     mexec = scheduler_result.mexec
@@ -213,4 +202,8 @@ def plot_accumulated_execution_time(global_specification: GlobalSpecification, s
             axarr[i][j].plot(time_u, mexec[i * n + j], label="mexec")
             axarr[i][j].plot(time_step, mexec_tcpn[i * n + j], label="mexec tcpn")
             axarr[i][j].legend(loc='upper left')
-    plt.show()
+
+    if save_path is None:
+        plt.show()
+    else:
+        plt.savefig(save_path)

@@ -1,5 +1,7 @@
 import argparse
 import json
+import os
+
 from jsonschema import validate, ValidationError
 
 from core.kernel_generator.global_model import generate_global_model
@@ -14,9 +16,12 @@ from core.problem_specification_models.SimulationSpecification import Simulation
 from core.problem_specification_models.TasksSpecification import TasksSpecification, Task
 from core.schedulers.scheduler_naming_selector import select_scheduler
 from core.task_generator.task_generator_naming_selector import select_task_generator
+from gui.output_generator import draw_heat_matrix, plot_task_execution, plot_cpu_utilization, plot_cpu_temperature, \
+    plot_accumulated_execution_time
 
 
 def main(args):
+    # TODO: Add no thermal
     # Path of the input validate schema
     input_schema_path = "input-schema-thermal-v1.0.json"
 
@@ -70,7 +75,7 @@ def main(args):
                              core_physical_properties.get("shape").get("y"),
                              board_physical_properties.get("shape").get("x"),
                              board_physical_properties.get("shape").get("y")) or len(
-                             cpu_origins) != core_properties.get("numberOfCores"):
+            cpu_origins) != core_properties.get("numberOfCores"):
             print("Error: Wrong cpu origins specification")
             return 1
 
@@ -141,11 +146,28 @@ def main(args):
                                                                     environment_specification,
                                                                     simulation_specification)
 
-    scheduler.simulate(global_specification, simulation_kernel)
+    simulation_result = scheduler.simulate(global_specification, simulation_kernel)
 
-    i = 0
+    output = scenario_description.get("output")
 
-    # TODO: Do output part
+    output_path = output.get("path")
+    output_base_name = output.get("baseName")
+
+    for i in output.get("generate"):
+        if i == "allocationAndExecution":
+            plot_cpu_utilization(global_specification, simulation_result,
+                                 os.path.join(output_path, output_base_name + "cpu_utilization.png"))
+            plot_task_execution(global_specification, simulation_result,
+                                os.path.join(output_path, output_base_name + "task_execution.png"))
+            plot_cpu_temperature(global_specification, simulation_result,
+                                 os.path.join(output_path, output_base_name + "cpu_temperature.png"))
+            plot_accumulated_execution_time(global_specification, simulation_result,
+                                            os.path.join(output_path,
+                                                         output_base_name + "accumulated_execution_time.png"))
+
+        elif i == "temperatureEvolution":
+            draw_heat_matrix(global_specification, simulation_kernel, simulation_result,
+                             os.path.join(output_path, output_base_name + "heat_matrix.mp4"))
 
 
 if __name__ == "__main__":
