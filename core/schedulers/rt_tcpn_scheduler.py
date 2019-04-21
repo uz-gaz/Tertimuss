@@ -34,6 +34,9 @@ class RtTCPNScheduler(AbstractScheduler):
 
         diagonal = scipy.zeros((n, scipy.amax(jobs)))
 
+        # Number of steps in the simulation
+        simulation_time_steps = int(round(global_specification.tasks_specification.h / quantum))
+
         kd = 1
         sd_u = []
         for i in range(n):
@@ -42,13 +45,13 @@ class RtTCPNScheduler(AbstractScheduler):
 
         sd_u = scipy.union1d(sd_u, [0])
 
-        walloc = scipy.zeros(len(jFSCi))
-        i_tau_disc = scipy.zeros((len(jFSCi), int(global_specification.tasks_specification.h / quantum)))
-        e_iFSCj = scipy.zeros(len(walloc))
-        x1 = scipy.zeros(len(e_iFSCj))  # ==np.zeros(walloc)
-        x2 = scipy.zeros(len(e_iFSCj))
-        s = scipy.zeros(len(e_iFSCj))
-        iREj = scipy.zeros(len(walloc))
+        walloc = scipy.zeros(n * m)
+        i_tau_disc = scipy.zeros((n * m, simulation_time_steps))
+        e_iFSCj = scipy.zeros(n * m)
+        x1 = scipy.zeros(n * m)
+        x2 = scipy.zeros(n * m)
+        s = scipy.zeros(n * m)
+        iREj = scipy.zeros(n * m)
         iPRj = scipy.zeros((m, n))
 
         zeta = 0
@@ -56,21 +59,21 @@ class RtTCPNScheduler(AbstractScheduler):
 
         sd = sd_u[kd]
 
-        m_exec = scipy.zeros(len(jFSCi))
-        m_busy = scipy.zeros(len(jFSCi))
-        Mexec = scipy.zeros(len(jFSCi))
+        m_exec = scipy.zeros(n * m)
+        m_busy = scipy.zeros(n * m)
+        Mexec = scipy.zeros(n * m)
         TIMEZ = scipy.ndarray((0, 1))
         TIMEstep = scipy.asarray([])
         TIME_Temp = scipy.ndarray((0, 1))
-        TEMPERATURE_CONT = scipy.ndarray((len(simulation_kernel.global_model.s) - 2 * len(walloc), 0))
-        TEMPERATURE_DISC = scipy.ndarray((len(simulation_kernel.global_model.s) - 2 * len(walloc), 0))
-        MEXEC = scipy.ndarray((len(jFSCi), 0))
-        MEXEC_TCPN = scipy.ndarray((len(walloc), 0))
+        TEMPERATURE_CONT = scipy.ndarray((len(simulation_kernel.global_model.s) - 2 * n * m, 0))
+        TEMPERATURE_DISC = scipy.ndarray((len(simulation_kernel.global_model.s) - 2 * n * m, 0))
+        MEXEC = scipy.ndarray((n * m, 0))
+        MEXEC_TCPN = scipy.ndarray((n * m, 0))
         moDisc = simulation_kernel.mo
         M = scipy.zeros((len(simulation_kernel.mo), 0))
         mo = simulation_kernel.mo
 
-        for zeta_q in range(int(global_specification.tasks_specification.h / quantum)):
+        for zeta_q in range(simulation_time_steps):
             while round(time) <= zeta + quantum:
                 for j in range(m):
                     for i in range(n):
