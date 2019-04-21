@@ -21,7 +21,6 @@ from gui.output_generator import draw_heat_matrix, plot_task_execution, plot_cpu
 
 
 def main(args):
-    # TODO: Add no thermal
     # Path of the input validate schema
     input_schema_path = "input-schema-thermal-v1.0.json"
 
@@ -56,6 +55,9 @@ def main(args):
         print("Error: Wrong fields validation in", '/'.join(map(lambda x: str(x), ve.absolute_path)), "with message",
               ve.message)
         return 1
+
+    # TODO: Add no thermal
+    scenario_description = scenario_description.get("specification")
 
     processor = scenario_description.get("processor")
 
