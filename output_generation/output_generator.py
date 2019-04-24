@@ -107,7 +107,7 @@ def plot_cpu_utilization(global_specification: GlobalSpecification, scheduler_re
         axarr[i].set_title("CPU " + str(i))
         for j in range(n):
             axarr[i].plot(time_u, i_tau_disc[i * n + j], label="Task " + str(j), drawstyle='steps')
-        axarr[i].legend(loc='upper left')
+        axarr[i].legend(loc='best')
 
     if save_path is None:
         plt.show()
@@ -131,22 +131,27 @@ def plot_task_execution(global_specification: GlobalSpecification, scheduler_res
     f, axarr = plt.subplots(n, sharex=True, num="Task execution")
     f.suptitle('Task execution')
     utilization_by_task = scipy.zeros((n, len(i_tau_disc[0])))
-    deadline_by_task = scipy.zeros((n, len(i_tau_disc[0])))
+
+    total_steps_number = int(
+        global_specification.tasks_specification.h / global_specification.simulation_specification.dt)
+    deadline_by_task = scipy.zeros((n, total_steps_number))
+    deadlines_time = [i * global_specification.simulation_specification.dt for i in range(total_steps_number)]
 
     for i in range(n):
         actual_deadline = int(
-            global_specification.tasks_specification.tasks[i].t / scheduler_result.quantum)
+            global_specification.tasks_specification.tasks[i].t / global_specification.simulation_specification.dt)
         for j in range(len(i_tau_disc[0])):
-            if j % actual_deadline == 0:
-                deadline_by_task[i, j] = - 1
             for k in range(m):
                 utilization_by_task[i, j] += i_tau_disc[n * k + i, j]
+        for j in range(total_steps_number):
+            if j % actual_deadline == 0:
+                deadline_by_task[i][j] = 1
 
     for j in range(n):
         axarr[j].set_title("Task " + str(j))
-        axarr[j].plot(time_u, deadline_by_task[j], label="Execution", drawstyle='steps')
-        axarr[j].plot(time_u, utilization_by_task[j], label="Deadline", drawstyle='steps')
-        axarr[j].legend(loc='upper left')
+        axarr[j].plot(time_u, utilization_by_task[j], label="Execution", drawstyle='steps')
+        axarr[j].plot(deadlines_time, deadline_by_task[j], label="Deadline", drawstyle='steps')
+        axarr[j].legend(loc='best')
 
     if save_path is None:
         plt.show()
@@ -171,7 +176,7 @@ def plot_cpu_temperature(global_specification: GlobalSpecification, scheduler_re
     for i in range(m):
         axarr[i].set_title("CPU " + str(i))
         axarr[i].plot(time_temp, temperature_disc[i], label="Temperature", drawstyle='default')
-        axarr[i].legend(loc='upper left')
+        axarr[i].legend(loc='best')
 
     if save_path is None:
         plt.show()
@@ -201,7 +206,7 @@ def plot_accumulated_execution_time(global_specification: GlobalSpecification, s
             axarr[i][j].set_title("CPU " + str(i) + " task " + str(j))
             axarr[i][j].plot(time_u, mexec[i * n + j], label="mexec")
             axarr[i][j].plot(time_step, mexec_tcpn[i * n + j], label="mexec tcpn")
-            axarr[i][j].legend(loc='upper left')
+            axarr[i][j].legend(loc='best')
 
     if save_path is None:
         plt.show()

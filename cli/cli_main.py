@@ -16,7 +16,7 @@ from core.problem_specification_models.SimulationSpecification import Simulation
 from core.problem_specification_models.TasksSpecification import TasksSpecification, Task
 from core.schedulers.scheduler_naming_selector import select_scheduler
 from core.task_generator.task_generator_naming_selector import select_task_generator
-from gui.output_generator import draw_heat_matrix, plot_task_execution, plot_cpu_utilization, plot_cpu_temperature, \
+from output_generation.output_generator import draw_heat_matrix, plot_task_execution, plot_cpu_utilization, plot_cpu_temperature, \
     plot_accumulated_execution_time
 
 

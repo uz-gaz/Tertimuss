@@ -11,7 +11,7 @@ from core.problem_specification_models.GlobalSpecification import GlobalSpecific
 from core.problem_specification_models.SimulationSpecification import SimulationSpecification
 from core.problem_specification_models.TasksSpecification import TasksSpecification, Task
 from core.schedulers.global_edf_scheduler import GlobalEDFScheduler
-from gui.output_generator import draw_heat_matrix, plot_cpu_utilization, plot_task_execution, plot_cpu_temperature, \
+from output_generation.output_generator import draw_heat_matrix, plot_cpu_utilization, plot_task_execution, plot_cpu_temperature, \
     plot_accumulated_execution_time
 
 

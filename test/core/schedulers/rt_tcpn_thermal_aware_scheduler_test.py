@@ -1,6 +1,6 @@
 import unittest
 
-from core.kernel_generator.global_model import generate_global_model, GlobalModel
+from core.kernel_generator.global_model import generate_global_model
 from core.kernel_generator.kernel import SimulationKernel
 from core.kernel_generator.processor_model import ProcessorModel, generate_processor_model
 from core.kernel_generator.tasks_model import TasksModel, generate_tasks_model
@@ -11,7 +11,7 @@ from core.problem_specification_models.GlobalSpecification import GlobalSpecific
 from core.problem_specification_models.SimulationSpecification import SimulationSpecification
 from core.problem_specification_models.TasksSpecification import TasksSpecification, Task
 from core.schedulers.rt_tcpn_thermal_aware_scheduler import RTTcpnThermalAwareScheduler
-from gui.output_generator import plot_cpu_utilization, plot_task_execution, \
+from output_generation.output_generator import plot_cpu_utilization, plot_task_execution, \
     plot_accumulated_execution_time, plot_cpu_temperature
 
 

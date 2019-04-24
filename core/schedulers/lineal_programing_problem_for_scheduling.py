@@ -20,20 +20,20 @@ def solve_lineal_programing_problem_for_scheduling(tasks_specification: TasksSpe
                                                                                               scipy.ndarray, float,
                                                                                               scipy.ndarray]:
     h = tasks_specification.h
-    ti = scipy.asarray(list(map(lambda task: task.t, tasks_specification.tasks)))
-    cci = scipy.asarray(list(map(lambda task: task.c, tasks_specification.tasks)))
+    ti = scipy.asarray([i.t for i in tasks_specification.tasks])
     ia = h / ti
     n = len(tasks_specification.tasks)
     m = cpu_specification.number_of_cores
 
     # Inequality constraint
     # Create matrix diag([cc1/H ... ccn/H cc1/H .....]) of n*m
-    ch_vector = scipy.asarray(m * list(cci)) / h
+
+    ch_vector = scipy.asarray(m * [i.c for i in tasks_specification.tasks]) / h
     c_h = scipy.diag(ch_vector)
 
     a_eq = scipy.tile(scipy.eye(n), m)
 
-    au = scipy.linalg.block_diag(*(m * [list(cci)])) / h
+    au = scipy.linalg.block_diag(*(m * [[i.c for i in tasks_specification.tasks]])) / h
 
     beq = scipy.transpose(ia)
     bu = scipy.ones((m, 1))
@@ -83,15 +83,14 @@ def solve_lineal_programing_problem_for_scheduling(tasks_specification: TasksSpe
     # Quantum calc
     sd = scipy.union1d(functools.reduce(operator.add, [list(range(ti[i], h + 1, ti[i])) for i in range(n)], []), 0)
 
-    quantum = 0.0
-
     round_factor = 4  # Fixme: Check if higher round factor can be applied
     fraction_denominator = 10 ** round_factor
 
-    for i in range(2, len(sd)):
-        rounded = scipy.around(scipy.concatenate(([quantum], sd[i - 1] * j_fsc_i)), round_factor)
-        rounded_as_fraction = list(map(lambda actual: int(actual * fraction_denominator), rounded))
-        quantum = scipy.gcd.reduce(rounded_as_fraction) / fraction_denominator
+    rounded_list = functools.reduce(operator.add,
+                                    [(sd[i] * j_fsc_i * fraction_denominator).tolist() for i in range(1, len(sd) - 1)])
+    rounded_list = [int(i) for i in rounded_list]
+
+    quantum = scipy.gcd.reduce(rounded_list) / fraction_denominator
 
     if quantum < simulation_specification.dt:
         quantum = simulation_specification.dt

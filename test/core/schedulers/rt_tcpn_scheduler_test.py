@@ -11,7 +11,7 @@ from core.problem_specification_models.GlobalSpecification import GlobalSpecific
 from core.problem_specification_models.SimulationSpecification import SimulationSpecification
 from core.problem_specification_models.TasksSpecification import TasksSpecification, Task
 from core.schedulers.rt_tcpn_scheduler import RtTCPNScheduler
-from gui.output_generator import plot_cpu_utilization, plot_task_execution, plot_cpu_temperature, \
+from output_generation.output_generator import plot_cpu_utilization, plot_task_execution, plot_cpu_temperature, \
     plot_accumulated_execution_time
 
 
