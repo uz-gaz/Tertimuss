@@ -86,7 +86,7 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
                         # Control Para tareas temporal en cada procesador w_alloc control en I_tau
                         w_alloc[i + j * n] = (j_fsc_i[i + j * n] * scipy.sign(s[i + j * n]) + j_fsc_i[i + j * n]) / 2
 
-                mo_next, m_exec_step, m_busy, Temp, tout, TempTime, m_TCPN_cont = solve_global_model(
+                mo_next, m_exec_step, m_busy, temp, tout, temp_time, m_tcpn_cont = solve_global_model(
                     simulation_kernel.global_model,
                     mo.reshape(-1),
                     w_alloc,
@@ -94,7 +94,7 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
                     [time, time + step])
 
                 mo = mo_next
-                temperature_cont = scipy.concatenate((temperature_cont, Temp), axis=1)
+                temperature_cont = scipy.concatenate((temperature_cont, temp), axis=1)
                 time_step = scipy.concatenate((time_step, scipy.asarray([time])))
                 m_exec_tcpn_history = scipy.concatenate((m_exec_tcpn_history, m_exec_step), axis=1)
                 time = time + step
