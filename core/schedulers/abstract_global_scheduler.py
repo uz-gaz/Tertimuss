@@ -6,7 +6,7 @@ from core.kernel_generator.kernel import SimulationKernel
 from core.problem_specification_models.GlobalSpecification import GlobalSpecification
 from core.problem_specification_models.TasksSpecification import Task
 from core.schedulers.abstract_scheduler import AbstractScheduler, SchedulerResult
-from core.schedulers.global_model_solver import solve_global_model
+from core.schedulers.utils.global_model_solver import solve_global_model
 from typing import List
 
 

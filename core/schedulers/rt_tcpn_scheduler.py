@@ -3,8 +3,8 @@ import scipy
 from core.kernel_generator.kernel import SimulationKernel
 from core.problem_specification_models.GlobalSpecification import GlobalSpecification
 from core.schedulers.abstract_scheduler import AbstractScheduler, SchedulerResult
-from core.schedulers.global_model_solver import solve_global_model
-from core.schedulers.lineal_programing_problem_for_scheduling import solve_lineal_programing_problem_for_scheduling
+from core.schedulers.utils.global_model_solver import solve_global_model
+from core.schedulers.utils.lineal_programing_problem_for_scheduling import solve_lineal_programing_problem_for_scheduling
 
 
 class RtTCPNScheduler(AbstractScheduler):
