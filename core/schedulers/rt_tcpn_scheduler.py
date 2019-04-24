@@ -44,32 +44,32 @@ class RtTCPNScheduler(AbstractScheduler):
 
         sd_u = scipy.union1d(sd_u, [0])
 
-        walloc = scipy.zeros(n * m)
+        w_alloc = scipy.zeros(n * m)
         i_tau_disc = scipy.zeros((n * m, simulation_time_steps))
-        e_iFSCj = scipy.zeros(n * m)
+        e_i_fsc_j = scipy.zeros(n * m)
         x1 = scipy.zeros(n * m)
         x2 = scipy.zeros(n * m)
         s = scipy.zeros(n * m)
-        iREj = scipy.zeros(n * m)
-        iPRj = scipy.zeros((m, n))
+        i_re_j = scipy.zeros(n * m)
+        i_pr_j = scipy.zeros((m, n))
 
         zeta = 0
         time = 0
 
         sd = sd_u[kd]
 
-        m_exec = scipy.zeros(n * m)
+        m_exec_step = scipy.zeros(n * m)
         m_busy = scipy.zeros(n * m)
-        Mexec = scipy.zeros(n * m)
-        TIMEZ = scipy.ndarray((0, 1))
-        TIMEstep = scipy.asarray([])
-        TIME_Temp = scipy.ndarray((0, 1))
-        TEMPERATURE_CONT = scipy.ndarray((len(simulation_kernel.global_model.s) - 2 * n * m, 0))
-        TEMPERATURE_DISC = scipy.ndarray((len(simulation_kernel.global_model.s) - 2 * n * m, 0))
-        MEXEC = scipy.ndarray((n * m, 0))
-        MEXEC_TCPN = scipy.ndarray((n * m, 0))
-        moDisc = simulation_kernel.mo
-        M = scipy.zeros((len(simulation_kernel.mo), 0))
+        m_exec_accumulated = scipy.zeros(n * m)
+        time_z = scipy.ndarray((0, 1))
+        time_step = scipy.asarray([])
+        time_temp = scipy.ndarray((0, 1))
+        temperature_cont = scipy.ndarray((len(simulation_kernel.global_model.s) - 2 * n * m, 0))
+        temperature_disc = scipy.ndarray((len(simulation_kernel.global_model.s) - 2 * n * m, 0))
+        m_exec_history = scipy.ndarray((n * m, 0))
+        m_exec_tcpn_history = scipy.ndarray((n * m, 0))
+        mo_disc = simulation_kernel.mo
+        temperature_map = scipy.zeros((len(simulation_kernel.mo), 0))
         mo = simulation_kernel.mo
 
         for zeta_q in range(simulation_time_steps):
@@ -77,28 +77,28 @@ class RtTCPNScheduler(AbstractScheduler):
                 for j in range(m):
                     for i in range(n):
                         # Calculo del error, y la superficie para el sliding mode control
-                        e_iFSCj[i + j * n] = j_fsc_i[i + j * n] * zeta - m_exec[i + j * n]
+                        e_i_fsc_j[i + j * n] = j_fsc_i[i + j * n] * zeta - m_exec_step[i + j * n]
 
                         # Cambio de variables
-                        x1[i + j * n] = e_iFSCj[i + j * n]
+                        x1[i + j * n] = e_i_fsc_j[i + j * n]
                         x2[i + j * n] = m_busy[i + j * n]  # m_bussy
 
                         # Superficie
                         s[i + j * n] = x1[i + j * n] - x2[i + j * n] + j_fsc_i[i + j * n]
 
                         # Control Para tareas temporal en cada procesador w_alloc control en I_tau
-                        walloc[i + j * n] = (j_fsc_i[i + j * n] * scipy.sign(s[i + j * n]) + j_fsc_i[i + j * n]) / 2
+                        w_alloc[i + j * n] = (j_fsc_i[i + j * n] * scipy.sign(s[i + j * n]) + j_fsc_i[i + j * n]) / 2
 
-                mo_next, m_exec, m_busy, _, _, _, _ = solve_global_model(
+                mo_next, m_exec_step, m_busy, _, _, _, _ = solve_global_model(
                     simulation_kernel.global_model,
                     mo.reshape(-1),
-                    walloc,
+                    w_alloc,
                     global_specification.environment_specification.t_env,
                     [time, time + step])
 
                 mo = mo_next
-                TIMEstep = scipy.concatenate((TIMEstep, scipy.asarray([time])))
-                MEXEC_TCPN = scipy.concatenate((MEXEC_TCPN, m_exec), axis=1)
+                time_step = scipy.concatenate((time_step, scipy.asarray([time])))
+                m_exec_tcpn_history = scipy.concatenate((m_exec_tcpn_history, m_exec_step), axis=1)
                 time = time + step
 
             # DISCRETIZATION
@@ -106,65 +106,64 @@ class RtTCPNScheduler(AbstractScheduler):
             # i_tau_disc[:, zeta_q] = 0
 
             # Se inicializa el conjunto ET de transiciones de tareas para el modelo discreto
-            ET = scipy.zeros((m, n), dtype=int)
+            et = scipy.zeros((m, n), dtype=int)
 
-            FSC = scipy.zeros(m * n)
+            fsc = scipy.zeros(m * n)
 
             # Se calcula el remaining jobs execution Re_tau(j,i)
             for j in range(m):
                 for i in range(n):
-                    FSC[i + j * n] = j_fsc_i[i + j * n] * sd
-                    iREj[i + j * n] = m_exec[i + j * n] - Mexec[i + j * n]
+                    fsc[i + j * n] = j_fsc_i[i + j * n] * sd
+                    i_re_j[i + j * n] = m_exec_step[i + j * n] - m_exec_accumulated[i + j * n]
 
-                    if round(iREj[i + j * n], 4) > 0:
-                        ET[j, i] = i + 1
+                    if round(i_re_j[i + j * n], 4) > 0:
+                        et[j, i] = i + 1
 
             for j in range(m):
                 # Si el conjunto no es vacio por cada j-esimo CPU, entonces se procede a
                 # calcular la prioridad de cada tarea a ser asignada
-                if scipy.count_nonzero(ET[j]) > 0:
+                if scipy.count_nonzero(et[j]) > 0:
                     # Prioridad es igual al marcado del lugar continuo menos el marcado del lugar discreto
-                    iPRj[j, :] = j_fsc_i[j * n: j * n + n] * sd - Mexec[j * n:j * n + n]
+                    i_pr_j[j, :] = j_fsc_i[j * n: j * n + n] * sd - m_exec_accumulated[j * n:j * n + n]
 
                     # Se ordenan de manera descendente por orden de prioridad,
                     # IndMaxPr contiene los indices de las tareas ordenado de mayor a
                     # menor prioridad
-                    IndMaxPr = scipy.flip(scipy.argsort(iPRj[j, :]))
+                    ind_max_pr = scipy.flip(scipy.argsort(i_pr_j[j, :]))
 
                     # Si en el vector ET(j,k) existe un cero entonces significa que en
                     # la posicion k la tarea no tine a Re_tau(j,k)>0 (es decir la tarea ya ejecuto lo que debía)
                     # entonces hay que incrementar a la siguiente posicion k+1 para tomar a la tarea de
                     # mayor prioridad
                     k = 0
-                    while ET[j, IndMaxPr[k]] == 0:
+                    while et[j, ind_max_pr[k]] == 0:
                         k = k + 1
 
                     # Se toma la tarea de mayor prioridad en el conjunto ET
-                    IndMaxPr = ET[j, IndMaxPr[k]] - 1
+                    ind_max_pr = et[j, ind_max_pr[k]] - 1
 
                     # si se asigna la procesador j la tarea de mayor prioridad IndMaxPr(1), entonces si en el
                     # conjunto ET para los procesadores restantes debe pasar que ET(k,IndMaxPr(1))=0,
                     # para evitar que las tareas se ejecuten de manera paralela
                     for k in range(m):
                         if j != k:
-                            ET[k, IndMaxPr] = 0
+                            et[k, ind_max_pr] = 0
 
-                    i_tau_disc[IndMaxPr + j * n, zeta_q] = 1
+                    i_tau_disc[ind_max_pr + j * n, zeta_q] = 1
 
-                    Mexec[IndMaxPr + j * n] += quantum
+                    m_exec_accumulated[ind_max_pr + j * n] += quantum
 
-            MEXEC = scipy.concatenate((MEXEC, Mexec.reshape(-1, 1)), axis=1)
-            mo_nextDisc, m_execDisc, _, TempDisc, toutDisc, TempTimeDisc, m_TCPN = solve_global_model(
-                simulation_kernel.global_model, moDisc.reshape(len(moDisc)), i_tau_disc[:, zeta_q],
-                global_specification.environment_specification.t_env,
-                [zeta, zeta + quantum])
+            m_exec_history = scipy.concatenate((m_exec_history, m_exec_accumulated.reshape(-1, 1)), axis=1)
+            mo_next_disc, m_exec_disc, _, temp_disc, tout_disc, temp_time_disc, m_tcpn = solve_global_model(
+                simulation_kernel.global_model, mo_disc.reshape(len(mo_disc)), i_tau_disc[:, zeta_q],
+                global_specification.environment_specification.t_env, [zeta, zeta + quantum])
 
-            moDisc = mo_nextDisc
-            M = scipy.concatenate((M, m_TCPN), axis=1)
+            mo_disc = mo_next_disc
+            temperature_map = scipy.concatenate((temperature_map, m_tcpn), axis=1)
 
-            TEMPERATURE_DISC = scipy.concatenate((TEMPERATURE_DISC, TempTimeDisc), axis=1)
-            TIME_Temp = scipy.concatenate((TIME_Temp, toutDisc))
-            TIMEZ = scipy.concatenate((TIMEZ, scipy.asarray([zeta]).reshape((1, 1))))
+            temperature_disc = scipy.concatenate((temperature_disc, temp_time_disc), axis=1)
+            time_temp = scipy.concatenate((time_temp, tout_disc))
+            time_z = scipy.concatenate((time_z, scipy.asarray([zeta]).reshape((1, 1))))
 
             if scipy.array_equal(round(zeta, 3), sd):
                 kd = kd + 1
@@ -173,7 +172,6 @@ class RtTCPNScheduler(AbstractScheduler):
 
             zeta = zeta + quantum
 
-        SCH_OLDTFS = i_tau_disc
-
-        return SchedulerResult(M, mo, TIMEZ, SCH_OLDTFS, MEXEC, MEXEC_TCPN, TIMEstep.reshape(
-            (-1, 1)), TIME_Temp, TEMPERATURE_CONT, TEMPERATURE_DISC, quantum)
+        return SchedulerResult(temperature_map, mo, time_z, i_tau_disc, m_exec_history, m_exec_tcpn_history,
+                               time_step.reshape(
+                                   (-1, 1)), time_temp, temperature_cont, temperature_disc, quantum)

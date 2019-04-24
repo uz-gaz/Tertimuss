@@ -97,8 +97,7 @@ class GlobalEDFAffinityScheduler(AbstractScheduler):
                 mo.reshape(-1),
                 i_tau_disc[:, zeta_q].reshape(-1),
                 global_specification.environment_specification.t_env,
-                scipy.asarray([time,
-                               time + global_specification.simulation_specification.dt]))
+                [time, time + global_specification.simulation_specification.dt])
 
             mo = mo_next
             temperature_map = scipy.concatenate((temperature_map, temperature_tcpn), axis=1)
