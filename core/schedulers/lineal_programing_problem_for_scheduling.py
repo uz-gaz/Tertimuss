@@ -4,6 +4,7 @@ import scipy.optimize
 
 import scipy
 
+import scipy.linalg
 from core.kernel_generator.thermal_model import ThermalModel
 from core.problem_specification_models.CpuSpecification import CpuSpecification
 from core.problem_specification_models.EnvironmentSpecification import EnvironmentSpecification
@@ -30,6 +31,20 @@ def solve_lineal_programing_problem_for_scheduling(tasks_specification: TasksSpe
     ch_vector = scipy.asarray(m * list(cci)) / h
     c_h = scipy.diag(ch_vector)
 
+    a_eq = scipy.tile(scipy.eye(n), m)
+
+    au = scipy.linalg.block_diag(*(m * [list(cci)])) / h
+
+    beq = scipy.transpose(ia)
+    bu = scipy.ones((m, 1))
+
+    # Variable bounds
+    bounds = (n * m) * [(0, None)]
+
+    # Objective function
+    objective = scipy.ones(n * m)
+
+    # Optimization
     if thermal_model is not None:
         a_t = thermal_model.a_t
 
@@ -41,24 +56,6 @@ def solve_lineal_programing_problem_for_scheduling(tasks_specification: TasksSpe
             (thermal_model.s_t.dot(scipy.linalg.inv(thermal_model.a_t))).dot(
                 thermal_model.b_ta.reshape((-1, 1)))) * environment_specification.t_env
 
-    au = scipy.zeros((m, m * n))
-
-    a_eq = scipy.tile(scipy.eye(n), m)
-
-    for j in range(m):
-        au[j, j * n:(j + 1) * n] = scipy.asarray(list(cci)) / h
-
-    beq = scipy.transpose(ia)
-    bu = scipy.ones((m, 1))
-
-    # Variable bounds
-    bounds = (n * m) * [(0, None)]
-
-    # Objective function
-    objetive = scipy.ones(n * m)
-
-    # Optimization
-    if thermal_model is not None:
         a = scipy.concatenate((a_int, au))
         b = scipy.concatenate((b_int.transpose(), bu.transpose()), axis=1)
     else:
@@ -68,7 +65,7 @@ def solve_lineal_programing_problem_for_scheduling(tasks_specification: TasksSpe
     # res = scipy.optimize.linprog(c=objetive, A_ub=a, b_ub=b, A_eq=a_eq,
     #                              b_eq=beq, bounds=bounds, method='interior-point')
     # Interior points was the default in the original version, but i found that simplex has better results
-    res = scipy.optimize.linprog(c=objetive, A_ub=a, b_ub=b, A_eq=a_eq,
+    res = scipy.optimize.linprog(c=objective, A_ub=a, b_ub=b, A_eq=a_eq,
                                  b_eq=beq, bounds=bounds, method='simplex')  # FIXME: Answer original authors
 
     if not res.success:
@@ -77,11 +74,11 @@ def solve_lineal_programing_problem_for_scheduling(tasks_specification: TasksSpe
         # TODO: Return error or throw exception
         return None
 
-    jBi = res.x
+    j_b_i = res.x
 
-    jFSCi = jBi * ch_vector
+    j_fsc_i = j_b_i * ch_vector
 
-    walloc = jFSCi
+    w_alloc = j_fsc_i
 
     if thermal_model is not None:
         # Solve differential equation to get a initial condition
@@ -93,10 +90,10 @@ def solve_lineal_programing_problem_for_scheduling(tasks_specification: TasksSpe
         beta_1 = beta_1.dot(thermal_model.ct_exec)
 
         # Inicializa la condicion inicial en ceros para obtener una condicion inicial=final SmT(0)=Y(H)
-        mT0 = scipy.zeros((len(thermal_model.a_t), 1))
-        mT = theta.dot(mT0) + beta_1.dot(walloc.reshape((len(walloc), 1))) + beta_2 * environment_specification.t_env
+        m_t_o = scipy.zeros((len(thermal_model.a_t), 1))
+        m_t = theta.dot(m_t_o) + beta_1.dot(w_alloc.reshape((len(w_alloc), 1))) + beta_2 * environment_specification.t_env
     else:
-        mT = None
+        m_t = None
 
     # Quantum calc
     jobs = ia
@@ -114,11 +111,11 @@ def solve_lineal_programing_problem_for_scheduling(tasks_specification: TasksSpe
 
     quantum = 0.0
 
-    round_factor = 4
+    round_factor = 4  # Fixme: Check if higher round factor can be applied
     fraction_denominator = 10 ** round_factor
 
     for i in range(2, len(sd)):
-        rounded = scipy.around(scipy.concatenate(([quantum], sd[i - 1] * jFSCi)), round_factor)
+        rounded = scipy.around(scipy.concatenate(([quantum], sd[i - 1] * j_fsc_i)), round_factor)
         rounded_as_fraction = list(map(lambda actual: int(actual * fraction_denominator), rounded))
         quantum = scipy.gcd.reduce(rounded_as_fraction) / fraction_denominator
 
@@ -126,14 +123,14 @@ def solve_lineal_programing_problem_for_scheduling(tasks_specification: TasksSpe
         quantum = simulation_specification.dt
 
     if thermal_model is not None:
-        walloc_Max = jFSCi / quantum
-        mT_max = theta.dot(mT0) + beta_1.dot(
-            walloc_Max.reshape((len(walloc_Max), 1))) + environment_specification.t_env * beta_2
-        temp_max = thermal_model.s_t.dot(mT_max)
+        w_alloc_max = j_fsc_i / quantum
+        m_t_max = theta.dot(m_t_o) + beta_1.dot(
+            w_alloc_max.reshape((len(w_alloc_max), 1))) + environment_specification.t_env * beta_2
+        temp_max = thermal_model.s_t.dot(m_t_max)
 
         if all(item[0] > environment_specification.t_max for item in temp_max / m):
             print("No solution...")
             # TODO: Return error or throw exception
             return None
 
-    return jBi, jFSCi, quantum, mT
+    return j_b_i, j_fsc_i, quantum, m_t
