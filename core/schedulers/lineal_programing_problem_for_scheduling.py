@@ -1,10 +1,10 @@
+import functools
+import operator
 from typing import Optional
-
 import scipy.optimize
-
 import scipy
-
 import scipy.linalg
+
 from core.kernel_generator.thermal_model import ThermalModel
 from core.problem_specification_models.CpuSpecification import CpuSpecification
 from core.problem_specification_models.EnvironmentSpecification import EnvironmentSpecification
@@ -80,34 +80,8 @@ def solve_lineal_programing_problem_for_scheduling(tasks_specification: TasksSpe
 
     w_alloc = j_fsc_i
 
-    if thermal_model is not None:
-        # Solve differential equation to get a initial condition
-        theta = scipy.linalg.expm(thermal_model.a_t * h)
-
-        beta_1 = (scipy.linalg.inv(thermal_model.a_t)).dot(
-            theta - scipy.identity(len(thermal_model.a_t)))
-        beta_2 = beta_1.dot(thermal_model.b_ta.reshape((- 1, 1)))
-        beta_1 = beta_1.dot(thermal_model.ct_exec)
-
-        # Inicializa la condicion inicial en ceros para obtener una condicion inicial=final SmT(0)=Y(H)
-        m_t_o = scipy.zeros((len(thermal_model.a_t), 1))
-        m_t = theta.dot(m_t_o) + beta_1.dot(w_alloc.reshape((len(w_alloc), 1))) + beta_2 * environment_specification.t_env
-    else:
-        m_t = None
-
     # Quantum calc
-    jobs = ia
-    diagonal = scipy.zeros((n, int(jobs.max())))
-
-    for i in range(0, len(tasks_specification.tasks)):
-        diagonal[i, 0: int(jobs[i])] = list(range(ti[i], h + 1, ti[i]))
-
-    sd = diagonal[0, 0:int(jobs[0])]
-
-    for i in range(2, n + 1):
-        sd = scipy.union1d(sd, diagonal[i - 1, 0:int(jobs[i - 1])])
-
-    sd = scipy.union1d(sd, 0)
+    sd = scipy.union1d(functools.reduce(operator.add, [list(range(ti[i], h + 1, ti[i])) for i in range(n)], []), 0)
 
     quantum = 0.0
 
@@ -123,6 +97,19 @@ def solve_lineal_programing_problem_for_scheduling(tasks_specification: TasksSpe
         quantum = simulation_specification.dt
 
     if thermal_model is not None:
+        # Solve differential equation to get a initial condition
+        theta = scipy.linalg.expm(thermal_model.a_t * h)
+
+        beta_1 = (scipy.linalg.inv(thermal_model.a_t)).dot(
+            theta - scipy.identity(len(thermal_model.a_t)))
+        beta_2 = beta_1.dot(thermal_model.b_ta.reshape((- 1, 1)))
+        beta_1 = beta_1.dot(thermal_model.ct_exec)
+
+        # Set initial condition to zero to archive a final condition where initial = final, SmT(0) = Y(H)
+        m_t_o = scipy.zeros((len(thermal_model.a_t), 1))
+        m_t = theta.dot(m_t_o) + beta_1.dot(
+            w_alloc.reshape((len(w_alloc), 1))) + beta_2 * environment_specification.t_env
+
         w_alloc_max = j_fsc_i / quantum
         m_t_max = theta.dot(m_t_o) + beta_1.dot(
             w_alloc_max.reshape((len(w_alloc_max), 1))) + environment_specification.t_env * beta_2
@@ -132,5 +119,7 @@ def solve_lineal_programing_problem_for_scheduling(tasks_specification: TasksSpe
             print("No solution...")
             # TODO: Return error or throw exception
             return None
+    else:
+        m_t = None
 
     return j_b_i, j_fsc_i, quantum, m_t
