@@ -11,7 +11,7 @@ from core.problem_specification_models.GlobalSpecification import GlobalSpecific
 from core.problem_specification_models.SimulationSpecification import SimulationSpecification
 from core.problem_specification_models.TasksSpecification import TasksSpecification, Task
 from core.schedulers.rt_tcpn_thermal_aware_scheduler import RTTcpnThermalAwareScheduler
-from gui.output_generator import draw_heat_matrix, plot_cpu_utilization, plot_task_execution, \
+from gui.output_generator import plot_cpu_utilization, plot_task_execution, \
     plot_accumulated_execution_time, plot_cpu_temperature
 
 
@@ -50,10 +50,10 @@ class RtTcpnThermalAwareScheduler(unittest.TestCase):
 
         scheduler_simulation = scheduler.simulate(global_specification, simulation_kernel)
 
-        plot_cpu_utilization(global_specification, scheduler_simulation, "thermal_cpu_utilization.png")
-        plot_task_execution(global_specification, scheduler_simulation, "thermal_task_execution.png")
-        plot_cpu_temperature(global_specification, scheduler_simulation, "thermal_cpu_temperature.png")
-        plot_accumulated_execution_time(global_specification, scheduler_simulation, "thermal_accumulated.png")
+        plot_cpu_utilization(global_specification, scheduler_simulation, "thermal_cpu_utilization2.png")
+        plot_task_execution(global_specification, scheduler_simulation, "thermal_task_execution2.png")
+        plot_cpu_temperature(global_specification, scheduler_simulation, "thermal_cpu_temperature2.png")
+        plot_accumulated_execution_time(global_specification, scheduler_simulation, "thermal_accumulated2.png")
 
 
 if __name__ == '__main__':

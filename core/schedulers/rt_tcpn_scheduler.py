@@ -94,8 +94,7 @@ class RtTCPNScheduler(AbstractScheduler):
                     mo.reshape(-1),
                     walloc,
                     global_specification.environment_specification.t_env,
-                    scipy.asarray([time,
-                                   time + step]))
+                    [time, time + step])
 
                 mo = mo_next
                 TIMEstep = scipy.concatenate((TIMEstep, scipy.asarray([time])))
@@ -158,7 +157,7 @@ class RtTCPNScheduler(AbstractScheduler):
             mo_nextDisc, m_execDisc, _, TempDisc, toutDisc, TempTimeDisc, m_TCPN = solve_global_model(
                 simulation_kernel.global_model, moDisc.reshape(len(moDisc)), i_tau_disc[:, zeta_q],
                 global_specification.environment_specification.t_env,
-                scipy.asarray(list(scipy.arange(zeta, zeta + quantum + 1, step))))
+                [zeta, zeta + quantum])
 
             moDisc = mo_nextDisc
             M = scipy.concatenate((M, m_TCPN), axis=1)

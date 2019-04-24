@@ -91,8 +91,7 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
                     mo.reshape(-1),
                     walloc,
                     global_specification.environment_specification.t_env,
-                    scipy.asarray([time,
-                                   time + step]))
+                    [time, time + step])
 
                 mo = mo_next
                 TEMPERATURE_CONT = scipy.concatenate((TEMPERATURE_CONT, Temp), axis=1)
@@ -155,8 +154,7 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
             MEXEC = scipy.concatenate((MEXEC, Mexec.reshape(-1, 1)), axis=1)
             mo_nextDisc, m_execDisc, m_busyDisc, TempDisc, toutDisc, TempTimeDisc, m_TCPN = solve_global_model(
                 simulation_kernel.global_model, moDisc.reshape(len(moDisc)), i_tau_disc[:, zeta_q],
-                global_specification.environment_specification.t_env,
-                scipy.asarray(list(scipy.arange(zeta, zeta + quantum + 1, step))))
+                global_specification.environment_specification.t_env, [zeta, zeta + quantum])
 
             moDisc = mo_nextDisc
             M = scipy.concatenate((M, m_TCPN), axis=1)

@@ -27,16 +27,29 @@ class TestLinealProgramingProblem(unittest.TestCase):
                                                              environment_specification,
                                                              simulation_specification)
 
+        # Thermal
         j_b_i, j_fsc_i, quantum, m_t = solve_lineal_programing_problem_for_scheduling(tasks_specification,
                                                                                       cpu_specification,
                                                                                       environment_specification,
                                                                                       simulation_specification,
                                                                                       thermal_model)
 
-        self.assertEqual(hashlib.md5(j_b_i).hexdigest(), "9f27b8f2716783f6118312dc40b86cc8")
-        self.assertEqual(hashlib.md5(j_fsc_i).hexdigest(), "72c9f516bafd2ac121cc6b7a98b533d6")
-        self.assertEqual(hashlib.md5(quantum).hexdigest(), "b90f3c2eaed17bb20343fc1e2d147efc")
-        self.assertEqual(hashlib.md5(m_t).hexdigest(), "296bcf556c46a697923ae3f8a188964a")
+        self.assertEqual(hashlib.md5(j_b_i).hexdigest(), "0c1b881becb09cb39f9b105f59e446ba")
+        self.assertEqual(hashlib.md5(j_fsc_i).hexdigest(), "1431d18620d5559b1f18c0292ccdf1f0")
+        self.assertEqual(hashlib.md5(quantum).hexdigest(), "ac913309c06636286a80a518cbb303f5")
+        self.assertEqual(hashlib.md5(m_t).hexdigest(), "9315393e20547da55f4376c4be1a174e")
+
+        # No thermal
+        j_b_i, j_fsc_i, quantum, m_t = solve_lineal_programing_problem_for_scheduling(tasks_specification,
+                                                                                      cpu_specification,
+                                                                                      environment_specification,
+                                                                                      simulation_specification,
+                                                                                      None)
+
+        self.assertEqual(hashlib.md5(j_b_i).hexdigest(), "0c1b881becb09cb39f9b105f59e446ba")
+        self.assertEqual(hashlib.md5(j_fsc_i).hexdigest(), "1431d18620d5559b1f18c0292ccdf1f0")
+        self.assertEqual(hashlib.md5(quantum).hexdigest(), "ac913309c06636286a80a518cbb303f5")
+        self.assertEqual(m_t, None)
 
 
 if __name__ == '__main__':

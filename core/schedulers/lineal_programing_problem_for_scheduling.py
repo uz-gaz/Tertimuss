@@ -35,8 +35,8 @@ def solve_lineal_programing_problem_for_scheduling(tasks_specification: TasksSpe
 
         b = thermal_model.ct_exec
 
-        a_int = - ((thermal_model.s_t.dot(scipy.linalg.inv(a_t))).dot(b)).dot(
-            c_h)  # Fixme: Problem in inverse precision
+        a_int = - ((thermal_model.s_t.dot(scipy.linalg.inv(a_t))).dot(b)).dot(c_h)
+
         b_int = environment_specification.t_max * scipy.ones((m, 1)) + (
             (thermal_model.s_t.dot(scipy.linalg.inv(thermal_model.a_t))).dot(
                 thermal_model.b_ta.reshape((-1, 1)))) * environment_specification.t_env
@@ -95,7 +95,6 @@ def solve_lineal_programing_problem_for_scheduling(tasks_specification: TasksSpe
         # Inicializa la condicion inicial en ceros para obtener una condicion inicial=final SmT(0)=Y(H)
         mT0 = scipy.zeros((len(thermal_model.a_t), 1))
         mT = theta.dot(mT0) + beta_1.dot(walloc.reshape((len(walloc), 1))) + beta_2 * environment_specification.t_env
-        # temp = thermal_model.s_t.dot(mT)
     else:
         mT = None
 
@@ -115,20 +114,18 @@ def solve_lineal_programing_problem_for_scheduling(tasks_specification: TasksSpe
 
     quantum = 0.0
 
-    round_factor = 1  # FIXME: 4 in original implementation
+    round_factor = 4
     fraction_denominator = 10 ** round_factor
 
     for i in range(2, len(sd)):
         rounded = scipy.around(scipy.concatenate(([quantum], sd[i - 1] * jFSCi)), round_factor)
         rounded_as_fraction = list(map(lambda actual: int(actual * fraction_denominator), rounded))
-        quantum = scipy.gcd.reduce(
-            rounded_as_fraction) / fraction_denominator  # TODO: Review, jFSCi low precision -> quantum low precision
+        quantum = scipy.gcd.reduce(rounded_as_fraction) / fraction_denominator
 
     if quantum < simulation_specification.dt:
         quantum = simulation_specification.dt
 
     if thermal_model is not None:
-        # FIXME: Decimales a partir de aqui
         walloc_Max = jFSCi / quantum
         mT_max = theta.dot(mT0) + beta_1.dot(
             walloc_Max.reshape((len(walloc_Max), 1))) + environment_specification.t_env * beta_2
