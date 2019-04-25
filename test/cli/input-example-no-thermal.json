@@ -1,0 +1,41 @@
+{
+  "$schema": "../../cli/input-schema/input-schema.json",
+  "$id": "scheduler.framework.TCPN.schema.example1",
+  "title": "Example input specification",
+  "description": "Input for Scheduler Framework TCPN v1.0",
+  "specification": {
+    "tasks": [
+      {
+        "worstCaseExecutionTime": 2,
+        "period": 4
+      },
+      {
+        "worstCaseExecutionTime": 3,
+        "period": 8
+      },
+      {
+        "worstCaseExecutionTime": 3,
+        "period": 12
+      }
+    ],
+    "processor": {
+      "coresProperties": {
+        "numberOfCores": 2,
+        "frequencyScale": 1.0
+      }
+    },
+    "simulation": {
+      "timeStep": 0.01
+    },
+    "scheduler": {
+      "name": "global_edf_affinity_scheduler"
+    },
+    "output": {
+      "path": "./out/",
+      "baseName": "simulation_example_no_thermal",
+      "generate": [
+        "allocationAndExecution"
+      ]
+    }
+  }
+}

@@ -118,6 +118,21 @@
               ],
               "additionalProperties": false
             },
+            "simulation": {
+              "description": "Simulation properties",
+              "type": "object",
+              "properties": {
+                "timeStep": {
+                  "description": "Time accuracy (s)",
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                }
+              },
+              "required": [
+                "timeStep"
+              ],
+              "additionalProperties": false
+            },
             "scheduler": {
               "description": "Scheduler properties",
               "type": "object",

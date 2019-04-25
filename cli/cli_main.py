@@ -16,7 +16,8 @@ from core.problem_specification_models.SimulationSpecification import Simulation
 from core.problem_specification_models.TasksSpecification import TasksSpecification, Task
 from core.schedulers.scheduler_naming_selector import select_scheduler
 from core.task_generator.task_generator_naming_selector import select_task_generator
-from output_generation.output_generator import draw_heat_matrix, plot_task_execution, plot_cpu_utilization, plot_cpu_temperature, \
+from output_generation.output_generator import draw_heat_matrix, plot_task_execution, plot_cpu_utilization, \
+    plot_cpu_temperature, \
     plot_accumulated_execution_time
 
 
@@ -80,7 +81,7 @@ def main(args):
                              core_physical_properties.get("shape").get("y"),
                              board_physical_properties.get("shape").get("x"),
                              board_physical_properties.get("shape").get("y")) or len(
-            cpu_origins) != core_properties.get("numberOfCores"):
+                             cpu_origins) != core_properties.get("numberOfCores"):
             print("Error: Wrong cpu origins specification")
             return 1
 
@@ -127,7 +128,7 @@ def main(args):
         else:
             tasks_specification = TasksSpecification(tasks_specification.generate())
 
-    scheduler = select_scheduler(scenario_description.get("scheduler").get("name"))
+    scheduler = select_scheduler(scenario_description.get("scheduler").get("name"), is_specification_with_thermal)
 
     if scheduler is None:
         print("Error: Wrong scheduler specification")
@@ -158,17 +159,21 @@ def main(args):
     output_path = output.get("path")
     output_base_name = output.get("baseName")
 
+    # Create output directory if not exist
+    os.makedirs(output_path, exist_ok=True)
+
+    # Generate output files
     for i in output.get("generate"):
         if i == "allocationAndExecution":
             plot_cpu_utilization(global_specification, simulation_result,
-                                 os.path.join(output_path, output_base_name + "cpu_utilization.png"))
+                                 os.path.join(output_path, output_base_name + "_cpu_utilization.png"))
             plot_task_execution(global_specification, simulation_result,
-                                os.path.join(output_path, output_base_name + "task_execution.png"))
+                                os.path.join(output_path, output_base_name + "_task_execution.png"))
             plot_cpu_temperature(global_specification, simulation_result,
-                                 os.path.join(output_path, output_base_name + "cpu_temperature.png"))
+                                 os.path.join(output_path, output_base_name + "_cpu_temperature.png"))
             plot_accumulated_execution_time(global_specification, simulation_result,
                                             os.path.join(output_path,
-                                                         output_base_name + "accumulated_execution_time.png"))
+                                                         output_base_name + "_accumulated_execution_time.png"))
 
         elif i == "temperatureEvolution":
             draw_heat_matrix(global_specification, simulation_kernel, simulation_result,
@@ -176,10 +181,9 @@ def main(args):
 
 
 if __name__ == "__main__":
-    # get and parse arguments passed to main
-    # Add as many args as you need ...
+    # Get scenario specification and pass it to the main
     parser = argparse.ArgumentParser(description='Configure simulation scenario')
     parser.add_argument("-f", "--file", help="path to find description file", required=True)
-    args = parser.parse_args()
-    main(args)
+    arguments = parser.parse_args()
+    main(arguments)
     exit()

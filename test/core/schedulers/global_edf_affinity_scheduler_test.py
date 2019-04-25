@@ -12,7 +12,7 @@ from core.problem_specification_models.SimulationSpecification import Simulation
 from core.problem_specification_models.TasksSpecification import TasksSpecification, Task
 from core.schedulers.global_edf_affinity_scheduler import GlobalEDFAffinityScheduler
 from output_generation.output_generator import plot_cpu_utilization, plot_task_execution, plot_cpu_temperature, \
-    plot_accumulated_execution_time
+    plot_accumulated_execution_time, draw_heat_matrix
 
 
 class TestGlobalEdfScheduler(unittest.TestCase):
@@ -29,18 +29,14 @@ class TestGlobalEdfScheduler(unittest.TestCase):
 
         simulation_specification: SimulationSpecification = SimulationSpecification(2, 0.01)
 
-        print("Processor model")
         processor_model: ProcessorModel = generate_processor_model(tasks_specification, cpu_specification)
 
-        print("Tasks model")
         tasks_model: TasksModel = generate_tasks_model(tasks_specification, cpu_specification)
 
-        print("Thermal model")
         thermal_model: ThermalModel = generate_thermal_model(tasks_specification, cpu_specification,
                                                              environment_specification,
                                                              simulation_specification)
 
-        print("Global model")
         global_model, mo = generate_global_model(tasks_model, processor_model, thermal_model, environment_specification)
 
         simulation_kernel: SimulationKernel = SimulationKernel(tasks_model, processor_model, thermal_model,
@@ -52,14 +48,9 @@ class TestGlobalEdfScheduler(unittest.TestCase):
 
         scheduler = GlobalEDFAffinityScheduler()
 
-        print("Scheduler")
         scheduler_simulation = scheduler.simulate(global_specification, simulation_kernel)
 
-        print("Ended")
-
-        # TODO: Check outputs
-
-        # draw_heat_matrix(global_specification, simulation_kernel, scheduler_simulation, "affinity_heat_matrix.mp4")
+        draw_heat_matrix(global_specification, simulation_kernel, scheduler_simulation, "affinity_heat_matrix.mp4")
         plot_cpu_utilization(global_specification, scheduler_simulation, "affinity_cpu_utilization.png")
         plot_task_execution(global_specification, scheduler_simulation, "affinity_task_execution.png")
         plot_cpu_temperature(global_specification, scheduler_simulation,  "affinity_cpu_temperature.png")

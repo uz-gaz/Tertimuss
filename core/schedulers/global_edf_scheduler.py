@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 import scipy
 
@@ -14,7 +14,7 @@ class GlobalEDFScheduler(AbstractGlobalScheduler):
         super().__init__()
 
     def schedule_policy(self, time: float, tasks: List[GlobalSchedulerTask], m: int, active_tasks: List[int],
-                        cores_temperature: scipy.ndarray) -> List[int]:
+                        cores_temperature: Optional[scipy.ndarray]) -> List[int]:
         """
         Method to implement with the actual scheduler police
         :param time: actual simulation time passed

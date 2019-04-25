@@ -1,6 +1,6 @@
 import itertools
 import math
-from typing import Optional
+from typing import Optional, List
 
 
 class MaterialCuboid(object):
@@ -60,8 +60,8 @@ class CoreSpecification(object):
 
 class CpuSpecification(object):
 
-    def __init__(self, board: MaterialCuboid, cpu_core: MaterialCuboid, number_of_cores: int, clock_frequency: float,
-                 cpu_origins: Optional[list] = None):
+    def __init__(self, board: Optional[MaterialCuboid], cpu_core: Optional[MaterialCuboid], number_of_cores: int,
+                 clock_frequency: float, cpu_origins: Optional[List[Origin]] = None):
         """
         CPU specification
         :param board: Spec of board
@@ -75,7 +75,7 @@ class CpuSpecification(object):
         self.clock_frequency = clock_frequency
 
         def generate_automatic_origins(x0: float, x1: float, y0: float, y1: float, mx: float, my: float,
-                                       n: int) -> list:
+                                       n: int) -> List[Origin]:
             # Distribute CPUs in a symmetrical way
             if n == 1:
                 return [Origin(x0 + (x1 - x0 - mx) / 2, y0 + (y1 - y0 - my) / 2)]
@@ -87,7 +87,7 @@ class CpuSpecification(object):
                     return generate_automatic_origins(x0, x1, y0, y0 + (y1 - y0) / 2, mx, my, math.ceil(n / 2)) + \
                            generate_automatic_origins(x0, x1, y0 + (y1 - y0) / 2, y1, mx, my, math.floor(n / 2))
 
-        if cpu_origins is None:
+        if cpu_origins is None and board is not None:
             self.cpu_origins = generate_automatic_origins(0, self.board.x, 0, self.board.y, self.cpu_core.x,
                                                           self.cpu_core.y, self.number_of_cores)
         else:
@@ -102,7 +102,7 @@ class CpuSpecification(object):
     '''
 
 
-def check_origins(cpu_origins: list, x_size_cpu: float, y_size_cpu: float, x_size_board: float,
+def check_origins(cpu_origins: List[Origin], x_size_cpu: float, y_size_cpu: float, x_size_board: float,
                   y_size_board: float) -> bool:
     """
     Return true if no core overlap

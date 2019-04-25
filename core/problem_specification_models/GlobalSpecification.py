@@ -1,3 +1,5 @@
+from typing import Optional
+
 from core.problem_specification_models.CpuSpecification import CpuSpecification
 from core.problem_specification_models.EnvironmentSpecification import EnvironmentSpecification
 from core.problem_specification_models.SimulationSpecification import SimulationSpecification
@@ -10,7 +12,7 @@ class GlobalSpecification(object):
     """
 
     def __init__(self, tasks_specification: TasksSpecification, cpu_specification: CpuSpecification,
-                 environment_specification: EnvironmentSpecification,
+                 environment_specification: Optional[EnvironmentSpecification],
                  simulation_specification: SimulationSpecification):
         """
 

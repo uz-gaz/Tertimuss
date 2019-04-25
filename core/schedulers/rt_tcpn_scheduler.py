@@ -18,6 +18,9 @@ class RtTCPNScheduler(AbstractScheduler):
     def simulate(self, global_specification: GlobalSpecification,
                  simulation_kernel: SimulationKernel) -> SchedulerResult:
 
+        # True if simulation must save temperature
+        is_thermal_simulation = simulation_kernel.thermal_model is not None
+
         _, j_fsc_i, quantum, _ = solve_lineal_programing_problem_for_scheduling(
             global_specification.tasks_specification, global_specification.cpu_specification,
             global_specification.environment_specification,
@@ -93,7 +96,7 @@ class RtTCPNScheduler(AbstractScheduler):
                     simulation_kernel.global_model,
                     mo.reshape(-1),
                     w_alloc,
-                    global_specification.environment_specification.t_env,
+                    global_specification.environment_specification.t_env if is_thermal_simulation else 0,
                     [time, time + step])
 
                 mo = mo_next

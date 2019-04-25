@@ -1,3 +1,5 @@
+from typing import Optional
+
 import scipy
 
 
@@ -19,7 +21,7 @@ class Task(object):
     Task specification
     """
 
-    def __init__(self, c: float, t: int, e: float):
+    def __init__(self, c: float, t: int, e: Optional[float]):
         """
 
         :param c: Task worst case execution time in CPU cycles
