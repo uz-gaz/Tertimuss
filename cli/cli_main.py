@@ -59,6 +59,9 @@ def main(args):
     # TODO: Add no thermal
     scenario_description = scenario_description.get("specification")
 
+    # True if is a specification with thermal
+    is_specification_with_thermal = scenario_description.get("processor").get("boardProperties") is not None
+
     processor = scenario_description.get("processor")
 
     board_prop = processor.get("boardProperties")
