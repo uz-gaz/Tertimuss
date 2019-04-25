@@ -22,7 +22,7 @@ from output_generation.output_generator import draw_heat_matrix, plot_task_execu
 
 def main(args):
     # Path of the input validate schema
-    input_schema_path = "input-schema-thermal-v1.0.json"
+    input_schema_path = "input-schema/input-schema.json"
 
     # Read schema for validation
     try:
@@ -33,7 +33,7 @@ def main(args):
                 print("Error: Wrong schema file syntax")
                 return 1
     except IOError:
-        print("Error: Can't read the schema ", args.file)
+        print("Error: Can't read the schema ", input_schema_path)
         return 1
 
     # Read input file
