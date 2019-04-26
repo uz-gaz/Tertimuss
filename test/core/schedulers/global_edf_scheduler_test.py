@@ -50,8 +50,6 @@ class TestGlobalEdfScheduler(unittest.TestCase):
 
         scheduler_simulation = scheduler.simulate(global_specification, simulation_kernel)
 
-        # TODO: Check outputs
-
         # draw_heat_matrix(global_specification, simulation_kernel, scheduler_simulation)
         plot_cpu_utilization(global_specification, scheduler_simulation, "edf_cpu_utilization.png")
         plot_task_execution(global_specification, scheduler_simulation, "edf_task_execution.png")

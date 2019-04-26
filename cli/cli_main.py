@@ -58,7 +58,6 @@ def main(args):
               ve.message)
         return 1
 
-    # TODO: Add no thermal
     scenario_description = scenario_description.get("specification")
 
     # True if is a specification with thermal
