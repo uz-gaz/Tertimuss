@@ -15,9 +15,9 @@ from output_generation.output_generator import plot_cpu_utilization, plot_task_e
     plot_accumulated_execution_time
 
 
-class TestGlobalEdfScheduler(unittest.TestCase):
+class TestGlobalEdfSchedulerNoThermal(unittest.TestCase):
 
-    def test_global_edf_scheduler(self):
+    def test_global_edf_scheduler_no_thermal(self):
         tasks_specification: TasksSpecification = TasksSpecification([Task(2, 4, None),
                                                                       Task(3, 8, None),
                                                                       Task(3, 12, None)])

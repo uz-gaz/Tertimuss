@@ -159,7 +159,7 @@ class RtTCPNScheduler(AbstractScheduler):
             m_exec_history = scipy.concatenate((m_exec_history, m_exec_accumulated.reshape(-1, 1)), axis=1)
             mo_next_disc, m_exec_disc, _, temp_disc, tout_disc, temp_time_disc, m_tcpn = solve_global_model(
                 simulation_kernel.global_model, mo_disc.reshape(len(mo_disc)), i_tau_disc[:, zeta_q],
-                global_specification.environment_specification.t_env, [zeta, zeta + quantum])
+                global_specification.environment_specification.t_env if is_thermal_simulation else 0, [zeta, zeta + quantum])
 
             mo_disc = mo_next_disc
             temperature_map = scipy.concatenate((temperature_map, m_tcpn), axis=1)
