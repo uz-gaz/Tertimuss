@@ -1,6 +1,7 @@
 import argparse
 import json
 import os
+from typing import Optional
 
 from jsonschema import validate, ValidationError
 
@@ -65,13 +66,13 @@ def main(args):
 
     processor = scenario_description.get("processor")
 
-    board_prop = processor.get("boardProperties")
-    board_physical_properties = board_prop.get("physicalProperties")
+    board_prop = processor.get("boardProperties") if is_specification_with_thermal else None
+    board_physical_properties = board_prop.get("physicalProperties") if is_specification_with_thermal else None
 
     core_properties = processor.get("coresProperties")
-    core_physical_properties = core_properties.get("physicalProperties")
+    core_physical_properties = core_properties.get("physicalProperties") if is_specification_with_thermal else None
 
-    cpu_origins = core_properties.get("coresOrigins")
+    cpu_origins = core_properties.get("coresOrigins") if is_specification_with_thermal else None
 
     # Check cpu origins spec
     if cpu_origins is not None:
@@ -81,7 +82,7 @@ def main(args):
                              core_physical_properties.get("shape").get("y"),
                              board_physical_properties.get("shape").get("x"),
                              board_physical_properties.get("shape").get("y")) or len(
-                             cpu_origins) != core_properties.get("numberOfCores"):
+            cpu_origins) != core_properties.get("numberOfCores"):
             print("Error: Wrong cpu origins specification")
             return 1
 
@@ -92,30 +93,33 @@ def main(args):
                        board_physical_properties.get("density"),
                        board_physical_properties.get("specificHeatCapacity"),
                        board_physical_properties.get("thermalConductivity")
-                       ),
+                       ) if is_specification_with_thermal else None,
         MaterialCuboid(core_physical_properties.get("shape").get("x"),
                        core_physical_properties.get("shape").get("y"),
                        core_physical_properties.get("shape").get("z"),
                        core_physical_properties.get("density"),
                        core_physical_properties.get("specificHeatCapacity"),
-                       core_physical_properties.get("thermalConductivity")),
+                       core_physical_properties.get("thermalConductivity")
+                       ) if is_specification_with_thermal else None,
         core_properties.get("numberOfCores"),
         core_properties.get("frequencyScale"),
         cpu_origins)
 
-    simulation_specification = SimulationSpecification(scenario_description.get("simulation").get("meshStepSize"),
-                                                       scenario_description.get("simulation").get("timeStep"))
+    simulation_specification = SimulationSpecification(
+        scenario_description.get("simulation").get("meshStepSize") if is_specification_with_thermal else None,
+        scenario_description.get("simulation").get("timeStep"))
 
     environment_specification = EnvironmentSpecification(
         scenario_description.get("environment").get("convectionFactor"),
         scenario_description.get("environment").get("environmentTemperature"),
-        scenario_description.get("environment").get("maximumTemperature"))
+        scenario_description.get("environment").get("maximumTemperature")) if is_specification_with_thermal else None
 
     tasks = scenario_description.get("tasks")
 
     if type(tasks) is list:
         tasks_specification = TasksSpecification(list(
-            map(lambda a: Task(a.get("worstCaseExecutionTime"), a.get("period"), a.get("energyConsumption")), tasks)))
+            map(lambda a: Task(a.get("worstCaseExecutionTime"), a.get("period"),
+                               a.get("energyConsumption") if is_specification_with_thermal else None), tasks)))
     else:
         tasks_specification = select_task_generator(tasks.get("name"), tasks.get("numberOfTasks"),
                                                     tasks.get("utilizationOfTheTaskSet"), (
@@ -131,7 +135,7 @@ def main(args):
     scheduler = select_scheduler(scenario_description.get("scheduler").get("name"), is_specification_with_thermal)
 
     if scheduler is None:
-        print("Error: Wrong scheduler specification")
+        print("Error: Wrong scheduler name")
         return 1
 
     # Run the simulation
@@ -139,9 +143,9 @@ def main(args):
 
     tasks_model: TasksModel = generate_tasks_model(tasks_specification, cpu_specification)
 
-    thermal_model: ThermalModel = generate_thermal_model(tasks_specification, cpu_specification,
-                                                         environment_specification,
-                                                         simulation_specification)
+    thermal_model: Optional[ThermalModel] = generate_thermal_model(tasks_specification, cpu_specification,
+                                                                   environment_specification,
+                                                                   simulation_specification) if is_specification_with_thermal else None
 
     global_model, mo = generate_global_model(tasks_model, processor_model, thermal_model, environment_specification)
 
@@ -169,11 +173,12 @@ def main(args):
                                  os.path.join(output_path, output_base_name + "_cpu_utilization.png"))
             plot_task_execution(global_specification, simulation_result,
                                 os.path.join(output_path, output_base_name + "_task_execution.png"))
-            plot_cpu_temperature(global_specification, simulation_result,
-                                 os.path.join(output_path, output_base_name + "_cpu_temperature.png"))
             plot_accumulated_execution_time(global_specification, simulation_result,
                                             os.path.join(output_path,
                                                          output_base_name + "_accumulated_execution_time.png"))
+            if is_specification_with_thermal:
+                plot_cpu_temperature(global_specification, simulation_result,
+                                     os.path.join(output_path, output_base_name + "_cpu_temperature.png"))
 
         elif i == "temperatureEvolution":
             draw_heat_matrix(global_specification, simulation_kernel, simulation_result,
