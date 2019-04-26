@@ -70,9 +70,7 @@ def solve_lineal_programing_problem_for_scheduling(tasks_specification: TasksSpe
 
     if not res.success:
         # No solution found
-        print("No solution")
-        # TODO: Return error or throw exception
-        return None
+        raise Exception("Error: No solution found when trying to solve the lineal programing problem")
 
     j_b_i = res.x
 
@@ -115,9 +113,8 @@ def solve_lineal_programing_problem_for_scheduling(tasks_specification: TasksSpe
         temp_max = thermal_model.s_t.dot(m_t_max)
 
         if all(item[0] > environment_specification.t_max for item in temp_max / m):
-            print("No solution...")
-            # TODO: Return error or throw exception
-            return None
+            raise Exception(
+                "Error: No one solution found when trying to solve the linear programing problem is feasible")
     else:
         m_t = None
 

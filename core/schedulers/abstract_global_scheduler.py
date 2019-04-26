@@ -39,10 +39,10 @@ class AbstractGlobalScheduler(AbstractScheduler):
         m = global_specification.cpu_specification.number_of_cores
         n = len(global_specification.tasks_specification.tasks)
         cpu_utilization = sum(map(lambda a: a.c / a.t, global_specification.tasks_specification.tasks))
+
+        # Exit program if can schedule
         if cpu_utilization >= m:
-            print("Schedule is not feasible")
-            # TODO: Return error or throw exception
-            return None
+            raise Exception("Error: Schedule is not feasible")
 
         # Tasks set
         tasks = [GlobalSchedulerTask(global_specification.tasks_specification.tasks[i], i) for i in

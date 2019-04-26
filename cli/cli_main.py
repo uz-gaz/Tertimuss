@@ -154,8 +154,11 @@ def main(args):
     global_specification: GlobalSpecification = GlobalSpecification(tasks_specification, cpu_specification,
                                                                     environment_specification,
                                                                     simulation_specification)
-
-    simulation_result = scheduler.simulate(global_specification, simulation_kernel)
+    try:
+        simulation_result = scheduler.simulate(global_specification, simulation_kernel)
+    except Exception as ex:
+        print(ex)
+        return 1
 
     output = scenario_description.get("output")
 
