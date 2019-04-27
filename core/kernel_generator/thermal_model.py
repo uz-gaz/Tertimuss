@@ -1,3 +1,5 @@
+from typing import List
+
 import scipy
 from scipy.linalg import block_diag
 
@@ -27,8 +29,8 @@ def simple_conductivity(material_cuboid: MaterialCuboid,
     dx = simulation_specification.step / 1000
     dy = simulation_specification.step / 1000
 
-    x: int = int(material_cuboid.x / simulation_specification.step)
-    y: int = int(material_cuboid.y / simulation_specification.step)
+    x: int = round(material_cuboid.x / simulation_specification.step)
+    y: int = round(material_cuboid.y / simulation_specification.step)
 
     rho: float = material_cuboid.p
     k: float = material_cuboid.k
@@ -232,9 +234,9 @@ def add_heat(pre_sis, post_sis, board_conductivity: ConductivityModel,
 
 
 def getCpuCoordinates(origin: Origin, cpu_spec: MaterialCuboid, board_spec: MaterialCuboid,
-                      simulation_specification: SimulationSpecification) -> list:
-    x = cpu_spec.x // simulation_specification.step
-    y = cpu_spec.y // simulation_specification.step
+                      simulation_specification: SimulationSpecification) -> List[int]:
+    x: int = round(cpu_spec.x / simulation_specification.step)
+    y: int = round(cpu_spec.y / simulation_specification.step)
 
     x_0: int = round(origin.x / simulation_specification.step)
     y_0: int = round(origin.y / simulation_specification.step)
@@ -244,7 +246,7 @@ def getCpuCoordinates(origin: Origin, cpu_spec: MaterialCuboid, board_spec: Mate
 
     places = []
 
-    x_board = board_spec.x // simulation_specification.step
+    x_board: int = round(board_spec.x / simulation_specification.step)
 
     for j in range(y_0, y_1):
         local_places = []
@@ -338,14 +340,14 @@ def generate_thermal_model(tasks_specification: TasksSpecification, cpu_specific
     a = ((post_sis - pre_sis).dot(scipy.diag(lambda_vector.reshape(-1)))).dot(pi)
 
     # Output places
-    l_measurement = scipy.zeros(cpu_specification.number_of_cores)
+    l_measurement = scipy.zeros(cpu_specification.number_of_cores, dtype=int)
 
     for i in range(cpu_specification.number_of_cores):
         l_measurement[i] = board_conductivity.p + i * micro_conductivity.p + scipy.math.ceil(micro_conductivity.p / 2)
 
-    c = scipy.zeros((len(l_measurement), len(a)))
+    c = scipy.zeros((cpu_specification.number_of_cores, len(a)))
 
-    for i in range(len(l_measurement)):
-        c[i, int(l_measurement[i]) - 1] = 1
+    for i in range(cpu_specification.number_of_cores):
+        c[i, l_measurement[i] - 1] = 1
 
     return ThermalModel(a, cp_exec, c, diagonal, lambda_generated)

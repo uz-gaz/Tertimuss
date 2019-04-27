@@ -42,25 +42,21 @@ def generate_tasks_model(tasks_specification: TasksSpecification, cpu_specificat
     pi = scipy.zeros((t, p))
     mo = scipy.zeros((p, 1))
 
-    k = 1
-
     # Construction of Pre an Post matrix for places(p^w_i,p^cc_i) and transition(t^w_i)
-    for actual_task in tasks_specification.tasks:
-        i = k * 2 - 1
-        pre[i - 1, k - 1] = 1
-        post[i - 1:i + 1, k - 1] = [1, actual_task.c]
-        lambda_vector[k - 1] = 1 / actual_task.t
-        pi[k - 1, i - 1] = 1
-        mo[i - 1: i + 1, 0] = [1, actual_task.c]
+    for k in range(n):
+        i = 2 * k
+        pre[i, k] = 1
+        post[i:i + 2, k] = [1, tasks_specification.tasks[k].c]
+        lambda_vector[k] = 1 / tasks_specification.tasks[k].t
+        pi[k, i] = 1
+        mo[i: i + 2, 0] = [1, tasks_specification.tasks[k].c]
 
         # Construction of Pre an Post matrix for Transitions alloc
         j = n + k
-        while j <= t:
-            pre[i, j - 1] = 1
-            pi[j - 1, i] = 1
+        while j < t:
+            pre[i + 1, j] = 1
+            pi[j, i + 1] = 1
             j = j + n
-
-        k = k + 1
 
     pre_alloc[:, 0: t_alloc] = pre[:, n: t]
 

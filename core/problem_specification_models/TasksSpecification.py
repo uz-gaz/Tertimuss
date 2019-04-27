@@ -1,19 +1,6 @@
-from typing import Optional
+from typing import Optional, List
 
 import scipy
-
-
-class TasksSpecification(object):
-    """
-    System tasks
-    """
-
-    def __init__(self, tasks: list):
-        """
-        :param tasks: List of tasks
-        """
-        self.tasks = tasks
-        self.h = scipy.lcm.reduce(list(map(lambda a: a.t, tasks)))  # Hyper period
 
 
 class Task(object):
@@ -31,3 +18,16 @@ class Task(object):
         self.c = c
         self.t = t
         self.e = e
+
+
+class TasksSpecification(object):
+    """
+    System tasks
+    """
+
+    def __init__(self, tasks: List[Task]):
+        """
+        :param tasks: List of tasks
+        """
+        self.tasks = tasks
+        self.h = scipy.lcm.reduce(list(map(lambda a: a.t, tasks)))  # Hyper period

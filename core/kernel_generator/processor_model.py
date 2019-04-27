@@ -67,17 +67,14 @@ def generate_processor_model(tasks_specification: TasksSpecification, cpu_specif
         post[(k + 1) * (2 * n + 1) - 1, 2 * k * n + n: 2 * (k + 1) * n] = eta * scipy.ones(n)
 
         # Construction of Pre an Post matrix for Transitions alloc
-        pre_alloc[i:i + n, k * n: (k + 1) * n] = \
-            pre[i:i + n, 2 * k * n: 2 * k * n + n]
-        post_alloc[i:i + n, k * n: k * n + n] = \
-            post[i:i + n, 2 * k * n: 2 * k * n + n]
+        pre_alloc[i:i + n, k * n: (k + 1) * n] = pre[i:i + n, 2 * k * n: 2 * k * n + n]
+        post_alloc[i:i + n, k * n: k * n + n] = post[i:i + n, 2 * k * n: 2 * k * n + n]
 
         # Execution rates for transitions exec for CPU_k \lambda^exec= eta*F
         lambda_vector[2 * k * n + n:2 * k * n + 2 * n] = eta * f * scipy.ones(n)
 
         # Execution rates for transitions alloc \lambda^alloc= eta*\lambda^exec
-        lambda_vector[2 * k * n:2 * k * n + n] = \
-            eta * lambda_vector[2 * k * n + n:2 * k * n + 2 * n]
+        lambda_vector[2 * k * n:2 * k * n + n] = eta * lambda_vector[2 * k * n + n:2 * k * n + 2 * n]
         lambda_alloc[k * n:(k + 1) * n] = lambda_vector[2 * k * n:2 * k * n + n]
 
         # Configuration Matrix

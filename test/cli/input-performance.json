@@ -24,11 +24,6 @@
         "worstCaseExecutionTime": 4,
         "period": 16,
         "energyConsumption": 6
-      },
-      {
-        "worstCaseExecutionTime": 2,
-        "period": 10,
-        "energyConsumption": 12
       }
     ],
     "processor": {
@@ -65,7 +60,7 @@
       "environmentTemperature": 45
     },
     "simulation": {
-      "meshStepSize": 1,
+      "meshStepSize": 2,
       "timeStep": 0.01
     },
     "scheduler": {
