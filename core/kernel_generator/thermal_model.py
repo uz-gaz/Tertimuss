@@ -1,4 +1,5 @@
 import scipy
+from scipy.linalg import block_diag
 
 from core.problem_specification_models.CpuSpecification import CpuSpecification, MaterialCuboid, Origin
 from core.problem_specification_models.EnvironmentSpecification import EnvironmentSpecification
@@ -58,8 +59,6 @@ def simple_conductivity(material_cuboid: MaterialCuboid,
 
     lambda_vector = scipy.zeros(t)
 
-    # FIXME: I think we achieve the same in pre if we create a diagonal matrix with [1, 0] p -2 times and [0, 1]
-    # in the last
     for i in range(p - 1):
         j = i * 2
         pre[i:i + 2, j:j + 2] = i_pre
@@ -166,24 +165,14 @@ def add_convection(pre_sis, post_sis, lambda_vector, board_conductivity: Conduct
 
     cota_micros = l_places - p_micros
 
-    post_convection = scipy.zeros((f, 2))
+    post_convection = scipy.concatenate(
+        [block_diag(scipy.ones((cota_micros, 1)), scipy.ones((l_places - cota_micros, 1))),
+         scipy.zeros((f - l_places, 2))])
 
-    pre_it = scipy.zeros((f, l_places))
+    pre_it = scipy.concatenate([scipy.diag(scipy.ones(l_places)), scipy.zeros((f - l_places, l_places))])
     post_it = scipy.zeros((f, l_places))
 
-    lambda_it = scipy.zeros((l_places, 1))
-
-    k = 0
-    for i in range(l_places):
-        pre_it[i, i] = 1
-
-        post_it[i, i] = 0
-        post_convection[i, k] = 1
-
-        lambda_it[i] = lambda_1
-
-        if i + 1 == cota_micros:
-            k = k + 1
+    lambda_it = scipy.ones((l_places, 1)) * lambda_1
 
     pi = [1, 1]
 

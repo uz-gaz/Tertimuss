@@ -1,0 +1,82 @@
+{
+  "$schema": "../../cli/input-schema/input-schema.json",
+  "$id": "scheduler.framework.TCPN.schema.example1",
+  "title": "Example input specification",
+  "description": "Input for Scheduler Framework TCPN v1.0",
+  "specification": {
+    "tasks": [
+      {
+        "worstCaseExecutionTime": 2,
+        "period": 4,
+        "energyConsumption": 6.4
+      },
+      {
+        "worstCaseExecutionTime": 3,
+        "period": 8,
+        "energyConsumption": 8
+      },
+      {
+        "worstCaseExecutionTime": 3,
+        "period": 12,
+        "energyConsumption": 9.6
+      },
+      {
+        "worstCaseExecutionTime": 4,
+        "period": 16,
+        "energyConsumption": 6
+      },
+      {
+        "worstCaseExecutionTime": 2,
+        "period": 10,
+        "energyConsumption": 12
+      }
+    ],
+    "processor": {
+      "coresProperties": {
+        "numberOfCores": 4,
+        "frequencyScale": 1.0,
+        "physicalProperties": {
+          "shape": {
+            "x": 10,
+            "y": 10,
+            "z": 2
+          },
+          "specificHeatCapacity": 712,
+          "density": 2330,
+          "thermalConductivity": 148
+        }
+      },
+      "boardProperties": {
+        "physicalProperties": {
+          "shape": {
+            "x": 100,
+            "y": 100,
+            "z": 1
+          },
+          "specificHeatCapacity": 8933,
+          "density": 385,
+          "thermalConductivity": 400
+        }
+      }
+    },
+    "environment": {
+      "convectionFactor": 0.001,
+      "maximumTemperature": 110,
+      "environmentTemperature": 45
+    },
+    "simulation": {
+      "meshStepSize": 1,
+      "timeStep": 0.01
+    },
+    "scheduler": {
+      "name": "global_edf_affinity_scheduler"
+    },
+    "output": {
+      "path": "./out/",
+      "baseName": "simulation_performance",
+      "generate": [
+        "allocationAndExecution"
+      ]
+    }
+  }
+}

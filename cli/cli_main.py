@@ -1,6 +1,7 @@
 import argparse
 import json
 import os
+import time
 from typing import Optional
 
 from jsonschema import validate, ValidationError
@@ -59,6 +60,9 @@ def main(args):
         return 1
 
     scenario_description = scenario_description.get("specification")
+
+    # Get previous time
+    time_at_start = time.time()
 
     # True if is a specification with thermal
     is_specification_with_thermal = scenario_description.get("processor").get("boardProperties") is not None
@@ -159,6 +163,10 @@ def main(args):
     except Exception as ex:
         print(ex)
         return 1
+
+    # End simulation time
+    time_at_end = time.time()
+    print("Simulation time: ", time_at_end - time_at_start)
 
     output = scenario_description.get("output")
 
