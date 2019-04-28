@@ -9,6 +9,8 @@ from core.schedulers.abstract_scheduler import AbstractScheduler, SchedulerResul
 from core.schedulers.utils.global_model_solver import solve_global_model
 from typing import List, Optional
 
+from output_generation.abstract_progress_bar import AbstractProgressBar
+
 
 class GlobalSchedulerTask(Task):
     def __init__(self, task_specification: Task, task_id: int):
@@ -30,7 +32,7 @@ class AbstractGlobalScheduler(AbstractScheduler):
         super().__init__()
 
     def simulate(self, global_specification: GlobalSpecification,
-                 simulation_kernel: SimulationKernel) -> SchedulerResult:
+                 simulation_kernel: SimulationKernel, progress_bar: Optional[AbstractProgressBar]) -> SchedulerResult:
 
         # True if simulation must save temperature
         is_thermal_simulation = simulation_kernel.thermal_model is not None
@@ -86,6 +88,10 @@ class AbstractGlobalScheduler(AbstractScheduler):
         # Active tasks
         active_task_id = m * [-1]
         for zeta_q in range(simulation_time_steps):
+            # Update progress
+            if progress_bar is not None:
+                progress_bar.update_progress(zeta_q / simulation_time_steps * 100)
+
             # Update time
             time = zeta_q * global_specification.simulation_specification.dt
 

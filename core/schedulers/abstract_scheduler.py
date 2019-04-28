@@ -1,9 +1,11 @@
 import abc
+from typing import Optional
 
 import scipy
 
 from core.kernel_generator.kernel import SimulationKernel
 from core.problem_specification_models.GlobalSpecification import GlobalSpecification
+from output_generation.abstract_progress_bar import AbstractProgressBar
 
 
 class SchedulerResult(object):
@@ -26,5 +28,5 @@ class SchedulerResult(object):
 class AbstractScheduler(object, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def simulate(self, global_specification: GlobalSpecification,
-                 simulation_kernel: SimulationKernel) -> SchedulerResult:
+                 simulation_kernel: SimulationKernel, progress_bar: Optional[AbstractProgressBar]) -> SchedulerResult:
         pass

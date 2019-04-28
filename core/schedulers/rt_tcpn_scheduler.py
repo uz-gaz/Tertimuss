@@ -1,10 +1,14 @@
+from typing import Optional
+
 import scipy
 
 from core.kernel_generator.kernel import SimulationKernel
 from core.problem_specification_models.GlobalSpecification import GlobalSpecification
 from core.schedulers.abstract_scheduler import AbstractScheduler, SchedulerResult
 from core.schedulers.utils.global_model_solver import solve_global_model
-from core.schedulers.utils.lineal_programing_problem_for_scheduling import solve_lineal_programing_problem_for_scheduling
+from core.schedulers.utils.lineal_programing_problem_for_scheduling import \
+    solve_lineal_programing_problem_for_scheduling
+from output_generation.abstract_progress_bar import AbstractProgressBar
 
 
 class RtTCPNScheduler(AbstractScheduler):
@@ -15,8 +19,8 @@ class RtTCPNScheduler(AbstractScheduler):
     def __init__(self) -> None:
         super().__init__()
 
-    def simulate(self, global_specification: GlobalSpecification,
-                 simulation_kernel: SimulationKernel) -> SchedulerResult:
+    def simulate(self, global_specification: GlobalSpecification, simulation_kernel: SimulationKernel,
+                 progress_bar: Optional[AbstractProgressBar]) -> SchedulerResult:
 
         # True if simulation must save temperature
         is_thermal_simulation = simulation_kernel.thermal_model is not None
@@ -76,6 +80,10 @@ class RtTCPNScheduler(AbstractScheduler):
         mo = simulation_kernel.mo
 
         for zeta_q in range(simulation_time_steps):
+            # Update progress
+            if progress_bar is not None:
+                progress_bar.update_progress(zeta_q / simulation_time_steps * 100)
+
             while round(time) <= zeta + quantum:
                 for j in range(m):
                     for i in range(n):
@@ -159,7 +167,8 @@ class RtTCPNScheduler(AbstractScheduler):
             m_exec_history = scipy.concatenate((m_exec_history, m_exec_accumulated.reshape(-1, 1)), axis=1)
             mo_next_disc, m_exec_disc, _, temp_disc, tout_disc, temp_time_disc, m_tcpn = solve_global_model(
                 simulation_kernel.global_model, mo_disc.reshape(len(mo_disc)), i_tau_disc[:, zeta_q],
-                global_specification.environment_specification.t_env if is_thermal_simulation else 0, [zeta, zeta + quantum])
+                global_specification.environment_specification.t_env if is_thermal_simulation else 0,
+                [zeta, zeta + quantum])
 
             mo_disc = mo_next_disc
             temperature_map = scipy.concatenate((temperature_map, m_tcpn), axis=1)

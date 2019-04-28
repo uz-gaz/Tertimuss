@@ -340,7 +340,7 @@ def generate_thermal_model(tasks_specification: TasksSpecification, cpu_specific
     a = ((post_sis - pre_sis).dot(scipy.diag(lambda_vector.reshape(-1)))).dot(pi)
 
     # Output places
-    l_measurement = scipy.zeros(cpu_specification.number_of_cores, dtype=int)
+    l_measurement = scipy.zeros(cpu_specification.number_of_cores, dtype=scipy.int64)
 
     for i in range(cpu_specification.number_of_cores):
         l_measurement[i] = board_conductivity.p + i * micro_conductivity.p + scipy.math.ceil(micro_conductivity.p / 2)

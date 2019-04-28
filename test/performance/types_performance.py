@@ -27,14 +27,15 @@ class PerformanceTests(unittest.TestCase):
 
     def test_performance(self):
         types_to_test = [
-            [scipy.float64, scipy.float64],
-            [scipy.float32, scipy.float32],
-            [scipy.bool8, scipy.float64],
-            [scipy.bool8, scipy.float32],
+        #    [scipy.float64, scipy.float64],
+        #    [scipy.float32, scipy.float32],
+        #    [scipy.bool8, scipy.float64],
+        #    [scipy.bool8, scipy.float32],
+            [scipy.int8, scipy.float32]
         ]
-        iterations = 1
+        iterations = 5
         dimension = 5000
-        sleep_between_iterations = 7
+        sleep_between_iterations = 0
 
         for i in types_to_test:
             time.sleep(sleep_between_iterations)
@@ -117,6 +118,7 @@ class PerformanceTests(unittest.TestCase):
             [scipy.float32, scipy.float32],
             [scipy.bool8, scipy.float64],
             [scipy.bool8, scipy.float32],
+            [scipy.int8, scipy.float32]
         ]
         iterations = 1
         dimension = 5000
@@ -125,6 +127,7 @@ class PerformanceTests(unittest.TestCase):
         Profiled <class 'numpy.float32'> <class 'numpy.float32'> -> time: 9.684252738952637 , size: 200.000224
         Profiled <class 'numpy.bool_'> <class 'numpy.float64'> -> time: 21.941709518432617 , size: 225.000224
         Profiled <class 'numpy.bool_'> <class 'numpy.float32'> -> time: 9.715850591659546 , size: 125.000224
+        Profiled <class 'numpy.int8'> <class 'numpy.float32'> -> time: 9.680383825302124 , size: 125.000224
         """
 
 

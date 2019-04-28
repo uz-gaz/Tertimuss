@@ -6,6 +6,7 @@ from typing import Optional
 
 from jsonschema import validate, ValidationError
 
+from cli.progress_bar_cli import ProgressBarCli
 from core.kernel_generator.global_model import generate_global_model
 from core.kernel_generator.kernel import SimulationKernel
 from core.kernel_generator.processor_model import ProcessorModel, generate_processor_model
@@ -18,16 +19,26 @@ from core.problem_specification_models.SimulationSpecification import Simulation
 from core.problem_specification_models.TasksSpecification import TasksSpecification, Task
 from core.schedulers.scheduler_naming_selector import select_scheduler
 from core.task_generator.task_generator_naming_selector import select_task_generator
+from output_generation.abstract_progress_bar import AbstractProgressBar
 from output_generation.output_generator import draw_heat_matrix, plot_task_execution, plot_cpu_utilization, \
     plot_cpu_temperature, \
     plot_accumulated_execution_time
 
 
 def main(args):
+    # Progress bar
+    if args.verbose:
+        progress_bar: Optional[AbstractProgressBar] = ProgressBarCli()
+    else:
+        progress_bar: Optional[AbstractProgressBar] = None
+
     # Path of the input validate schema
     input_schema_path = "input-schema/input-schema.json"
 
     # Read schema for validation
+    if args.verbose:
+        progress_bar.update("Data loading", 0)
+
     try:
         with open(input_schema_path, "r") as read_file:
             try:
@@ -58,6 +69,9 @@ def main(args):
         print("Error: Wrong fields validation in", '/'.join(map(lambda x: str(x), ve.absolute_path)), "with message",
               ve.message)
         return 1
+
+    if args.verbose:
+        progress_bar.update_progress(50)
 
     scenario_description = scenario_description.get("specification")
 
@@ -142,9 +156,18 @@ def main(args):
         return 1
 
     # Run the simulation
+    if args.verbose:
+        progress_bar.update("Kernel generation", 0)
+
     processor_model: ProcessorModel = generate_processor_model(tasks_specification, cpu_specification)
 
+    if args.verbose:
+        progress_bar.update_progress(30)
+
     tasks_model: TasksModel = generate_tasks_model(tasks_specification, cpu_specification)
+
+    if args.verbose:
+        progress_bar.update_progress(60)
 
     thermal_model: Optional[ThermalModel] = generate_thermal_model(tasks_specification, cpu_specification,
                                                                    environment_specification,
@@ -158,11 +181,18 @@ def main(args):
     global_specification: GlobalSpecification = GlobalSpecification(tasks_specification, cpu_specification,
                                                                     environment_specification,
                                                                     simulation_specification)
+
+    if args.verbose:
+        progress_bar.update("Scheduling", 0)
+
     try:
-        simulation_result = scheduler.simulate(global_specification, simulation_kernel)
+        simulation_result = scheduler.simulate(global_specification, simulation_kernel, progress_bar)
     except Exception as ex:
         print(ex)
         return 1
+
+    if args.verbose:
+        progress_bar.close()
 
     # End simulation time
     time_at_end = time.time()
@@ -199,6 +229,7 @@ if __name__ == "__main__":
     # Get scenario specification and pass it to the main
     parser = argparse.ArgumentParser(description='Configure simulation scenario')
     parser.add_argument("-f", "--file", help="path to find description file", required=True)
+    parser.add_argument("-v", "--verbose", help="show progress", required=False, action='store_true')
     arguments = parser.parse_args()
     main(arguments)
     exit()

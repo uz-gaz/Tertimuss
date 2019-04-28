@@ -56,11 +56,11 @@ def draw_heat_matrix(global_specification: GlobalSpecification, simulation_kerne
 
 
 def __get_heat_matrix(temp, global_specification: GlobalSpecification) -> scipy.ndarray:
-    mx = int(global_specification.cpu_specification.cpu_core.x / global_specification.simulation_specification.step)
-    my = int(global_specification.cpu_specification.cpu_core.y / global_specification.simulation_specification.step)
+    mx = round(global_specification.cpu_specification.cpu_core.x / global_specification.simulation_specification.step)
+    my = round(global_specification.cpu_specification.cpu_core.y / global_specification.simulation_specification.step)
     m = global_specification.cpu_specification.number_of_cores
-    x = int(global_specification.cpu_specification.board.x / global_specification.simulation_specification.step)
-    y = int(global_specification.cpu_specification.board.y / global_specification.simulation_specification.step)
+    x = round(global_specification.cpu_specification.board.x / global_specification.simulation_specification.step)
+    y = round(global_specification.cpu_specification.board.y / global_specification.simulation_specification.step)
 
     board_mat = scipy.zeros((x, y))
     cpus_mat = scipy.zeros((mx * m, my))

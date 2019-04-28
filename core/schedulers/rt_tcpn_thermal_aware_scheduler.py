@@ -1,10 +1,14 @@
+from typing import Optional
+
 import scipy
 
 from core.kernel_generator.kernel import SimulationKernel
 from core.problem_specification_models.GlobalSpecification import GlobalSpecification
 from core.schedulers.abstract_scheduler import AbstractScheduler, SchedulerResult
 from core.schedulers.utils.global_model_solver import solve_global_model
-from core.schedulers.utils.lineal_programing_problem_for_scheduling import solve_lineal_programing_problem_for_scheduling
+from core.schedulers.utils.lineal_programing_problem_for_scheduling import \
+    solve_lineal_programing_problem_for_scheduling
+from output_generation.abstract_progress_bar import AbstractProgressBar
 
 
 class RTTcpnThermalAwareScheduler(AbstractScheduler):
@@ -12,8 +16,8 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
     def __init__(self) -> None:
         super().__init__()
 
-    def simulate(self, global_specification: GlobalSpecification,
-                 simulation_kernel: SimulationKernel) -> SchedulerResult:
+    def simulate(self, global_specification: GlobalSpecification, simulation_kernel: SimulationKernel,
+                 progress_bar: Optional[AbstractProgressBar]) -> SchedulerResult:
 
         j_b_i, j_fsc_i, quantum, m_t = solve_lineal_programing_problem_for_scheduling(
             global_specification.tasks_specification, global_specification.cpu_specification,
@@ -70,6 +74,10 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
         mo = simulation_kernel.mo
 
         for zeta_q in range(simulation_time_steps):
+            # Update progress
+            if progress_bar is not None:
+                progress_bar.update_progress(zeta_q / simulation_time_steps * 100)
+
             while round(time) <= zeta + quantum:
                 for j in range(m):
                     for i in range(n):
