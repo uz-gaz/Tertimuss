@@ -7,6 +7,27 @@
 - matplotlib 3.0.2 or higher and all its dependencies
 - jsonschema 3.0.1 or higher and all its dependencies
 
+## Usage
+First of all, you need to fill the requirements listed in the above section
+
+### Command line interface
+Place in the project root folder
+
+```bash
+$ cd SchedulerFrameworkTCPN
+```
+
+Then execute the script called cli_launcher.py.
+This script takes two arguments
+- -f, --file: Path where find the JSON simulation description file. This file must accomplish the JSON SCHEMA specification located in ./cli/input-schema/input-schema.json, some examples are located in ./tests/cli
+- -v, --verbose \[Optional\] : Display simulation progress and execution time
+
+```bash
+$ python cli_launcher.py
+```
+
+### Graphical user interface
+
 # Architecture
 ![Architecture](diagrams/architecture.png)
 

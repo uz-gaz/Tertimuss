@@ -1,9 +1,7 @@
-import argparse
 import json
 import os
 import time
 from typing import Optional
-
 from jsonschema import validate, ValidationError
 
 from cli.progress_bar_cli import ProgressBarCli
@@ -25,7 +23,7 @@ from output_generation.output_generator import draw_heat_matrix, plot_task_execu
     plot_accumulated_execution_time
 
 
-def main(args):
+def cli_main(args):
     # Progress bar
     if args.verbose:
         progress_bar: Optional[AbstractProgressBar] = ProgressBarCli()
@@ -33,7 +31,8 @@ def main(args):
         progress_bar: Optional[AbstractProgressBar] = None
 
     # Path of the input validate schema
-    input_schema_path = "input-schema/input-schema.json"
+    # Warning: In python paths are relative to the entry point script path
+    input_schema_path = "./cli/input-schema/input-schema.json"
 
     # Read schema for validation
     if args.verbose:
@@ -47,7 +46,7 @@ def main(args):
                 print("Error: Wrong schema file syntax")
                 return 1
     except IOError:
-        print("Error: Can't read the schema ", input_schema_path)
+        print("Error: Can't read the schema", input_schema_path)
         return 1
 
     # Read input file
@@ -59,7 +58,7 @@ def main(args):
                 print("Error: Wrong input file syntax")
                 return 1
     except IOError:
-        print("Error: Can't read the file ", args.file)
+        print("Error: Can't read the file", args.file)
         return 1
 
     # Validate the input
@@ -75,8 +74,9 @@ def main(args):
 
     scenario_description = scenario_description.get("specification")
 
-    # Get previous time
-    time_at_start = time.time()
+    if args.verbose:
+        # Get previous time
+        time_at_start = time.time()
 
     # True if is a specification with thermal
     is_specification_with_thermal = scenario_description.get("processor").get("boardProperties") is not None
@@ -157,6 +157,7 @@ def main(args):
 
     # Run the simulation
     if args.verbose:
+        progress_bar.update_progress(100)
         progress_bar.update("Kernel generation", 0)
 
     processor_model: ProcessorModel = generate_processor_model(tasks_specification, cpu_specification)
@@ -183,6 +184,7 @@ def main(args):
                                                                     simulation_specification)
 
     if args.verbose:
+        progress_bar.update_progress(100)
         progress_bar.update("Scheduling", 0)
 
     try:
@@ -192,11 +194,12 @@ def main(args):
         return 1
 
     if args.verbose:
+        progress_bar.update_progress(100)
         progress_bar.close()
 
-    # End simulation time
-    time_at_end = time.time()
-    print("Simulation time: ", time_at_end - time_at_start)
+        # End simulation time
+        time_at_end = time.time()
+        print("Simulation time: ", time_at_end - time_at_start)
 
     output = scenario_description.get("output")
 
@@ -223,13 +226,3 @@ def main(args):
         elif i == "temperatureEvolution":
             draw_heat_matrix(global_specification, simulation_kernel, simulation_result,
                              os.path.join(output_path, output_base_name + "heat_matrix.mp4"))
-
-
-if __name__ == "__main__":
-    # Get scenario specification and pass it to the main
-    parser = argparse.ArgumentParser(description='Configure simulation scenario')
-    parser.add_argument("-f", "--file", help="path to find description file", required=True)
-    parser.add_argument("-v", "--verbose", help="show progress", required=False, action='store_true')
-    arguments = parser.parse_args()
-    main(arguments)
-    exit()
