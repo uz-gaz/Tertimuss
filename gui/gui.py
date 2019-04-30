@@ -56,13 +56,28 @@ class SimulationSpecificationControl(ttk.Frame):
         self.dt_entry.grid(column=1, row=1)
 
 
+class SchedulerSpecificationControl(ttk.Frame):
+    def __init__(self, parent):
+        super().__init__(parent)
+
+        self.scheduler_algorithm_label = ttk.Label(self, text="Scheduler algorithm: ")
+        self.scheduler_algorithm_label.grid(column=0, row=0)
+
+        self.scheduler_algorithm_combobox = ttk.Combobox(self, state="readonly")
+        self.scheduler_algorithm_combobox["values"] = ["Global earliest deadline first",
+                                                       "Global earliest deadline first less context changes",
+                                                       "Based on TCPN model",
+                                                       "Thermal Aware"]
+        self.scheduler_algorithm_combobox.grid(column=0, row=1)
+
+
 class TaskSpecificationControl(ttk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
 
         # Task list
         self.tasks_list = ttk.Treeview(self, columns=("t", "e"))
-        self.tasks_list.grid(column=0, row=0, columnspan=2, rowspan = 4)
+        self.tasks_list.grid(column=0, row=0, columnspan=2, rowspan=4)
         # self.tasks_list.insert("", tk.END, text="README.txt", values=("850 bytes", "18:30"))
 
         self.tasks_list.heading("#0", text="Worst case execution time")
@@ -146,6 +161,167 @@ class TaskSpecificationControl(ttk.Frame):
         self.generate_button.grid(column=5, row=5)
 
 
+class CpuSpecificationControl(ttk.Frame):
+    def __init__(self, parent):
+        super().__init__(parent)
+        # m: Number of CPU
+        self.m_label = ttk.Label(self, text="Number of CPU: ")
+        self.m_label.grid(column=0, row=0)
+
+        self.m_entry = ttk.Entry(self)
+        self.m_entry.grid(column=1, row=0)
+
+        # f: Frequency
+        self.f_label = ttk.Label(self, text="Frequency: ")
+        self.f_label.grid(column=0, row=1)
+
+        self.f_entry = ttk.Entry(self)
+        self.f_entry.grid(column=1, row=1)
+
+        #########################################
+        # Separator
+        self.sections_separator = ttk.Separator(self, orient="vertical")
+        self.sections_separator.grid(column=2, row=0, rowspan=2, sticky="ns")
+        #########################################
+
+        # Board specification
+        self.board_specification_label = ttk.Label(self, text="Board specification")
+        self.board_specification_label.grid(column=3, row=0)
+
+        # x(mm)
+        self.x_board_label = ttk.Label(self, text="x(mm)")
+        self.x_board_label.grid(column=3, row=1)
+
+        self.x_board_entry = ttk.Entry(self)
+        self.x_board_entry.grid(column=4, row=1)
+        # y(mm)
+        self.y_board_label = ttk.Label(self, text="y(mm)")
+        self.y_board_label.grid(column=3, row=2)
+
+        self.y_board_entry = ttk.Entry(self)
+        self.y_board_entry.grid(column=4, row=2)
+
+        # z(mm)
+        self.z_board_label = ttk.Label(self, text="z(mm)")
+        self.z_board_label.grid(column=3, row=3)
+
+        self.z_board_entry = ttk.Entry(self)
+        self.z_board_entry.grid(column=4, row=3)
+
+        # p: Density (Kg/cm^3)
+        self.p_board_label = ttk.Label(self, text="Density (Kg/cm^3)")
+        self.p_board_label.grid(column=3, row=4)
+
+        self.p_board_entry = ttk.Entry(self)
+        self.p_board_entry.grid(column=4, row=4)
+
+        # c_p: Specific heat capacities (J/Kg K)
+        self.c_p_board_label = ttk.Label(self, text="Specific heat capacities (J/Kg K)")
+        self.c_p_board_label.grid(column=3, row=5)
+
+        self.c_p_board_entry = ttk.Entry(self)
+        self.c_p_board_entry.grid(column=4, row=5)
+
+        # k: Thermal conductivity (W/m ºC)
+        self.k_board_label = ttk.Label(self, text="Thermal conductivity (W/m ºC)")
+        self.k_board_label.grid(column=3, row=6)
+
+        self.k_board_entry = ttk.Entry(self)
+        self.k_board_entry.grid(column=4, row=6)
+
+        #########################################
+        # Separator
+        self.sections_separator_2 = ttk.Separator(self, orient="horizontal")
+        self.sections_separator_2.grid(column=3, row=7, columnspan=2, sticky="we")
+        #########################################
+
+        # CPU specification
+        self.board_specification_label = ttk.Label(self, text="CPU specification")
+        self.board_specification_label.grid(column=3, row=8)
+
+        # x(mm)
+        self.x_cpu_label = ttk.Label(self, text="x(mm)")
+        self.x_cpu_label.grid(column=3, row=9)
+
+        self.x_cpu_entry = ttk.Entry(self)
+        self.x_cpu_entry.grid(column=4, row=9)
+        # y(mm)
+        self.y_cpu_label = ttk.Label(self, text="y(mm)")
+        self.y_cpu_label.grid(column=3, row=10)
+
+        self.y_cpu_entry = ttk.Entry(self)
+        self.y_cpu_entry.grid(column=4, row=10)
+
+        # z(mm)
+        self.z_cpu_label = ttk.Label(self, text="z(mm)")
+        self.z_cpu_label.grid(column=3, row=11)
+
+        self.z_cpu_entry = ttk.Entry(self)
+        self.z_cpu_entry.grid(column=4, row=11)
+
+        # p: Density (Kg/cm^3)
+        self.p_cpu_label = ttk.Label(self, text="Density (Kg/cm^3)")
+        self.p_cpu_label.grid(column=3, row=12)
+
+        self.p_cpu_entry = ttk.Entry(self)
+        self.p_cpu_entry.grid(column=4, row=12)
+
+        # c_p: Specific heat capacities (J/Kg K)
+        self.c_p_cpu_label = ttk.Label(self, text="Specific heat capacities (J/Kg K)")
+        self.c_p_cpu_label.grid(column=3, row=13)
+
+        self.c_p_cpu_entry = ttk.Entry(self)
+        self.c_p_cpu_entry.grid(column=4, row=13)
+
+        # k: Thermal conductivity (W/m ºC)
+        self.k_cpu_label = ttk.Label(self, text="Thermal conductivity (W/m ºC)")
+        self.k_cpu_label.grid(column=3, row=14)
+
+        self.k_cpu_entry = ttk.Entry(self)
+        self.k_cpu_entry.grid(column=4, row=14)
+
+        #########################################
+        # Separator
+        self.sections_separator_3 = ttk.Separator(self, orient="vertical")
+        self.sections_separator_3.grid(column=5, row=7, rowspan=8, sticky="ns")
+        #########################################
+
+        # Origins location
+        self.board_specification_label = ttk.Label(self, text="CPU origins location")
+        self.board_specification_label.grid(column=6, row=8)
+
+        self.tasks_list = ttk.Treeview(self, columns=("y"))
+        self.tasks_list.grid(column=6, row=9, columnspan=2, rowspan=4)
+
+        self.tasks_list.heading("#0", text="x(mm)")
+        self.tasks_list.heading("y", text="y(mm)")
+
+        # x
+        self.x_label = ttk.Label(self, text="x: ")
+        self.x_label.grid(column=6, row=14)
+
+        self.x_entry = ttk.Entry(self)
+        self.x_entry.grid(column=7, row=14)
+
+        # y
+        self.y_label = ttk.Label(self, text="y: ")
+        self.y_label.grid(column=6, row=15)
+
+        self.y_entry = ttk.Entry(self)
+        self.y_entry.grid(column=7, row=15)
+
+        # Add and delete task
+        self.delete_task_button = ttk.Button(self, text="Delete selected")
+        self.delete_task_button.grid(column=6, row=16)
+
+        self.add_task_button = ttk.Button(self, text="Add")
+        self.add_task_button.grid(column=7, row=16)
+
+        # Automatic generate
+        self.automatic_generate_button = ttk.Button(self, text="Automatic generate")
+        self.automatic_generate_button.grid(column=7, row=17)
+
+
 class SpecificationCategoriesControl(ttk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
@@ -175,7 +351,7 @@ if __name__ == '__main__':
     window = tk.Tk()
     window.title("Scheduler simulation Framework")
     window.configure(width=1200, height=700)
-    gui = TaskSpecificationControl(window)
+    gui = SchedulerSpecificationControl(window)
     gui.place(relwidth=1, relheight=1)
     # gui.grid(column=0, row=0)
     # button_calc = tk.Button(window, text="Calculate", command=lambda: print(gui.get_specification().h))
