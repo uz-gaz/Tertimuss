@@ -698,6 +698,7 @@ class GraphicalUserInterface(ttk.Frame):
         super().__init__(parent)
 
         def error_handler(errors: List[str]):
+            # TODO: Improve errors
             print("Fields: " + ', '.join(errors))
 
         gui = SpecificationCategoriesControl(window, error_handler)
