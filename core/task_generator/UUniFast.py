@@ -22,7 +22,8 @@ class UUniFast(TaskGeneratorAlgorithm):
         # TODO: Obtain as parameter
         precision = 3
 
-        t_i = randrange(self.period_interval[0], self.period_interval[1])
+        t_i = [randrange(int(self.period_interval[0]), int(self.period_interval[1])) for _ in
+               range(self.number_of_tasks)]
         e_i = [a + (b - a) * round(uniform(0, 1), precision) for _ in range(self.number_of_tasks)]
 
         sum_u = self.utilization  # the sum of n uniform random variables
