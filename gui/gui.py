@@ -1,63 +1,158 @@
 import tkinter as tk
 import tkinter.ttk as ttk
+from typing import Optional
 
 from core.problem_specification_models.EnvironmentSpecification import EnvironmentSpecification
+from core.problem_specification_models.SimulationSpecification import SimulationSpecification
+
+# TODO: Do no thermal gui
+from core.schedulers.abstract_scheduler import AbstractScheduler
+from core.schedulers.scheduler_naming_selector import select_scheduler
+
+
+class InputValidationError(Exception):
+    """
+    Basic exception class usen when input is incorrect
+    """
+    pass
+
+
+class Validators(object):
+    @staticmethod
+    def is_integer_validator(to_validate: str, min_value: Optional[int] = None) -> bool:
+        try:
+            integer_result = int(to_validate)
+            if min_value is not None:
+                return integer_result > min_value
+        except ValueError:
+            return False
+
+    @staticmethod
+    def is_float_validator(to_validate: str, min_value: float = -float("inf")) -> bool:
+        try:
+            return float(to_validate) > min_value
+        except ValueError:
+            return False
 
 
 class EnvironmentSpecificationControl(ttk.Frame):
+    """
+    Control of the environment specification input
+    """
+
     def __init__(self, parent):
+        """
+        :param parent: The parent window
+        """
         super().__init__(parent)
+
+        # Validators
+        float_positive_validator = (self.register(lambda x: Validators.is_float_validator(x, 0)), '%P')
+        float_temperature_validator = (self.register(lambda x: Validators.is_float_validator(x, -273.15)), '%P')
 
         # h: Convection factor (W/mm^2 ºC)
         self.h_label = ttk.Label(self, text="Convection factor (W/mm^2 ºC): ")
         self.h_label.grid(column=0, row=0)
 
-        self.h_entry = ttk.Entry(self)
+        self.h_entry = ttk.Entry(self, validatecommand=float_positive_validator, validate='none')
         self.h_entry.grid(column=1, row=0)
 
         # t_env: Environment temperature (ºC)
         self.t_env_label = ttk.Label(self, text="Environment temperature (ºC): ")
         self.t_env_label.grid(column=0, row=1)
 
-        self.t_env_entry = ttk.Entry(self)
+        self.t_env_entry = ttk.Entry(self, validatecommand=float_temperature_validator, validate='none')
         self.t_env_entry.grid(column=1, row=1)
 
         # t_max: Maximum temperature (ºC)
         self.t_max_label = ttk.Label(self, text="Maximum temperature (ºC): ")
         self.t_max_label.grid(column=0, row=2)
 
-        self.t_max_entry = ttk.Entry(self)
+        self.t_max_entry = ttk.Entry(self, validatecommand=float_temperature_validator, validate='none')
         self.t_max_entry.grid(column=1, row=2)
 
-    def get_specification(self):
-        # TODO: Validate input and get correct type
-        h: float = self.h_entry.get()
-        t_max: float = self.t_max_entry.get()
-        t_env: float = self.t_env_entry.get()
-        return EnvironmentSpecification(h, t_env, t_max)
+    def get_specification(self) -> EnvironmentSpecification:
+        """
+        Get the specification if is valid, raise an exception otherwise
+        :return: the specification
+        """
+        # Check fields
+        invalid_fields = []
+        if not self.h_entry.validate():
+            invalid_fields += ["Convection factor"]
+        if not self.t_env_entry.validate():
+            invalid_fields += ["Environment temperature"]
+        if not self.t_max_entry.validate():
+            invalid_fields += ["Maximum temperature"]
+
+        # Return
+        if len(invalid_fields) > 0:
+            raise InputValidationError(invalid_fields)
+        else:
+            h: float = float(self.h_entry.get())
+            t_max: float = float(self.t_max_entry.get())
+            t_env: float = float(self.t_env_entry.get())
+            return EnvironmentSpecification(h, t_env, t_max)
 
 
 class SimulationSpecificationControl(ttk.Frame):
+    """
+    Control of the simulation specification input
+    """
+
     def __init__(self, parent):
+        """
+        :param parent: The parent window
+        """
         super().__init__(parent)
+
+        # Validators
+        float_positive_validator = (self.register(lambda x: Validators.is_float_validator(x, 0)), '%P')
 
         # step: Mesh step size (mm)
         self.step_label = ttk.Label(self, text="Mesh step size (mm): ")
         self.step_label.grid(column=0, row=0)
 
-        self.step_entry = ttk.Entry(self)
+        self.step_entry = ttk.Entry(self, validatecommand=float_positive_validator, validate='none')
         self.step_entry.grid(column=1, row=0)
 
         # dt:  Accuracy (s)
         self.dt_label = ttk.Label(self, text="Accuracy (s): ")
         self.dt_label.grid(column=0, row=1)
 
-        self.dt_entry = ttk.Entry(self)
+        self.dt_entry = ttk.Entry(self, validatecommand=float_positive_validator, validate='none')
         self.dt_entry.grid(column=1, row=1)
+
+    def get_specification(self) -> SimulationSpecification:
+        """
+        Get the specification if is valid, raise an exception otherwise
+        :return: the specification
+        """
+        # Check fields
+        invalid_fields = []
+        if not self.step_entry.validate():
+            invalid_fields += ["Mesh step size"]
+        if not self.dt_entry.validate():
+            invalid_fields += ["Accuracy"]
+
+        # Return
+        if len(invalid_fields) > 0:
+            raise InputValidationError(invalid_fields)
+        else:
+            step: float = float(self.step_entry.get())
+            dt: float = float(self.dt_entry.get())
+            return SimulationSpecification(step, dt)
 
 
 class SchedulerSpecificationControl(ttk.Frame):
+    """
+    Control of the scheduler specification input
+    """
+
     def __init__(self, parent):
+        """
+        :param parent: The parent window
+        """
         super().__init__(parent)
 
         self.scheduler_algorithm_label = ttk.Label(self, text="Scheduler algorithm: ")
@@ -70,10 +165,47 @@ class SchedulerSpecificationControl(ttk.Frame):
                                                        "Thermal Aware"]
         self.scheduler_algorithm_combobox.grid(column=0, row=1)
 
+    def get_specification(self) -> AbstractScheduler:
+        """
+        Get the specification if is valid, raise an exception otherwise
+        :return: the specification
+        """
+
+        # Scheduler definition name-id association
+        schedulers_definition_thermal = {
+            "Global earliest deadline first": "global_edf_scheduler",
+            "Global earliest deadline first less context changes": "global_edf_affinity_scheduler",
+            "Based on TCPN model": "rt_tcpn_scheduler",
+            "Thermal Aware": "rt_tcpn_thermal_aware_scheduler"
+        }
+
+        # Check fields
+        invalid_fields = []
+        if self.scheduler_algorithm_combobox.get() == "":
+            invalid_fields += ["Scheduler algorithm"]
+
+        # Return
+        if len(invalid_fields) > 0:
+            raise InputValidationError(invalid_fields)
+        else:
+            return select_scheduler(schedulers_definition_thermal.get(self.scheduler_algorithm_combobox.get()), True)
+
 
 class TaskSpecificationControl(ttk.Frame):
+    """
+    Control of the tasks specification input
+    """
+
+    # TODO: Validate fields and do getspecification
     def __init__(self, parent):
+        """
+        :param parent: The parent window
+        """
         super().__init__(parent)
+
+        # Validators
+        float_positive_validator = (self.register(lambda x: Validators.is_float_validator(x, 0)), '%P')
+        float_temperature_validator = (self.register(lambda x: Validators.is_float_validator(x, -273.15)), '%P')
 
         # Task list
         self.tasks_list = ttk.Treeview(self, columns=("t", "e"))
@@ -162,7 +294,15 @@ class TaskSpecificationControl(ttk.Frame):
 
 
 class CpuSpecificationControl(ttk.Frame):
+    """
+    Control of the cpu specification input
+    """
+
+    # TODO: Validate fields and do getspecification
     def __init__(self, parent):
+        """
+        :param parent: The parent window
+        """
         super().__init__(parent)
         # m: Number of CPU
         self.m_label = ttk.Label(self, text="Number of CPU: ")
@@ -323,6 +463,7 @@ class CpuSpecificationControl(ttk.Frame):
 
 
 class SpecificationCategoriesControl(ttk.Frame):
+    # TODO
     def __init__(self, parent):
         super().__init__(parent)
 
@@ -341,6 +482,7 @@ class SpecificationCategoriesControl(ttk.Frame):
 
 
 class GraphicalUserInterface(ttk.Frame):
+    # TODO
     def __init__(self, parent):
         super().__init__(parent)
         self.place(relwidth=1, relheight=1)
@@ -348,12 +490,23 @@ class GraphicalUserInterface(ttk.Frame):
 
 
 if __name__ == '__main__':
+    # TODO
     window = tk.Tk()
     window.title("Scheduler simulation Framework")
     window.configure(width=1200, height=700)
     gui = SchedulerSpecificationControl(window)
-    gui.place(relwidth=1, relheight=1)
-    # gui.grid(column=0, row=0)
-    # button_calc = tk.Button(window, text="Calculate", command=lambda: print(gui.get_specification().h))
-    # button_calc.grid(column=0, row=1)
+    # gui.place(relwidth=1, relheight=1)
+    gui.grid(column=0, row=0)
+
+
+    def specification_valid():
+        try:
+            gui.get_specification()
+            print("All valid")
+        except InputValidationError as ve:
+            print("Fields: " + ', '.join(ve.args[0]))
+
+
+    button_calc = tk.Button(window, text="Calculate", command=specification_valid)
+    button_calc.grid(column=0, row=1)
     window.mainloop()
