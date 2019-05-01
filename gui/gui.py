@@ -2,16 +2,22 @@ import tkinter as tk
 import tkinter.ttk as ttk
 from typing import Optional, Callable, List
 
+from core.kernel_generator.global_model import generate_global_model
+from core.kernel_generator.kernel import SimulationKernel
+from core.kernel_generator.processor_model import ProcessorModel, generate_processor_model
+from core.kernel_generator.tasks_model import TasksModel, generate_tasks_model
+from core.kernel_generator.thermal_model import ThermalModel, generate_thermal_model
 from core.problem_specification_models.CpuSpecification import CpuSpecification, Origin, MaterialCuboid
 from core.problem_specification_models.EnvironmentSpecification import EnvironmentSpecification
+from core.problem_specification_models.GlobalSpecification import GlobalSpecification
 from core.problem_specification_models.SimulationSpecification import SimulationSpecification
-
-# TODO: Do no thermal gui
 from core.problem_specification_models.TasksSpecification import TasksSpecification, Task
 from core.schedulers.abstract_scheduler import AbstractScheduler
 from core.schedulers.scheduler_naming_selector import select_scheduler
 from core.task_generator.task_generator_naming_selector import select_task_generator
 
+
+# TODO: Do no thermal gui, position elements correctly and improve visual
 
 class InputValidationError(Exception):
     """
@@ -650,57 +656,101 @@ class CpuSpecificationControl(ttk.Frame):
 
             origins = [
                 Origin(float(self.origins_list.item(i).get("text")), float(self.origins_list.item(i).get("values")[0]))
-                for
-                i in self.origins_list.get_children()] if len(self.origins_list.get_children()) != 0 else None
+                for i in self.origins_list.get_children()] if len(self.origins_list.get_children()) != 0 else None
 
             return CpuSpecification(board_material_cuboid, cpu_material_cuboid, m, f, origins)
 
 
 class SpecificationCategoriesControl(ttk.Frame):
-    # TODO
-    def __init__(self, parent):
+    def __init__(self, parent, internal_error_handler: Callable[[List[str]], None]):
         super().__init__(parent)
 
         self.notebook = ttk.Notebook(parent)
         self.notebook.place(x=0, y=0)
         self.place(relwidth=1, relheight=1)
 
-        # Crear el contenido de cada una de las pestañas.
-        self.web_label = EnvironmentSpecificationControl(self.notebook)
+        # Creating each tab content
+        self.environment_content = EnvironmentSpecificationControl(self.notebook)
+        self.environment_content.place(relwidth=1, relheight=1)
 
-        # Añadirlas al panel con su respectivo texto.
-        self.notebook.add(self.web_label, text="Tab 1", padding=20)
+        self.simulation_content = SimulationSpecificationControl(self.notebook)
+        self.simulation_content.place(relwidth=1, relheight=1)
 
-        self.notebook.pack(padx=10, pady=10)
-        self.pack(expand=True, fill=tk.BOTH)
+        self.scheduler_content = SchedulerSpecificationControl(self.notebook)
+        self.scheduler_content.place(relwidth=1, relheight=1)
+
+        self.tasks_specification_content = TaskSpecificationControl(self.notebook, internal_error_handler)
+        self.tasks_specification_content.place(relwidth=1, relheight=1)
+
+        self.cpu_specification_content = CpuSpecificationControl(self.notebook, internal_error_handler)
+        self.cpu_specification_content.place(relwidth=1, relheight=1)
+
+        # Add tab with text
+        self.notebook.add(self.tasks_specification_content, text="Tasks")
+        self.notebook.add(self.cpu_specification_content, text="CPU")
+        self.notebook.add(self.environment_content, text="Environment")
+        self.notebook.add(self.simulation_content, text="Simulation")
+        self.notebook.add(self.scheduler_content, text="Scheduler")
 
 
 class GraphicalUserInterface(ttk.Frame):
-    # TODO
     def __init__(self, parent):
         super().__init__(parent)
-        self.place(relwidth=1, relheight=1)
-        self.task_specification = EnvironmentSpecificationControl(self)
+
+        def error_handler(errors: List[str]):
+            print("Fields: " + ', '.join(errors))
+
+        gui = SpecificationCategoriesControl(window, error_handler)
+        gui.place(x=0, y=0)
+
+        self.simulation_result = None
+
+        def run_simulation():
+            try:
+                is_specification_with_thermal = False
+                tasks_specification = gui.tasks_specification_content.get_specification()
+                cpu_specification = gui.cpu_specification_content.get_specification()
+                environment_specification = gui.environment_content.get_specification()
+                simulation_specification = gui.simulation_content.get_specification()
+                scheduler = gui.scheduler_content.get_specification()
+
+                # Run the simulation
+                processor_model: ProcessorModel = generate_processor_model(tasks_specification, cpu_specification)
+
+                tasks_model: TasksModel = generate_tasks_model(tasks_specification, cpu_specification)
+
+                thermal_model: Optional[ThermalModel] = generate_thermal_model(tasks_specification, cpu_specification,
+                                                                               environment_specification,
+                                                                               simulation_specification) if is_specification_with_thermal else None
+
+                global_model, mo = generate_global_model(tasks_model, processor_model, thermal_model,
+                                                         environment_specification)
+
+                simulation_kernel: SimulationKernel = SimulationKernel(tasks_model, processor_model, thermal_model,
+                                                                       global_model, mo)
+
+                global_specification: GlobalSpecification = GlobalSpecification(tasks_specification, cpu_specification,
+                                                                                environment_specification,
+                                                                                simulation_specification)
+
+                try:
+                    self.simulation_result = scheduler.simulate(global_specification, simulation_kernel, None)
+                except Exception as ex:
+                    print(ex)
+                    return 1
+
+            except InputValidationError as ve:
+                error_handler(ve.args[0])
+
+        # TODO: Disable button while simulation is running, and show progress in progressbar
+        # TODO: Add tab to show output
+        button_calc = tk.Button(self, text="Run simulation", command=run_simulation)
+        button_calc.place(x=1000, y=500)
 
 
 if __name__ == '__main__':
-    # TODO
     window = tk.Tk()
     window.title("Scheduler simulation Framework")
     window.configure(width=1200, height=700)
-    gui = CpuSpecificationControl(window, lambda x: print("Fields: " + ', '.join(x)))
-    # gui.place(relwidth=1, relheight=1)
-    gui.grid(column=0, row=0)
-
-
-    def specification_valid():
-        try:
-            gui.get_specification()
-            print("All valid")
-        except InputValidationError as ve:
-            print("Fields: " + ', '.join(ve.args[0]))
-
-
-    button_calc = tk.Button(window, text="Validate input", command=specification_valid)
-    button_calc.grid(column=0, row=1)
+    gui = GraphicalUserInterface(window)
     window.mainloop()
