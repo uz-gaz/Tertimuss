@@ -59,31 +59,33 @@ class EnvironmentSpecificationControl(ttk.Frame):
         float_positive_validator = (self.register(lambda x: Validators.is_float_validator(x, 0)), '%P')
         float_temperature_validator = (self.register(lambda x: Validators.is_float_validator(x, -273.15)), '%P')
 
-        # h: Convection factor (W/mm^2 ºC)
-        self.h_label = ttk.Label(self, text="Convection factor (W/mm^2 ºC): ")
-        self.h_label.grid(column=0, row=0)
+        # Frame to get elements near
+        self.frame_interior = ttk.Frame(self)
+        self.frame_interior.grid(column=0, row=0)
 
-        self.h_entry = ttk.Entry(self, validatecommand=float_positive_validator, validate='none')
-        self.h_entry.grid(column=1, row=0)
+        # h: Convection factor (W/mm^2 ºC)
+        self.h_label = ttk.Label(self.frame_interior, text="Convection factor (W/mm^2 ºC): ")
+        self.h_label.grid(column=0, row=0, pady=10, sticky="e")
+
+        self.h_entry = ttk.Entry(self.frame_interior, validatecommand=float_positive_validator, validate='none')
+        self.h_entry.grid(column=1, row=0, pady=10, sticky="ew", padx=10)
 
         # t_env: Environment temperature (ºC)
-        self.t_env_label = ttk.Label(self, text="Environment temperature (ºC): ")
-        self.t_env_label.grid(column=0, row=1)
+        self.t_env_label = ttk.Label(self.frame_interior, text="Environment temperature (ºC): ")
+        self.t_env_label.grid(column=0, row=1, pady=10, sticky="e")
 
-        self.t_env_entry = ttk.Entry(self, validatecommand=float_temperature_validator, validate='none')
-        self.t_env_entry.grid(column=1, row=1)
+        self.t_env_entry = ttk.Entry(self.frame_interior, validatecommand=float_temperature_validator, validate='none')
+        self.t_env_entry.grid(column=1, row=1, pady=10, sticky="ew", padx=10)
 
         # t_max: Maximum temperature (ºC)
-        self.t_max_label = ttk.Label(self, text="Maximum temperature (ºC): ")
-        self.t_max_label.grid(column=0, row=2)
+        self.t_max_label = ttk.Label(self.frame_interior, text="Maximum temperature (ºC): ")
+        self.t_max_label.grid(column=0, row=2, pady=10, sticky="e")
 
-        self.t_max_entry = ttk.Entry(self, validatecommand=float_temperature_validator, validate='none')
-        self.t_max_entry.grid(column=1, row=2)
+        self.t_max_entry = ttk.Entry(self.frame_interior, validatecommand=float_temperature_validator, validate='none')
+        self.t_max_entry.grid(column=1, row=2, pady=10, sticky="ew", padx=10)
 
-        # self.columnconfigure(0, weight=1)
-        # self.rowconfigure(0, weight=1)
-        # self.columnconfigure(1, weight=1)
-        # self.rowconfigure(1, weight=1)
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(0, weight=1)
 
     def get_specification(self) -> EnvironmentSpecification:
         """
@@ -123,19 +125,26 @@ class SimulationSpecificationControl(ttk.Frame):
         # Validators
         float_positive_validator = (self.register(lambda x: Validators.is_float_validator(x, 0)), '%P')
 
-        # step: Mesh step size (mm)
-        self.step_label = ttk.Label(self, text="Mesh step size (mm): ")
-        self.step_label.grid(column=0, row=0)
+        # Frame to get elements near
+        self.frame_interior = ttk.Frame(self)
+        self.frame_interior.grid(column=0, row=0)
 
-        self.step_entry = ttk.Entry(self, validatecommand=float_positive_validator, validate='none')
-        self.step_entry.grid(column=1, row=0)
+        # step: Mesh step size (mm)
+        self.step_label = ttk.Label(self.frame_interior, text="Mesh step size (mm): ")
+        self.step_label.grid(column=0, row=0, pady=10, sticky="e")
+
+        self.step_entry = ttk.Entry(self.frame_interior, validatecommand=float_positive_validator, validate='none')
+        self.step_entry.grid(column=1, row=0, pady=10, sticky="ew", padx=10)
 
         # dt:  Accuracy (s)
-        self.dt_label = ttk.Label(self, text="Accuracy (s): ")
-        self.dt_label.grid(column=0, row=1)
+        self.dt_label = ttk.Label(self.frame_interior, text="Accuracy (s): ")
+        self.dt_label.grid(column=0, row=1, pady=10, sticky="e")
 
-        self.dt_entry = ttk.Entry(self, validatecommand=float_positive_validator, validate='none')
-        self.dt_entry.grid(column=1, row=1)
+        self.dt_entry = ttk.Entry(self.frame_interior, validatecommand=float_positive_validator, validate='none')
+        self.dt_entry.grid(column=1, row=1, pady=10, sticky="ew", padx=10)
+
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(0, weight=1)
 
     def get_specification(self) -> SimulationSpecification:
         """
@@ -169,15 +178,22 @@ class SchedulerSpecificationControl(ttk.Frame):
         """
         super().__init__(parent)
 
-        self.scheduler_algorithm_label = ttk.Label(self, text="Scheduler algorithm: ")
-        self.scheduler_algorithm_label.grid(column=0, row=0)
+        # Frame to get elements near
+        self.frame_interior = ttk.Frame(self)
+        self.frame_interior.grid(column=0, row=0)
 
-        self.scheduler_algorithm_combobox = ttk.Combobox(self, state="readonly")
-        self.scheduler_algorithm_combobox["values"] = ["Global earliest deadline first",
-                                                       "Global earliest deadline first less context changes",
+        self.scheduler_algorithm_label = ttk.Label(self.frame_interior, text="Scheduler algorithm: ")
+        self.scheduler_algorithm_label.grid(column=0, row=0, sticky="e")
+
+        self.scheduler_algorithm_combobox = ttk.Combobox(self.frame_interior, state="readonly")
+        self.scheduler_algorithm_combobox["values"] = ["Glob. earliest deadline first",
+                                                       "G-EDF less context changes",
                                                        "Based on TCPN model",
                                                        "Thermal Aware"]
-        self.scheduler_algorithm_combobox.grid(column=0, row=1)
+        self.scheduler_algorithm_combobox.grid(column=1, row=0, pady=10, sticky="ew", padx=10)
+
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(0, weight=1)
 
     def get_specification(self) -> AbstractScheduler:
         """
@@ -187,8 +203,8 @@ class SchedulerSpecificationControl(ttk.Frame):
 
         # Scheduler definition name-id association
         schedulers_definition_thermal = {
-            "Global earliest deadline first": "global_edf_scheduler",
-            "Global earliest deadline first less context changes": "global_edf_affinity_scheduler",
+            "Glob. earliest deadline first": "global_edf_scheduler",
+            "G-EDF less context changes": "global_edf_affinity_scheduler",
             "Based on TCPN model": "rt_tcpn_scheduler",
             "Thermal Aware": "rt_tcpn_thermal_aware_scheduler"
         }
