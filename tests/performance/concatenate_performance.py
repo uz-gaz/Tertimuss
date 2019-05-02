@@ -7,7 +7,7 @@ import scipy
 
 class PerformanceTests(unittest.TestCase):
     def test_concatenate_performance(self):
-        ## Concatenate
+        # Concatenate
         where_concatenate = scipy.ndarray((1000, 0))
 
         iterations = 300
@@ -19,9 +19,9 @@ class PerformanceTests(unittest.TestCase):
         time2 = time.time()
         size = (sys.getsizeof(where_concatenate)) / 10 ** 6
 
-        print("Le ha costado a concatenate:", time2 - time1, "segundos", "y el array pesa", size, "MB")
+        print("Concatenate -> time taken:", time2 - time1, "s", ", array size:", size, "MB")
 
-        ## Array
+        # Array
         where_concatenate = []
 
         time.sleep(5)
@@ -34,11 +34,25 @@ class PerformanceTests(unittest.TestCase):
         time2 = time.time()
         size = (sys.getsizeof(where_concatenate)) / 10 ** 6
 
-        print("Le ha costado a array:", time2 - time1, "segundos", "y el array pesa", size, "MB")
+        print("Array append -> time taken:", time2 - time1, "s", ", array size:", size, "MB")
 
         """
-        Le ha costado a concatenate: 270.4897389411926 segundos y el array pesa 2400.000112 MB
-        Le ha costado a array: 4.873354434967041 segundos y el array pesa 2400.000112 MB
+        Comparison between multiple concatenation of an array of big dimensions and in the other hand add fragments
+         to an array and then concatenate it at last time 
+        Second must be better, because in the first case, in each addition, the complete array must be moved to a
+         continuous space where fit the array size and the new piece.
+        In the other hand, in the second case, the array is a linked list, so we don't need to find a continuous space
+         where can fit the complete array, we only need to copy the new piece
+        
+        Results: Laptop Acer aspire 3 a315-51 (CPU Intel Core i3-7020U, RAM 2 * 4 GB 2400 MHz)
+        Concatenate -> time taken: 270.4897389411926 s , array size: 2400.000112 MB
+        Array append -> time taken: 4.873354434967041 s , array size: 2400.000112 MB
+        
+        Results: Desktop PC (CPU Intel Pentium E5700 dual core 3.00 GHz, FSB: 800 MHz,
+         RAM: 2 * 4 GB 1600 MHz (FSB bottle neck))
+         
+        Concatenate -> time taken: 392.25426983833313 s , array size: 2400.000112 MB
+        Array append -> time taken: 5.727975368499756 s , array size: 2400.000112 MB
         """
 
 
