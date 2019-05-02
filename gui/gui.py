@@ -80,6 +80,11 @@ class EnvironmentSpecificationControl(ttk.Frame):
         self.t_max_entry = ttk.Entry(self, validatecommand=float_temperature_validator, validate='none')
         self.t_max_entry.grid(column=1, row=2)
 
+        # self.columnconfigure(0, weight=1)
+        # self.rowconfigure(0, weight=1)
+        # self.columnconfigure(1, weight=1)
+        # self.rowconfigure(1, weight=1)
+
     def get_specification(self) -> EnvironmentSpecification:
         """
         Get the specification if is valid, raise an exception otherwise
@@ -215,9 +220,13 @@ class TaskSpecificationControl(ttk.Frame):
         float_positive_validator = (self.register(lambda x: Validators.is_float_validator(x, 0)), '%P')
         integer_positive_validator = (self.register(lambda x: Validators.is_integer_validator(x, 0)), '%P')
 
+        # Manual task generation label
+        self.manual_task_generation_label = ttk.Label(self, text="Manual task generation")
+        self.manual_task_generation_label.grid(column=0, row=0, columnspan=3, pady=10)
+
         # Task list
         self.tasks_list = ttk.Treeview(self, columns=("t", "e"))
-        self.tasks_list.grid(column=0, row=0, columnspan=2, rowspan=4)
+        self.tasks_list.grid(column=0, row=1, columnspan=3, rowspan=4, padx=10)
         # self.tasks_list.insert("", tk.END, text="README.txt", values=("850 bytes", "18:30"))
 
         self.tasks_list.heading("#0", text="Worst case execution time")
@@ -227,82 +236,83 @@ class TaskSpecificationControl(ttk.Frame):
         # Task list add
         # c: Task worst case execution time in CPU cycles
         self.c_label = ttk.Label(self, text="Worst case execution time: ")
-        self.c_label.grid(column=0, row=4)
+        self.c_label.grid(column=1, row=5, pady=10, sticky="e")
 
         self.c_entry = ttk.Entry(self, validatecommand=float_positive_validator, validate='none')
-        self.c_entry.grid(column=1, row=4)
+        self.c_entry.grid(column=2, row=5, pady=10, sticky="ew", padx=10)
 
         # t: Task period, equal to deadline
         self.t_label = ttk.Label(self, text="Task period, equal to deadline: ")
-        self.t_label.grid(column=0, row=5)
+        self.t_label.grid(column=1, row=6, pady=10, sticky="e")
 
         self.t_entry = ttk.Entry(self, validatecommand=float_positive_validator, validate='none')
-        self.t_entry.grid(column=1, row=5)
+        self.t_entry.grid(column=2, row=6, pady=10, sticky="ew", padx=10)
 
         # e: Energy consumption
         self.e_label = ttk.Label(self, text="Energy consumption: ")
-        self.e_label.grid(column=0, row=6)
+        self.e_label.grid(column=1, row=7, pady=10, sticky="e")
 
         self.e_entry = ttk.Entry(self, validatecommand=float_positive_validator, validate='none')
-        self.e_entry.grid(column=1, row=6)
+        self.e_entry.grid(column=2, row=7, pady=10, sticky="ew", padx=10)
 
         # Add and delete task
-        self.delete_task_button = ttk.Button(self, text="Delete selected",
-                                             command=self.delete_task_callback)
-        self.delete_task_button.grid(column=0, row=7)
 
         self.add_task_button = ttk.Button(self, text="Add",
                                           command=lambda: self.add_task_callback(internal_error_handler))
-        self.add_task_button.grid(column=1, row=7)
+        self.add_task_button.grid(column=2, row=8, sticky="ew", padx=10)
+
+        self.delete_task_button = ttk.Button(self, text="Delete selected",
+                                             command=self.delete_task_callback)
+        self.delete_task_button.grid(column=2, row=9, sticky="ew", padx=10, pady=10)
 
         #########################################
         # Separator
-        self.sections_separator = ttk.Separator(self, orient="horizontal")
-        self.sections_separator.grid(column=2, row=0)
+        self.sections_separator = ttk.Separator(self, orient="vertical")
+        self.sections_separator.grid(column=3, row=0, rowspan=10, padx=10, sticky="ns")
 
         #########################################
 
         # Automatic task generation label
         self.automatic_task_generation_label = ttk.Label(self, text="Automatic task generation")
-        self.automatic_task_generation_label.grid(column=3, row=0)
+        self.automatic_task_generation_label.grid(column=4, row=0, columnspan=3)
 
         # Task generation algorithm
         self.task_generation_algorithm_label = ttk.Label(self, text="Task generation algorithm: ")
-        self.task_generation_algorithm_label.grid(column=3, row=1)
+        self.task_generation_algorithm_label.grid(column=4, row=1, pady=10, sticky="e")
 
         self.task_generation_algorithm_combobox = ttk.Combobox(self, state="readonly")
         self.task_generation_algorithm_combobox["values"] = ["UUniFast"]
-        self.task_generation_algorithm_combobox.grid(column=4, row=1)
+        self.task_generation_algorithm_combobox.grid(column=5, row=1, columnspan=2, pady=10, sticky="ew", padx=10)
 
         # Number of tasks
         self.number_of_task_label = ttk.Label(self, text="Number of tasks: ")
-        self.number_of_task_label.grid(column=3, row=2)
+        self.number_of_task_label.grid(column=4, row=2, pady=10, sticky="e")
 
         self.number_of_task_entry = ttk.Entry(self, validatecommand=integer_positive_validator, validate='none')
-        self.number_of_task_entry.grid(column=4, row=2)
+        self.number_of_task_entry.grid(column=5, row=2, columnspan=2, pady=10, sticky="ew", padx=10)
 
         # Utilization
         self.utilization_label = ttk.Label(self, text="Utilization: ")
-        self.utilization_label.grid(column=3, row=3)
+        self.utilization_label.grid(column=4, row=3, pady=10, sticky="e")
 
         self.utilization_entry = ttk.Entry(self, validatecommand=float_positive_validator, validate='none')
-        self.utilization_entry.grid(column=4, row=3)
+        self.utilization_entry.grid(column=5, row=3, columnspan=2, pady=10, sticky="ew", padx=10)
 
         # Interval for periods
         self.interval_for_periods_label = ttk.Label(self, text="Interval for periods: ")
-        self.interval_for_periods_label.grid(column=3, row=4)
+        self.interval_for_periods_label.grid(column=4, row=4, pady=10, sticky="e")
 
         self.interval_for_periods_start_entry = ttk.Entry(self, validatecommand=float_positive_validator,
                                                           validate='none')
-        self.interval_for_periods_start_entry.grid(column=4, row=4)
+        self.interval_for_periods_start_entry.grid(column=5, row=4, pady=10, sticky="ew", padx=10)
 
         self.interval_for_periods_end_entry = ttk.Entry(self, validatecommand=float_positive_validator, validate='none')
-        self.interval_for_periods_end_entry.grid(column=5, row=4)
+        self.interval_for_periods_end_entry.grid(column=6, row=4, pady=10, sticky="ew", padx=10)
 
         # Generate
         self.generate_button = ttk.Button(self, text="Generate",
                                           command=lambda: self.generate_automatic_tasks(internal_error_handler))
-        self.generate_button.grid(column=5, row=5)
+        self.generate_button.grid(column=6, row=5, pady=10, sticky="ew", padx=10)
 
     def add_task_callback(self, internal_error_handler: Callable[[List[str]], None]):
         """
@@ -666,30 +676,31 @@ class SpecificationCategoriesControl(ttk.Frame):
         super().__init__(parent)
 
         self.notebook = ttk.Notebook(parent)
-        self.notebook.place(x=0, y=0)
-        self.place(relwidth=1, relheight=1)
+        self.notebook.grid(column=0, row=0, sticky="nsew")
+        self.notebook.columnconfigure(0, weight=1)
+        self.notebook.rowconfigure(0, weight=1)
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(0, weight=1)
 
         # Creating each tab content
-        self.environment_content = EnvironmentSpecificationControl(self.notebook)
-        self.environment_content.place(relwidth=1, relheight=1)
-
-        self.simulation_content = SimulationSpecificationControl(self.notebook)
-        self.simulation_content.place(relwidth=1, relheight=1)
-
-        self.scheduler_content = SchedulerSpecificationControl(self.notebook)
-        self.scheduler_content.place(relwidth=1, relheight=1)
-
         self.tasks_specification_content = TaskSpecificationControl(self.notebook, internal_error_handler)
-        self.tasks_specification_content.place(relwidth=1, relheight=1)
+        self.tasks_specification_content.grid(column=0, row=0)
+        self.notebook.add(self.tasks_specification_content, text="Tasks")
 
         self.cpu_specification_content = CpuSpecificationControl(self.notebook, internal_error_handler)
-        self.cpu_specification_content.place(relwidth=1, relheight=1)
-
-        # Add tab with text
-        self.notebook.add(self.tasks_specification_content, text="Tasks")
+        self.cpu_specification_content.grid(column=0, row=0, sticky="nsew", padx=10, pady=10)
         self.notebook.add(self.cpu_specification_content, text="CPU")
+
+        self.environment_content = EnvironmentSpecificationControl(self.notebook)
+        self.environment_content.grid(column=0, row=0, sticky="nsew", padx=10, pady=10)
         self.notebook.add(self.environment_content, text="Environment")
+
+        self.simulation_content = SimulationSpecificationControl(self.notebook)
+        self.simulation_content.grid(column=0, row=0, sticky="nsew", padx=10, pady=10)
         self.notebook.add(self.simulation_content, text="Simulation")
+
+        self.scheduler_content = SchedulerSpecificationControl(self.notebook)
+        self.scheduler_content.grid(column=0, row=0, sticky="nsew", padx=10, pady=10)
         self.notebook.add(self.scheduler_content, text="Scheduler")
 
 
@@ -697,61 +708,74 @@ class GraphicalUserInterface(ttk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
 
-        def error_handler(errors: List[str]):
-            # TODO: Improve errors
-            print("Fields: " + ', '.join(errors))
+        # Configure grid
+        # self.columnconfigure(0, weight=1)
+        # self.rowconfigure(0, weight=1)
 
-        gui = SpecificationCategoriesControl(window, error_handler)
-        gui.place(x=0, y=0)
-
-        self.simulation_result = None
-
-        def run_simulation():
-            try:
-                is_specification_with_thermal = False
-                tasks_specification = gui.tasks_specification_content.get_specification()
-                cpu_specification = gui.cpu_specification_content.get_specification()
-                environment_specification = gui.environment_content.get_specification()
-                simulation_specification = gui.simulation_content.get_specification()
-                scheduler = gui.scheduler_content.get_specification()
-
-                # Run the simulation
-                processor_model: ProcessorModel = generate_processor_model(tasks_specification, cpu_specification)
-
-                tasks_model: TasksModel = generate_tasks_model(tasks_specification, cpu_specification)
-
-                thermal_model: Optional[ThermalModel] = generate_thermal_model(tasks_specification, cpu_specification,
-                                                                               environment_specification,
-                                                                               simulation_specification) if is_specification_with_thermal else None
-
-                global_model, mo = generate_global_model(tasks_model, processor_model, thermal_model,
-                                                         environment_specification)
-
-                simulation_kernel: SimulationKernel = SimulationKernel(tasks_model, processor_model, thermal_model,
-                                                                       global_model, mo)
-
-                global_specification: GlobalSpecification = GlobalSpecification(tasks_specification, cpu_specification,
-                                                                                environment_specification,
-                                                                                simulation_specification)
-
-                try:
-                    self.simulation_result = scheduler.simulate(global_specification, simulation_kernel, None)
-                except Exception as ex:
-                    print(ex)
-                    return 1
-
-            except InputValidationError as ve:
-                error_handler(ve.args[0])
+        # Tabs panel
+        self.tabs_panel = SpecificationCategoriesControl(self, self.error_handler)
+        self.tabs_panel.grid(column=0, row=0, sticky="nsew")
 
         # TODO: Disable button while simulation is running, and show progress in progressbar
-        # TODO: Add tab to show output
-        button_calc = tk.Button(self, text="Run simulation", command=run_simulation)
-        button_calc.place(x=1000, y=500)
+        # TODO: Add tab to show output adn run , command=run_simulation
+        # Run simulation
+        self.button_run_simulation = ttk.Button(self, text="Run simulation")
+        self.button_run_simulation.grid(column=0, row=1, pady=10)
+
+        # Error label
+        self.messages_label = ttk.Label(self, text="Messages: Nothing running")
+        self.messages_label.grid(column=0, row=2)
+
+        # Result stored
+        self.simulation_result = None
+
+    def error_handler(self, errors: List[str]):
+        # TODO: Improve errors
+        print("Fields: " + ', '.join(errors))
+
+    def run_simulation(self, tabs_panel: SpecificationCategoriesControl):
+        try:
+            is_specification_with_thermal = False
+            tasks_specification = tabs_panel.tasks_specification_content.get_specification()
+            cpu_specification = tabs_panel.cpu_specification_content.get_specification()
+            environment_specification = tabs_panel.environment_content.get_specification()
+            simulation_specification = tabs_panel.simulation_content.get_specification()
+            scheduler = tabs_panel.scheduler_content.get_specification()
+
+            # Run the simulation
+            processor_model: ProcessorModel = generate_processor_model(tasks_specification, cpu_specification)
+
+            tasks_model: TasksModel = generate_tasks_model(tasks_specification, cpu_specification)
+
+            thermal_model: Optional[ThermalModel] = generate_thermal_model(tasks_specification, cpu_specification,
+                                                                           environment_specification,
+                                                                           simulation_specification) if is_specification_with_thermal else None
+
+            global_model, mo = generate_global_model(tasks_model, processor_model, thermal_model,
+                                                     environment_specification)
+
+            simulation_kernel: SimulationKernel = SimulationKernel(tasks_model, processor_model, thermal_model,
+                                                                   global_model, mo)
+
+            global_specification: GlobalSpecification = GlobalSpecification(tasks_specification, cpu_specification,
+                                                                            environment_specification,
+                                                                            simulation_specification)
+
+            try:
+                self.simulation_result = scheduler.simulate(global_specification, simulation_kernel, None)
+            except Exception as ex:
+                print(ex)
+                return 1
+
+        except InputValidationError as ve:
+            self.error_handler(ve.args[0])
 
 
 if __name__ == '__main__':
     window = tk.Tk()
     window.title("Scheduler simulation Framework")
-    window.configure(width=1200, height=700)
     gui = GraphicalUserInterface(window)
+    gui.grid(column=0, row=0, sticky="nsew", padx=10, pady=10)
+    window.columnconfigure(0, weight=1)
+    window.rowconfigure(0, weight=1)
     window.mainloop()
