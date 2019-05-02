@@ -242,7 +242,7 @@ class TaskSpecificationControl(ttk.Frame):
 
         # Task list
         self.tasks_list = ttk.Treeview(self, columns=("t", "e"))
-        self.tasks_list.grid(column=0, row=1, columnspan=3, rowspan=4, padx=10)
+        self.tasks_list.grid(column=0, row=1, columnspan=3, rowspan=6, padx=10)
         # self.tasks_list.insert("", tk.END, text="README.txt", values=("850 bytes", "18:30"))
 
         self.tasks_list.heading("#0", text="Worst case execution time")
@@ -252,39 +252,39 @@ class TaskSpecificationControl(ttk.Frame):
         # Task list add
         # c: Task worst case execution time in CPU cycles
         self.c_label = ttk.Label(self, text="Worst case execution time: ")
-        self.c_label.grid(column=1, row=5, pady=10, sticky="e")
+        self.c_label.grid(column=1, row=7, pady=10, sticky="e")
 
         self.c_entry = ttk.Entry(self, validatecommand=float_positive_validator, validate='none')
-        self.c_entry.grid(column=2, row=5, pady=10, sticky="ew", padx=10)
+        self.c_entry.grid(column=2, row=7, pady=10, sticky="ew", padx=10)
 
         # t: Task period, equal to deadline
         self.t_label = ttk.Label(self, text="Task period, equal to deadline: ")
-        self.t_label.grid(column=1, row=6, pady=10, sticky="e")
+        self.t_label.grid(column=1, row=8, pady=10, sticky="e")
 
         self.t_entry = ttk.Entry(self, validatecommand=float_positive_validator, validate='none')
-        self.t_entry.grid(column=2, row=6, pady=10, sticky="ew", padx=10)
+        self.t_entry.grid(column=2, row=8, pady=10, sticky="ew", padx=10)
 
         # e: Energy consumption
         self.e_label = ttk.Label(self, text="Energy consumption: ")
-        self.e_label.grid(column=1, row=7, pady=10, sticky="e")
+        self.e_label.grid(column=1, row=9, pady=10, sticky="e")
 
         self.e_entry = ttk.Entry(self, validatecommand=float_positive_validator, validate='none')
-        self.e_entry.grid(column=2, row=7, pady=10, sticky="ew", padx=10)
+        self.e_entry.grid(column=2, row=9, pady=10, sticky="ew", padx=10)
 
         # Add and delete task
 
         self.add_task_button = ttk.Button(self, text="Add",
                                           command=lambda: self.add_task_callback(internal_error_handler))
-        self.add_task_button.grid(column=2, row=8, sticky="ew", padx=10)
+        self.add_task_button.grid(column=2, row=10, sticky="ew", padx=10)
 
         self.delete_task_button = ttk.Button(self, text="Delete selected",
                                              command=self.delete_task_callback)
-        self.delete_task_button.grid(column=2, row=9, sticky="ew", padx=10, pady=10)
+        self.delete_task_button.grid(column=2, row=11, sticky="ew", padx=10, pady=10)
 
         #########################################
         # Separator
         self.sections_separator = ttk.Separator(self, orient="vertical")
-        self.sections_separator.grid(column=3, row=0, rowspan=10, padx=10, sticky="ns")
+        self.sections_separator.grid(column=3, row=0, rowspan=12, padx=10, sticky="ns")
 
         #########################################
 
@@ -451,145 +451,145 @@ class CpuSpecificationControl(ttk.Frame):
 
         #########################################
         # Separator
-        self.sections_separator = ttk.Separator(self, orient="vertical")
-        self.sections_separator.grid(column=2, row=0, rowspan=2, sticky="ns")
+        self.sections_separator = ttk.Separator(self, orient="horizontal")
+        self.sections_separator.grid(column=0, row=2, columnspan=6, sticky="we")
         #########################################
 
         # Board specification
         self.board_specification_label = ttk.Label(self, text="Board specification")
-        self.board_specification_label.grid(column=3, row=0)
+        self.board_specification_label.grid(column=0, row=3)
 
         # x(mm)
         self.x_board_label = ttk.Label(self, text="x(mm)")
-        self.x_board_label.grid(column=3, row=1)
+        self.x_board_label.grid(column=0, row=4)
 
         self.x_board_entry = ttk.Entry(self, validatecommand=float_positive_validator, validate='none')
-        self.x_board_entry.grid(column=4, row=1)
+        self.x_board_entry.grid(column=1, row=4)
         # y(mm)
         self.y_board_label = ttk.Label(self, text="y(mm)")
-        self.y_board_label.grid(column=3, row=2)
+        self.y_board_label.grid(column=0, row=5)
 
         self.y_board_entry = ttk.Entry(self, validatecommand=float_positive_validator, validate='none')
-        self.y_board_entry.grid(column=4, row=2)
+        self.y_board_entry.grid(column=1, row=5)
 
         # z(mm)
         self.z_board_label = ttk.Label(self, text="z(mm)")
-        self.z_board_label.grid(column=3, row=3)
+        self.z_board_label.grid(column=0, row=6)
 
         self.z_board_entry = ttk.Entry(self, validatecommand=float_positive_validator, validate='none')
-        self.z_board_entry.grid(column=4, row=3)
+        self.z_board_entry.grid(column=1, row=6)
 
         # p: Density (Kg/cm^3)
         self.p_board_label = ttk.Label(self, text="Density (Kg/cm^3)")
-        self.p_board_label.grid(column=3, row=4)
+        self.p_board_label.grid(column=0, row=7)
 
         self.p_board_entry = ttk.Entry(self, validatecommand=float_positive_validator, validate='none')
-        self.p_board_entry.grid(column=4, row=4)
+        self.p_board_entry.grid(column=1, row=7)
 
         # c_p: Specific heat capacities (J/Kg K)
         self.c_p_board_label = ttk.Label(self, text="Specific heat capacities (J/Kg K)")
-        self.c_p_board_label.grid(column=3, row=5)
+        self.c_p_board_label.grid(column=0, row=8)
 
         self.c_p_board_entry = ttk.Entry(self, validatecommand=float_positive_validator, validate='none')
-        self.c_p_board_entry.grid(column=4, row=5)
+        self.c_p_board_entry.grid(column=1, row=8)
 
         # k: Thermal conductivity (W/m ºC)
         self.k_board_label = ttk.Label(self, text="Thermal conductivity (W/m ºC)")
-        self.k_board_label.grid(column=3, row=6)
+        self.k_board_label.grid(column=0, row=9)
 
         self.k_board_entry = ttk.Entry(self, validatecommand=float_positive_validator, validate='none')
-        self.k_board_entry.grid(column=4, row=6)
+        self.k_board_entry.grid(column=1, row=9)
 
         #########################################
         # Separator
-        self.sections_separator_2 = ttk.Separator(self, orient="horizontal")
-        self.sections_separator_2.grid(column=3, row=7, columnspan=2, sticky="we")
+        self.sections_separator_2 = ttk.Separator(self, orient="vertical")
+        self.sections_separator_2.grid(column=2, row=3, rowspan=7, sticky="ns")
         #########################################
 
         # CPU specification
         self.board_specification_label = ttk.Label(self, text="CPU specification")
-        self.board_specification_label.grid(column=3, row=8)
+        self.board_specification_label.grid(column=3, row=3)
 
         # x(mm)
         self.x_cpu_label = ttk.Label(self, text="x(mm)")
-        self.x_cpu_label.grid(column=3, row=9)
+        self.x_cpu_label.grid(column=3, row=4)
 
         self.x_cpu_entry = ttk.Entry(self, validatecommand=float_positive_validator, validate='none')
-        self.x_cpu_entry.grid(column=4, row=9)
+        self.x_cpu_entry.grid(column=4, row=4)
         # y(mm)
         self.y_cpu_label = ttk.Label(self, text="y(mm)")
-        self.y_cpu_label.grid(column=3, row=10)
+        self.y_cpu_label.grid(column=3, row=5)
 
         self.y_cpu_entry = ttk.Entry(self, validatecommand=float_positive_validator, validate='none')
-        self.y_cpu_entry.grid(column=4, row=10)
+        self.y_cpu_entry.grid(column=4, row=5)
 
         # z(mm)
         self.z_cpu_label = ttk.Label(self, text="z(mm)")
-        self.z_cpu_label.grid(column=3, row=11)
+        self.z_cpu_label.grid(column=3, row=6)
 
         self.z_cpu_entry = ttk.Entry(self, validatecommand=float_positive_validator, validate='none')
-        self.z_cpu_entry.grid(column=4, row=11)
+        self.z_cpu_entry.grid(column=4, row=6)
 
         # p: Density (Kg/cm^3)
         self.p_cpu_label = ttk.Label(self, text="Density (Kg/cm^3)")
-        self.p_cpu_label.grid(column=3, row=12)
+        self.p_cpu_label.grid(column=3, row=7)
 
         self.p_cpu_entry = ttk.Entry(self, validatecommand=float_positive_validator, validate='none')
-        self.p_cpu_entry.grid(column=4, row=12)
+        self.p_cpu_entry.grid(column=4, row=7)
 
         # c_p: Specific heat capacities (J/Kg K)
         self.c_p_cpu_label = ttk.Label(self, text="Specific heat capacities (J/Kg K)")
-        self.c_p_cpu_label.grid(column=3, row=13)
+        self.c_p_cpu_label.grid(column=3, row=8)
 
         self.c_p_cpu_entry = ttk.Entry(self, validatecommand=float_positive_validator, validate='none')
-        self.c_p_cpu_entry.grid(column=4, row=13)
+        self.c_p_cpu_entry.grid(column=4, row=8)
 
         # k: Thermal conductivity (W/m ºC)
         self.k_cpu_label = ttk.Label(self, text="Thermal conductivity (W/m ºC)")
-        self.k_cpu_label.grid(column=3, row=14)
+        self.k_cpu_label.grid(column=3, row=9)
 
         self.k_cpu_entry = ttk.Entry(self, validatecommand=float_positive_validator, validate='none')
-        self.k_cpu_entry.grid(column=4, row=14)
+        self.k_cpu_entry.grid(column=4, row=9)
 
         #########################################
         # Separator
         self.sections_separator_3 = ttk.Separator(self, orient="vertical")
-        self.sections_separator_3.grid(column=5, row=7, rowspan=8, sticky="ns")
+        self.sections_separator_3.grid(column=5, row=0, rowspan=10, sticky="ns")
         #########################################
 
         # Origins location
         self.board_specification_label = ttk.Label(self,
                                                    text="CPU origins location (if not filled it will " +
                                                         "be generated automatically)")
-        self.board_specification_label.grid(column=6, row=8)
+        self.board_specification_label.grid(column=6, row=0)
 
         self.origins_list = ttk.Treeview(self, columns=("y"))
-        self.origins_list.grid(column=6, row=9, columnspan=2, rowspan=4)
+        self.origins_list.grid(column=6, row=1, columnspan=2, rowspan=6)
 
         self.origins_list.heading("#0", text="x(mm)")
         self.origins_list.heading("y", text="y(mm)")
 
         # x
         self.x_label = ttk.Label(self, text="x: ")
-        self.x_label.grid(column=6, row=14)
+        self.x_label.grid(column=6, row=8)
 
         self.x_entry = ttk.Entry(self, validatecommand=float_positive_validator, validate='none')
-        self.x_entry.grid(column=7, row=14)
+        self.x_entry.grid(column=7, row=8)
 
         # y
         self.y_label = ttk.Label(self, text="y: ")
-        self.y_label.grid(column=6, row=15)
+        self.y_label.grid(column=6, row=9)
 
         self.y_entry = ttk.Entry(self, validatecommand=float_positive_validator, validate='none')
-        self.y_entry.grid(column=7, row=15)
+        self.y_entry.grid(column=7, row=9)
 
         # Add and delete task
         self.delete_task_button = ttk.Button(self, text="Delete selected", command=self.delete_origin_callback)
-        self.delete_task_button.grid(column=6, row=16)
+        self.delete_task_button.grid(column=6, row=10)
 
         self.add_task_button = ttk.Button(self, text="Add",
                                           command=lambda: self.add_origin_callback(internal_error_handler))
-        self.add_task_button.grid(column=7, row=16)
+        self.add_task_button.grid(column=7, row=10)
 
     def add_origin_callback(self, internal_error_handler: Callable[[List[str]], None]):
         """
