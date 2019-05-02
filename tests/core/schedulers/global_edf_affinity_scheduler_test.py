@@ -48,7 +48,7 @@ class TestGlobalEdfScheduler(unittest.TestCase):
 
         scheduler = GlobalEDFAffinityScheduler()
 
-        scheduler_simulation = scheduler.simulate(global_specification, simulation_kernel)
+        scheduler_simulation = scheduler.simulate(global_specification, simulation_kernel, None)
 
         # draw_heat_matrix(global_specification, simulation_kernel, scheduler_simulation, "affinity_heat_matrix.mp4")
         # plot_cpu_utilization(global_specification, scheduler_simulation, "affinity_cpu_utilization.png")
