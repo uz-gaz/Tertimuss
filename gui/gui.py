@@ -473,12 +473,13 @@ class CpuSpecificationControl(ttk.Frame):
         self.frame_interior_1 = ttk.Frame(self)
         self.frame_interior_1.grid(column=0, row=0, columnspan=2)
 
-        # CPU specification
-        self.board_specification_label = ttk.Label(self.frame_interior_1, text="CPU specification")
-        self.board_specification_label.grid(column=0, row=0, pady=10, columnspan=2)
+        if self.enable_thermal:
+            # CPU specification
+            self.board_specification_label = ttk.Label(self.frame_interior_1, text="CPU specification")
+            self.board_specification_label.grid(column=0, row=0, pady=10, columnspan=2)
 
         # m: Number of CPU
-        self.m_label = ttk.Label(self.frame_interior_1, text="Number of CPU: ")
+        self.m_label = ttk.Label(self.frame_interior_1, text="Number of CPUs: ")
         self.m_label.grid(column=0, row=1, pady=10, sticky="e")
 
         self.m_entry = ttk.Entry(self.frame_interior_1, validatecommand=integer_positive_validator, validate='none')
@@ -650,6 +651,9 @@ class CpuSpecificationControl(ttk.Frame):
             self.delete_task_button = ttk.Button(self.frame_interior_5, text="Delete selected",
                                                  command=self.delete_origin_callback)
             self.delete_task_button.grid(column=1, row=3, pady=10, sticky="ew", padx=10)
+        else:
+            self.columnconfigure(0, weight=1)
+            self.rowconfigure(0, weight=1)
 
     def add_origin_callback(self, internal_error_handler: Callable[[List[str]], None]):
         """
@@ -1003,6 +1007,7 @@ class GraphicalUserInterface(ttk.Frame):
 
 def gui_main(enable_thermal: bool):
     window = tk.Tk()
+    window.resizable(False, False)
     window.title("Scheduler simulation Framework")
     gui = GraphicalUserInterface(window, enable_thermal)
     gui.grid(column=0, row=0, sticky="nsew", padx=10, pady=10)
