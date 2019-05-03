@@ -48,11 +48,8 @@ def draw_heat_matrix(global_specification: GlobalSpecification, simulation_kerne
     if save_path is None:
         plt.show()
     else:
-        # Set up formatting for the movie files
-        # writer_obj = animation.writers['ffmpeg']
-        # writer = writer_obj(fps=30, metadata=dict(artist='TCPN Framework'), bitrate=1800)
+        # Set up formatting for the movie file
         writer = animation.FFMpegWriter(fps=30, metadata=dict(artist='TCPN Framework'), bitrate=1800)
-
         anim.save(save_path, writer=writer)
 
 
