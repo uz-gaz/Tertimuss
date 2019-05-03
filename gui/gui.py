@@ -630,14 +630,14 @@ class CpuSpecificationControl(ttk.Frame):
             self.frame_interior_5.grid(column=0, row=2, pady=10, padx=10, sticky="e")
 
             # x
-            self.x_label = ttk.Label(self.frame_interior_5, text="x: ")
+            self.x_label = ttk.Label(self.frame_interior_5, text="x(mm): ")
             self.x_label.grid(column=0, row=0, pady=10, sticky="e")
 
             self.x_entry = ttk.Entry(self.frame_interior_5, validatecommand=float_positive_validator, validate='none')
             self.x_entry.grid(column=1, row=0, pady=10, sticky="ew", padx=10)
 
             # y
-            self.y_label = ttk.Label(self.frame_interior_5, text="y: ")
+            self.y_label = ttk.Label(self.frame_interior_5, text="y(mm): ")
             self.y_label.grid(column=0, row=1, pady=10, sticky="e")
 
             self.y_entry = ttk.Entry(self.frame_interior_5, validatecommand=float_positive_validator, validate='none')
@@ -782,7 +782,7 @@ class OutputControl(ttk.Frame):
         self.frame_interior.grid(column=0, row=0)
 
         self.combobox_values = ["Not display or save",
-                                "Save in out folder",
+                                "Save in ./out folder",
                                 "Display"]
 
         self.execution_and_task_allocation_label = ttk.Label(self.frame_interior,
@@ -818,7 +818,7 @@ class OutputControl(ttk.Frame):
         # Scheduler definition name-id association
         combobox_values = {
             "Not display or save": self.OutputControlOptions.NOTHING,
-            "Save in out folder": self.OutputControlOptions.SAVE,
+            "Save in ./out folder": self.OutputControlOptions.SAVE,
             "Display": self.OutputControlOptions.PLOT
         }
 

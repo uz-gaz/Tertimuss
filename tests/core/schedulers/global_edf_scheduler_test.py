@@ -11,8 +11,8 @@ from core.problem_specification_models.GlobalSpecification import GlobalSpecific
 from core.problem_specification_models.SimulationSpecification import SimulationSpecification
 from core.problem_specification_models.TasksSpecification import TasksSpecification, Task
 from core.schedulers.global_edf_scheduler import GlobalEDFScheduler
-from output_generation.output_generator import draw_heat_matrix, plot_cpu_utilization, plot_task_execution, plot_cpu_temperature, \
-    plot_accumulated_execution_time
+from output_generation.output_generator import draw_heat_matrix, plot_cpu_utilization, plot_task_execution, \
+    plot_cpu_temperature, plot_accumulated_execution_time
 
 
 class TestGlobalEdfScheduler(unittest.TestCase):
@@ -48,9 +48,9 @@ class TestGlobalEdfScheduler(unittest.TestCase):
 
         scheduler = GlobalEDFScheduler()
 
-        scheduler_simulation = scheduler.simulate(global_specification, simulation_kernel)
+        scheduler_simulation = scheduler.simulate(global_specification, simulation_kernel, None)
 
-        # draw_heat_matrix(global_specification, simulation_kernel, scheduler_simulation)
+        draw_heat_matrix(global_specification, simulation_kernel, scheduler_simulation)
         plot_cpu_utilization(global_specification, scheduler_simulation, "edf_cpu_utilization.png")
         plot_task_execution(global_specification, scheduler_simulation, "edf_task_execution.png")
         plot_cpu_temperature(global_specification, scheduler_simulation, "edf_cpu_temperature.png")

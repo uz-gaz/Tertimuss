@@ -65,7 +65,8 @@
       "path": "./out/",
       "baseName": "simulation_example",
       "generate": [
-        "allocationAndExecution"
+        "allocationAndExecution",
+        "temperatureEvolution"
       ]
     }
   }

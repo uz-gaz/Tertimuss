@@ -3,12 +3,12 @@ import scipy
 from core.problem_specification_models.CpuSpecification import CpuSpecification
 from core.problem_specification_models.TasksSpecification import TasksSpecification
 
-"""
-    Represents the task execution module in the paper
-"""
-
 
 class ProcessorModel(object):
+    """
+        Represents the task execution module in the paper
+    """
+
     def __init__(self, c_proc: scipy.ndarray, lambda_proc: scipy.ndarray, pi_proc: scipy.ndarray,
                  c_proc_alloc: scipy.ndarray,
                  s_exec: scipy.ndarray, s_busy: scipy.ndarray, m_proc_o: scipy.ndarray, a_proc: scipy.ndarray):

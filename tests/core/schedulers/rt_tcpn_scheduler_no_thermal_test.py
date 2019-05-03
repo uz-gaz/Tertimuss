@@ -40,7 +40,7 @@ class RtTcpnSchedulerNoThermal(unittest.TestCase):
 
         scheduler = RtTCPNScheduler()
 
-        scheduler_simulation = scheduler.simulate(global_specification, simulation_kernel)
+        scheduler_simulation = scheduler.simulate(global_specification, simulation_kernel, None)
 
         plot_cpu_utilization(global_specification, scheduler_simulation, "tcpn_cpu_utilization_no_thermal.png")
         plot_task_execution(global_specification, scheduler_simulation, "tcpn_task_execution_no_thermal.png")

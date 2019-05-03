@@ -1,4 +1,5 @@
 from random import randrange, uniform
+from typing import List
 
 from core.problem_specification_models.TasksSpecification import Task
 from core.task_generator.TaskGeneratorAlgorithm import TaskGeneratorAlgorithm
@@ -12,7 +13,7 @@ class UUniFast(TaskGeneratorAlgorithm):
         self.period_interval = period_interval
         self.processor_frequency = processor_frequency
 
-    def generate(self) -> list:
+    def generate(self) -> List[Task]:
         # random number in interval[a, b]
         # TODO: Obtain as parameter
         a = 6
