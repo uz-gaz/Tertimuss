@@ -49,10 +49,10 @@ class RtTcpnScheduler(unittest.TestCase):
 
         scheduler = RtTCPNScheduler()
 
-        scheduler_simulation = scheduler.simulate(global_specification, simulation_kernel)
+        scheduler_simulation = scheduler.simulate(global_specification, simulation_kernel, None)
 
         draw_heat_matrix(global_specification, simulation_kernel, scheduler_simulation)
-        plot_cpu_utilization(global_specification, scheduler_simulation)
+        #plot_cpu_utilization(global_specification, scheduler_simulation)
         #plot_task_execution(global_specification, scheduler_simulation, "tcpn_task_execution.png")
         #plot_cpu_temperature(global_specification, scheduler_simulation, "tcpn_cpu_temperature.png")
         #plot_accumulated_execution_time(global_specification, scheduler_simulation, "tcpn_accumulated.png")

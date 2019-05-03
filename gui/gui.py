@@ -1,5 +1,9 @@
+import os
+import threading
 import tkinter as tk
 import tkinter.ttk as ttk
+from enum import Enum
+from multiprocessing import Process
 from typing import Optional, Callable, List
 
 from core.kernel_generator.global_model import generate_global_model
@@ -16,8 +20,10 @@ from core.schedulers.abstract_scheduler import AbstractScheduler
 from core.schedulers.scheduler_naming_selector import select_scheduler
 from core.task_generator.task_generator_naming_selector import select_task_generator
 
+# TODO: Do no thermal gui
+from output_generation.output_generator import plot_cpu_utilization, plot_task_execution, \
+    plot_accumulated_execution_time, plot_cpu_temperature, draw_heat_matrix
 
-# TODO: Do no thermal gui, position elements correctly and improve visual
 
 class InputValidationError(Exception):
     """
@@ -345,10 +351,13 @@ class TaskSpecificationControl(ttk.Frame):
             invalid_fields += ["Energy consumption"]
 
         # Add task
-        if len(invalid_fields) > 0:
-            internal_error_handler(invalid_fields)
-        else:
+        internal_error_handler(invalid_fields)
+
+        if len(invalid_fields) == 0:
             self.tasks_list.insert("", tk.END, text=self.c_entry.get(), values=(self.t_entry.get(), self.e_entry.get()))
+            self.c_entry.delete(0, 'end')
+            self.t_entry.delete(0, 'end')
+            self.e_entry.delete(0, 'end')
 
     def delete_task_callback(self):
         """
@@ -435,161 +444,175 @@ class CpuSpecificationControl(ttk.Frame):
         float_positive_validator = (self.register(lambda x: Validators.is_float_validator(x, 0)), '%P')
         integer_positive_validator = (self.register(lambda x: Validators.is_integer_validator(x, 0)), '%P')
 
-        # m: Number of CPU
-        self.m_label = ttk.Label(self, text="Number of CPU: ")
-        self.m_label.grid(column=0, row=0)
-
-        self.m_entry = ttk.Entry(self, validatecommand=integer_positive_validator, validate='none')
-        self.m_entry.grid(column=1, row=0)
-
-        # f: Frequency
-        self.f_label = ttk.Label(self, text="Frequency: ")
-        self.f_label.grid(column=0, row=1)
-
-        self.f_entry = ttk.Entry(self, validatecommand=float_positive_validator, validate='none')
-        self.f_entry.grid(column=1, row=1)
-
-        #########################################
-        # Separator
-        self.sections_separator = ttk.Separator(self, orient="horizontal")
-        self.sections_separator.grid(column=0, row=2, columnspan=6, sticky="we")
-        #########################################
-
-        # Board specification
-        self.board_specification_label = ttk.Label(self, text="Board specification")
-        self.board_specification_label.grid(column=0, row=3)
-
-        # x(mm)
-        self.x_board_label = ttk.Label(self, text="x(mm)")
-        self.x_board_label.grid(column=0, row=4)
-
-        self.x_board_entry = ttk.Entry(self, validatecommand=float_positive_validator, validate='none')
-        self.x_board_entry.grid(column=1, row=4)
-        # y(mm)
-        self.y_board_label = ttk.Label(self, text="y(mm)")
-        self.y_board_label.grid(column=0, row=5)
-
-        self.y_board_entry = ttk.Entry(self, validatecommand=float_positive_validator, validate='none')
-        self.y_board_entry.grid(column=1, row=5)
-
-        # z(mm)
-        self.z_board_label = ttk.Label(self, text="z(mm)")
-        self.z_board_label.grid(column=0, row=6)
-
-        self.z_board_entry = ttk.Entry(self, validatecommand=float_positive_validator, validate='none')
-        self.z_board_entry.grid(column=1, row=6)
-
-        # p: Density (Kg/cm^3)
-        self.p_board_label = ttk.Label(self, text="Density (Kg/cm^3)")
-        self.p_board_label.grid(column=0, row=7)
-
-        self.p_board_entry = ttk.Entry(self, validatecommand=float_positive_validator, validate='none')
-        self.p_board_entry.grid(column=1, row=7)
-
-        # c_p: Specific heat capacities (J/Kg K)
-        self.c_p_board_label = ttk.Label(self, text="Specific heat capacities (J/Kg K)")
-        self.c_p_board_label.grid(column=0, row=8)
-
-        self.c_p_board_entry = ttk.Entry(self, validatecommand=float_positive_validator, validate='none')
-        self.c_p_board_entry.grid(column=1, row=8)
-
-        # k: Thermal conductivity (W/m ºC)
-        self.k_board_label = ttk.Label(self, text="Thermal conductivity (W/m ºC)")
-        self.k_board_label.grid(column=0, row=9)
-
-        self.k_board_entry = ttk.Entry(self, validatecommand=float_positive_validator, validate='none')
-        self.k_board_entry.grid(column=1, row=9)
-
-        #########################################
-        # Separator
-        self.sections_separator_2 = ttk.Separator(self, orient="vertical")
-        self.sections_separator_2.grid(column=2, row=3, rowspan=7, sticky="ns")
-        #########################################
+        # Frame to get elements near
+        self.frame_interior_1 = ttk.Frame(self)
+        self.frame_interior_1.grid(column=0, row=0, columnspan=2)
 
         # CPU specification
-        self.board_specification_label = ttk.Label(self, text="CPU specification")
-        self.board_specification_label.grid(column=3, row=3)
+        self.board_specification_label = ttk.Label(self.frame_interior_1, text="CPU specification")
+        self.board_specification_label.grid(column=0, row=0, pady=10, columnspan=2)
+
+        # m: Number of CPU
+        self.m_label = ttk.Label(self.frame_interior_1, text="Number of CPU: ")
+        self.m_label.grid(column=0, row=1, pady=10, sticky="e")
+
+        self.m_entry = ttk.Entry(self.frame_interior_1, validatecommand=integer_positive_validator, validate='none')
+        self.m_entry.grid(column=1, row=1, pady=10, sticky="ew", padx=10)
+
+        # f: Frequency
+        self.f_label = ttk.Label(self.frame_interior_1, text="Frequency: ")
+        self.f_label.grid(column=0, row=2, pady=10, sticky="e")
+
+        self.f_entry = ttk.Entry(self.frame_interior_1, validatecommand=float_positive_validator, validate='none')
+        self.f_entry.grid(column=1, row=2, pady=10, sticky="ew", padx=10)
+
+        # Frame to get elements near
+        self.frame_interior_2 = ttk.Frame(self)
+        self.frame_interior_2.grid(column=1, row=1)
+
+        # Board specification
+        self.board_specification_label = ttk.Label(self.frame_interior_2, text="Board physical specification")
+        self.board_specification_label.grid(column=0, row=0, pady=10, columnspan=2)
 
         # x(mm)
-        self.x_cpu_label = ttk.Label(self, text="x(mm)")
-        self.x_cpu_label.grid(column=3, row=4)
+        self.x_board_label = ttk.Label(self.frame_interior_2, text="x(mm)")
+        self.x_board_label.grid(column=0, row=1, pady=10, sticky="e")
 
-        self.x_cpu_entry = ttk.Entry(self, validatecommand=float_positive_validator, validate='none')
-        self.x_cpu_entry.grid(column=4, row=4)
+        self.x_board_entry = ttk.Entry(self.frame_interior_2, validatecommand=float_positive_validator, validate='none')
+        self.x_board_entry.grid(column=1, row=1, pady=10, sticky="ew", padx=10)
         # y(mm)
-        self.y_cpu_label = ttk.Label(self, text="y(mm)")
-        self.y_cpu_label.grid(column=3, row=5)
+        self.y_board_label = ttk.Label(self.frame_interior_2, text="y(mm)")
+        self.y_board_label.grid(column=0, row=2, pady=10, sticky="e")
 
-        self.y_cpu_entry = ttk.Entry(self, validatecommand=float_positive_validator, validate='none')
-        self.y_cpu_entry.grid(column=4, row=5)
+        self.y_board_entry = ttk.Entry(self.frame_interior_2, validatecommand=float_positive_validator, validate='none')
+        self.y_board_entry.grid(column=1, row=2, pady=10, sticky="ew", padx=10)
 
         # z(mm)
-        self.z_cpu_label = ttk.Label(self, text="z(mm)")
-        self.z_cpu_label.grid(column=3, row=6)
+        self.z_board_label = ttk.Label(self.frame_interior_2, text="z(mm)")
+        self.z_board_label.grid(column=0, row=3, pady=10, sticky="e")
 
-        self.z_cpu_entry = ttk.Entry(self, validatecommand=float_positive_validator, validate='none')
-        self.z_cpu_entry.grid(column=4, row=6)
+        self.z_board_entry = ttk.Entry(self.frame_interior_2, validatecommand=float_positive_validator, validate='none')
+        self.z_board_entry.grid(column=1, row=3, pady=10, sticky="ew", padx=10)
 
         # p: Density (Kg/cm^3)
-        self.p_cpu_label = ttk.Label(self, text="Density (Kg/cm^3)")
-        self.p_cpu_label.grid(column=3, row=7)
+        self.p_board_label = ttk.Label(self.frame_interior_2, text="Density (Kg/cm^3)")
+        self.p_board_label.grid(column=0, row=4, pady=10, sticky="e")
 
-        self.p_cpu_entry = ttk.Entry(self, validatecommand=float_positive_validator, validate='none')
-        self.p_cpu_entry.grid(column=4, row=7)
+        self.p_board_entry = ttk.Entry(self.frame_interior_2, validatecommand=float_positive_validator, validate='none')
+        self.p_board_entry.grid(column=1, row=4, pady=10, sticky="ew", padx=10)
 
         # c_p: Specific heat capacities (J/Kg K)
-        self.c_p_cpu_label = ttk.Label(self, text="Specific heat capacities (J/Kg K)")
-        self.c_p_cpu_label.grid(column=3, row=8)
+        self.c_p_board_label = ttk.Label(self.frame_interior_2, text="Specific heat capacities (J/Kg K)")
+        self.c_p_board_label.grid(column=0, row=5, pady=10, sticky="e")
 
-        self.c_p_cpu_entry = ttk.Entry(self, validatecommand=float_positive_validator, validate='none')
-        self.c_p_cpu_entry.grid(column=4, row=8)
+        self.c_p_board_entry = ttk.Entry(self.frame_interior_2, validatecommand=float_positive_validator,
+                                         validate='none')
+        self.c_p_board_entry.grid(column=1, row=5, pady=10, sticky="ew", padx=10)
 
         # k: Thermal conductivity (W/m ºC)
-        self.k_cpu_label = ttk.Label(self, text="Thermal conductivity (W/m ºC)")
-        self.k_cpu_label.grid(column=3, row=9)
+        self.k_board_label = ttk.Label(self.frame_interior_2, text="Thermal conductivity (W/m ºC)")
+        self.k_board_label.grid(column=0, row=6, pady=10, sticky="e")
 
-        self.k_cpu_entry = ttk.Entry(self, validatecommand=float_positive_validator, validate='none')
-        self.k_cpu_entry.grid(column=4, row=9)
+        self.k_board_entry = ttk.Entry(self.frame_interior_2, validatecommand=float_positive_validator, validate='none')
+        self.k_board_entry.grid(column=1, row=6, pady=10, sticky="ew", padx=10)
+
+        # Frame to get elements near
+        self.frame_interior_3 = ttk.Frame(self)
+        self.frame_interior_3.grid(column=0, row=1)
+
+        # CPU specification
+        self.board_specification_label = ttk.Label(self.frame_interior_3, text="Core physical specification")
+        self.board_specification_label.grid(column=0, row=0, pady=10, columnspan=2)
+
+        # x(mm)
+        self.x_cpu_label = ttk.Label(self.frame_interior_3, text="x(mm)")
+        self.x_cpu_label.grid(column=0, row=2, pady=10, sticky="e")
+
+        self.x_cpu_entry = ttk.Entry(self.frame_interior_3, validatecommand=float_positive_validator, validate='none')
+        self.x_cpu_entry.grid(column=1, row=2, pady=10, sticky="ew", padx=10)
+        # y(mm)
+        self.y_cpu_label = ttk.Label(self.frame_interior_3, text="y(mm)")
+        self.y_cpu_label.grid(column=0, row=3, pady=10, sticky="e")
+
+        self.y_cpu_entry = ttk.Entry(self.frame_interior_3, validatecommand=float_positive_validator, validate='none')
+        self.y_cpu_entry.grid(column=1, row=3, pady=10, sticky="ew", padx=10)
+
+        # z(mm)
+        self.z_cpu_label = ttk.Label(self.frame_interior_3, text="z(mm)")
+        self.z_cpu_label.grid(column=0, row=4, pady=10, sticky="e")
+
+        self.z_cpu_entry = ttk.Entry(self.frame_interior_3, validatecommand=float_positive_validator, validate='none')
+        self.z_cpu_entry.grid(column=1, row=4, pady=10, sticky="ew", padx=10)
+
+        # p: Density (Kg/cm^3)
+        self.p_cpu_label = ttk.Label(self.frame_interior_3, text="Density (Kg/cm^3)")
+        self.p_cpu_label.grid(column=0, row=5, pady=10, sticky="e")
+
+        self.p_cpu_entry = ttk.Entry(self.frame_interior_3, validatecommand=float_positive_validator, validate='none')
+        self.p_cpu_entry.grid(column=1, row=5, pady=10, sticky="ew", padx=10)
+
+        # c_p: Specific heat capacities (J/Kg K)
+        self.c_p_cpu_label = ttk.Label(self.frame_interior_3, text="Specific heat capacities (J/Kg K)")
+        self.c_p_cpu_label.grid(column=0, row=6, pady=10, sticky="e")
+
+        self.c_p_cpu_entry = ttk.Entry(self.frame_interior_3, validatecommand=float_positive_validator, validate='none')
+        self.c_p_cpu_entry.grid(column=1, row=6, pady=10, sticky="ew", padx=10)
+
+        # k: Thermal conductivity (W/m ºC)
+        self.k_cpu_label = ttk.Label(self.frame_interior_3, text="Thermal conductivity (W/m ºC)")
+        self.k_cpu_label.grid(column=0, row=7, pady=10, sticky="e")
+
+        self.k_cpu_entry = ttk.Entry(self.frame_interior_3, validatecommand=float_positive_validator, validate='none')
+        self.k_cpu_entry.grid(column=1, row=7, pady=10, sticky="ew", padx=10)
 
         #########################################
         # Separator
         self.sections_separator_3 = ttk.Separator(self, orient="vertical")
-        self.sections_separator_3.grid(column=5, row=0, rowspan=10, sticky="ns")
+        self.sections_separator_3.grid(column=2, row=0, rowspan=2, padx=10, sticky="ns")
         #########################################
 
+        # Frame to get elements near
+        self.frame_interior_4 = ttk.Frame(self)
+        self.frame_interior_4.grid(column=3, row=0, rowspan=2)
+
         # Origins location
-        self.board_specification_label = ttk.Label(self,
+        self.board_specification_label = ttk.Label(self.frame_interior_4,
                                                    text="CPU origins location (if not filled it will " +
                                                         "be generated automatically)")
-        self.board_specification_label.grid(column=6, row=0)
+        self.board_specification_label.grid(column=0, row=0, pady=10)
 
-        self.origins_list = ttk.Treeview(self, columns=("y"))
-        self.origins_list.grid(column=6, row=1, columnspan=2, rowspan=6)
+        self.origins_list = ttk.Treeview(self.frame_interior_4, columns=("y"))
+        self.origins_list.grid(column=0, row=1, pady=10, sticky="ew", padx=10)
 
         self.origins_list.heading("#0", text="x(mm)")
         self.origins_list.heading("y", text="y(mm)")
 
-        # x
-        self.x_label = ttk.Label(self, text="x: ")
-        self.x_label.grid(column=6, row=8)
+        # Frame to get elements near
+        self.frame_interior_5 = ttk.Frame(self.frame_interior_4)
+        self.frame_interior_5.grid(column=0, row=2, pady=10, padx=10, sticky="e")
 
-        self.x_entry = ttk.Entry(self, validatecommand=float_positive_validator, validate='none')
-        self.x_entry.grid(column=7, row=8)
+        # x
+        self.x_label = ttk.Label(self.frame_interior_5, text="x: ")
+        self.x_label.grid(column=0, row=0, pady=10, sticky="e")
+
+        self.x_entry = ttk.Entry(self.frame_interior_5, validatecommand=float_positive_validator, validate='none')
+        self.x_entry.grid(column=1, row=0, pady=10, sticky="ew", padx=10)
 
         # y
-        self.y_label = ttk.Label(self, text="y: ")
-        self.y_label.grid(column=6, row=9)
+        self.y_label = ttk.Label(self.frame_interior_5, text="y: ")
+        self.y_label.grid(column=0, row=1, pady=10, sticky="e")
 
-        self.y_entry = ttk.Entry(self, validatecommand=float_positive_validator, validate='none')
-        self.y_entry.grid(column=7, row=9)
+        self.y_entry = ttk.Entry(self.frame_interior_5, validatecommand=float_positive_validator, validate='none')
+        self.y_entry.grid(column=1, row=1, pady=10, sticky="ew", padx=10)
 
         # Add and delete task
-        self.delete_task_button = ttk.Button(self, text="Delete selected", command=self.delete_origin_callback)
-        self.delete_task_button.grid(column=6, row=10)
-
-        self.add_task_button = ttk.Button(self, text="Add",
+        self.add_task_button = ttk.Button(self.frame_interior_5, text="Add",
                                           command=lambda: self.add_origin_callback(internal_error_handler))
-        self.add_task_button.grid(column=7, row=10)
+        self.add_task_button.grid(column=1, row=2, pady=10, sticky="ew", padx=10)
+
+        self.delete_task_button = ttk.Button(self.frame_interior_5, text="Delete selected",
+                                             command=self.delete_origin_callback)
+        self.delete_task_button.grid(column=1, row=3, pady=10, sticky="ew", padx=10)
 
     def add_origin_callback(self, internal_error_handler: Callable[[List[str]], None]):
         """
@@ -604,10 +627,12 @@ class CpuSpecificationControl(ttk.Frame):
             invalid_fields += ["Origin (y) coordinate"]
 
         # Add task
-        if len(invalid_fields) > 0:
-            internal_error_handler(invalid_fields)
-        else:
+        internal_error_handler(invalid_fields)
+
+        if len(invalid_fields) == 0:
             self.origins_list.insert("", tk.END, text=self.x_entry.get(), values=(self.y_entry.get()))
+            self.x_entry.delete(0, 'end')
+            self.y_entry.delete(0, 'end')
 
     def delete_origin_callback(self):
         """
@@ -687,8 +712,84 @@ class CpuSpecificationControl(ttk.Frame):
             return CpuSpecification(board_material_cuboid, cpu_material_cuboid, m, f, origins)
 
 
+class OutputControl(ttk.Frame):
+    """
+    Control of the scheduler specification input
+    """
+
+    def __init__(self, parent):
+        """
+        :param parent: The parent window
+        """
+        super().__init__(parent)
+
+        # Frame to get elements near
+        self.frame_interior = ttk.Frame(self)
+        self.frame_interior.grid(column=0, row=0)
+
+        self.combobox_values = ["Not display or save",
+                                "Save in out folder",
+                                "Display"]
+
+        self.execution_and_task_allocation_label = ttk.Label(self.frame_interior,
+                                                             text="Execution and task allocation: ")
+        self.execution_and_task_allocation_label.grid(column=0, row=0, sticky="e", pady=10, padx=10)
+
+        self.execution_and_task_allocation_combobox = ttk.Combobox(self.frame_interior, state="readonly")
+        self.execution_and_task_allocation_combobox["values"] = self.combobox_values
+        self.execution_and_task_allocation_combobox.grid(column=1, row=0, pady=10, sticky="ew", padx=10)
+
+        self.thermal_evolution_label = ttk.Label(self.frame_interior,
+                                                 text="Thermal evolution: ")
+        self.thermal_evolution_label.grid(column=0, row=1, sticky="e", pady=10, padx=10)
+
+        self.thermal_evolution_combobox = ttk.Combobox(self.frame_interior, state="readonly")
+        self.thermal_evolution_combobox["values"] = self.combobox_values
+        self.thermal_evolution_combobox.grid(column=1, row=1, pady=10, sticky="ew", padx=10)
+
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(0, weight=1)
+
+    class OutputControlOptions(Enum):
+        NOTHING = 0,
+        SAVE = 1,
+        PLOT = 2
+
+    def get_specification(self) -> List[OutputControlOptions]:
+        """
+        Get the specification if is valid, raise an exception otherwise
+        :return: the specification
+        """
+        # Scheduler definition name-id association
+        combobox_values = {
+            "Not display or save": self.OutputControlOptions.NOTHING,
+            "Save in out folder": self.OutputControlOptions.SAVE,
+            "Display": self.OutputControlOptions.PLOT
+        }
+
+        # Check fields
+        invalid_fields = []
+        if self.execution_and_task_allocation_combobox.get() == "" or self.thermal_evolution_combobox.get() == "":
+            invalid_fields += ["Output"]
+        elif self.execution_and_task_allocation_combobox.get() == "Not display or save" and \
+                self.thermal_evolution_combobox.get() == "Not display or save":
+            invalid_fields += ["Output, at least one must be displayed or saved"]
+        # Return
+        if len(invalid_fields) > 0:
+            raise InputValidationError(invalid_fields)
+        else:
+            return [combobox_values.get(self.execution_and_task_allocation_combobox.get()),
+                    combobox_values.get(self.thermal_evolution_combobox.get())]
+
+
 class SpecificationCategoriesControl(ttk.Frame):
-    def __init__(self, parent, internal_error_handler: Callable[[List[str]], None]):
+    def fields_error_handler(self, errors: List[str]):
+        if len(errors) != 0:
+            self.internal_message_handler("Error in fields: " + ', '.join(errors))
+        else:
+            self.internal_message_handler("Messages: Nothing running")
+
+    def __init__(self, parent, internal_message_handler: Callable[[str], None]):
         super().__init__(parent)
 
         self.notebook = ttk.Notebook(parent)
@@ -698,12 +799,14 @@ class SpecificationCategoriesControl(ttk.Frame):
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
 
+        self.internal_message_handler = internal_message_handler
+
         # Creating each tab content
-        self.tasks_specification_content = TaskSpecificationControl(self.notebook, internal_error_handler)
+        self.tasks_specification_content = TaskSpecificationControl(self.notebook, self.fields_error_handler)
         self.tasks_specification_content.grid(column=0, row=0)
         self.notebook.add(self.tasks_specification_content, text="Tasks")
 
-        self.cpu_specification_content = CpuSpecificationControl(self.notebook, internal_error_handler)
+        self.cpu_specification_content = CpuSpecificationControl(self.notebook, self.fields_error_handler)
         self.cpu_specification_content.grid(column=0, row=0, sticky="nsew", padx=10, pady=10)
         self.notebook.add(self.cpu_specification_content, text="CPU")
 
@@ -719,23 +822,22 @@ class SpecificationCategoriesControl(ttk.Frame):
         self.scheduler_content.grid(column=0, row=0, sticky="nsew", padx=10, pady=10)
         self.notebook.add(self.scheduler_content, text="Scheduler")
 
+        self.output_content = OutputControl(self.notebook)
+        self.output_content.grid(column=0, row=0, sticky="nsew", padx=10, pady=10)
+        self.notebook.add(self.output_content, text="Output")
+
 
 class GraphicalUserInterface(ttk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
 
-        # Configure grid
-        # self.columnconfigure(0, weight=1)
-        # self.rowconfigure(0, weight=1)
-
         # Tabs panel
-        self.tabs_panel = SpecificationCategoriesControl(self, self.error_handler)
+        self.tabs_panel = SpecificationCategoriesControl(self, self.message_show_handler)
         self.tabs_panel.grid(column=0, row=0, sticky="nsew")
 
-        # TODO: Disable button while simulation is running, and show progress in progressbar
-        # TODO: Add tab to show output adn run , command=run_simulation
         # Run simulation
-        self.button_run_simulation = ttk.Button(self, text="Run simulation")
+        self.button_run_simulation = ttk.Button(self, text="Run simulation",
+                                                command=lambda: threading.Thread(target=self.run_simulation).start())
         self.button_run_simulation.grid(column=0, row=1, pady=10)
 
         # Error label
@@ -745,18 +847,21 @@ class GraphicalUserInterface(ttk.Frame):
         # Result stored
         self.simulation_result = None
 
-    def error_handler(self, errors: List[str]):
-        # TODO: Improve errors
-        print("Fields: " + ', '.join(errors))
+    def message_show_handler(self, message: str):
+        self.messages_label.config(text=message)
 
-    def run_simulation(self, tabs_panel: SpecificationCategoriesControl):
+    def run_simulation(self):
         try:
-            is_specification_with_thermal = False
-            tasks_specification = tabs_panel.tasks_specification_content.get_specification()
-            cpu_specification = tabs_panel.cpu_specification_content.get_specification()
-            environment_specification = tabs_panel.environment_content.get_specification()
-            simulation_specification = tabs_panel.simulation_content.get_specification()
-            scheduler = tabs_panel.scheduler_content.get_specification()
+            is_specification_with_thermal = True
+            tasks_specification = self.tabs_panel.tasks_specification_content.get_specification()
+            cpu_specification = self.tabs_panel.cpu_specification_content.get_specification()
+            environment_specification = self.tabs_panel.environment_content.get_specification()
+            simulation_specification = self.tabs_panel.simulation_content.get_specification()
+            scheduler = self.tabs_panel.scheduler_content.get_specification()
+            output_specification = self.tabs_panel.output_content.get_specification()
+
+            self.message_show_handler("Wait: Simulation running")
+            self.button_run_simulation.config(state="disabled")
 
             # Run the simulation
             processor_model: ProcessorModel = generate_processor_model(tasks_specification, cpu_specification)
@@ -778,13 +883,50 @@ class GraphicalUserInterface(ttk.Frame):
                                                                             simulation_specification)
 
             try:
-                self.simulation_result = scheduler.simulate(global_specification, simulation_kernel, None)
+                simulation_result = scheduler.simulate(global_specification, simulation_kernel, None)
+
+                p = Process(target=self.plot_output,
+                            args=(global_specification, is_specification_with_thermal, output_specification,
+                                  simulation_kernel, simulation_result)) # FIXME: That's a workaround
+                p.start()
+
+                self.message_show_handler("Simulation ended")
             except Exception as ex:
-                print(ex)
-                return 1
+                self.message_show_handler("Error: " + ex.args[0])
+            self.button_run_simulation.config(state="normal")
 
         except InputValidationError as ve:
-            self.error_handler(ve.args[0])
+            self.message_show_handler("Error in fields: " + ', '.join(ve.args[0]))
+
+    def plot_output(self, global_specification, is_specification_with_thermal, output_specification, simulation_kernel,
+                    simulation_result):
+        output_path = "out/"
+        output_base_name = "simulation"
+        # Create output directory if not exist
+        os.makedirs(output_path, exist_ok=True)
+        if output_specification[0] == OutputControl.OutputControlOptions.SAVE:
+            plot_cpu_utilization(global_specification, simulation_result,
+                                 os.path.join(output_path, output_base_name + "_cpu_utilization.png"))
+            plot_task_execution(global_specification, simulation_result,
+                                os.path.join(output_path, output_base_name + "_task_execution.png"))
+            plot_accumulated_execution_time(global_specification, simulation_result,
+                                            os.path.join(output_path,
+                                                         output_base_name + "_accumulated_execution_time.png"))
+            if is_specification_with_thermal:
+                plot_cpu_temperature(global_specification, simulation_result,
+                                     os.path.join(output_path, output_base_name + "_cpu_temperature.png"))
+
+        elif output_specification[0] == OutputControl.OutputControlOptions.PLOT:
+            plot_cpu_utilization(global_specification, simulation_result)
+            plot_task_execution(global_specification, simulation_result)
+            plot_accumulated_execution_time(global_specification, simulation_result)
+            if is_specification_with_thermal:
+                plot_cpu_temperature(global_specification, simulation_result)
+        if output_specification[1] == OutputControl.OutputControlOptions.SAVE:
+            draw_heat_matrix(global_specification, simulation_kernel, simulation_result,
+                             os.path.join(output_path, output_base_name + "heat_matrix.mp4"))
+        elif output_specification[1] == OutputControl.OutputControlOptions.PLOT:
+            draw_heat_matrix(global_specification, simulation_kernel, simulation_result)
 
 
 if __name__ == '__main__':
