@@ -1001,7 +1001,7 @@ class GraphicalUserInterface(ttk.Frame):
             draw_heat_matrix(global_specification, simulation_kernel, simulation_result)
 
 
-def gui_main(enable_thermal: bool = False):
+def gui_main(enable_thermal: bool):
     window = tk.Tk()
     window.title("Scheduler simulation Framework")
     gui = GraphicalUserInterface(window, enable_thermal)
@@ -1009,7 +1009,3 @@ def gui_main(enable_thermal: bool = False):
     window.columnconfigure(0, weight=1)
     window.rowconfigure(0, weight=1)
     window.mainloop()
-
-
-if __name__ == '__main__':
-    gui_main()
