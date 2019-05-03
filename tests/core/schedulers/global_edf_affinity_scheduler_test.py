@@ -48,13 +48,13 @@ class TestGlobalEdfScheduler(unittest.TestCase):
 
         scheduler = GlobalEDFAffinityScheduler()
 
-        scheduler_simulation = scheduler.simulate(global_specification, simulation_kernel)
+        scheduler_simulation = scheduler.simulate(global_specification, simulation_kernel, None)
 
-        # draw_heat_matrix(global_specification, simulation_kernel, scheduler_simulation, "affinity_heat_matrix.mp4")
-        # plot_cpu_utilization(global_specification, scheduler_simulation, "affinity_cpu_utilization.png")
-        # plot_task_execution(global_specification, scheduler_simulation, "affinity_task_execution.png")
-        # plot_cpu_temperature(global_specification, scheduler_simulation,  "affinity_cpu_temperature.png")
-        # plot_accumulated_execution_time(global_specification, scheduler_simulation,  "affinity_accumulated.png")
+        draw_heat_matrix(global_specification, simulation_kernel, scheduler_simulation, "affinity_heat_matrix.mp4")
+        plot_cpu_utilization(global_specification, scheduler_simulation, "affinity_cpu_utilization.png")
+        plot_task_execution(global_specification, scheduler_simulation, "affinity_task_execution.png")
+        plot_cpu_temperature(global_specification, scheduler_simulation,  "affinity_cpu_temperature.png")
+        plot_accumulated_execution_time(global_specification, scheduler_simulation,  "affinity_accumulated.png")
 
 
 if __name__ == '__main__':

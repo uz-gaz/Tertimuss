@@ -1,4 +1,5 @@
 from random import randrange, uniform
+from typing import List
 
 from core.problem_specification_models.TasksSpecification import Task
 from core.task_generator.TaskGeneratorAlgorithm import TaskGeneratorAlgorithm
@@ -12,7 +13,7 @@ class UUniFast(TaskGeneratorAlgorithm):
         self.period_interval = period_interval
         self.processor_frequency = processor_frequency
 
-    def generate(self) -> list:
+    def generate(self) -> List[Task]:
         # random number in interval[a, b]
         # TODO: Obtain as parameter
         a = 6
@@ -22,7 +23,8 @@ class UUniFast(TaskGeneratorAlgorithm):
         # TODO: Obtain as parameter
         precision = 3
 
-        t_i = randrange(self.period_interval[0], self.period_interval[1])
+        t_i = [randrange(int(self.period_interval[0]), int(self.period_interval[1])) for _ in
+               range(self.number_of_tasks)]
         e_i = [a + (b - a) * round(uniform(0, 1), precision) for _ in range(self.number_of_tasks)]
 
         sum_u = self.utilization  # the sum of n uniform random variables

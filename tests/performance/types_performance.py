@@ -27,10 +27,10 @@ class PerformanceTests(unittest.TestCase):
 
     def test_performance(self):
         types_to_test = [
-        #    [scipy.float64, scipy.float64],
-        #    [scipy.float32, scipy.float32],
-        #    [scipy.bool8, scipy.float64],
-        #    [scipy.bool8, scipy.float32],
+            #    [scipy.float64, scipy.float64],
+            #    [scipy.float32, scipy.float32],
+            #    [scipy.bool8, scipy.float64],
+            #    [scipy.bool8, scipy.float32],
             [scipy.int8, scipy.float32]
         ]
         iterations = 5
@@ -43,7 +43,8 @@ class PerformanceTests(unittest.TestCase):
             print("Profiled", i[0], i[1], "->", "time:", time_accumulated, ", size:", size)
 
         """
-        Results
+        Results: Desktop PC (CPU Intel Pentium E5700 dual core 3.00 GHz, FSB: 800 MHz,
+         RAM: 2 * 4 GB 1600 Mhz (FSB bottle neck))
         
         types_to_test = [
             [scipy.float64, scipy.float64],

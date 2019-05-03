@@ -6,6 +6,8 @@
 - scipi 1.2.0 or higher and all its dependencies
 - matplotlib 3.0.2 or higher and all its dependencies
 - jsonschema 3.0.1 or higher and all its dependencies
+- progress 1.5 or higher and all its dependencies
+
 
 ## Usage
 First of all, you need to fill the requirements listed in the above section
@@ -27,9 +29,22 @@ $ python cli_launcher.py
 ```
 
 ### Graphical user interface
+Place in the project root folder
+
+```bash
+$ cd SchedulerFrameworkTCPN
+```
+
+Then execute the script called gui_launcher.py.
+This script may take one argument
+- -nt, --no-thermal: Open the GUI in no thermal mode, so the simulations only will show the scheduler behaviour.
+
+```bash
+$ python gui_launcher.py
+```
 
 # Architecture
-![Architecture](diagrams/architecture.png)
+![Architecture](doc/diagrams/architecture.png)
 
 # References
 - [1] Original implementation of the code in matlab, [https://www.gdl.cinvestav.mx/art/uploads/SchedulerFrameworkTCPN.zip](https://www.gdl.cinvestav.mx/art/uploads/SchedulerFrameworkTCPN.zip )

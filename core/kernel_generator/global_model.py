@@ -14,6 +14,9 @@ class GlobalModel(object):
 
     def __init__(self, a: scipy.ndarray, b: scipy.ndarray, bp: scipy.ndarray, s: scipy.ndarray,
                  s_thermal: scipy.ndarray):
+        """
+        Create a global model
+        """
         self.a = a
         self.b = b
         self.bp = bp
