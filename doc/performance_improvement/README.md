@@ -29,4 +29,6 @@ demonstrated in the file /tests/performance/types_performance.py.
 
 ## Profiling
 The profiling was done with the execution of the test global_edf_affinity_scheduler_test.py.
-The time profiling was stored in the file ./profiling/eslr_gedf_a.pstat.
+The time profiling was stored in the file ./profiling/eslr_gedf_a.pstat and a plain text version
+was stored in file ./profiling/eslr_gedf_a_cpu.txt.
+The memory profiling was stored in the file ./profiling/eslr_gedf_a_memory.txt.
