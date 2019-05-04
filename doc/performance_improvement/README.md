@@ -10,6 +10,10 @@ All the profiles was done in a Desktop PC with the next characteristics:
 - HDD: Seagate Barracuda ST1000DM010, 7200 RPM, SATA: 3.0
 - OS: Debian GNU/Linux 9.9 (stretch) 64 bits
 
+## Profiling tools
+The profiled was done using the memory_profiler (version 0.55) library for
+profile the memory and cProfile to profile the execution time 
+
 # Matlab version
 The first version, and original, was the Matlab version, in this version, the only parameter measured was the execution time
 in a simulation equal to global_edf_affinity_scheduler_test.py and it was 200 seconds of execution time in Matlab 2019a.
