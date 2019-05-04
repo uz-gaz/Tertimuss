@@ -1,3 +1,4 @@
+import time
 import unittest
 
 from core.kernel_generator.global_model import generate_global_model
@@ -18,6 +19,7 @@ from output_generation.output_generator import plot_cpu_utilization, plot_task_e
 class TestGlobalEdfScheduler(unittest.TestCase):
 
     def test_global_edf_scheduler(self):
+        time1 = time.time()
         tasks_specification: TasksSpecification = TasksSpecification([Task(2, 4, 6.4),
                                                                       Task(3, 8, 8),
                                                                       Task(3, 12, 9.6)])
@@ -49,12 +51,16 @@ class TestGlobalEdfScheduler(unittest.TestCase):
         scheduler = GlobalEDFAffinityScheduler()
 
         scheduler_simulation = scheduler.simulate(global_specification, simulation_kernel, None)
+        time2 = time.time()
+        print(time2 - time1)
+
+        # 49.20646619796753
 
         # draw_heat_matrix(global_specification, simulation_kernel, scheduler_simulation, "affinity_heat_matrix.mp4")
-        # plot_cpu_utilization(global_specification, scheduler_simulation, "affinity_cpu_utilization.png")
-        # plot_task_execution(global_specification, scheduler_simulation, "affinity_task_execution.png")
-        # plot_cpu_temperature(global_specification, scheduler_simulation,  "affinity_cpu_temperature.png")
-        # plot_accumulated_execution_time(global_specification, scheduler_simulation,  "affinity_accumulated.png")
+        plot_cpu_utilization(global_specification, scheduler_simulation, "affinity_cpu_utilization.png")
+        plot_task_execution(global_specification, scheduler_simulation, "affinity_task_execution.png")
+        plot_cpu_temperature(global_specification, scheduler_simulation,  "affinity_cpu_temperature.png")
+        plot_accumulated_execution_time(global_specification, scheduler_simulation,  "affinity_accumulated.png")
 
 
 if __name__ == '__main__':

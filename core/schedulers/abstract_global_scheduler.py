@@ -67,13 +67,13 @@ class AbstractGlobalScheduler(AbstractScheduler):
         m_exec_tcpn = scipy.ndarray((n * m, simulation_time_steps))
 
         # Temperature of cores in each step
-        temperature_disc = scipy.ndarray((m, 0))
+        temperature_disc = []
 
         # Map with temperatures in each step
-        temperature_map = scipy.zeros((len(simulation_kernel.mo), 0))
+        temperature_map = []
 
         # Time where each temperature step have been obtained
-        time_temp = scipy.ndarray((0, 1))
+        time_temp = []
 
         # Initial marking
         mo = simulation_kernel.mo
@@ -124,10 +124,12 @@ class AbstractGlobalScheduler(AbstractScheduler):
                     [time, time + global_specification.simulation_specification.dt])
 
                 mo = mo_next
-                temperature_map = scipy.concatenate((temperature_map, temperature_tcpn), axis=1)
-                time_temp = scipy.concatenate((time_temp, tout_disc))
 
-                temperature_disc = scipy.concatenate((temperature_disc, temp_time_disc), axis=1)
+                temperature_map.append(temperature_tcpn)
+
+                time_temp.append(tout_disc)
+
+                temperature_disc.append(temp_time_disc)
 
                 cores_temperature = scipy.transpose(temp_time_disc)[-1] if temp_time_disc.shape[
                                                                                1] > 0 else cores_temperature
@@ -142,6 +144,11 @@ class AbstractGlobalScheduler(AbstractScheduler):
             time_step[zeta_q] = time
 
         time_step = scipy.asarray(time_step).reshape((-1, 1))
+
+        temperature_map = scipy.concatenate(temperature_map, axis=1)
+        time_temp = scipy.concatenate(time_temp)
+        temperature_disc = scipy.concatenate(temperature_disc, axis=1)
+
         return SchedulerResult(temperature_map, mo, time_step, i_tau_disc, m_exec, m_exec_tcpn, time_step, time_temp,
                                scipy.asarray([]), temperature_disc, global_specification.simulation_specification.dt)
 

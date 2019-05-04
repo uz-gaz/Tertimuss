@@ -36,3 +36,9 @@ The profiling was done with the execution of the test global_edf_affinity_schedu
 The time profiling was stored in the file ./profiling/eslr_gedf_a.pstat and a plain text version
 was stored in file ./profiling/eslr_gedf_a_cpu.txt.
 The memory profiling was stored in the file ./profiling/eslr_gedf_a_memory.txt.
+
+# Embedded system laboratory performance iteration version
+This version is the actual version in development
+
+## Improvements done
+- Deleting concatenations from loops because it force to copy big data regions to a continuous region of free space. In the test scenario, execution time was reduced from 49.20646619796753 seconds to 22.11475110054016 seconds.
