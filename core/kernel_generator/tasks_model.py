@@ -24,13 +24,13 @@ def generate_tasks_model(tasks_specification: TasksSpecification, cpu_specificat
     n = len(tasks_specification.tasks)
     m = cpu_specification.number_of_cores
 
-    # total of places of the TCPN
+    # total of places of the TCPN ((p^w_i,p^cc_i) for each task)
     p = 2 * n
 
-    # Total of transitions
+    # Total of transitions ((t^w_i and ti,jAlloc for each processor) for each task)
     t = n + n * m
 
-    # n transitions of tasks period and n * m transitions alloc
+    # n transitions of tasks period and n * m transitions alloc ((ti,jAlloc for each processor) for each task)
     t_alloc = n * m
 
     # Incidence Matrix C
@@ -45,18 +45,17 @@ def generate_tasks_model(tasks_specification: TasksSpecification, cpu_specificat
     # Construction of Pre an Post matrix for places(p^w_i,p^cc_i) and transition(t^w_i)
     for k in range(n):
         i = 2 * k
-        pre[i, k] = 1
-        post[i:i + 2, k] = [1, tasks_specification.tasks[k].c]
+        pre[i, k] = 1  # Transition from p^w_i to t^w_i
+        post[i:i + 2, k] = [1, tasks_specification.tasks[k].c]  # Transition from t^w_i to p^w_i, from t^w_i to p^cc_i
         lambda_vector[k] = 1 / tasks_specification.tasks[k].t
         pi[k, i] = 1
         mo[i: i + 2, 0] = [1, tasks_specification.tasks[k].c]
 
         # Construction of Pre an Post matrix for Transitions alloc
-        j = n + k
-        while j < t:
+        for r in range(m):
+            j = n + r * n + k
             pre[i + 1, j] = 1
             pi[j, i + 1] = 1
-            j = j + n
 
     pre_alloc[:, 0: t_alloc] = pre[:, n: t]
 
