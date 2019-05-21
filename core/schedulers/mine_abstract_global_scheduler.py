@@ -132,14 +132,15 @@ class AbstractGlobalScheduler(AbstractScheduler):
                 m_exec_tcpn[:, zeta_q] = m_exec_disc.reshape(-1)
 
             else:
-                mo_next, m_exec_disc, _, _, tout_disc, temp_time_disc, temperature_tcpn = solve_global_model(
+                mo_next, m_exec_disc, _, _, _, _, _ = solve_global_model(
                     global_model,
                     global_model.m.reshape(-1),
                     i_tau_disc[:, zeta_q].reshape(-1),
                     45,
                     [time, time + global_specification.simulation_specification.dt])
 
-                m_exec_tcpn[:, zeta_q] = m_exec_step
+                m_exec_tcpn[:, zeta_q] = m_exec_disc.reshape(-1)
+                global_model.m = mo_next
 
             m_exec[:, zeta_q] = m_exec_step
 
