@@ -23,6 +23,7 @@ class ProcessorModel(object):
         self.a_proc = a_proc
 
     def change_frequency(self, tasks_specification: TasksSpecification, cpu_specification: CpuSpecification):
+        # TODO: TEST
         n = len(tasks_specification.tasks)
         m = cpu_specification.number_of_cores
 
