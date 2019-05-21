@@ -145,9 +145,14 @@ class AbstractGlobalScheduler(AbstractScheduler):
 
         time_step = scipy.asarray(time_step).reshape((-1, 1))
 
-        temperature_map = scipy.concatenate(temperature_map, axis=1)
-        time_temp = scipy.concatenate(time_temp)
-        temperature_disc = scipy.concatenate(temperature_disc, axis=1)
+        if len(temperature_map) > 0:
+            temperature_map = scipy.concatenate(temperature_map, axis=1)
+
+        if len(time_temp) > 0:
+            time_temp = scipy.concatenate(time_temp)
+
+        if len(temperature_disc) > 0:
+            temperature_disc = scipy.concatenate(temperature_disc, axis=1)
 
         return SchedulerResult(temperature_map, mo, time_step, i_tau_disc, m_exec, m_exec_tcpn, time_step, time_temp,
                                scipy.asarray([]), temperature_disc, global_specification.simulation_specification.dt)
