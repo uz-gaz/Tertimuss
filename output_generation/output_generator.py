@@ -3,13 +3,13 @@ from typing import Optional
 import scipy
 from matplotlib import animation
 
-from core.kernel_generator.kernel import SimulationKernel
+from core.kernel_generator.global_model import GlobalModel
 from core.problem_specification_models.GlobalSpecification import GlobalSpecification
 from core.schedulers.abstract_scheduler import SchedulerResult
 import matplotlib.pyplot as plt
 
 
-def draw_heat_matrix(global_specification: GlobalSpecification, simulation_kernel: SimulationKernel,
+def draw_heat_matrix(global_specification: GlobalSpecification, global_model: GlobalModel,
                      scheduler_result: SchedulerResult, save_path: Optional[str] = None):
     """
     Draw heat matrix or save the simulation in file if save_path is not null
@@ -18,7 +18,7 @@ def draw_heat_matrix(global_specification: GlobalSpecification, simulation_kerne
     :param scheduler_result: result of scheduling
     :param save_path: path to save the simulation
     """
-    temp = simulation_kernel.global_model.s_thermal.dot(scheduler_result.m)
+    temp = global_model.s_thermal.dot(scheduler_result.m)
 
     temp = scipy.transpose(temp)
 
