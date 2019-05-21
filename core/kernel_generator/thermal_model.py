@@ -199,6 +199,7 @@ def add_heat(pre_sis, post_sis, board_conductivity: ConductivityModel,
 
     for j in range(cpu_specification.number_of_cores):
         for i in range(len(task_specification.tasks)):
+            # TODO: Check if is correct
             lambda_gen[i] = cpu_specification.clock_frequencies[j]
             # FIXME: Cambiar Actualmente estoy suponiendo frecuencia uniforme
             # Por otro lado, se esta quedando siempre la frecuencia del ultimo procesador, el bucle no tiene sentido,
@@ -265,89 +266,111 @@ def getCpuCoordinates(origin: Origin, cpu_spec: MaterialCuboid, board_spec: Mate
 
 
 class ThermalModel(object):
-    def __init__(self, a_t: scipy.ndarray, ct_exec: scipy.ndarray, s_t: scipy.ndarray, b_ta: scipy.ndarray,
-                 lambda_gen: scipy.ndarray):
-        self.a_t = a_t
-        self.ct_exec = ct_exec
-        self.s_t = s_t
-        self.b_ta = b_ta
-        self.lambda_gen = lambda_gen
+    def __init__(self, tasks_specification: TasksSpecification, cpu_specification: CpuSpecification,
+                 environment_specification: EnvironmentSpecification,
+                 simulation_specification: SimulationSpecification):
 
+        # Board and micros conductivity
+        board_conductivity = simple_conductivity(cpu_specification.board, simulation_specification)
+        micro_conductivity = simple_conductivity(cpu_specification.cpu_core, simulation_specification)
 
-def generate_thermal_model(tasks_specification: TasksSpecification, cpu_specification: CpuSpecification,
-                           environment_specification: EnvironmentSpecification,
-                           simulation_specification: SimulationSpecification) -> ThermalModel:
-    # Board and micros conductivity
-    board_conductivity = simple_conductivity(cpu_specification.board, simulation_specification)
-    micro_conductivity = simple_conductivity(cpu_specification.cpu_core, simulation_specification)
+        # Number of places for all CPUs
+        p_micros = micro_conductivity.p * cpu_specification.number_of_cores
 
-    # Number of places for all CPUs
-    p_micros = micro_conductivity.p * cpu_specification.number_of_cores
+        # Create pre, post and lambda from the system with board and number of CPUs
+        r_pre = board_conductivity.p + p_micros
+        c_pre = board_conductivity.t + cpu_specification.number_of_cores * micro_conductivity.t
 
-    # Create pre, post and lambda from the system with board and number of CPUs
-    r_pre = board_conductivity.p + p_micros
-    c_pre = board_conductivity.t + cpu_specification.number_of_cores * micro_conductivity.t
+        pre_sis: scipy.ndarray = scipy.zeros((r_pre, c_pre))
+        pre_sis[0:board_conductivity.p, 0:board_conductivity.t] = board_conductivity.pre
 
-    pre_sis: scipy.ndarray = scipy.zeros((r_pre, c_pre))
-    pre_sis[0:board_conductivity.p, 0:board_conductivity.t] = board_conductivity.pre
+        post_sis: scipy.ndarray = scipy.zeros((r_pre, c_pre))
+        post_sis[0:board_conductivity.p, 0:board_conductivity.t] = board_conductivity.post
 
-    post_sis: scipy.ndarray = scipy.zeros((r_pre, c_pre))
-    post_sis[0:board_conductivity.p, 0:board_conductivity.t] = board_conductivity.post
+        lambda_vector = scipy.zeros((c_pre, 1))
+        lambda_vector[0:board_conductivity.t, 0] = board_conductivity.lambda_vector
 
-    lambda_vector = scipy.zeros((c_pre, 1))
-    lambda_vector[0:board_conductivity.t, 0] = board_conductivity.lambda_vector
+        for i in range(cpu_specification.number_of_cores):
+            r_in = board_conductivity.p + micro_conductivity.p * i
+            r_fin = board_conductivity.p + micro_conductivity.p * (i + 1)
 
-    for i in range(cpu_specification.number_of_cores):
-        r_in = board_conductivity.p + micro_conductivity.p * i
-        r_fin = board_conductivity.p + micro_conductivity.p * (i + 1)
+            c_in = board_conductivity.t + micro_conductivity.t * i
+            c_fin = board_conductivity.t + micro_conductivity.t * (i + 1)
 
-        c_in = board_conductivity.t + micro_conductivity.t * i
-        c_fin = board_conductivity.t + micro_conductivity.t * (i + 1)
+            pre_sis[r_in: r_fin, c_in: c_fin] = micro_conductivity.pre
+            post_sis[r_in: r_fin, c_in: c_fin] = micro_conductivity.post
 
-        pre_sis[r_in: r_fin, c_in: c_fin] = micro_conductivity.pre
-        post_sis[r_in: r_fin, c_in: c_fin] = micro_conductivity.post
+            lambda_vector[c_in:c_fin, 0] = micro_conductivity.lambda_vector
 
-        lambda_vector[c_in:c_fin, 0] = micro_conductivity.lambda_vector
+        # Add transitions between micro and board
+        # Connections between micro places and board places
+        rel_micro = scipy.zeros(p_micros, dtype=int)
 
-    # Add transitions between micro and board
-    # Connections between micro places and board places
-    rel_micro = scipy.zeros(p_micros, dtype=int)
+        for i in range(cpu_specification.number_of_cores):
+            rel_micro[i * micro_conductivity.p: (i + 1) * micro_conductivity.p] = getCpuCoordinates(
+                cpu_specification.cpu_origins[i],
+                cpu_specification.cpu_core,
+                cpu_specification.board,
+                simulation_specification)
 
-    for i in range(cpu_specification.number_of_cores):
-        rel_micro[i * micro_conductivity.p: (i + 1) * micro_conductivity.p] = getCpuCoordinates(
-            cpu_specification.cpu_origins[i],
-            cpu_specification.cpu_core,
-            cpu_specification.board,
-            simulation_specification)
+        # Pre,Post,lambda
+        pre_sis, post_sis, lambda_vector = add_interactions_layer(rel_micro, pre_sis, post_sis, lambda_vector,
+                                                                  board_conductivity, cpu_specification)
 
-    # Pre,Post,lambda
-    pre_sis, post_sis, lambda_vector = add_interactions_layer(rel_micro, pre_sis, post_sis, lambda_vector,
-                                                              board_conductivity, cpu_specification)
+        # Convection
+        diagonal, pre_sis, post_sis, lambda_vector = add_convection(pre_sis, post_sis, lambda_vector,
+                                                                    board_conductivity, micro_conductivity,
+                                                                    cpu_specification, environment_specification)
 
-    # Convection
-    diagonal, pre_sis, post_sis, lambda_vector = add_convection(pre_sis, post_sis, lambda_vector,
-                                                                board_conductivity, micro_conductivity,
-                                                                cpu_specification, environment_specification)
+        # Heat generation
+        cp_exec, lambda_generated, pre_sis, post_sis = add_heat(pre_sis, post_sis, board_conductivity,
+                                                                micro_conductivity,
+                                                                cpu_specification, tasks_specification)
 
-    # Heat generation
-    cp_exec, lambda_generated, pre_sis, post_sis = add_heat(pre_sis, post_sis, board_conductivity, micro_conductivity,
-                                                            cpu_specification, tasks_specification)
+        lambda_vector = scipy.concatenate((lambda_vector, lambda_generated.reshape((-1, 1))))
 
-    lambda_vector = scipy.concatenate((lambda_vector, lambda_generated.reshape((-1, 1))))
+        # Lineal system
+        pi = pre_sis.transpose()
+        #a = ((post_sis - pre_sis).dot(scipy.diag(lambda_vector.reshape(-1)))).dot(pi)
 
-    # Lineal system
-    pi = pre_sis.transpose()
-    a = ((post_sis - pre_sis).dot(scipy.diag(lambda_vector.reshape(-1)))).dot(pi)
+        # Output places
+        l_measurement = scipy.zeros(cpu_specification.number_of_cores, dtype=scipy.int64)
 
-    # Output places
-    l_measurement = scipy.zeros(cpu_specification.number_of_cores, dtype=scipy.int64)
+        for i in range(cpu_specification.number_of_cores):
+            l_measurement[i] = board_conductivity.p + i * micro_conductivity.p + scipy.math.ceil(
+                micro_conductivity.p / 2)
 
-    for i in range(cpu_specification.number_of_cores):
-        l_measurement[i] = board_conductivity.p + i * micro_conductivity.p + scipy.math.ceil(micro_conductivity.p / 2)
+        c = scipy.zeros((cpu_specification.number_of_cores, len(post_sis))) # FIXME: CHECK IF  len(post_sis) == len(a)
 
-    c = scipy.zeros((cpu_specification.number_of_cores, len(a)))
+        for i in range(cpu_specification.number_of_cores):
+            c[i, l_measurement[i] - 1] = 1
 
-    for i in range(cpu_specification.number_of_cores):
-        c[i, l_measurement[i] - 1] = 1
+        self.ct_exec = cp_exec
+        self.s_t = c
+        self.b_ta = diagonal
+        self.lambda_gen = lambda_generated
 
-    return ThermalModel(a, cp_exec, c, diagonal, lambda_generated)
+    def change_frequency(self, tasks_specification: TasksSpecification, cpu_specification: CpuSpecification):
+        # TODO: TEST
+        n = len(tasks_specification.tasks)
+        m = cpu_specification.number_of_cores
+
+        # Transition rate
+        eta = 100
+
+        # Total of transitions
+        t = m * (2 * n)  # m processors*(n transitions alloc and n tramsition exec)
+
+        lambda_vector = scipy.zeros(t)
+
+        for k in range(n):
+            f = cpu_specification.clock_frequencies[k]
+
+            # Execution rates for transitions exec for CPU_k \lambda^exec= eta*F
+            lambda_vector[2 * k * n + n:2 * k * n + 2 * n] = eta * f * scipy.ones(n)
+
+            # Execution rates for transitions alloc \lambda^alloc= eta*\lambda^exec
+            lambda_vector[2 * k * n:2 * k * n + n] = eta * lambda_vector[2 * k * n + n:2 * k * n + 2 * n]
+
+        lambda_proc = scipy.diag(lambda_vector)
+        self.lambda_proc = lambda_proc
