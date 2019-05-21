@@ -199,7 +199,7 @@ def add_heat(pre_sis, post_sis, board_conductivity: ConductivityModel,
 
     for j in range(cpu_specification.number_of_cores):
         for i in range(len(task_specification.tasks)):
-            lambda_gen[i] = cpu_specification.clock_frequency
+            lambda_gen[i] = cpu_specification.clock_frequencies[j]
             # FIXME: Cambiar Actualmente estoy suponiendo frecuencia uniforme
             # Por otro lado, se esta quedando siempre la frecuencia del ultimo procesador, el bucle no tiene sentido,
             # creo que debería de ser (i - 1) * (j - 1)

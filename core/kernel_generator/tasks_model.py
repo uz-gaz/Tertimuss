@@ -12,6 +12,7 @@ class TasksModel(object):
     def __init__(self, c_tau: scipy.ndarray, lambda_tau: scipy.ndarray, pi_tau: scipy.ndarray,
                  c_tau_alloc: scipy.ndarray,
                  m_tau_o: scipy.ndarray, a_tau: scipy.ndarray):
+        # TODO: Convert to SPARSE MATRIXES
         self.c_tau = c_tau
         self.lambda_tau = lambda_tau
         self.pi_tau = pi_tau

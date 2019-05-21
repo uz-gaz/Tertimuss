@@ -72,7 +72,7 @@ class CpuSpecification(object):
         self.board = board
         self.cpu_core = cpu_core
         self.number_of_cores = number_of_cores
-        self.clock_frequency = clock_frequency
+        self.clock_frequencies = number_of_cores * [clock_frequency]
 
         def generate_automatic_origins(x0: float, x1: float, y0: float, y1: float, mx: float, my: float,
                                        n: int) -> List[Origin]:

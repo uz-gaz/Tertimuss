@@ -12,6 +12,7 @@ class ProcessorModel(object):
     def __init__(self, c_proc: scipy.ndarray, lambda_proc: scipy.ndarray, pi_proc: scipy.ndarray,
                  c_proc_alloc: scipy.ndarray,
                  s_exec: scipy.ndarray, s_busy: scipy.ndarray, m_proc_o: scipy.ndarray, a_proc: scipy.ndarray):
+        # TODO: Convert to SPARSE MATRIXES
         self.c_proc = c_proc
         self.lambda_proc = lambda_proc
         self.pi_proc = pi_proc
@@ -21,15 +22,41 @@ class ProcessorModel(object):
         self.m_proc_o = m_proc_o
         self.a_proc = a_proc
 
+    def change_frequency(self, tasks_specification: TasksSpecification, cpu_specification: CpuSpecification):
+        n = len(tasks_specification.tasks)
+        m = cpu_specification.number_of_cores
+
+        # Transition rate
+        eta = 100
+
+        # Total of transitions
+        t = m * (2 * n)  # m processors*(n transitions alloc and n tramsition exec)
+
+        lambda_vector = scipy.zeros(t)
+
+        for k in range(n):
+            f = cpu_specification.clock_frequencies[k]
+
+            # Execution rates for transitions exec for CPU_k \lambda^exec= eta*F
+            lambda_vector[2 * k * n + n:2 * k * n + 2 * n] = eta * f * scipy.ones(n)
+
+            # Execution rates for transitions alloc \lambda^alloc= eta*\lambda^exec
+            lambda_vector[2 * k * n:2 * k * n + n] = eta * lambda_vector[2 * k * n + n:2 * k * n + 2 * n]
+
+        lambda_proc = scipy.diag(lambda_vector)
+        a_proc = (self.c_proc.dot(self.lambda_proc)).dot(self.pi_proc)
+
+        self.lambda_proc = lambda_proc
+        self.a_proc = a_proc
+
 
 def generate_processor_model(tasks_specification: TasksSpecification, cpu_specification: CpuSpecification) \
         -> ProcessorModel:
-    f = 1  # TODO: Check if it's an error
     n = len(tasks_specification.tasks)
     m = cpu_specification.number_of_cores
 
     # Transition rate
-    eta = 1
+    eta = 100
 
     # Total of places of the TCPN processor module
     p = m * (2 * n + 1)  # m processors*(n busy places, n exec places, 1 idle place)
@@ -56,6 +83,8 @@ def generate_processor_model(tasks_specification: TasksSpecification, cpu_specif
     # idle place:  p2n+1->p^idle_1
 
     for k in range(m):
+        f = cpu_specification.clock_frequencies[k]
+
         i = (2 * n + 1) * k
 
         # Construction of matrix Post and Pre for busy and exec places (connections to transitions alloc and exec)
