@@ -29,7 +29,7 @@ def generate_processor_model(tasks_specification: TasksSpecification, cpu_specif
     m = cpu_specification.number_of_cores
 
     # Transition rate
-    eta = 100
+    eta = 1
 
     # Total of places of the TCPN processor module
     p = m * (2 * n + 1)  # m processors*(n busy places, n exec places, 1 idle place)
