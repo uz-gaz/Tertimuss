@@ -14,7 +14,7 @@ class ProcessorModel(object):
         m = cpu_specification.number_of_cores
 
         # Transition rate (n)
-        eta = 100
+        eta = 1
 
         # Total of places of the TCPN processor module
         p = m * (2 * n + 1)  # m processors*(n busy places, n exec places, 1 idle place)
@@ -62,7 +62,7 @@ class ProcessorModel(object):
 
             # Execution rates for transitions alloc \lambda^alloc= eta*\lambda^exec
             lambda_vector[2 * k * n:2 * k * n + n] = eta * lambda_vector[2 * k * n + n:2 * k * n + 2 * n]
-            lambda_alloc[k * n:(k + 1) * n] = lambda_vector[2 * k * n:2 * k * n + n]
+            lambda_alloc[k * n:(k + 1) * n] = eta * lambda_vector[2 * k * n + n:2 * k * n + 2 * n]
 
             # Configuration Matrix
             pi[2 * k * n + n:2 * k * n + 2 * n, i:i + n] = scipy.identity(n)

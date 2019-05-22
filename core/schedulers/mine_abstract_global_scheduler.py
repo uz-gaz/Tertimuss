@@ -84,9 +84,15 @@ class AbstractGlobalScheduler(AbstractScheduler):
         cores_temperature = scipy.asarray(
             m * [global_specification.environment_specification.t_env]) if is_thermal_simulation else None
 
+        # TODO: REMOVE, only for debug
+        mo_debug_history = scipy.zeros((len(global_model.m),simulation_time_steps))
+
         # Active tasks
         active_task_id = m * [-1]
         for zeta_q in range(simulation_time_steps):
+            # TODO: REMOVE, only for debug
+            mo_debug_history[:, zeta_q] = global_model.m[:,0]
+
             # Update time
             time = zeta_q * global_specification.simulation_specification.dt
 

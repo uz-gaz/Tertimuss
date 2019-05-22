@@ -34,12 +34,12 @@ class GlobalModel(object):
         if True:
             a = linalg.block_diag(a_tau, a_proc)
 
-            b = scipy.concatenate((tasks_model.c_tau_alloc, processor_model.c_proc_alloc,))
+            b = scipy.concatenate((tasks_model.c_tau_alloc, processor_model.c_proc_alloc))
 
             bp = scipy.concatenate((scipy.zeros((len(a_tau), 1)), scipy.zeros((len(processor_model.c_proc_alloc), 1))))
 
             s = scipy.concatenate((processor_model.s_busy, processor_model.s_exec))
-            s = linalg.block_diag(s)
+            # s = linalg.block_diag(s)
             s = scipy.concatenate((scipy.zeros((len(s), len(a_tau))), s), axis=1)
 
             s_thermal = scipy.asarray([])
