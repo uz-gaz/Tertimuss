@@ -14,7 +14,7 @@ class ProcessorModel(object):
         m = cpu_specification.number_of_cores
 
         # Transition rate (n)
-        eta = 1
+        eta = 100
 
         # Total of places of the TCPN processor module
         p = m * (2 * n + 1)  # m processors*(n busy places, n exec places, 1 idle place)
@@ -46,12 +46,13 @@ class ProcessorModel(object):
             i = (2 * n + 1) * k
 
             # Construction of matrix Post and Pre for busy and exec places (connections to transitions alloc and exec)
-            pre[i:i + n, 2 * k * n + n: 2 * k * n + 2 * n] = scipy.identity(n)
-            post[i:i + 2 * n, k * 2 * n:k * 2 * n + 2 * n] = scipy.identity(2 * n)
+            pre[i:i + n, 2 * k * n + n: 2 * k * n + 2 * n] = scipy.identity(n)  # Arcs going from p_busy to t_exec
+            post[i:i + 2 * n, k * 2 * n:k * 2 * n + 2 * n] = scipy.identity(
+                2 * n)  # Arcs going from t_alloc to p_busy and from t_exec to p_exec
 
             # Construction of matrix Post and Pre for idle place (connections to transitions alloc and exec)
             pre[(k + 1) * (2 * n + 1) - 1, 2 * k * n: 2 * k * n + n] = eta * scipy.ones(n)
-            post[(k + 1) * (2 * n + 1) - 1, 2 * k * n + n: 2 * (k + 1) * n] = eta * scipy.ones(n)
+            post[(k + 1) * (2 * n + 1) - 1, 2 * k * n + n: 2 * k * n + 2*n] = eta * scipy.ones(n)
 
             # Construction of Pre an Post matrix for Transitions alloc
             pre_alloc[i:i + n, k * n: (k + 1) * n] = pre[i:i + n, 2 * k * n: 2 * k * n + n]

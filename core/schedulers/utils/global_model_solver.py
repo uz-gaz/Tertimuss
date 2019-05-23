@@ -6,8 +6,8 @@ from core.kernel_generator.global_model import GlobalModel
 
 def solve_global_model(global_model: GlobalModel, mo: scipy.ndarray, w_alloc: scipy.ndarray, ma: float,
                        time_sol: list) -> [scipy.ndarray, scipy.ndarray, scipy.ndarray,
-                                                    scipy.ndarray, scipy.ndarray,
-                                                    scipy.ndarray, scipy.ndarray]:
+                                           scipy.ndarray, scipy.ndarray,
+                                           scipy.ndarray, scipy.ndarray]:
     """
     Solve global model and obtain the next state in the TCPN
     :param global_model: global model
