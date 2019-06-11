@@ -16,7 +16,7 @@ class TestGlobalEdfSchedulerNoThermal(unittest.TestCase):
         tasks_specification: TasksSpecification = TasksSpecification([Task(2, 4, None),
                                                                       Task(3, 8, None),
                                                                       Task(3, 12, None)])
-        cpu_specification: CpuSpecification = CpuSpecification(None, None, 2, 4)
+        cpu_specification: CpuSpecification = CpuSpecification(None, None, 2, 1)
 
         simulation_specification: SimulationSpecification = SimulationSpecification(None, 0.01)
 
