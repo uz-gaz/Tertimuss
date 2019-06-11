@@ -14,7 +14,7 @@ class ProcessorModel(object):
         m = cpu_specification.number_of_cores
 
         # Transition rate (n)
-        eta = 100
+        eta = 10000
 
         # Total of places of the TCPN processor module
         p = m * (2 * n + 1)  # m processors*(n busy places, n exec places, 1 idle place)

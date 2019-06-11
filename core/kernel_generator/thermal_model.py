@@ -199,13 +199,7 @@ def add_heat(pre_sis, post_sis, board_conductivity: ConductivityModel,
 
     for j in range(cpu_specification.number_of_cores):
         for i in range(len(task_specification.tasks)):
-            # TODO: Check if is correct
-            lambda_gen[i] = cpu_specification.clock_frequencies[j]
-            # FIXME: Cambiar Actualmente estoy suponiendo frecuencia uniforme
-            # Por otro lado, se esta quedando siempre la frecuencia del ultimo procesador, el bucle no tiene sentido,
-            # creo que debería de ser (i - 1) * (j - 1)
-            # Pero en el codigo original a cada lugar se le asigna la frecuencia de cada
-            # procesador Lambda_gen(i)=F(j);
+            lambda_gen[i + j * len(task_specification.tasks)] = cpu_specification.clock_frequencies[j]
 
     places_proc = list(range(board_conductivity.p + 1,
                              board_conductivity.p + cpu_specification.number_of_cores * micro_conductivity.p + 1))
@@ -331,7 +325,6 @@ class ThermalModel(object):
 
         # Lineal system
         pi = pre_sis.transpose()
-        #a = ((post_sis - pre_sis).dot(scipy.diag(lambda_vector.reshape(-1)))).dot(pi)
 
         # Output places
         l_measurement = scipy.zeros(cpu_specification.number_of_cores, dtype=scipy.int64)
@@ -340,11 +333,14 @@ class ThermalModel(object):
             l_measurement[i] = board_conductivity.p + i * micro_conductivity.p + scipy.math.ceil(
                 micro_conductivity.p / 2)
 
-        c = scipy.zeros((cpu_specification.number_of_cores, len(post_sis))) # FIXME: CHECK IF  len(post_sis) == len(a)
+        c = scipy.zeros((cpu_specification.number_of_cores, len(post_sis)))  # FIXME: CHECK IF  len(post_sis) == len(a)
 
         for i in range(cpu_specification.number_of_cores):
             c[i, l_measurement[i] - 1] = 1
 
+        self.c_sis = post_sis - pre_sis
+        self.lambda_sis = scipy.diag(lambda_vector.reshape(-1))
+        self.pi = pi
         self.ct_exec = cp_exec
         self.s_t = c
         self.b_ta = diagonal

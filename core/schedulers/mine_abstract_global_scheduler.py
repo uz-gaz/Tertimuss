@@ -1,4 +1,3 @@
-
 import scipy
 
 from core.kernel_generator.global_model import GlobalModel
@@ -85,13 +84,13 @@ class AbstractGlobalScheduler(AbstractScheduler):
             m * [global_specification.environment_specification.t_env]) if is_thermal_simulation else None
 
         # TODO: REMOVE, only for debug
-        mo_debug_history = scipy.zeros((len(global_model.m),simulation_time_steps))
+        mo_debug_history = scipy.zeros((len(global_model.m), simulation_time_steps))
 
         # Active tasks
         active_task_id = m * [-1]
         for zeta_q in range(simulation_time_steps):
             # TODO: REMOVE, only for debug
-            mo_debug_history[:, zeta_q] = global_model.m[:,0]
+            mo_debug_history[:, zeta_q] = global_model.m[:, 0]
 
             # Update time
             time = zeta_q * global_specification.simulation_specification.dt
@@ -122,7 +121,8 @@ class AbstractGlobalScheduler(AbstractScheduler):
                     global_model.m.reshape(-1),
                     i_tau_disc[:, zeta_q].reshape(-1),
                     global_specification.environment_specification.t_env,
-                    [time, time + global_specification.simulation_specification.dt])
+                    [time, time + global_specification.simulation_specification.dt],
+                    global_specification.simulation_specification.dt / 10)
 
                 global_model.m = mo_next
 
@@ -143,7 +143,8 @@ class AbstractGlobalScheduler(AbstractScheduler):
                     global_model.m.reshape(-1),
                     i_tau_disc[:, zeta_q].reshape(-1),
                     45,
-                    [time, time + global_specification.simulation_specification.dt])
+                    [time, time + global_specification.simulation_specification.dt],
+                    global_specification.simulation_specification.dt / 10)
 
                 m_exec_tcpn[:, zeta_q] = m_exec_disc.reshape(-1)
                 global_model.m = mo_next
@@ -163,7 +164,8 @@ class AbstractGlobalScheduler(AbstractScheduler):
         if len(temperature_disc) > 0:
             temperature_disc = scipy.concatenate(temperature_disc, axis=1)
 
-        return SchedulerResult(temperature_map, global_model.m, time_step, i_tau_disc, m_exec, m_exec_tcpn, time_step, time_temp,
+        return SchedulerResult(temperature_map, global_model.m, time_step, i_tau_disc, m_exec, m_exec_tcpn, time_step,
+                               time_temp,
                                scipy.asarray([]), temperature_disc, global_specification.simulation_specification.dt)
 
     def schedule_policy(self, time: float, tasks: List[GlobalSchedulerTask], m: int, active_tasks: List[int],
@@ -189,4 +191,3 @@ class AbstractGlobalScheduler(AbstractScheduler):
                 if tasks_to_execute[j] == actual:
                     tasks_to_execute[j], tasks_to_execute[i] = tasks_to_execute[i], tasks_to_execute[j]
         return tasks_to_execute
-
