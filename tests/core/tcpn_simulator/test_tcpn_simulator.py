@@ -132,3 +132,7 @@ class TestPetriNets(unittest.TestCase):
 
         array_to_compare = [3 - 3 * (1 / eta), 0, 3 * (1 / eta), 1, 3 - 3 * (1 / eta), 0, 3 * (1 / eta)]
         print(mo.reshape(-1), array_to_compare)
+
+
+if __name__ == '__main__':
+    unittest.main()
