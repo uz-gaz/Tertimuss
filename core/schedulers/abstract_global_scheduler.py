@@ -106,7 +106,7 @@ class AbstractGlobalScheduler(AbstractScheduler):
             for j in range(m):
                 if active_task_id[j] != idle_task_id:
                     if round(tasks[active_task_id[j]].pending_c, 5) > 0:
-                        # Not end yet, TODO: TEST
+                        # Not end yet
                         tasks[active_task_id[j]].pending_c -= global_specification.simulation_specification.dt * \
                                                               global_specification.cpu_specification.clock_relative_frequencies[
                                                                   j]
