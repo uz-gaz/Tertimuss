@@ -100,3 +100,47 @@ class TestPetriNets(unittest.TestCase):
 
             mo_next = self.simulate_step(c, self.calculate_pi(pre, mo), lambda_pn, mo, [0, 1, 1, 1])
             mo = mo_next
+
+    def test_petri_net_advance_conf_3(self):
+        eta = 10000
+
+        pre = scipy.asarray([
+            [1, 0, 0, 0],
+            [0, 1, 0, 0],
+            [0, 0, 0, 0],
+            [eta, 0, eta, 0],
+            [0, 0, 1, 0],
+            [0, 0, 0, 1],
+            [0, 0, 0, 0]
+        ])
+
+        post = scipy.asarray([
+            [0, 0, 0, 0],
+            [1, 0, 0, 0],
+            [0, 1, 0, 0],
+            [0, eta, 0, eta],
+            [0, 0, 0, 0],
+            [0, 0, 1, 0],
+            [0, 0, 0, 1]
+        ])
+
+        lambda_pn = scipy.diag([eta, 1, eta, 1])
+
+        mo = scipy.asarray([3, 0, 0, 1, 3, 0, 0]).reshape((-1, 1))
+
+        c = post - pre
+
+        for i in range(3):
+            # 2 transitions for 1
+            mo_next = self.simulate_step(c, self.calculate_pi(pre, mo), lambda_pn, mo, [1, 1, 0, 1])
+            mo = mo_next
+
+            mo_next = self.simulate_step(c, self.calculate_pi(pre, mo), lambda_pn, mo, [1, 1, 0, 1])
+            mo = mo_next
+
+            # 2 transitions for 3
+            mo_next = self.simulate_step(c, self.calculate_pi(pre, mo), lambda_pn, mo, [0, 1, 1, 1])
+            mo = mo_next
+
+            mo_next = self.simulate_step(c, self.calculate_pi(pre, mo), lambda_pn, mo, [0, 1, 1, 1])
+            mo = mo_next

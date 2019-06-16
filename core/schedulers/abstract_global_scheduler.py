@@ -2,7 +2,6 @@ import abc
 
 import scipy
 
-from core.kernel_generator.kernel import SimulationKernel
 from core.problem_specification_models.GlobalSpecification import GlobalSpecification
 from core.problem_specification_models.TasksSpecification import Task
 from core.schedulers.abstract_scheduler import AbstractScheduler, SchedulerResult

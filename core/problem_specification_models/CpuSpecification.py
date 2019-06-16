@@ -60,19 +60,23 @@ class CoreSpecification(object):
 
 class CpuSpecification(object):
 
-    def __init__(self, board: Optional[MaterialCuboid], cpu_core: Optional[MaterialCuboid], number_of_cores: int,
-                 clock_frequency: float, cpu_origins: Optional[List[Origin]] = None):
+    def __init__(self, board_specification: Optional[MaterialCuboid], cpu_core_specification: Optional[MaterialCuboid],
+                 number_of_cores: int, clock_base_frequency: int,
+                 clock_relative_frequencies: Optional[List[float]] = None,
+                 cpu_origins: Optional[List[Origin]] = None):
         """
         CPU specification
-        :param board: Spec of board
-        :param cpu_core: Spec of homogeneous CPU core
+        :param board_specification: Spec of board
+        :param cpu_core_specification: Spec of homogeneous CPU core
         :param number_of_cores: Number of homogeneous CPU cores
-        :param clock_frequency: Frequency scale of homogeneous CPU cores (1 is the base frequency at which the platform could operate)
+        :param clock_base_frequency: Clock base frequency in Hz
+        :param clock_relative_frequencies: Frequency scale of homogeneous CPU cores relative to the base frequency
+        range: [0,1]
         """
-        self.board = board
-        self.cpu_core = cpu_core
+        self.board_specification = board_specification
+        self.cpu_core_specification = cpu_core_specification
         self.number_of_cores = number_of_cores
-        self.clock_frequencies = number_of_cores * [clock_frequency]
+        self.clock_base_frequency = clock_base_frequency
 
         def generate_automatic_origins(x0: float, x1: float, y0: float, y1: float, mx: float, my: float,
                                        n: int) -> List[Origin]:
@@ -87,11 +91,15 @@ class CpuSpecification(object):
                     return generate_automatic_origins(x0, x1, y0, y0 + (y1 - y0) / 2, mx, my, math.ceil(n / 2)) + \
                            generate_automatic_origins(x0, x1, y0 + (y1 - y0) / 2, y1, mx, my, math.floor(n / 2))
 
-        if cpu_origins is None and board is not None:
-            self.cpu_origins = generate_automatic_origins(0, self.board.x, 0, self.board.y, self.cpu_core.x,
-                                                          self.cpu_core.y, self.number_of_cores)
+        if cpu_origins is None and board_specification is not None:
+            self.cpu_origins = generate_automatic_origins(0, self.board_specification.x, 0, self.board_specification.y,
+                                                          self.cpu_core_specification.x, self.cpu_core_specification.y,
+                                                          self.number_of_cores)
         else:
             self.cpu_origins = cpu_origins
+
+        self.clock_relative_frequencies = number_of_cores * [1.0] if clock_relative_frequencies is None \
+            else clock_relative_frequencies
 
     '''
         # Constructor for heterogeneous CPU cores  

@@ -24,6 +24,12 @@ class GlobalModel(object):
                                                          global_specification.cpu_specification)
         a_proc = (processor_model.c_proc.dot(processor_model.lambda_proc)).dot(processor_model.pi_proc)
 
+        """
+        Save copy of processor, task models
+        """
+        self.__task_model = tasks_model
+        self.__processor_model = processor_model
+
         if enable_thermal_model:
             thermal_model: ThermalModel = ThermalModel(global_specification.tasks_specification,
                                                        global_specification.cpu_specification,
@@ -50,7 +56,13 @@ class GlobalModel(object):
             mo = scipy.full((len(a_t), 1), global_specification.environment_specification.t_env)
             mo = scipy.concatenate((tasks_model.m_tau_o, processor_model.m_proc_o, mo))
 
+            """
+            Save copy of thermal model
+            """
+            self.__thermal_model = thermal_model
+
         else:
+
             a = linalg.block_diag(a_tau, a_proc)
 
             b = scipy.concatenate((tasks_model.c_tau_alloc, processor_model.c_proc_alloc))
@@ -64,12 +76,10 @@ class GlobalModel(object):
 
             mo = scipy.concatenate((tasks_model.m_tau_o, processor_model.m_proc_o))
 
-        """
-        Save copy of processor, task and thermal models
-        """
-        self.__task_model = tasks_model
-        self.__processor_model = processor_model
-        self.__thermal_model = thermal_model if enable_thermal_model else None
+            """
+            Set thermal model as None
+            """
+            self.__thermal_model = None
 
         """
         Create a global model
@@ -81,10 +91,10 @@ class GlobalModel(object):
         self.s_thermal = s_thermal
         self.m = mo  # Save marking in global model
 
-    def change_frequency(self, tasks_specification: TasksSpecification, cpu_specification: CpuSpecification):
-        # TODO: TEST, only done processor change frequency
-        self.processor_model.change_frequency(tasks_specification, cpu_specification)
-        a_proc = (self.processor_model.c_proc.dot(self.processor_model.lambda_proc)).dot(
-            self.processor_model.pi_proc)
-        self.a[self.a.shape[0] - a_proc.shape[0]:self.a.shape[0],
-        self.a.shape[1] - a_proc.shape[1]:self.a.shape[1]] = a_proc
+    # def change_frequency(self, tasks_specification: TasksSpecification, cpu_specification: CpuSpecification):
+    #     # TODO: TEST, only done processor change frequency
+    #     self.processor_model.change_frequency(tasks_specification, cpu_specification)
+    #     a_proc = (self.processor_model.c_proc.dot(self.processor_model.lambda_proc)).dot(
+    #         self.processor_model.pi_proc)
+    #     self.a[self.a.shape[0] - a_proc.shape[0]:self.a.shape[0],
+    #     self.a.shape[1] - a_proc.shape[1]:self.a.shape[1]] = a_proc

@@ -89,6 +89,7 @@ class AbstractGlobalScheduler(AbstractScheduler):
         # Active tasks
         active_task_id = m * [-1]
         for zeta_q in range(simulation_time_steps):
+            print(zeta_q, simulation_time_steps)
             # TODO: REMOVE, only for debug
             mo_debug_history[:, zeta_q] = global_model.m[:, 0]
 
@@ -121,8 +122,7 @@ class AbstractGlobalScheduler(AbstractScheduler):
                     global_model.m.reshape(-1),
                     i_tau_disc[:, zeta_q].reshape(-1),
                     global_specification.environment_specification.t_env,
-                    [time, time + global_specification.simulation_specification.dt],
-                    global_specification.simulation_specification.dt / 10)
+                    global_specification.simulation_specification.dt)
 
                 global_model.m = mo_next
 
@@ -143,8 +143,7 @@ class AbstractGlobalScheduler(AbstractScheduler):
                     global_model.m.reshape(-1),
                     i_tau_disc[:, zeta_q].reshape(-1),
                     45,
-                    [time, time + global_specification.simulation_specification.dt],
-                    global_specification.simulation_specification.dt / 10)
+                    global_specification.simulation_specification.dt)
 
                 m_exec_tcpn[:, zeta_q] = m_exec_disc.reshape(-1)
                 global_model.m = mo_next

@@ -13,12 +13,12 @@ from output_generation.output_generator import plot_cpu_utilization, plot_task_e
 class TestGlobalEdfSchedulerNoThermal(unittest.TestCase):
 
     def test_global_edf_scheduler_no_thermal(self):
-        tasks_specification: TasksSpecification = TasksSpecification([Task(200, 400, None),
-                                                                      Task(300, 800, None),
-                                                                      Task(300, 1200, None)])
-        cpu_specification: CpuSpecification = CpuSpecification(None, None, 2, 1)
+        tasks_specification: TasksSpecification = TasksSpecification([Task(2000, 4000, None),
+                                                                      Task(3000, 8000, None),
+                                                                      Task(3000, 12000, None)])
+        cpu_specification: CpuSpecification = CpuSpecification(None, None, 2, 1000)
 
-        simulation_specification: SimulationSpecification = SimulationSpecification(None, 1)
+        simulation_specification: SimulationSpecification = SimulationSpecification(None, 10)
 
         global_specification: GlobalSpecification = GlobalSpecification(tasks_specification, cpu_specification,
                                                                         None,

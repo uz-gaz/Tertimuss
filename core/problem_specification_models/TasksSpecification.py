@@ -8,11 +8,10 @@ class Task(object):
     Task specification
     """
 
-    def __init__(self, c: float, t: int, e: Optional[float]):
+    def __init__(self, c: int, t: int, e: Optional[float]):
         """
-
         :param c: Task worst case execution time in CPU cycles
-        :param t: Task period, equal to deadline
+        :param t: Task period, equal to deadline in CPU cycles with CPU frequency equal to base frequency
         :param e: Energy consumption
         """
         self.c = c
