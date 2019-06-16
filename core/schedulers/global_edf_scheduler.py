@@ -14,9 +14,11 @@ class GlobalEDFScheduler(AbstractGlobalScheduler):
         super().__init__()
 
     def schedule_policy(self, time: float, tasks: List[GlobalSchedulerTask], m: int, active_tasks: List[int],
-                        cores_temperature: Optional[scipy.ndarray]) -> List[int]:
+                        cores_frequency: Optional[List[float]], cores_temperature: Optional[scipy.ndarray]) -> \
+            List[int]:
         """
         Method to implement with the actual scheduler police
+        :param cores_frequency: Frequencies of cores
         :param time: actual simulation time passed
         :param tasks: tasks
         :param m: number of cores

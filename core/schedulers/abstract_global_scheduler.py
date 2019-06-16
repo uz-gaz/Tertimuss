@@ -33,7 +33,10 @@ class AbstractGlobalScheduler(AbstractScheduler):
 
     def simulate(self, global_specification: GlobalSpecification,
                  global_model: GlobalModel, progress_bar: Optional[AbstractProgressBar]) -> SchedulerResult:
+        """
 
+        :type global_specification: object
+        """
         # True if simulation must save temperature
         is_thermal_simulation = global_model.thermal_enabled
 
@@ -96,7 +99,9 @@ class AbstractGlobalScheduler(AbstractScheduler):
             time = zeta_q * global_specification.simulation_specification.dt
 
             # Get active task in this step
-            active_task_id = self.schedule_policy(time, tasks, m, active_task_id, cores_temperature)
+            active_task_id = self.schedule_policy(time, tasks, m, active_task_id,
+                                                  global_specification.cpu_specification.clock_relative_frequencies,
+                                                  cores_temperature)
 
             for j in range(m):
                 if active_task_id[j] != idle_task_id:
@@ -161,9 +166,11 @@ class AbstractGlobalScheduler(AbstractScheduler):
 
     @abc.abstractmethod
     def schedule_policy(self, time: float, tasks: List[GlobalSchedulerTask], m: int, active_tasks: List[int],
-                        cores_temperature: Optional[scipy.ndarray]) -> List[int]:
+                        cores_frequency: Optional[List[float]], cores_temperature: Optional[scipy.ndarray]) -> \
+            List[int]:
         """
         Method to implement with the actual scheduler police
+        :param cores_frequency: Frequencies of cores
         :param time: actual simulation time passed
         :param tasks: tasks
         :param m: number of cores
