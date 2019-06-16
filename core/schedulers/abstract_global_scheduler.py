@@ -2,6 +2,7 @@ import abc
 
 import scipy
 
+from core.kernel_generator.global_model import GlobalModel
 from core.problem_specification_models.GlobalSpecification import GlobalSpecification
 from core.problem_specification_models.TasksSpecification import Task
 from core.schedulers.abstract_scheduler import AbstractScheduler, SchedulerResult
@@ -31,10 +32,10 @@ class AbstractGlobalScheduler(AbstractScheduler):
         super().__init__()
 
     def simulate(self, global_specification: GlobalSpecification,
-                 simulation_kernel: SimulationKernel, progress_bar: Optional[AbstractProgressBar]) -> SchedulerResult:
+                 global_model: GlobalModel, progress_bar: Optional[AbstractProgressBar]) -> SchedulerResult:
 
         # True if simulation must save temperature
-        is_thermal_simulation = simulation_kernel.thermal_model is not None
+        is_thermal_simulation = global_model.thermal_enabled
 
         idle_task_id = -1
         m = global_specification.cpu_specification.number_of_cores
@@ -75,7 +76,7 @@ class AbstractGlobalScheduler(AbstractScheduler):
         time_temp = []
 
         # Initial marking
-        mo = simulation_kernel.mo
+        mo = global_model.m
 
         # Accumulated execution time in each step
         m_exec_step = scipy.zeros(n * m)
@@ -100,8 +101,10 @@ class AbstractGlobalScheduler(AbstractScheduler):
             for j in range(m):
                 if active_task_id[j] != idle_task_id:
                     if round(tasks[active_task_id[j]].pending_c, 5) > 0:
-                        # Not end yet
-                        tasks[active_task_id[j]].pending_c -= global_specification.simulation_specification.dt
+                        # Not end yet, TODO: TEST
+                        tasks[active_task_id[j]].pending_c -= global_specification.simulation_specification.dt * \
+                                                              global_specification.cpu_specification.clock_relative_frequencies[
+                                                                  j]
                         i_tau_disc[active_task_id[j] + j * n, zeta_q] = 1
                         m_exec_step[active_task_id[j] + j * n] += global_specification.simulation_specification.dt
 
@@ -116,11 +119,11 @@ class AbstractGlobalScheduler(AbstractScheduler):
 
             if is_thermal_simulation:
                 mo_next, m_exec_disc, _, _, tout_disc, temp_time_disc, temperature_tcpn = solve_global_model(
-                    simulation_kernel.global_model,
+                    global_model,
                     mo.reshape(-1),
                     i_tau_disc[:, zeta_q].reshape(-1),
                     global_specification.environment_specification.t_env,
-                    [time, time + global_specification.simulation_specification.dt])
+                    time, global_specification.simulation_specification.dt)
 
                 mo = mo_next
 

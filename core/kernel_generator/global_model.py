@@ -90,6 +90,7 @@ class GlobalModel(object):
         self.s = s
         self.s_thermal = s_thermal
         self.m = mo  # Save marking in global model
+        self.thermal_enabled = self.__thermal_model is not None
 
     # def change_frequency(self, tasks_specification: TasksSpecification, cpu_specification: CpuSpecification):
     #     # TODO: TEST, only done processor change frequency
