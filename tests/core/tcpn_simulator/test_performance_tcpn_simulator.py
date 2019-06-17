@@ -6,6 +6,7 @@ import scipy
 import scipy.linalg
 
 from core.tcpn_simulator.TcpnSimulator import TcpnSimulator
+from core.tcpn_simulator.TcpnSimulatorOptimized import TcpnSimulatorOptimized
 
 
 def test_performance_petri_net_with_control():
@@ -45,7 +46,7 @@ def test_performance_petri_net_with_control():
 
     mo = scipy.asarray([1] + (petri_net_size * [3, 0, 0])).reshape((-1, 1))
 
-    tcpn_simulator: TcpnSimulator = TcpnSimulator(pre, post, lambda_vector)
+    tcpn_simulator: TcpnSimulatorOptimized = TcpnSimulatorOptimized(pre, post, lambda_vector)
 
     # Array where t 3*n + 1 are disabled
     control_model_array = scipy.asarray(petri_net_size * [0, 1, 1])
@@ -68,8 +69,18 @@ def test_performance_petri_net_with_control():
 
     time2 = time.time()
 
-    print("Time taken:", time2 - time1, "s")
-    print("Size of pre:", sys.getsizeof(pre) / 1000000, "MB")
+    print("Time taken:", time2 - time1, "s,", "Size of pre:", sys.getsizeof(pre) / 1000000, "MB")
+    print("Simulation dimensions:", 3 * petri_net_size, "transitions,", 3 * petri_net_size + 1, "places,",
+          simulation_steps, "simulation steps")
+
+    """
+    Performance history:
+    Version 1: 16 jun, 18:05 -> Time taken: 24.094393014907837 s, Size of pre: 6.487312 MB
+                                Simulation dimensions: 900 transitions, 901 places, 100 simulation steps
+                                
+    Version 2 (Optimized): 17 jun, 12:39 -> Time taken: 1.0696501731872559 s, Size of pre: 6.487312 MB
+                                            Simulation dimensions: 900 transitions, 901 places, 100 simulation steps
+    """
 
 
 if __name__ == '__main__':

@@ -4,10 +4,8 @@ import scipy
 from core.kernel_generator.processor_model import ProcessorModel
 from core.kernel_generator.tasks_model import TasksModel
 from core.kernel_generator.thermal_model import ThermalModel
-from core.problem_specification_models.CpuSpecification import CpuSpecification
 
 from core.problem_specification_models.GlobalSpecification import GlobalSpecification
-from core.problem_specification_models.TasksSpecification import TasksSpecification
 
 
 class GlobalModel(object):

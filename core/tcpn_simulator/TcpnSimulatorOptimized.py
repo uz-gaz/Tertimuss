@@ -1,7 +1,7 @@
 import scipy
 
 
-class TcpnSimulator(object):
+class TcpnSimulatorOptimized(object):
     """
     Time continuous petri net simulator
     # TODO: Add check to shapes
@@ -18,9 +18,8 @@ class TcpnSimulator(object):
         self.__post = post
         self.__lambda_vector = lambda_vector
         self.__control = scipy.ones(len(lambda_vector))
-        self.__pi = None
         self.__c = self.__post - self.__pre
-        self.__pi_set_by_user = False
+        self.__pre_inv = scipy.vectorize(lambda x: scipy.nan if x == 0 else 1 / x)(pre)
 
     def change_pre(self, pre: scipy.ndarray):
         """
@@ -29,6 +28,7 @@ class TcpnSimulator(object):
         """
         self.__pre = pre
         self.__c = self.__post - self.__pre
+        self.__pre_inv = scipy.array(map(lambda x: 0 if x == 0 else 1 / x, pre))
 
     def change_post(self, post: scipy.ndarray):
         """
@@ -52,50 +52,6 @@ class TcpnSimulator(object):
         """
         self.__control = control
 
-    def set_pi(self, pi: scipy.ndarray):
-        """
-        Set the PI
-        :param pi: pi
-        """
-        self.__pi_set_by_user = True
-        self.__pi = pi
-
-    def calculate_and_set_pi(self, mo: scipy.ndarray):
-        """
-        Calculate the Pi for the actual marking and set it
-        :param mo: mo
-        """
-        self.__pi_set_by_user = True
-        self.__pi = self.__calculate_pi(mo)
-
-    def __calculate_pi(self, mo: scipy.ndarray):
-        """
-        Calculate pi
-        :param mo: actual marking
-        :return: pi
-        """
-        pre_transpose = self.__pre.transpose()
-        pi = scipy.zeros(pre_transpose.shape)
-
-        for i in range(len(pre_transpose)):
-            places = pre_transpose[i]
-            max_index = -1
-            max_global = 0
-            for j in range(len(places)):
-                if places[j] != 0:
-                    if mo[j] != 0:
-                        max_interior = places[j] / mo[j]
-                        if max_global < max_interior:
-                            max_global = max_interior
-                            max_index = j
-                    else:
-                        max_index = -1
-                        break
-            if max_index != -1:
-                pi[i][max_index] = 1 / places[max_index]
-
-        return pi
-
     def simulate_step(self, mo: scipy.ndarray, step: float) -> scipy.ndarray:
         """
         Simulate one step
@@ -104,13 +60,15 @@ class TcpnSimulator(object):
         :param step: step size
         :return: next marking
         """
-        pi = self.__calculate_pi(mo) if self.__pi is None else self.__pi
-
         # Max number of activations for each transition (limited by the actual control, the lambda and the step)
         limitation_lambda = self.__lambda_vector * self.__control * step
 
-        # Max number of activations for each transition (limited by the actual marking)
-        limitation_marking = pi.dot(mo).reshape(-1)
+        # Max number of activations for each transition (limited by the actual marking
+        limitation_marking = scipy.nanmin(self.__pre_inv * mo, axis=0)
+
+        # It is only necessary if there are transitions without inputs
+        # TODO: Add check
+        # limitation_marking = scipy.vectorize(lambda x: 0 if x == scipy.nan else x)(limitation_marking)
 
         # Number of activations for each transition
         flow = scipy.minimum(limitation_lambda, limitation_marking).reshape((-1, 1))

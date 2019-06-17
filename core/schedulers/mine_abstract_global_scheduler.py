@@ -122,6 +122,7 @@ class AbstractGlobalScheduler(AbstractScheduler):
                     global_model.m.reshape(-1),
                     i_tau_disc[:, zeta_q].reshape(-1),
                     global_specification.environment_specification.t_env,
+                    time,
                     global_specification.simulation_specification.dt)
 
                 global_model.m = mo_next
@@ -143,6 +144,7 @@ class AbstractGlobalScheduler(AbstractScheduler):
                     global_model.m.reshape(-1),
                     i_tau_disc[:, zeta_q].reshape(-1),
                     45,
+                    time,
                     global_specification.simulation_specification.dt)
 
                 m_exec_tcpn[:, zeta_q] = m_exec_disc.reshape(-1)

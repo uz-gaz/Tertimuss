@@ -57,7 +57,7 @@ class ProcessorModel(object):
             pre[(k + 1) * (2 * n + 1) - 1, 2 * k * n: 2 * k * n + n] = eta * scipy.ones(n)
             post[(k + 1) * (2 * n + 1) - 1, 2 * k * n + n: 2 * k * n + 2 * n] = eta * scipy.ones(n)
 
-            # pi[(k + 1) * (2 * n + 1) - 1, 2 * k * n: 2 * k * n + n] = (1 / eta) * scipy.ones(n)
+            pi[2 * k * n: 2 * k * n + n, (k + 1) * (2 * n + 1) - 1] = (1 / eta) * scipy.ones(n)
 
             # Construction of Pre an Post matrix for Transitions alloc
             pre_alloc[i:i + n, k * n: (k + 1) * n] = pre[i:i + n, 2 * k * n: 2 * k * n + n]
