@@ -4,6 +4,7 @@ import scipy
 
 from core.tcpn_simulator.AbstractTcpnSimulator import AbstractTcpnSimulator
 from core.tcpn_simulator.TcpnSimulatorAccurate import TcpnSimulatorAccurate
+from core.tcpn_simulator.TcpnSimulatorAccurateOptimized import TcpnSimulatorAccurateOptimized
 
 
 class TestPetriNets(unittest.TestCase):
@@ -27,7 +28,7 @@ class TestPetriNets(unittest.TestCase):
 
         mo = scipy.asarray([1, 0, 0, 0]).reshape((-1, 1))
 
-        tcpn_simulator: AbstractTcpnSimulator = TcpnSimulatorAccurate(pre, post, lambda_vector, 1)
+        tcpn_simulator: AbstractTcpnSimulator = TcpnSimulatorAccurateOptimized(pre, post, lambda_vector, 1)
 
         for i in range(6):
             mo_next = tcpn_simulator.simulate_step(mo)
@@ -60,7 +61,7 @@ class TestPetriNets(unittest.TestCase):
 
         mo = scipy.asarray([3, 0, 0, 1, 3, 0, 0]).reshape((-1, 1))
 
-        tcpn_simulator: AbstractTcpnSimulator = TcpnSimulatorAccurate(pre, post, lambda_vector, 1)
+        tcpn_simulator: AbstractTcpnSimulator = TcpnSimulatorAccurateOptimized(pre, post, lambda_vector, 1)
 
         for i in range(3):
             # 2 transitions for 1
@@ -110,7 +111,7 @@ class TestPetriNets(unittest.TestCase):
 
         mo = scipy.asarray([3, 0, 0, 1, 3, 0, 0]).reshape((-1, 1))
 
-        tcpn_simulator: AbstractTcpnSimulator = TcpnSimulatorAccurate(pre, post, lambda_vector, 1)
+        tcpn_simulator: AbstractTcpnSimulator = TcpnSimulatorAccurateOptimized(pre, post, lambda_vector, 1)
 
         for i in range(3):
             # 2 transitions for 1

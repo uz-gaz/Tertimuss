@@ -5,6 +5,7 @@ import scipy
 
 import scipy.linalg
 
+from core.tcpn_simulator.AbstractTcpnSimulator import AbstractTcpnSimulator
 from core.tcpn_simulator.TcpnSimulatorAccurate import TcpnSimulatorAccurate
 from core.tcpn_simulator.TcpnSimulatorAccurateOptimized import TcpnSimulatorAccurateOptimized
 from core.tcpn_simulator.TcpnSimulatorEuler import TcpnSimulatorEuler
@@ -12,78 +13,16 @@ from core.tcpn_simulator.TcpnSimulatorEuler import TcpnSimulatorEuler
 
 def test_performance_petri_net_with_control():
     # Petri net size
-    petri_net_size = 2000
+    petri_net_size = 1000
 
     # Petri net replications
     # petri_net_replications = 1
 
     # Simulation steps
-    simulation_steps = 100
-
-    # Transitions to P1
-    pre_p1 = scipy.asarray(petri_net_size * [1, 0, 0]).reshape((1, -1))
-    post_p1 = scipy.asarray(petri_net_size * [1, 0, 0]).reshape((1, -1))
-
-    # Other transitions
-    pre = scipy.linalg.block_diag(
-        *(petri_net_size * [scipy.asarray([
-            [1, 0, 0],
-            [0, 1, 0],
-            [0, 0, 1],
-        ])]))
-
-    pre = scipy.concatenate([pre_p1, pre], axis=0)
-
-    post = scipy.linalg.block_diag(
-        *(petri_net_size * [scipy.asarray([
-            [0, 0, 1],
-            [1, 0, 0],
-            [0, 1, 0],
-        ])]))
-
-    post = scipy.concatenate([post_p1, post], axis=0)
-
-    lambda_vector = scipy.asarray(petri_net_size * [1, 1, 1])
-
-    mo = scipy.asarray([1] + (petri_net_size * [3, 0, 0])).reshape((-1, 1))
-
-    tcpn_simulator: TcpnSimulatorAccurateOptimized = TcpnSimulatorAccurateOptimized(pre, post, lambda_vector)
-
-    # Array where t 3*n + 1 are disabled
-    control_model_array = scipy.asarray(petri_net_size * [0, 1, 1])
-
-    # Actual transition enabled
-    actual_transition_enabled = 0
-
-    time1 = time.time()
-    for _ in range(simulation_steps):
-        # Apply control action
-        control = scipy.copy(control_model_array)
-        control[3 * actual_transition_enabled] = 1
-        tcpn_simulator.apply_control(control)
-
-        # Simulate step
-        mo = tcpn_simulator.simulate_step(mo, 1)
-
-        # Next transition enabled
-        actual_transition_enabled = (actual_transition_enabled + 1) % petri_net_size
-
-    time2 = time.time()
-
-    print("Time taken:", time2 - time1, "s,", "Size of pre:", sys.getsizeof(pre) / 1000000, "MB")
-    print("Simulation dimensions:", 3 * petri_net_size, "transitions,", 3 * petri_net_size + 1, "places,",
-          simulation_steps, "simulation steps")
-
-
-def test_performance_petri_net_with_control_pi_setted():
-    # Petri net size
-    petri_net_size = 2000
-
-    # Petri net replications
-    # petri_net_replications = 1
+    simulation_steps = 10
 
     # Simulation steps
-    simulation_steps = 100
+    step_size = 0.1
 
     # Transitions to P1
     pre_p1 = scipy.asarray(petri_net_size * [1, 0, 0]).reshape((1, -1))
@@ -122,7 +61,7 @@ def test_performance_petri_net_with_control_pi_setted():
 
     mo = scipy.asarray([1] + (petri_net_size * [3, 0, 0])).reshape((-1, 1))
 
-    tcpn_simulator: TcpnSimulatorEuler = TcpnSimulatorEuler(pre, post, lambda_vector)
+    tcpn_simulator: AbstractTcpnSimulator = TcpnSimulatorEuler(pre, post, lambda_vector, step_size)
     tcpn_simulator.set_pi(pi)
 
     # Array where t 3*n + 1 are disabled
@@ -136,10 +75,11 @@ def test_performance_petri_net_with_control_pi_setted():
         # Apply control action
         control = scipy.copy(control_model_array)
         control[3 * actual_transition_enabled] = 1
-        tcpn_simulator.apply_control(control)
+        tcpn_simulator.set_control(control)
 
-        # Simulate step
-        mo = tcpn_simulator.simulate_step(mo, 1)
+        for _ in range(round(1 / step_size)):
+            # Simulate step
+            mo = tcpn_simulator.simulate_step(mo)
 
         # Next transition enabled
         actual_transition_enabled = (actual_transition_enabled + 1) % petri_net_size
@@ -148,11 +88,11 @@ def test_performance_petri_net_with_control_pi_setted():
 
     print("Time taken:", time2 - time1, "s,", "Size of pre:", sys.getsizeof(pre) / 1000000, "MB")
     print("Simulation dimensions:", 3 * petri_net_size, "transitions,", 3 * petri_net_size + 1, "places,",
-          simulation_steps, "simulation steps")
+          simulation_steps * round(1 / step_size), "simulation steps")
 
 
 if __name__ == '__main__':
-    test_performance_petri_net_with_control_pi_setted()
+    test_performance_petri_net_with_control()
 
     """
     Performance history:
@@ -176,4 +116,16 @@ if __name__ == '__main__':
                                             
     Version Euler: 18 jun, 13:05 ->         Time taken: 50.05803847312927 s, Size of pre: 144.024112 MB
                                             Simulation dimensions: 6000 transitions, 6001 places, 100 simulation steps
+    """
+
+    """
+    Performance history 2:
+    Accurated (with pi) ->  Time taken: 15.429810762405396 s, Size of pre: 72.024112 MB
+                            Simulation dimensions: 3000 transitions, 3001 places, 100 simulation steps
+    
+    AccuratedOptimized ->   Time taken: 17.499030590057373 s, Size of pre: 72.024112 MB
+                            Simulation dimensions: 3000 transitions, 3001 places, 100 simulation steps
+    
+    Eurel (with pi) ->      Time taken: 20.790602207183838 s, Size of pre: 72.024112 MB
+                            Simulation dimensions: 3000 transitions, 3001 places, 100 simulation steps
     """

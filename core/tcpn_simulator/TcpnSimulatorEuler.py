@@ -1,7 +1,9 @@
 import scipy
 
+from core.tcpn_simulator.AbstractTcpnSimulator import AbstractTcpnSimulator
 
-class TcpnSimulatorEuler(object):
+
+class TcpnSimulatorEuler(AbstractTcpnSimulator):
     """
     Time continuous petri net simulator
     # TODO: Add check to shapes and test
@@ -122,7 +124,6 @@ class TcpnSimulatorEuler(object):
         Simulate one step
 
         :param mo:  actual marking
-        :param step: step size
         :return: next marking
         """
         if self.__pi is not None:
