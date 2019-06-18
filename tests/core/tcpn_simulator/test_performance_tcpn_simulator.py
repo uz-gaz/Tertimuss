@@ -5,8 +5,9 @@ import scipy
 
 import scipy.linalg
 
-from core.tcpn_simulator.TcpnSimulator import TcpnSimulator
-from core.tcpn_simulator.TcpnSimulatorOptimized import TcpnSimulatorOptimized
+from core.tcpn_simulator.TcpnSimulatorAccurate import TcpnSimulatorAccurate
+from core.tcpn_simulator.TcpnSimulatorAccurateOptimized import TcpnSimulatorAccurateOptimized
+from core.tcpn_simulator.TcpnSimulatorEuler import TcpnSimulatorEuler
 
 
 def test_performance_petri_net_with_control():
@@ -46,7 +47,7 @@ def test_performance_petri_net_with_control():
 
     mo = scipy.asarray([1] + (petri_net_size * [3, 0, 0])).reshape((-1, 1))
 
-    tcpn_simulator: TcpnSimulatorOptimized = TcpnSimulatorOptimized(pre, post, lambda_vector)
+    tcpn_simulator: TcpnSimulatorAccurateOptimized = TcpnSimulatorAccurateOptimized(pre, post, lambda_vector)
 
     # Array where t 3*n + 1 are disabled
     control_model_array = scipy.asarray(petri_net_size * [0, 1, 1])
@@ -121,7 +122,7 @@ def test_performance_petri_net_with_control_pi_setted():
 
     mo = scipy.asarray([1] + (petri_net_size * [3, 0, 0])).reshape((-1, 1))
 
-    tcpn_simulator: TcpnSimulator = TcpnSimulator(pre, post, lambda_vector)
+    tcpn_simulator: TcpnSimulatorEuler = TcpnSimulatorEuler(pre, post, lambda_vector)
     tcpn_simulator.set_pi(pi)
 
     # Array where t 3*n + 1 are disabled
@@ -171,5 +172,8 @@ if __name__ == '__main__':
                                             Simulation dimensions: 3000 transitions, 3001 places, 100 simulation steps
                                             
                                             Time taken: 44.11157035827637 s, Size of pre: 288.048112 MB
+                                            Simulation dimensions: 6000 transitions, 6001 places, 100 simulation steps
+                                            
+    Version Euler: 18 jun, 13:05 ->         Time taken: 50.05803847312927 s, Size of pre: 144.024112 MB
                                             Simulation dimensions: 6000 transitions, 6001 places, 100 simulation steps
     """

@@ -1,13 +1,13 @@
 import scipy
 
 
-class TcpnSimulator(object):
+class TcpnSimulatorEuler(object):
     """
     Time continuous petri net simulator
-    # TODO: Add check to shapes
+    # TODO: Add check to shapes and test
     """
 
-    def __init__(self, pre: scipy.ndarray, post: scipy.ndarray, lambda_vector: scipy.ndarray):
+    def __init__(self, pre: scipy.ndarray, post: scipy.ndarray, lambda_vector: scipy.ndarray, step: float):
         """
         Define the Petri net
         :param pre: pre
@@ -20,53 +20,66 @@ class TcpnSimulator(object):
         self.__control = scipy.ones(len(lambda_vector))
         self.__pi = None
         self.__c = self.__post - self.__pre
-        self.__pi_set_by_user = False
+        self.__step = step
+        self.__calculate_constant_values()
 
-    def change_pre(self, pre: scipy.ndarray):
+    def set_pre(self, pre: scipy.ndarray):
         """
         Change pre value
         :param pre: pre
         """
         self.__pre = pre
         self.__c = self.__post - self.__pre
+        self.__calculate_constant_values()
 
-    def change_post(self, post: scipy.ndarray):
+    def set_post(self, post: scipy.ndarray):
         """
         Change post value
         :param post: post
         """
         self.__post = post
         self.__c = self.__post - self.__pre
+        self.__calculate_constant_values()
 
-    def change_lambda(self, lambda_vector: scipy.ndarray):
+    def set_lambda(self, lambda_vector: scipy.ndarray):
         """
         Change lambda value
         :param lambda_vector: lambda
         """
         self.__lambda_vector = lambda_vector
+        self.__calculate_constant_values()
 
-    def apply_control(self, control: scipy.ndarray):
+    def set_control(self, control: scipy.ndarray):
         """
         Apply a control action over transitions firing in the Petri net
         :param control: control
         """
         self.__control = control
+        self.__calculate_constant_values()
 
     def set_pi(self, pi: scipy.ndarray):
         """
         Set the PI
         :param pi: pi
         """
-        self.__pi_set_by_user = True
         self.__pi = pi
+        self.__calculate_constant_values()
+
+    def set_step(self, step: float):
+        """
+        Set the step of the simulation
+        :param step: step
+        """
+        self.__step = step
+        self.__calculate_constant_values()
 
     def calculate_and_set_pi(self, mo: scipy.ndarray):
         """
         Calculate the Pi for the actual marking and set it
         :param mo: mo
         """
-        self.__pi_set_by_user = True
         self.__pi = self.__calculate_pi(mo)
+        self.__calculate_constant_values()
 
     def __calculate_pi(self, mo: scipy.ndarray):
         """
@@ -96,7 +109,15 @@ class TcpnSimulator(object):
 
         return pi
 
-    def simulate_step(self, mo: scipy.ndarray, step: float) -> scipy.ndarray:
+    def __calculate_constant_values(self):
+        """
+        Calculate all constant values during the simulation
+        """
+        self.__static_control_matrix = self.__c * self.__lambda_vector * self.__control * self.__step
+        if self.__pi is not None:
+            self.__static_control_matrix = self.__static_control_matrix.dot(self.__pi)
+
+    def simulate_step(self, mo: scipy.ndarray) -> scipy.ndarray:
         """
         Simulate one step
 
@@ -104,16 +125,7 @@ class TcpnSimulator(object):
         :param step: step size
         :return: next marking
         """
-        pi = self.__calculate_pi(mo) if self.__pi is None else self.__pi
-
-        # Max number of activations for each transition (limited by the actual control, the lambda and the step)
-        limitation_lambda = self.__lambda_vector * self.__control * step
-
-        # Max number of activations for each transition (limited by the actual marking)
-        limitation_marking = pi.dot(mo).reshape(-1)
-
-        # Number of activations for each transition
-        flow = scipy.minimum(limitation_lambda, limitation_marking).reshape((-1, 1))
-
-        # Return the next marking
-        return self.__c.dot(flow) + mo
+        if self.__pi is not None:
+            return self.__static_control_matrix.dot(mo) + mo
+        else:
+            return self.__static_control_matrix.dot(self.__calculate_pi(mo)).dot(mo) + mo

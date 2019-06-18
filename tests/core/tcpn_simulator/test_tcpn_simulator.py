@@ -2,7 +2,8 @@ import unittest
 
 import scipy
 
-from core.tcpn_simulator.TcpnSimulator import TcpnSimulator
+from core.tcpn_simulator.AbstractTcpnSimulator import AbstractTcpnSimulator
+from core.tcpn_simulator.TcpnSimulatorAccurate import TcpnSimulatorAccurate
 
 
 class TestPetriNets(unittest.TestCase):
@@ -26,10 +27,10 @@ class TestPetriNets(unittest.TestCase):
 
         mo = scipy.asarray([1, 0, 0, 0]).reshape((-1, 1))
 
-        tcpn_simulator: TcpnSimulator = TcpnSimulator(pre, post, lambda_vector)
+        tcpn_simulator: AbstractTcpnSimulator = TcpnSimulatorAccurate(pre, post, lambda_vector, 1)
 
         for i in range(6):
-            mo_next = tcpn_simulator.simulate_step(mo, 1)
+            mo_next = tcpn_simulator.simulate_step(mo)
             mo = mo_next
 
         assert (scipy.array_equal(mo.reshape(-1), [1, 0, 0, 0]))
@@ -59,25 +60,25 @@ class TestPetriNets(unittest.TestCase):
 
         mo = scipy.asarray([3, 0, 0, 1, 3, 0, 0]).reshape((-1, 1))
 
-        tcpn_simulator: TcpnSimulator = TcpnSimulator(pre, post, lambda_vector)
+        tcpn_simulator: AbstractTcpnSimulator = TcpnSimulatorAccurate(pre, post, lambda_vector, 1)
 
         for i in range(3):
             # 2 transitions for 1
             control = scipy.asarray([1, 1, 0, 1])
-            tcpn_simulator.apply_control(control)
-            mo_next = tcpn_simulator.simulate_step(mo, 1)
+            tcpn_simulator.set_control(control)
+            mo_next = tcpn_simulator.simulate_step(mo)
             mo = mo_next
 
-            mo_next = tcpn_simulator.simulate_step(mo, 1)
+            mo_next = tcpn_simulator.simulate_step(mo)
             mo = mo_next
 
             # 2 transitions for 3
             control = scipy.asarray([0, 1, 1, 1])
-            tcpn_simulator.apply_control(control)
-            mo_next = tcpn_simulator.simulate_step(mo, 1)
+            tcpn_simulator.set_control(control)
+            mo_next = tcpn_simulator.simulate_step(mo)
             mo = mo_next
 
-            mo_next = tcpn_simulator.simulate_step(mo, 1)
+            mo_next = tcpn_simulator.simulate_step(mo)
             mo = mo_next
 
         assert (scipy.array_equal(mo.reshape(-1), [0, 0, 3, 1, 0, 0, 3]))
@@ -109,25 +110,25 @@ class TestPetriNets(unittest.TestCase):
 
         mo = scipy.asarray([3, 0, 0, 1, 3, 0, 0]).reshape((-1, 1))
 
-        tcpn_simulator: TcpnSimulator = TcpnSimulator(pre, post, lambda_vector)
+        tcpn_simulator: AbstractTcpnSimulator = TcpnSimulatorAccurate(pre, post, lambda_vector, 1)
 
         for i in range(3):
             # 2 transitions for 1
             control = scipy.asarray([1, 1, 0, 1])
-            tcpn_simulator.apply_control(control)
-            mo_next = tcpn_simulator.simulate_step(mo, 1)
+            tcpn_simulator.set_control(control)
+            mo_next = tcpn_simulator.simulate_step(mo)
             mo = mo_next
 
-            mo_next = tcpn_simulator.simulate_step(mo, 1)
+            mo_next = tcpn_simulator.simulate_step(mo)
             mo = mo_next
 
             # 2 transitions for 3
             control = scipy.asarray([0, 1, 1, 1])
-            tcpn_simulator.apply_control(control)
-            mo_next = tcpn_simulator.simulate_step(mo, 1)
+            tcpn_simulator.set_control(control)
+            mo_next = tcpn_simulator.simulate_step(mo)
             mo = mo_next
 
-            mo_next = tcpn_simulator.simulate_step(mo, 1)
+            mo_next = tcpn_simulator.simulate_step(mo)
             mo = mo_next
 
         array_to_compare = [3 - 3 * (1 / eta), 0, 3 * (1 / eta), 1, 3 - 3 * (1 / eta), 0, 3 * (1 / eta)]
