@@ -55,8 +55,21 @@ class TasksModel(object):
         lambda_tau = scipy.diag(lambda_vector)
 
         # TODO: Convert to SPARSE MATRIXES
-        self.c_tau = c
-        self.lambda_tau = lambda_tau
+        # Definition of task model
+        self.pre_tau = pre
+        self.post_tau = post
+        self.lambda_vector_tau = lambda_vector
+        self.mo_tau = mo
         self.pi_tau = pi
-        self.c_tau_alloc = c_alloc
-        self.m_tau_o = mo
+
+        # Definition of the union between the task model and the processor model
+        self.pre_alloc_tau = pre
+        self.post_alloc_tau = post
+        self.lambda_vector_alloc_tau = lambda_vector
+        self.pi_alloc_tau = pi
+
+        # self.c_tau = c
+        # self.lambda_tau = lambda_tau
+
+        # self.c_tau_alloc = c_alloc
+        # self.m_tau_o = mo

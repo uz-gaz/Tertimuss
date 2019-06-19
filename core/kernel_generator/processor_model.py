@@ -85,14 +85,17 @@ class ProcessorModel(object):
         lambda_proc = scipy.diag(lambda_vector)
 
         # TODO: Convert to SPARSE MATRIXES
-        self.c_proc = c
-        self.lambda_proc = lambda_proc
+        # self.c_proc = c
+        # self.lambda_proc = lambda_proc
+        self.pre_proc = pre
+        self.post_proc = post
+        self.lambda_vector_proc = lambda_vector
+        self.mo_proc = mo
         # self.pi_proc = pi.transpose()
         self.pi_proc = pi
-        self.c_proc_alloc = c_alloc
-        self.s_exec = s_exec
-        self.s_busy = s_busy
-        self.m_proc_o = mo
+        # self.c_proc_alloc = c_alloc
+        # self.s_exec = s_exec
+        # self.s_busy = s_busy
 
     # def change_frequency(self, tasks_specification: TasksSpecification, cpu_specification: CpuSpecification):
     #     # TODO: TEST
