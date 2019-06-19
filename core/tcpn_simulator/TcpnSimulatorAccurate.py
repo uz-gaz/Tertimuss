@@ -1,3 +1,5 @@
+from typing import Optional
+
 import scipy
 
 from core.tcpn_simulator.AbstractTcpnSimulator import AbstractTcpnSimulator
@@ -9,7 +11,8 @@ class TcpnSimulatorAccurate(AbstractTcpnSimulator):
     # TODO: Add check to shapes
     """
 
-    def __init__(self, pre: scipy.ndarray, post: scipy.ndarray, lambda_vector: scipy.ndarray, step: float):
+    def __init__(self, pre: scipy.ndarray, post: scipy.ndarray, pi: Optional[scipy.ndarray],
+                 lambda_vector: scipy.ndarray, step: float):
         """
         Define the Petri net
         :param pre: pre
@@ -20,7 +23,7 @@ class TcpnSimulatorAccurate(AbstractTcpnSimulator):
         self.__post = post
         self.__lambda_vector = lambda_vector
         self.__control = scipy.ones(len(lambda_vector))
-        self.__pi = None
+        self.__pi = pi
         self.__c = self.__post - self.__pre
         self.__step = step
         self.__calculate_constant_values()

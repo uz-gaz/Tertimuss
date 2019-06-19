@@ -20,22 +20,25 @@ class ProcessorModel(object):
         p = m * (2 * n + 1)  # m processors*(n busy places, n exec places, 1 idle place)
 
         # Total of transitions
-        t = m * (2 * n)  # m processors*(n transitions alloc and n tramsition exec)
-        t_alloc = n * m  # m processors*(n transitions alloc)
+        t_alloc = n * m  # m processors * (n transitions alloc)
+        t_exec = n * m  # m processors * (n tramsition exec)
 
-        pre = scipy.zeros((p, t))
-        post = scipy.zeros((p, t))
+        # Model marking
+        mo = scipy.zeros((p, 1))
+
+        # Model for alloc transitions
         pre_alloc = scipy.zeros((p, t_alloc))
         post_alloc = scipy.zeros((p, t_alloc))
-        lambda_vector = scipy.zeros(t)
-        lambda_alloc = scipy.zeros(t_alloc)
-        # pi = scipy.zeros((p, t))
-        pi = scipy.zeros((t, p))
-        mo = scipy.zeros((p, 1))  # Different from np.zeros(p), column array
-        s_exec = scipy.zeros((n * m, p))
-        s_busy = scipy.zeros((n * m, p))
+        pi_alloc = scipy.zeros((t_alloc, p))
+        lambda_vector_alloc = scipy.zeros(t_alloc)
 
-        # Incidence Matrix C construction
+        # Model for exec transitions
+        pre_exec = scipy.zeros((p, t_exec))
+        post_exec = scipy.zeros((p, t_exec))
+        pi_exec = scipy.zeros((t_exec, p))
+        lambda_vector_exec = scipy.zeros(t_exec)
+
+        # Construction of the model
         # numeration of places and the corresponding label in the model for CPU_1:
         # busy places: p1-pn->p^busy_{1,1},..,p^busy_{n,1}
         # exec places: pn+1-p2n->p^exec_{1,1},...,p^exec_{n,1}
@@ -47,55 +50,37 @@ class ProcessorModel(object):
             i = (2 * n + 1) * k
 
             # Construction of matrix Post and Pre for busy and exec places (connections to transitions alloc and exec)
-            pre[i:i + n, 2 * k * n + n: 2 * k * n + 2 * n] = scipy.identity(n)  # Arcs going from p_busy to t_exec
-            post[i:i + 2 * n, k * 2 * n:k * 2 * n + 2 * n] = scipy.identity(
-                2 * n)  # Arcs going from t_alloc to p_busy and from t_exec to p_exec
+            pre_exec[i:i + n, k * n: k * n + n] = scipy.identity(n)  # Arcs going from p_busy to t_exec
 
-            # pi[i:i + n, 2 * k * n + n: 2 * k * n + 2 * n] = scipy.identity(n)
+            post_alloc[i:i + n, k * n:k * n + n] = scipy.identity(n)  # Arcs going from t_alloc to p_busy
+            post_exec[i + n:i + 2 * n, k * n:k * n + n] = scipy.identity(n)  # Arcs going from t_exec to p_exec
 
             # Construction of matrix Post and Pre for idle place (connections to transitions alloc and exec)
-            pre[(k + 1) * (2 * n + 1) - 1, 2 * k * n: 2 * k * n + n] = eta * scipy.ones(n)
-            post[(k + 1) * (2 * n + 1) - 1, 2 * k * n + n: 2 * k * n + 2 * n] = eta * scipy.ones(n)
+            pre_alloc[(k + 1) * (2 * n + 1) - 1, k * n: k * n + n] = eta * scipy.ones(n)
+            post_exec[(k + 1) * (2 * n + 1) - 1, k * n: k * n + n] = eta * scipy.ones(n)
 
-            pi[2 * k * n: 2 * k * n + n, (k + 1) * (2 * n + 1) - 1] = (1 / eta) * scipy.ones(n)
-
-            # Construction of Pre an Post matrix for Transitions alloc
-            pre_alloc[i:i + n, k * n: (k + 1) * n] = pre[i:i + n, 2 * k * n: 2 * k * n + n]
-            post_alloc[i:i + n, k * n: k * n + n] = post[i:i + n, 2 * k * n: 2 * k * n + n]
-
-            # Execution rates for transitions exec for CPU_k \lambda^exec= eta*F
-            lambda_vector[2 * k * n + n:2 * k * n + 2 * n] = eta * f * scipy.ones(n)
+            pi_alloc[k * n: k * n + n, (k + 1) * (2 * n + 1) - 1] = (1 / eta) * scipy.ones(n)
 
             # Execution rates for transitions alloc \lambda^alloc= eta*\lambda^exec
-            lambda_vector[2 * k * n:2 * k * n + n] = eta * lambda_vector[2 * k * n + n:2 * k * n + 2 * n]
-            lambda_alloc[k * n:(k + 1) * n] = eta * lambda_vector[2 * k * n + n:2 * k * n + 2 * n]
+            lambda_vector_alloc[k * n:k * n + n] = eta * eta * f * scipy.ones(n)
 
-            # Configuration Matrix
-            pi[2 * k * n + n:2 * k * n + 2 * n, i:i + n] = scipy.identity(n)
+            # Execution rates for transitions exec for CPU_k \lambda^exec= eta*F
+            lambda_vector_exec[k * n:k * n + n] = eta * f * scipy.ones(n)
 
             # Initial condition
             mo[(k + 1) * (2 * n + 1) - 1, 0] = 1
 
-            # Output matrix of the processor model, ( m^exec )
-            s_busy[k * n:(k + 1) * n, i:(2 * n + 1) * k + n] = scipy.identity(n)
-            s_exec[k * n:(k + 1) * n, (i + 1) + n - 1:(2 * n + 1) * k + 2 * n] = scipy.identity(n)
-
-        c = post - pre
-        c_alloc = post_alloc - pre_alloc
-        lambda_proc = scipy.diag(lambda_vector)
-
-        # TODO: Convert to SPARSE MATRIXES
-        # self.c_proc = c
-        # self.lambda_proc = lambda_proc
-        self.pre_proc = pre
-        self.post_proc = post
-        self.lambda_vector_proc = lambda_vector
         self.mo_proc = mo
-        # self.pi_proc = pi.transpose()
-        self.pi_proc = pi
-        # self.c_proc_alloc = c_alloc
-        # self.s_exec = s_exec
-        # self.s_busy = s_busy
+
+        self.pre_alloc_proc = pre_alloc
+        self.post_alloc_proc = post_alloc
+        self.pi_alloc_proc = pi_alloc
+        self.lambda_vector_alloc_proc = lambda_vector_alloc
+
+        self.pre_exec_proc = pre_exec
+        self.post_exec_proc = post_exec
+        self.pi_exec_proc = pi_exec
+        self.lambda_vector_exec_proc = lambda_vector_exec
 
     # def change_frequency(self, tasks_specification: TasksSpecification, cpu_specification: CpuSpecification):
     #     # TODO: TEST

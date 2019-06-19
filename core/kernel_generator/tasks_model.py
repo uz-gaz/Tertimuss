@@ -18,18 +18,16 @@ class TasksModel(object):
         p = 2 * n
 
         # Total of transitions ((t^w_i and ti,jAlloc for each processor) for each task)
-        t = n + n * m
+        t = n
 
         # n transitions of tasks period and n * m transitions alloc ((ti,jAlloc for each processor) for each task)
         t_alloc = n * m
 
-        # Incidence Matrix C
+        # Task model definition
         pre = scipy.zeros((p, t))
         post = scipy.zeros((p, t))
-        pre_alloc = scipy.zeros((p, t_alloc))
-        post_alloc = scipy.zeros((p, t_alloc))
-        lambda_vector = scipy.zeros(t)
         pi = scipy.zeros((t, p))
+        lambda_vector = scipy.zeros(t)
         mo = scipy.zeros((p, 1))
 
         # Construction of Pre an Post matrix for places(p^w_i,p^cc_i) and transition(t^w_i)
@@ -42,34 +40,28 @@ class TasksModel(object):
             pi[k, i] = 1
             mo[i: i + 2, 0] = [1, tasks_specification.tasks[k].c]
 
-            # Construction of Pre an Post matrix for Transitions alloc
+        # Task model union with processor model definition
+        pre_alloc = scipy.zeros((p, t_alloc))
+        post_alloc = scipy.zeros((p, t_alloc))
+        pi_alloc = scipy.zeros((t_alloc, p))
+        # Lambda vector alloc will be defined in processor model
+
+        # Construction of Pre an Post matrix for Transitions alloc
+        for k in range(n):
+            i = 2 * k
             for r in range(m):
-                j = n + r * n + k
-                pre[i + 1, j] = 1
-                pi[j, i + 1] = 1
+                j = r * n + k
+                pre_alloc[i + 1, j] = 1
+                pi_alloc[j, i + 1] = 1
 
-        pre_alloc[:, 0: t_alloc] = pre[:, n: t]
-
-        c = post - pre
-        c_alloc = post_alloc - pre_alloc
-        lambda_tau = scipy.diag(lambda_vector)
-
-        # TODO: Convert to SPARSE MATRIXES
         # Definition of task model
         self.pre_tau = pre
         self.post_tau = post
+        self.pi_tau = pi
         self.lambda_vector_tau = lambda_vector
         self.mo_tau = mo
-        self.pi_tau = pi
 
         # Definition of the union between the task model and the processor model
-        self.pre_alloc_tau = pre
-        self.post_alloc_tau = post
-        self.lambda_vector_alloc_tau = lambda_vector
-        self.pi_alloc_tau = pi
-
-        # self.c_tau = c
-        # self.lambda_tau = lambda_tau
-
-        # self.c_tau_alloc = c_alloc
-        # self.m_tau_o = mo
+        self.pre_alloc_tau = pre_alloc
+        self.post_alloc_tau = post_alloc
+        self.pi_alloc_tau = pi_alloc

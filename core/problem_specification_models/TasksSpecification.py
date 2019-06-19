@@ -8,10 +8,10 @@ class Task(object):
     Task specification
     """
 
-    def __init__(self, c: int, t: int, e: Optional[float]):
+    def __init__(self, c: float, t: float, e: Optional[float]):
         """
-        :param c: Task worst case execution time in CPU cycles
-        :param t: Task period, equal to deadline in CPU cycles with CPU frequency equal to base frequency
+        :param c: Task worst case execution time in seconds at base frequency
+        :param t: Task period, equal to deadline in seconds
         :param e: Energy consumption
         """
         self.c = c
@@ -29,4 +29,4 @@ class TasksSpecification(object):
         :param tasks: List of tasks
         """
         self.tasks = tasks
-        self.h = scipy.lcm.reduce(list(map(lambda a: a.t, tasks)))  # Hyper period
+        self.h = scipy.lcm.reduce(list(map(lambda a: int(a.t), tasks)))  # Hyper period, TODO: Fix actual aproximation (int)
