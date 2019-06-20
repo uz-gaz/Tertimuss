@@ -9,8 +9,10 @@ from core.problem_specification_models.SimulationSpecification import Simulation
 from core.problem_specification_models.TasksSpecification import TasksSpecification
 
 
-def simple_conductivity(material_cuboid: MaterialCuboid, simulation_specification: SimulationSpecification) -> [
-    scipy.ndarray, scipy.ndarray, scipy.ndarray]:
+def simple_conductivity(material_cuboid: MaterialCuboid,
+                        simulation_specification: SimulationSpecification) -> [scipy.ndarray,
+                                                                               scipy.ndarray,
+                                                                               scipy.ndarray]:
     """
 
     :param material_cuboid: Board or CPU
@@ -83,6 +85,37 @@ def simple_conductivity(material_cuboid: MaterialCuboid, simulation_specificatio
     return pre, post, lambda_vector
 
 
+def __get_cpu_coordinates(origin: Origin, cpu_spec: MaterialCuboid, board_spec: MaterialCuboid,
+                          simulation_specification: SimulationSpecification) -> List[int]:
+    x: int = round(cpu_spec.x / simulation_specification.step)
+    y: int = round(cpu_spec.y / simulation_specification.step)
+
+    x_0: int = round(origin.x / simulation_specification.step)
+    y_0: int = round(origin.y / simulation_specification.step)
+
+    x_1: int = x_0 + x
+    y_1: int = y_0 + y
+
+    places = []
+
+    x_board: int = round(board_spec.x / simulation_specification.step)
+
+    for j in range(y_0, y_1):
+        local_places = []
+        for i in range(x_0, x_1):
+            if j % 2 == 0:
+                local_places.append(j * x_board - (i - 1))
+            else:
+                local_places.append((j - 1) * x_board + i)
+
+        if j % 2 == 1:
+            local_places.reverse()
+
+        places = places + local_places
+
+    return places
+
+
 def add_interactions_layer(p_board: int, p_one_micro: int, cpu_specification: CpuSpecification,
                            simulation_specification: SimulationSpecification) -> [scipy.ndarray, scipy.ndarray,
                                                                                   scipy.ndarray]:
@@ -94,7 +127,7 @@ def add_interactions_layer(p_board: int, p_one_micro: int, cpu_specification: Cp
     rel_micro = scipy.zeros(p_micros, dtype=int)
 
     for i in range(cpu_specification.number_of_cores):
-        rel_micro[i * p_one_micro: (i + 1) * p_one_micro] = getCpuCoordinates(
+        rel_micro[i * p_one_micro: (i + 1) * p_one_micro] = __get_cpu_coordinates(
             cpu_specification.cpu_origins[i],
             cpu_specification.cpu_core_specification,
             cpu_specification.board_specification,
@@ -140,16 +173,14 @@ def add_interactions_layer(p_board: int, p_one_micro: int, cpu_specification: Cp
 
 def add_convection(p_board: int, p_one_micro: int, cpu_specification: CpuSpecification,
                    environment_specification: EnvironmentSpecification) -> [scipy.ndarray, scipy.ndarray, scipy.ndarray,
+                                                                            scipy.ndarray, scipy.ndarray,
                                                                             scipy.ndarray]:
-    # TODO: Continuar por aqui
     rho_p1 = cpu_specification.board_specification.p
     cp_p1 = cpu_specification.board_specification.c_p
 
     h = environment_specification.h
 
-    lambda_1 = (h / (cpu_specification.board_specification.z * rho_p1 * cp_p1)) * 1000
-
-    lambda_convection = [lambda_1, lambda_1]  # TODO: Check, it might be lambda1, lambda2 (Ask authors)
+    lambda_convection = (h / (cpu_specification.board_specification.z * rho_p1 * cp_p1)) * 1000
 
     p_micros = p_one_micro * cpu_specification.number_of_cores
 
@@ -157,93 +188,54 @@ def add_convection(p_board: int, p_one_micro: int, cpu_specification: CpuSpecifi
     exposed_places = p_board
 
     # Places under CPU
-    # f = len(pre_sis)
+    total_places = p_micros + exposed_places
 
-    cota_micros = exposed_places - p_micros
+    # Transition t1 in the convection paper (temperature dissipation into the air)
+    pre_conv = scipy.diag(scipy.ones(exposed_places))
+    post_conv = scipy.zeros((exposed_places, exposed_places))
+    lambda_conv = scipy.full(exposed_places, lambda_convection)
 
-    post_convection = scipy.concatenate(
-        [block_diag(scipy.ones((cota_micros, 1)), scipy.ones((exposed_places - cota_micros, 1))),
-         scipy.zeros((f - exposed_places, 2))])
+    # Transition t2 and place p2 in the convection paper
+    pre_conv_air = scipy.zeros((total_places + 1, 1))
+    pre_conv_air[-1, 0] = 1
+    post_conv_air = scipy.zeros((total_places + 1, 1))
+    post_conv_air[-1, 0] = 1
+    post_conv_air[0:exposed_places, 0] = scipy.ones(exposed_places)
+    lambda_conv_air = scipy.asarray([lambda_convection])
 
-    pre_it = scipy.concatenate([scipy.diag(scipy.ones(exposed_places)), scipy.zeros((f - exposed_places, exposed_places))])
-    post_it = scipy.zeros((f, exposed_places))
-
-    lambda_it = scipy.ones((exposed_places, 1)) * lambda_1
-
-    pi = [1, 1]
-
-    return pre_conv, post_convection, lambda_convection
+    return pre_conv, post_conv, lambda_conv, pre_conv_air, post_conv_air, lambda_conv_air
 
 
-def add_heat(pre_sis, post_sis, cpu_specification: CpuSpecification,
-             task_specification: TasksSpecification) \
-        -> [scipy.ndarray, scipy.ndarray, scipy.ndarray, scipy.ndarray]:
+def add_heat(p_board: int, p_one_micro: int, cpu_specification: CpuSpecification) \
+        -> [scipy.ndarray, scipy.ndarray, scipy.ndarray]:
+    # Warning: In the heat generation i will set to 1 the g1(Watts generated by the processor) and i will control it
+    # online with a multiplication. The flow will be changed by multiplying the real g1 by the transition
     rho = cpu_specification.cpu_core_specification.p
     cp = cpu_specification.cpu_core_specification.c_p
 
     # The generation is equal for each place in the same processor so lambdas are equal too
-    lambda_gen = scipy.ones(len(task_specification.tasks) * cpu_specification.number_of_cores)
+    lambda_gen_coefficient = 1 / (rho * cp)
+    lambda_gen = scipy.full(cpu_specification.number_of_cores, lambda_gen_coefficient)
 
-    for j in range(cpu_specification.number_of_cores):
-        for i in range(len(task_specification.tasks)):
-            lambda_gen[i + j * len(task_specification.tasks)] = cpu_specification.clock_relative_frequencies[j]
+    # Places and transitions for all CPUs
+    p_micros = p_one_micro * cpu_specification.number_of_cores
 
-    places_proc = list(range(board_conductivity.p + 1,
-                             board_conductivity.p + cpu_specification.number_of_cores * micro_conductivity.p + 1))
+    # Total places (p_board + p_micros + p_air + p_heat_generation)
+    total_places = p_board + p_micros + 1 + cpu_specification.number_of_cores
 
-    l_places = len(places_proc)
+    pre_gen = scipy.zeros((total_places, cpu_specification.number_of_cores))
+    pre_gen[p_board + p_micros + 1:p_board + p_micros + 1 + cpu_specification.number_of_cores, :] = scipy.identity(
+        cpu_specification.number_of_cores)  # Connection with p2 in paper
 
-    f = len(pre_sis)
+    post_gen = scipy.zeros((total_places, cpu_specification.number_of_cores))
+    post_gen[p_board + p_micros + 1:p_board + p_micros + 1 + cpu_specification.number_of_cores, :] = scipy.identity(
+        cpu_specification.number_of_cores)  # Connection with p2 in paper
 
-    pre_gen = scipy.zeros((f, len(task_specification.tasks) * cpu_specification.number_of_cores))
-    post_gen = scipy.zeros((f, len(task_specification.tasks) * cpu_specification.number_of_cores))
+    for i in range(cpu_specification.number_of_cores):
+        # Connection with micros
+        post_gen[p_board + i * p_one_micro: p_board + (i + 1) * p_one_micro, i] = scipy.ones(p_one_micro)
 
-    j = 1
-    for i in range(l_places):
-        for k in range(len(task_specification.tasks)):
-            post_gen[places_proc[i] - 1, j + k - 1] = (task_specification.tasks[k].e / (rho * cp)) * ((1000 ** 3) / (
-                    cpu_specification.cpu_core_specification.x * cpu_specification.cpu_core_specification.y * cpu_specification.cpu_core_specification.z))
-
-        if (i + 1) % micro_conductivity.p == 0:
-            j = j + len(task_specification.tasks)
-
-    pre_sis = scipy.concatenate((pre_sis, pre_gen), axis=1)
-    post_sis = scipy.concatenate((post_sis, post_gen), axis=1)
-
-    cp_exec = post_gen.dot(scipy.diag(lambda_gen))
-
-    return cp_exec, lambda_gen, pre_sis, post_sis
-
-
-def getCpuCoordinates(origin: Origin, cpu_spec: MaterialCuboid, board_spec: MaterialCuboid,
-                      simulation_specification: SimulationSpecification) -> List[int]:
-    x: int = round(cpu_spec.x / simulation_specification.step)
-    y: int = round(cpu_spec.y / simulation_specification.step)
-
-    x_0: int = round(origin.x / simulation_specification.step)
-    y_0: int = round(origin.y / simulation_specification.step)
-
-    x_1: int = x_0 + x
-    y_1: int = y_0 + y
-
-    places = []
-
-    x_board: int = round(board_spec.x / simulation_specification.step)
-
-    for j in range(y_0, y_1):
-        local_places = []
-        for i in range(x_0, x_1):
-            if j % 2 == 0:
-                local_places.append(j * x_board - (i - 1))
-            else:
-                local_places.append((j - 1) * x_board + i)
-
-        if j % 2 == 1:
-            local_places.reverse()
-
-        places = places + local_places
-
-    return places
+    return pre_gen, post_gen, lambda_gen
 
 
 class ThermalModel(object):
@@ -287,29 +279,14 @@ class ThermalModel(object):
         # post_sis = scipy.concatenate((post_sis, post_int), axis=1)
 
         # Convection
-        diagonal, pre_sis, post_sis, lambda_vector = add_convection(pre_sis, post_sis, lambda_vector, cpu_specification,
-                                                                    environment_specification)
+        pre_conv, post_conv, lambda_conv, pre_conv_air, post_conv_air, lambda_conv_air = \
+            add_convection(p_board, p_one_micro, cpu_specification, environment_specification)
 
         # Heat generation
-        cp_exec, lambda_generated, pre_sis, post_sis = add_heat(pre_sis, post_sis, cpu_specification,
-                                                                tasks_specification)
+        pre_heat, post_heat, lambda_heat = add_heat(p_board, p_one_micro, cpu_specification)
 
-        lambda_vector = scipy.concatenate((lambda_vector, lambda_generated.reshape((-1, 1))))
+        # Thermal model generation
 
-        # Lineal system
-        pi = pre_sis.transpose()
-
-        # Output places
-        l_measurement = scipy.zeros(cpu_specification.number_of_cores, dtype=scipy.int64)
-
-        for i in range(cpu_specification.number_of_cores):
-            l_measurement[i] = board_conductivity.p + i * micro_conductivity.p + scipy.math.ceil(
-                micro_conductivity.p / 2)
-
-        c = scipy.zeros((cpu_specification.number_of_cores, len(post_sis)))
-
-        for i in range(cpu_specification.number_of_cores):
-            c[i, l_measurement[i] - 1] = 1
 
         self.c_sis = post_sis - pre_sis
         self.lambda_sis = scipy.diag(lambda_vector.reshape(-1))
