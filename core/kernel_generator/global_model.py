@@ -14,6 +14,9 @@ class GlobalModel(object):
     """
 
     def __init__(self, global_specification: GlobalSpecification, enable_thermal_model: bool):
+
+        self.enable_thermal_mode = enable_thermal_model
+
         n = len(global_specification.tasks_specification.tasks)
         m = global_specification.cpu_specification.number_of_cores
 
@@ -42,6 +45,23 @@ class GlobalModel(object):
                                      processor_model.lambda_vector_exec_proc])
 
         mo = scipy.block([[tasks_model.mo_tau], [processor_model.mo_proc]])
+
+        self.mo_proc_tau = mo
+        self.pre_proc_tau = pre
+        self.post_proc_tau = post
+        self.pi_proc_tau = pi
+        self.lambda_vector_proc_tau = lambda_vector
+
+        if enable_thermal_model:
+            thermal_model: ThermalModel = ThermalModel(global_specification.tasks_specification,
+                                                       global_specification.cpu_specification,
+                                                       global_specification.environment_specification,
+                                                       global_specification.simulation_specification)
+            self.mo_thermal = thermal_model.mo_sis
+            self.pre_thermal = thermal_model.pre_sis
+            self.post_thermal = thermal_model.post_sis
+            self.pi_thermal = thermal_model.pi_sis
+            self.lambda_vector_thermal = thermal_model.lambda_vector_sis
 
         # """
         # Save copy of processor, task models
@@ -111,13 +131,7 @@ class GlobalModel(object):
         # self.m = mo  # Save marking in global model
         # self.thermal_enabled = self.__thermal_model is not None
 
-        self.mo = mo
 
-        self.pre = pre
-        self.post = post
-        self.pi = pi
-        self.lambda_vector = lambda_vector
-        self.enable_thermal_model = enable_thermal_model
 
     # def change_frequency(self, tasks_specification: TasksSpecification, cpu_specification: CpuSpecification):
     #     # TODO: TEST, only done processor change frequency

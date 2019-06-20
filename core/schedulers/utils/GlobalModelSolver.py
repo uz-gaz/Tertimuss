@@ -9,10 +9,10 @@ class GlobalModelSolver(object):
     def __init__(self, global_model: GlobalModel, step: float, n: int, m: int):
         self.__fragmentation_of_step = 20
 
-        self.__tcpn_simulator = TcpnSimulatorAccurate(global_model.pre, global_model.post, global_model.pi,
-                                                      global_model.lambda_vector, step / self.__fragmentation_of_step)
-        self.__control = scipy.ones(len(global_model.lambda_vector))
-        self.__mo = global_model.mo
+        self.__tcpn_simulator = TcpnSimulatorAccurate(global_model.pre_proc_tau, global_model.post_proc_tau, global_model.pi_proc_tau,
+                                                      global_model.lambda_vector_proc_tau, step / self.__fragmentation_of_step)
+        self.__control = scipy.ones(len(global_model.lambda_vector_proc_tau))
+        self.__mo = global_model.mo_proc_tau
 
         self.__n = n
         self.__m = m

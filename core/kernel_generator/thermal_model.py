@@ -191,8 +191,9 @@ def add_convection(p_board: int, p_one_micro: int, cpu_specification: CpuSpecifi
     total_places = p_micros + exposed_places
 
     # Transition t1 in the convection paper (temperature dissipation into the air)
-    pre_conv = scipy.diag(scipy.ones(exposed_places))
-    post_conv = scipy.zeros((exposed_places, exposed_places))
+    pre_conv = scipy.concatenate(
+        [scipy.diag(scipy.ones(exposed_places)), scipy.zeros((p_micros, exposed_places))])
+    post_conv = scipy.zeros((total_places, exposed_places))
     lambda_conv = scipy.full(exposed_places, lambda_convection)
 
     # Transition t2 and place p2 in the convection paper
@@ -242,7 +243,6 @@ class ThermalModel(object):
     def __init__(self, tasks_specification: TasksSpecification, cpu_specification: CpuSpecification,
                  environment_specification: EnvironmentSpecification,
                  simulation_specification: SimulationSpecification):
-
         # Board and micros conductivity
         pre_board_cond, post_board_cond, lambda_board_cond = simple_conductivity(cpu_specification.board_specification,
                                                                                  simulation_specification)
@@ -255,19 +255,20 @@ class ThermalModel(object):
         t_board = pre_board_cond.shape[1]
 
         # Number of places and transitions for one CPU
-        p_one_micro = pre_micro_cond.shape[0] * cpu_specification.number_of_cores
-        t_one_micro = pre_micro_cond.shape[1] * cpu_specification.number_of_cores
+        p_one_micro = pre_micro_cond.shape[0]
+        t_one_micro = pre_micro_cond.shape[1]
 
         # Create pre, post and lambda from the system with board and number of CPUs
-        pre_sis = block_diag(*([pre_board_cond] + cpu_specification.number_of_cores * [pre_micro_cond]))
+        pre_cond = block_diag(*([pre_board_cond] + cpu_specification.number_of_cores * [pre_micro_cond]))
         del pre_board_cond  # Recover memory space
         del pre_micro_cond  # Recover memory space
 
-        post_sis = block_diag(*([post_board_cond] + cpu_specification.number_of_cores * [post_micro_cond]))
+        post_cond = block_diag(*([post_board_cond] + cpu_specification.number_of_cores * [post_micro_cond]))
         del post_board_cond  # Recover memory space
         del post_micro_cond  # Recover memory space
 
-        lambda_vector = scipy.block([lambda_board_cond, lambda_micro_cond])
+        lambda_vector_cond = scipy.concatenate(
+            [lambda_board_cond] + cpu_specification.number_of_cores * [lambda_micro_cond])
         del lambda_board_cond  # Recover memory space
         del lambda_micro_cond  # Recover memory space
 
@@ -279,22 +280,51 @@ class ThermalModel(object):
         # post_sis = scipy.concatenate((post_sis, post_int), axis=1)
 
         # Convection
-        pre_conv, post_conv, lambda_conv, pre_conv_air, post_conv_air, lambda_conv_air = \
+        pre_conv, post_conv, lambda_vector_conv, pre_conv_air, post_conv_air, lambda_vector_conv_air = \
             add_convection(p_board, p_one_micro, cpu_specification, environment_specification)
 
         # Heat generation
-        pre_heat, post_heat, lambda_heat = add_heat(p_board, p_one_micro, cpu_specification)
+        pre_heat, post_heat, lambda_vector_heat = add_heat(p_board, p_one_micro, cpu_specification)
 
         # Thermal model generation
+        zero_1 = scipy.zeros((1, t_board + t_one_micro * cpu_specification.number_of_cores +
+                              2 * p_one_micro * cpu_specification.number_of_cores + p_board))
 
+        zero_2 = scipy.zeros((cpu_specification.number_of_cores, t_board + t_one_micro *
+                              cpu_specification.number_of_cores + 2 * p_one_micro * cpu_specification.number_of_cores +
+                              p_board + 1))
 
-        self.c_sis = post_sis - pre_sis
-        self.lambda_sis = scipy.diag(lambda_vector.reshape(-1))
-        self.pi = pi
-        self.ct_exec = cp_exec
-        self.s_t = c
-        self.b_ta = diagonal
-        self.lambda_gen = lambda_generated
+        # Creation of pre matrix
+        pre = scipy.concatenate([pre_cond, pre_int, pre_conv], axis=1)
+        pre = scipy.concatenate([pre, zero_1], axis=0)
+        pre = scipy.concatenate([pre, pre_conv_air], axis=1)
+        pre = scipy.concatenate([pre, zero_2], axis=0)
+        pre = scipy.concatenate([pre, pre_heat], axis=1)
+
+        # Creation of post matrix
+        post = scipy.concatenate([post_cond, post_int, post_conv], axis=1)
+        post = scipy.concatenate([post, zero_1], axis=0)
+        post = scipy.concatenate([post, post_conv_air], axis=1)
+        post = scipy.concatenate([post, zero_2], axis=0)
+        post = scipy.concatenate([post, post_heat], axis=1)
+
+        # Creation of lambda matrix
+        lambda_vector = scipy.concatenate(
+            [lambda_vector_cond, lambda_vector_int, lambda_vector_conv, lambda_vector_conv_air, lambda_vector_heat])
+
+        # Creation of pi
+        pi = pre.transpose()
+
+        # Creation of mo
+        mo = scipy.concatenate([scipy.full(p_board + p_one_micro * cpu_specification.number_of_cores + 1,
+                                           environment_specification.t_env),
+                                scipy.ones(cpu_specification.number_of_cores)]).reshape((-1, 1))
+
+        self.pre_sis = pre
+        self.post_sis = post
+        self.pi_sis = pi
+        self.lambda_vector_sis = lambda_vector
+        self.mo_sis = mo
 
     # def change_frequency(self, tasks_specification: TasksSpecification, cpu_specification: CpuSpecification):
     #     # TODO: TEST
