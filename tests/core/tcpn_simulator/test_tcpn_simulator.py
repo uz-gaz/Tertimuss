@@ -29,7 +29,7 @@ class TestPetriNets(unittest.TestCase):
 
         mo = scipy.asarray([1, 0, 0, 0]).reshape((-1, 1))
 
-        tcpn_simulator: AbstractTcpnSimulator = TcpnSimulatorEuler(pre, post, lambda_vector, 0.1)
+        tcpn_simulator: AbstractTcpnSimulator = TcpnSimulatorAccurate(pre, post, None, lambda_vector, 0.01)
 
         for i in range(6):
             mo_next = tcpn_simulator.simulate_step(mo)

@@ -34,10 +34,9 @@ class GlobalModel(object):
         ])
 
         pi = scipy.block([
-            [tasks_model.pi_tau, scipy.zeros((n, m * (2 * n + 1)))],
-            [tasks_model.pi_alloc_tau, processor_model.pi_alloc_proc],
-            [scipy.zeros((2 * n, n * m)), processor_model.pi_exec_proc]
-        ])
+            [tasks_model.pi_tau, tasks_model.pi_alloc_tau, scipy.zeros((n * m, 2 * n))],
+            [scipy.zeros((m * (2 * n + 1), n)), processor_model.pi_alloc_proc, processor_model.pi_exec_proc]
+        ]).transpose()
 
         lambda_vector = scipy.block([tasks_model.lambda_vector_tau, processor_model.lambda_vector_alloc_proc,
                                      processor_model.lambda_vector_exec_proc])

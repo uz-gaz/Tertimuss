@@ -26,7 +26,7 @@ class TasksModel(object):
         # Task model definition
         pre = scipy.zeros((p, t))
         post = scipy.zeros((p, t))
-        pi = scipy.zeros((t, p))
+        pi = scipy.zeros((p, t))
         lambda_vector = scipy.zeros(t)
         mo = scipy.zeros((p, 1))
 
@@ -37,13 +37,13 @@ class TasksModel(object):
             post[i:i + 2, k] = [1,
                                 tasks_specification.tasks[k].c]  # Transition from t^w_i to p^w_i, from t^w_i to p^cc_i
             lambda_vector[k] = 1 / tasks_specification.tasks[k].t
-            pi[k, i] = 1
+            pi[i, k] = 1
             mo[i: i + 2, 0] = [1, tasks_specification.tasks[k].c]
 
         # Task model union with processor model definition
         pre_alloc = scipy.zeros((p, t_alloc))
         post_alloc = scipy.zeros((p, t_alloc))
-        pi_alloc = scipy.zeros((t_alloc, p))
+        pi_alloc = scipy.zeros((p, t_alloc))
         # Lambda vector alloc will be defined in processor model
 
         # Construction of Pre an Post matrix for Transitions alloc
@@ -52,7 +52,7 @@ class TasksModel(object):
             for r in range(m):
                 j = r * n + k
                 pre_alloc[i + 1, j] = 1
-                pi_alloc[j, i + 1] = 1
+                pi_alloc[i + 1, j] = 1
 
         # Definition of task model
         self.pre_tau = pre

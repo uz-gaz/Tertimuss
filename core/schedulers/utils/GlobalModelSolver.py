@@ -7,8 +7,10 @@ from core.tcpn_simulator.TcpnSimulatorAccurate import TcpnSimulatorAccurate
 
 class GlobalModelSolver(object):
     def __init__(self, global_model: GlobalModel, step: float, n: int, m: int):
+        self.__fragmentation_of_step = 10
+
         self.__tcpn_simulator = TcpnSimulatorAccurate(global_model.pre, global_model.post, global_model.pi,
-                                                      global_model.lambda_vector, step)
+                                                      global_model.lambda_vector, step / self.__fragmentation_of_step)
         self.__control = scipy.ones(len(global_model.lambda_vector))
         self.__mo = global_model.mo
 
@@ -25,7 +27,9 @@ class GlobalModelSolver(object):
             self.__control = new_control
             self.__tcpn_simulator.set_control(new_control)
 
-        self.__mo = self.__tcpn_simulator.simulate_step(self.__mo)
+        # TODO: Add partials results to list
+        for _ in range(self.__fragmentation_of_step):
+            self.__mo = self.__tcpn_simulator.simulate_step(self.__mo)
 
         return scipy.concatenate([
             self.__mo[2 * self.__n + i * (2 * self.__n + 1):2 * self.__n + i * (2 * self.__n + 1) + self.__n,

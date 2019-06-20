@@ -29,13 +29,13 @@ class ProcessorModel(object):
         # Model for alloc transitions
         pre_alloc = scipy.zeros((p, t_alloc))
         post_alloc = scipy.zeros((p, t_alloc))
-        pi_alloc = scipy.zeros((t_alloc, p))
+        pi_alloc = scipy.zeros((p, t_alloc))
         lambda_vector_alloc = scipy.zeros(t_alloc)
 
         # Model for exec transitions
         pre_exec = scipy.zeros((p, t_exec))
         post_exec = scipy.zeros((p, t_exec))
-        pi_exec = scipy.zeros((t_exec, p))
+        pi_exec = scipy.zeros((p, t_exec))
         lambda_vector_exec = scipy.zeros(t_exec)
 
         # Construction of the model
@@ -59,7 +59,7 @@ class ProcessorModel(object):
             pre_alloc[(k + 1) * (2 * n + 1) - 1, k * n: k * n + n] = eta * scipy.ones(n)
             post_exec[(k + 1) * (2 * n + 1) - 1, k * n: k * n + n] = eta * scipy.ones(n)
 
-            pi_alloc[k * n: k * n + n, (k + 1) * (2 * n + 1) - 1] = (1 / eta) * scipy.ones(n)
+            pi_alloc[(k + 1) * (2 * n + 1) - 1, k * n: k * n + n] = (1 / eta) * scipy.ones(n)
 
             # Execution rates for transitions alloc \lambda^alloc= eta*\lambda^exec
             lambda_vector_alloc[k * n:k * n + n] = eta * eta * f * scipy.ones(n)
