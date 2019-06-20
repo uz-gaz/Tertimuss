@@ -52,7 +52,7 @@ class TasksModel(object):
             for r in range(m):
                 j = r * n + k
                 pre_alloc[i + 1, j] = 1
-                pi_alloc[i + 1, j] = 1
+                # pi_alloc[i + 1, j] = 1
 
         # Definition of task model
         self.pre_tau = pre

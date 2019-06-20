@@ -55,20 +55,22 @@ class ProcessorModel(object):
             post_alloc[i:i + n, k * n:k * n + n] = scipy.identity(n)  # Arcs going from t_alloc to p_busy
             post_exec[i + n:i + 2 * n, k * n:k * n + n] = scipy.identity(n)  # Arcs going from t_exec to p_exec
 
-            # Construction of matrix Post and Pre for idle place (connections to transitions alloc and exec)
-            pre_alloc[(k + 1) * (2 * n + 1) - 1, k * n: k * n + n] = eta * scipy.ones(n)
-            post_exec[(k + 1) * (2 * n + 1) - 1, k * n: k * n + n] = eta * scipy.ones(n)
+            pi_exec[i:i + n, k * n: k * n + n] = scipy.identity(n)
 
-            pi_alloc[(k + 1) * (2 * n + 1) - 1, k * n: k * n + n] = (1 / eta) * scipy.ones(n)
+            # Construction of matrix Post and Pre for idle place (connections to transitions alloc and exec)
+            pre_alloc[i + 2 * n, k * n: k * n + n] = eta * scipy.ones(n)
+            post_exec[i + 2 * n, k * n: k * n + n] = eta * scipy.ones(n)
+
+            pi_alloc[i + 2 * n, k * n: k * n + n] = (1 / eta) * scipy.ones(n)
 
             # Execution rates for transitions alloc \lambda^alloc= eta*\lambda^exec
-            lambda_vector_alloc[k * n:k * n + n] = eta * eta * f * scipy.ones(n)
+            lambda_vector_alloc[k * n:k * n + n] = eta * f * scipy.ones(n)
 
             # Execution rates for transitions exec for CPU_k \lambda^exec= eta*F
             lambda_vector_exec[k * n:k * n + n] = eta * f * scipy.ones(n)
 
             # Initial condition
-            mo[(k + 1) * (2 * n + 1) - 1, 0] = 1
+            mo[i + 2 * n, 0] = 1
 
         self.mo_proc = mo
 

@@ -7,7 +7,7 @@ from core.tcpn_simulator.TcpnSimulatorAccurate import TcpnSimulatorAccurate
 
 class GlobalModelSolver(object):
     def __init__(self, global_model: GlobalModel, step: float, n: int, m: int):
-        self.__fragmentation_of_step = 10
+        self.__fragmentation_of_step = 20
 
         self.__tcpn_simulator = TcpnSimulatorAccurate(global_model.pre, global_model.post, global_model.pi,
                                                       global_model.lambda_vector, step / self.__fragmentation_of_step)
@@ -32,7 +32,7 @@ class GlobalModelSolver(object):
             self.__mo = self.__tcpn_simulator.simulate_step(self.__mo)
 
         return scipy.concatenate([
-            self.__mo[2 * self.__n + i * (2 * self.__n + 1):2 * self.__n + i * (2 * self.__n + 1) + self.__n,
+            self.__mo[2 * self.__n + i * (2 * self.__n + 1) + self.__n:2 * self.__n + i * (2 * self.__n + 1) + 2 *self.__n,
             0].reshape(-1) for i in range(self.__m)])
 
     def get_mo(self):
