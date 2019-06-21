@@ -85,11 +85,12 @@ class AbstractGlobalScheduler(AbstractScheduler):
 
         # Global model solver
         global_model_solver = GlobalModelSolver(global_model, global_specification.simulation_specification.dt, n, m)
+        del global_model
 
         # Active tasks
         active_task_id = m * [-1]
         for zeta_q in range(simulation_time_steps):
-            # print(zeta_q, simulation_time_steps)
+            print(zeta_q, simulation_time_steps)
 
             # Update time
             time = zeta_q * global_specification.simulation_specification.dt
@@ -114,12 +115,19 @@ class AbstractGlobalScheduler(AbstractScheduler):
                         tasks[active_task_id[j]].next_arrival += tasks[active_task_id[j]].t
                         tasks[active_task_id[j]].next_deadline += tasks[active_task_id[j]].t
 
-            m_exec_disc = global_model_solver.run_step(i_tau_disc[:, zeta_q].reshape(-1))
+            m_exec_disc, board_temperature, cores_temperature, results_times = global_model_solver.run_step(
+                i_tau_disc[:, zeta_q].reshape(-1), time)
             m_exec_tcpn[:, zeta_q] = m_exec_disc
 
             m_exec[:, zeta_q] = m_exec_step
 
             time_step[zeta_q] = time
+
+            temperature_disc.append(cores_temperature)
+
+            temperature_map.append(board_temperature)
+
+            time_temp.append(results_times)
 
         time_step = scipy.asarray(time_step).reshape((-1, 1))
 
@@ -132,7 +140,8 @@ class AbstractGlobalScheduler(AbstractScheduler):
         if len(temperature_disc) > 0:
             temperature_disc = scipy.concatenate(temperature_disc, axis=1)
 
-        return SchedulerResult(temperature_map, global_model_solver.get_mo(), time_step, i_tau_disc, m_exec, m_exec_tcpn, time_step,
+        return SchedulerResult(temperature_map, global_model_solver.get_mo(), time_step, i_tau_disc, m_exec,
+                               m_exec_tcpn, time_step,
                                time_temp,
                                scipy.asarray([]), temperature_disc, global_specification.simulation_specification.dt)
 

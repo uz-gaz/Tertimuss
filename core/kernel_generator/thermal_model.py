@@ -275,7 +275,7 @@ def add_heat_by_dynamic_power(p_board: int, p_one_micro: int, cpu_specification:
     # Execution rates for transitions exec for CPU_k \lambda^exec= eta*F
     eta = 100
     lambda_gen = scipy.concatenate(
-        [eta * f * scipy.ones(len(tasks_specification.tasks)) for f in cpu_specification.clock_relative_frequencies])
+        [eta * eta * f * scipy.ones(len(tasks_specification.tasks)) for f in cpu_specification.clock_relative_frequencies])
 
     return pre_gen, post_gen, lambda_gen
 
@@ -384,6 +384,8 @@ class ThermalModel(object):
         self.pi_sis = pi
         self.lambda_vector_sis = lambda_vector
         self.mo_sis = mo
+        self.p_board = p_board
+        self.p_one_micro = p_one_micro
 
     # def change_frequency(self, tasks_specification: TasksSpecification, cpu_specification: CpuSpecification):
     #     # TODO: TEST

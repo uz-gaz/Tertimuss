@@ -11,7 +11,7 @@ from output_generation.abstract_progress_bar import AbstractProgressBar
 class SchedulerResult(object):
     def __init__(self, m: scipy.ndarray, mo: scipy.ndarray, timez: scipy.ndarray, sch_oldtfs: scipy.ndarray,
                  mexec: scipy.ndarray, mexec_tcpn: scipy.ndarray, time_step: scipy.ndarray, time_temp: scipy.ndarray,
-                 temperature_cont: scipy.ndarray, temperature_disc: scipy.ndarray, quantum:float):
+                 temperature_cont: scipy.ndarray, temperature_disc: scipy.ndarray, quantum: float):
         self.m = m
         self.mo = mo
         self.timez = timez

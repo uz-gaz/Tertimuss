@@ -14,7 +14,6 @@ class GlobalModel(object):
     """
 
     def __init__(self, global_specification: GlobalSpecification, enable_thermal_model: bool):
-
         self.enable_thermal_mode = enable_thermal_model
 
         n = len(global_specification.tasks_specification.tasks)
@@ -62,6 +61,8 @@ class GlobalModel(object):
             self.post_thermal = thermal_model.post_sis
             self.pi_thermal = thermal_model.pi_sis
             self.lambda_vector_thermal = thermal_model.lambda_vector_sis
+            self.p_one_micro = thermal_model.p_one_micro
+            self.p_board = thermal_model.p_board
 
         # """
         # Save copy of processor, task models
@@ -130,8 +131,6 @@ class GlobalModel(object):
         # self.s_thermal = s_thermal
         # self.m = mo  # Save marking in global model
         # self.thermal_enabled = self.__thermal_model is not None
-
-
 
     # def change_frequency(self, tasks_specification: TasksSpecification, cpu_specification: CpuSpecification):
     #     # TODO: TEST, only done processor change frequency
