@@ -25,7 +25,6 @@ class MaterialCuboid(object):
         self.c_p = c_p
         self.k = k
 
-
 class Origin(object):
     """
     Origins of material cuboid
@@ -77,6 +76,10 @@ class CpuSpecification(object):
         self.cpu_core_specification = cpu_core_specification
         self.number_of_cores = number_of_cores
         self.clock_base_frequency = clock_base_frequency
+
+        # TODO: This may be defined by the problem specification
+        self.leakage_delta = 0.1
+        self.leakage_alpha = 0.001
 
         def generate_automatic_origins(x0: float, x1: float, y0: float, y1: float, mx: float, my: float,
                                        n: int) -> List[Origin]:
