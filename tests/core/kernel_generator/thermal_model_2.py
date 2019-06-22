@@ -46,9 +46,8 @@ class TestThermalModel(unittest.TestCase):
 
         mo_thermal = global_model.mo_thermal
 
-
         def run_step(mo):
-            for i in range(20):
+            for _ in range(20):
                 mo = tcpn_simulator_thermal.simulate_step(mo)
 
             return mo
@@ -56,16 +55,16 @@ class TestThermalModel(unittest.TestCase):
         mo_map = []
         times_simulated = []
         actual_time = 0
-        for i in range(500):
+        for i in range(200):
             times_simulated.append(actual_time)
             actual_time = actual_time + step
             mo_thermal = run_step(mo_thermal)
             mo_map.append(mo_thermal)
 
-        mo_thermal[-(3 * 2 + 1), 0] = 0
-        mo_thermal[-(3 * 2 + 2), 0] = 15
+        # mo_thermal[-(3 * 2 + 2), 0] = 15
 
-        for i in range(500):
+        for i in range(200):
+            mo_thermal[-1, 0] = 1  # TODO: Review it
             times_simulated.append(actual_time)
             actual_time = actual_time + step
             mo_thermal = run_step(mo_thermal)

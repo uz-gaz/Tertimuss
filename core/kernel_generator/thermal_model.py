@@ -250,7 +250,7 @@ def add_heat_by_dynamic_power(p_board: int, p_one_micro: int, cpu_specification:
     rho = cpu_specification.cpu_core_specification.p
     cp = cpu_specification.cpu_core_specification.c_p
     v_cpu = cpu_specification.cpu_core_specification.z * cpu_specification.cpu_core_specification.x * \
-            cpu_specification.cpu_core_specification.y / (1000 )
+            cpu_specification.cpu_core_specification.y / (1000 ** 3)
 
     # Places and transitions for all CPUs
     p_micros = p_one_micro * cpu_specification.number_of_cores
@@ -272,11 +272,8 @@ def add_heat_by_dynamic_power(p_board: int, p_one_micro: int, cpu_specification:
 
     post_gen[p_board: p_board + p_micros, :] = block_diag(*(cpu_specification.number_of_cores * [post_power_by_cpu]))
 
-    # Execution rates for transitions exec for CPU_k \lambda^exec= eta*F
-    #eta = 2000
-    eta = 100
     lambda_gen = scipy.concatenate(
-        [eta * f * scipy.ones(len(tasks_specification.tasks)) for f in cpu_specification.clock_relative_frequencies])
+        [f * scipy.ones(len(tasks_specification.tasks)) for f in cpu_specification.clock_relative_frequencies])
 
     return pre_gen, post_gen, lambda_gen
 

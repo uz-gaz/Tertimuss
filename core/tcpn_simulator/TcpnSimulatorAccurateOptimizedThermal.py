@@ -20,6 +20,7 @@ class TcpnSimulatorAccurateOptimizedThermal(object):
         self.__a = (self.__c * lambda_vector).dot(self.__pi) * step
         self.__lambda = lambda_vector
         self.__step = step
+        self.__lambda_dot_pi = (scipy.diag(self.__lambda)).dot(self.__pi)
 
     def simulate_step(self, mo: scipy.ndarray) -> scipy.ndarray:
         """
@@ -37,5 +38,5 @@ class TcpnSimulatorAccurateOptimizedThermal(object):
 
         # Return the next marking
         # return self.__c.dot(flow) + mo
-        #flow = (scipy.diag(self.__lambda)).dot(self.__pi).dot(mo) * self.__step
+        # flow = self.__lambda_dot_pi.dot(mo) * self.__step
         return self.__a.dot(mo) + mo

@@ -13,7 +13,7 @@ from output_generation.output_generator import plot_cpu_utilization, plot_task_e
 
 class TestGlobalEdfSchedulerNoThermal(unittest.TestCase):
 
-    def test_global_edf_scheduler_no_thermal(self):
+    def test_global_edf_scheduler_thermal(self):
         tasks_specification: TasksSpecification = TasksSpecification([Task(2, 4, 6.4),
                                                                       Task(3, 8, 8),
                                                                       Task(3, 12, 9.6)])
@@ -41,7 +41,7 @@ class TestGlobalEdfSchedulerNoThermal(unittest.TestCase):
                                         "affinity_accumulated_no_thermal.png")
         plot_cpu_temperature(global_specification, scheduler_simulation, "affinity_cpu_temperature.png")
 
-        draw_heat_matrix(global_specification, global_model, scheduler_simulation)
+        # draw_heat_matrix(global_specification, global_model, scheduler_simulation)
 
 
 if __name__ == '__main__':

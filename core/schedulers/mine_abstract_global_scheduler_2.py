@@ -33,7 +33,7 @@ class AbstractGlobalScheduler(AbstractScheduler):
                  global_model: GlobalModel, progress_bar: Optional[AbstractProgressBar]) -> SchedulerResult:
 
         # True if simulation must save temperature
-        is_thermal_simulation = False
+        is_thermal_simulation = global_model.enable_thermal_mode
 
         idle_task_id = -1
         m = global_specification.cpu_specification.number_of_cores
@@ -131,13 +131,13 @@ class AbstractGlobalScheduler(AbstractScheduler):
 
         time_step = scipy.asarray(time_step).reshape((-1, 1))
 
-        if len(temperature_map) > 0:
+        if len(temperature_map) > 0 and is_thermal_simulation:
             temperature_map = scipy.concatenate(temperature_map, axis=1)
 
-        if len(time_temp) > 0:
+        if len(time_temp) > 0 and is_thermal_simulation:
             time_temp = scipy.concatenate(time_temp)
 
-        if len(temperature_disc) > 0:
+        if len(temperature_disc) > 0 and is_thermal_simulation:
             temperature_disc = scipy.concatenate(temperature_disc, axis=1)
 
         return SchedulerResult(temperature_map, global_model_solver.get_mo(), time_step, i_tau_disc, m_exec,
