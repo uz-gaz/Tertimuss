@@ -36,9 +36,13 @@ class GlobalModelSolver(object):
             self.__p_board = global_model.p_board
             self.__p_one_micro = global_model.p_one_micro
 
+        self.debug_number_of_calls = 0
+
     def run_step(self, w_alloc: scipy.ndarray, time: float) -> [scipy.ndarray, scipy.ndarray, scipy.ndarray,
                                                                 scipy.ndarray, scipy.ndarray,
                                                                 scipy.ndarray, scipy.ndarray]:
+        self.debug_number_of_calls = self.debug_number_of_calls + 1
+
         new_control = scipy.copy(self.__control)
         new_control[self.__n:self.__n + len(w_alloc)] = w_alloc
 
@@ -57,18 +61,17 @@ class GlobalModelSolver(object):
         if self.enable_thermal_mode:
             # partial_results_thermal = []
             for mo_actual in partial_results_proc:
-                m_exec = scipy.concatenate([mo_actual[2 * self.__n + (2 * self.__n + 1) * i:2 * self.__n + (
-                        2 * self.__n + 1) * i + self.__n, 0] for i in range(self.__m)])
+                # m_exec = scipy.concatenate([mo_actual[2 * self.__n + (2 * self.__n + 1) * i:2 * self.__n + (
+                #        2 * self.__n + 1) * i + self.__n, 0] for i in range(self.__m)])
                 # m_exec = mo_actual[-self.__n * self.__m:, 0]
-                self.__mo_thermal[-self.__n * self.__m:, 0] = m_exec
+                # self.__mo_thermal[-self.__n * self.__m:, 0] = m_exec
                 self.__mo_thermal = self.__tcpn_simulator_thermal.simulate_step(self.__mo_thermal)
                 # partial_results_thermal.append(self.__mo_thermal)
 
-                board_temperature = self.__mo_thermal[0:self.__p_board, 0]
+                board_temperature = self.__mo_thermal[0:self.__p_board + self.__p_one_micro * self.__m, 0]
 
                 cores_temperature = [(self.__mo_thermal[i * self.__p_one_micro: (i + 1) * self.__p_one_micro, 0]).mean()
-                                     for
-                                     i in range(self.__m)]
+                                     for i in range(self.__m)]
                 cores_temperature = scipy.asarray(cores_temperature).reshape((-1, 1))
 
         return scipy.concatenate([

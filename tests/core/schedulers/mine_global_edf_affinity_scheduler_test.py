@@ -8,7 +8,7 @@ from core.problem_specification_models.SimulationSpecification import Simulation
 from core.problem_specification_models.TasksSpecification import TasksSpecification, Task
 from core.schedulers.mine_abstract_global_scheduler_2 import AbstractGlobalScheduler
 from output_generation.output_generator import plot_cpu_utilization, plot_task_execution, \
-    plot_accumulated_execution_time, plot_cpu_temperature
+    plot_accumulated_execution_time, plot_cpu_temperature, draw_heat_matrix
 
 
 class TestGlobalEdfSchedulerNoThermal(unittest.TestCase):
@@ -40,6 +40,8 @@ class TestGlobalEdfSchedulerNoThermal(unittest.TestCase):
         plot_accumulated_execution_time(global_specification, scheduler_simulation,
                                         "affinity_accumulated_no_thermal.png")
         plot_cpu_temperature(global_specification, scheduler_simulation, "affinity_cpu_temperature.png")
+
+        draw_heat_matrix(global_specification, global_model, scheduler_simulation)
 
 
 if __name__ == '__main__':

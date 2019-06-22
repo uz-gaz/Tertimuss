@@ -18,7 +18,7 @@ def draw_heat_matrix(global_specification: GlobalSpecification, global_model: Gl
     :param scheduler_result: result of scheduling
     :param save_path: path to save the simulation
     """
-    temp = global_model.s_thermal.dot(scheduler_result.m)
+    temp = scheduler_result.m
 
     temp = scipy.transpose(temp)
 
@@ -54,11 +54,11 @@ def draw_heat_matrix(global_specification: GlobalSpecification, global_model: Gl
 
 
 def __get_heat_matrix(temp, global_specification: GlobalSpecification) -> scipy.ndarray:
-    mx = round(global_specification.cpu_specification.cpu_core.x / global_specification.simulation_specification.step)
-    my = round(global_specification.cpu_specification.cpu_core.y / global_specification.simulation_specification.step)
+    mx = round(global_specification.cpu_specification.cpu_core_specification.x / global_specification.simulation_specification.step)
+    my = round(global_specification.cpu_specification.cpu_core_specification.y / global_specification.simulation_specification.step)
     m = global_specification.cpu_specification.number_of_cores
-    x = round(global_specification.cpu_specification.board.x / global_specification.simulation_specification.step)
-    y = round(global_specification.cpu_specification.board.y / global_specification.simulation_specification.step)
+    x = round(global_specification.cpu_specification.board_specification.x / global_specification.simulation_specification.step)
+    y = round(global_specification.cpu_specification.board_specification.y / global_specification.simulation_specification.step)
 
     board_mat = scipy.zeros((x, y))
     cpus_mat = scipy.zeros((mx * m, my))

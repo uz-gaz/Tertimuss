@@ -37,5 +37,5 @@ class TcpnSimulatorAccurateOptimizedThermal(object):
 
         # Return the next marking
         # return self.__c.dot(flow) + mo
-        flow = (scipy.diag(self.__lambda)).dot(self.__pi).dot(mo) * self.__step
+        #flow = (scipy.diag(self.__lambda)).dot(self.__pi).dot(mo) * self.__step
         return self.__a.dot(mo) + mo
