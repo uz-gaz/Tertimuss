@@ -30,8 +30,8 @@ class TestGlobalEdfSchedulerNoThermal(unittest.TestCase):
 
         scheduler_simulation = scheduler.simulate(global_specification, global_model, None)
 
-        plot_cpu_utilization(global_specification, scheduler_simulation, "affinity_cpu_utilization_no_thermal.png")
-        plot_task_execution(global_specification, scheduler_simulation, "affinity_task_execution_no_thermal.png")
+        # plot_cpu_utilization(global_specification, scheduler_simulation, "affinity_cpu_utilization_no_thermal.png")
+        # plot_task_execution(global_specification, scheduler_simulation, "affinity_task_execution_no_thermal.png")
         plot_accumulated_execution_time(global_specification, scheduler_simulation,
                                         "affinity_accumulated_no_thermal.png")
 

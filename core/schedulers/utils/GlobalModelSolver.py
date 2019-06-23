@@ -4,17 +4,18 @@ import scipy.integrate
 from core.kernel_generator.global_model import GlobalModel
 from core.tcpn_simulator.TcpnSimulatorAccurateOptimizedTasks import TcpnSimulatorAccurateOptimizedTasks
 from core.tcpn_simulator.TcpnSimulatorAccurateOptimizedThermal import TcpnSimulatorAccurateOptimizedThermal
+from core.tcpn_simulator.TcpnSimulatorOptimizedTasksAndProcessors import TcpnSimulatorOptimizedTasksAndProcessors
 
 
 class GlobalModelSolver(object):
     def __init__(self, global_model: GlobalModel, step: float, n: int, m: int):
         self.__fragmentation_of_step = 20
 
-        self.__tcpn_simulator_proc = TcpnSimulatorAccurateOptimizedTasks(global_model.pre_proc_tau,
-                                                                         global_model.post_proc_tau,
-                                                                         global_model.pi_proc_tau,
-                                                                         global_model.lambda_vector_proc_tau,
-                                                                         step / self.__fragmentation_of_step)
+        self.__tcpn_simulator_proc = TcpnSimulatorOptimizedTasksAndProcessors(global_model.pre_proc_tau,
+                                                                              global_model.post_proc_tau,
+                                                                              global_model.pi_proc_tau,
+                                                                              global_model.lambda_vector_proc_tau,
+                                                                              step / self.__fragmentation_of_step)
 
         self.__control = scipy.ones(len(global_model.lambda_vector_proc_tau))
         self.__mo = global_model.mo_proc_tau
@@ -35,8 +36,6 @@ class GlobalModelSolver(object):
             self.__mo_thermal = global_model.mo_thermal
             self.__p_board = global_model.p_board
             self.__p_one_micro = global_model.p_one_micro
-
-        self.debug_number_of_calls = 0
 
     def run_step(self, w_alloc: scipy.ndarray, time: float) -> [scipy.ndarray, scipy.ndarray, scipy.ndarray,
                                                                 scipy.ndarray, scipy.ndarray,
@@ -71,8 +70,10 @@ class GlobalModelSolver(object):
 
                 board_temperature = self.__mo_thermal[0:self.__p_board + self.__p_one_micro * self.__m, 0]
 
-                cores_temperature = [(self.__mo_thermal[i * self.__p_one_micro: (i + 1) * self.__p_one_micro, 0]).max()
-                                     for i in range(self.__m)]
+                cores_temperature = [
+                    self.__mo_thermal[self.__p_board + i * self.__p_one_micro + int(self.__p_one_micro / 2), 0]
+                    for i in range(self.__m)]  # Take the temperature in the center of the core
+
                 cores_temperature = scipy.asarray(cores_temperature).reshape((-1, 1))
 
             board_temperature = board_temperature.reshape((-1, 1))
