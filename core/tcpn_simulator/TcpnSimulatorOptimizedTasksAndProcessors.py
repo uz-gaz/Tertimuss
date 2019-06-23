@@ -25,6 +25,7 @@ class TcpnSimulatorOptimizedTasksAndProcessors(object):
         Apply a control action over transitions firing in the Petri net
         :param control: control
         """
+        self.__control = control
         self.__a = (self.__c * self.__lambda_vector * control).dot(self.__pi) * self.__step
 
     def simulate_step(self, mo: scipy.ndarray) -> scipy.ndarray:
@@ -34,4 +35,5 @@ class TcpnSimulatorOptimizedTasksAndProcessors(object):
         :param mo:  actual marking
         :return: next marking
         """
+        flow = (scipy.diag(self.__lambda_vector * self.__control).dot(self.__pi) * self.__step).dot(mo)
         return self.__a.dot(mo) + mo

@@ -14,3 +14,4 @@ class SimulationSpecification(object):
         """
         self.step = step
         self.dt = dt
+        self.dt_fragmentation: int = 10

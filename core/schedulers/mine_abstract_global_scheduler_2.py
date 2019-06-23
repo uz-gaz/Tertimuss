@@ -84,7 +84,7 @@ class AbstractGlobalScheduler(AbstractScheduler):
             m * [global_specification.environment_specification.t_env]) if is_thermal_simulation else None
 
         # Global model solver
-        global_model_solver = GlobalModelSolver(global_model, global_specification.simulation_specification.dt, n, m)
+        global_model_solver = GlobalModelSolver(global_model, global_specification)
         del global_model
 
         # Active tasks

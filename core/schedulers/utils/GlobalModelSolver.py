@@ -2,36 +2,37 @@ import scipy
 import scipy.integrate
 
 from core.kernel_generator.global_model import GlobalModel
+from core.problem_specification_models.GlobalSpecification import GlobalSpecification
 from core.tcpn_simulator.TcpnSimulatorAccurateOptimizedTasks import TcpnSimulatorAccurateOptimizedTasks
 from core.tcpn_simulator.TcpnSimulatorAccurateOptimizedThermal import TcpnSimulatorAccurateOptimizedThermal
 from core.tcpn_simulator.TcpnSimulatorOptimizedTasksAndProcessors import TcpnSimulatorOptimizedTasksAndProcessors
 
 
 class GlobalModelSolver(object):
-    def __init__(self, global_model: GlobalModel, step: float, n: int, m: int):
-        self.__fragmentation_of_step = 20
+    def __init__(self, global_model: GlobalModel, global_specification: GlobalSpecification):
 
-        self.__tcpn_simulator_proc = TcpnSimulatorOptimizedTasksAndProcessors(global_model.pre_proc_tau,
+        self.__n = len(global_specification.tasks_specification.tasks)
+        self.__m = global_specification.cpu_specification.number_of_cores
+        self.__step = global_specification.simulation_specification.dt
+        self.enable_thermal_mode = global_model.enable_thermal_mode
+
+        self.__fragmentation_of_step = global_specification.simulation_specification.dt_fragmentation
+
+        self.__tcpn_simulator_proc = TcpnSimulatorAccurateOptimizedTasks(global_model.pre_proc_tau,
                                                                               global_model.post_proc_tau,
                                                                               global_model.pi_proc_tau,
                                                                               global_model.lambda_vector_proc_tau,
-                                                                              step / self.__fragmentation_of_step)
+                                                                              self.__step / self.__fragmentation_of_step)
 
         self.__control = scipy.ones(len(global_model.lambda_vector_proc_tau))
         self.__mo = global_model.mo_proc_tau
-        self.__n = n
-        self.__m = m
-
-        self.__step = step
-
-        self.enable_thermal_mode = global_model.enable_thermal_mode
 
         if global_model.enable_thermal_mode:
             self.__tcpn_simulator_thermal = TcpnSimulatorAccurateOptimizedThermal(global_model.pre_thermal,
                                                                                   global_model.post_thermal,
                                                                                   global_model.pi_thermal,
                                                                                   global_model.lambda_vector_thermal,
-                                                                                  step / self.__fragmentation_of_step)
+                                                                                  self.__step / self.__fragmentation_of_step)
 
             self.__mo_thermal = global_model.mo_thermal
             self.__p_board = global_model.p_board
