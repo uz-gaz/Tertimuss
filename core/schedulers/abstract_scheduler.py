@@ -9,19 +9,18 @@ from output_generation.abstract_progress_bar import AbstractProgressBar
 
 
 class SchedulerResult(object):
-    def __init__(self, m: scipy.ndarray, mo: scipy.ndarray, timez: scipy.ndarray, sch_oldtfs: scipy.ndarray,
-                 mexec: scipy.ndarray, mexec_tcpn: scipy.ndarray, time_step: scipy.ndarray, time_temp: scipy.ndarray,
-                 temperature_cont: scipy.ndarray, temperature_disc: scipy.ndarray, quantum: float):
-        self.m = m
-        self.mo = mo
-        self.timez = timez
-        self.sch_oldtfs = sch_oldtfs
-        self.mexec = mexec
-        self.mexec_tcpn = mexec_tcpn
-        self.time_step = time_step
-        self.time_temp = time_temp
-        self.temperature_cont = temperature_cont
-        self.temperature_disc = temperature_disc
+    def __init__(self, temperature_map: scipy.ndarray, max_temperature_cores: scipy.ndarray,
+                 time_scheduler: scipy.ndarray, time_tcpn: scipy.ndarray,
+                 execution_time_scheduler: scipy.ndarray, execution_time_tcpn: scipy.ndarray,
+                 scheduler_assignation: scipy.ndarray,
+                 quantum: float):
+        self.temperature_map = temperature_map
+        self.max_temperature_cores = max_temperature_cores
+        self.time_scheduler = time_scheduler
+        self.time_tcpn = time_tcpn
+        self.execution_time_scheduler = execution_time_scheduler
+        self.execution_time_tcpn = execution_time_tcpn
+        self.scheduler_assignation = scheduler_assignation
         self.quantum = quantum
 
 

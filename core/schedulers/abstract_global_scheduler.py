@@ -6,9 +6,8 @@ from core.kernel_generator.global_model import GlobalModel
 from core.problem_specification_models.GlobalSpecification import GlobalSpecification
 from core.problem_specification_models.TasksSpecification import Task
 from core.schedulers.abstract_scheduler import AbstractScheduler, SchedulerResult
-from core.schedulers.utils.global_model_solver import solve_global_model
 from typing import List, Optional
-
+from core.schedulers.utils.GlobalModelSolver import GlobalModelSolver
 from output_generation.abstract_progress_bar import AbstractProgressBar
 
 
@@ -31,14 +30,14 @@ class AbstractGlobalScheduler(AbstractScheduler):
     def __init__(self) -> None:
         super().__init__()
 
-    def simulate(self, global_specification: GlobalSpecification,
-                 global_model: GlobalModel, progress_bar: Optional[AbstractProgressBar]) -> SchedulerResult:
+    def simulate(self, global_specification: GlobalSpecification, global_model: GlobalModel,
+                 progress_bar: Optional[AbstractProgressBar]) -> SchedulerResult:
         """
 
         :type global_specification: object
         """
         # True if simulation must save temperature
-        is_thermal_simulation = global_model.thermal_enabled
+        is_thermal_simulation = global_model.enable_thermal_mode
 
         idle_task_id = -1
         m = global_specification.cpu_specification.number_of_cores
@@ -78,15 +77,16 @@ class AbstractGlobalScheduler(AbstractScheduler):
         # Time where each temperature step have been obtained
         time_temp = []
 
-        # Initial marking
-        mo = global_model.m
-
         # Accumulated execution time in each step
         m_exec_step = scipy.zeros(n * m)
 
         # Actual cores temperature in each step
         cores_temperature = scipy.asarray(
             m * [global_specification.environment_specification.t_env]) if is_thermal_simulation else None
+
+        # Global model solver
+        global_model_solver = GlobalModelSolver(global_model, global_specification)
+        del global_model
 
         # Active tasks
         active_task_id = m * [-1]
@@ -122,33 +122,19 @@ class AbstractGlobalScheduler(AbstractScheduler):
                         tasks[active_task_id[j]].next_arrival += tasks[active_task_id[j]].t
                         tasks[active_task_id[j]].next_deadline += tasks[active_task_id[j]].t
 
-            if is_thermal_simulation:
-                mo_next, m_exec_disc, _, _, tout_disc, temp_time_disc, temperature_tcpn = solve_global_model(
-                    global_model,
-                    mo.reshape(-1),
-                    i_tau_disc[:, zeta_q].reshape(-1),
-                    global_specification.environment_specification.t_env,
-                    time, global_specification.simulation_specification.dt)
-
-                mo = mo_next
-
-                temperature_map.append(temperature_tcpn)
-
-                time_temp.append(tout_disc)
-
-                temperature_disc.append(temp_time_disc)
-
-                cores_temperature = scipy.transpose(temp_time_disc)[-1] if temp_time_disc.shape[
-                                                                               1] > 0 else cores_temperature
-
-                m_exec_tcpn[:, zeta_q] = m_exec_disc.reshape(-1)
-
-            else:
-                m_exec_tcpn[:, zeta_q] = m_exec_step
+            m_exec_disc, board_temperature, cores_temperature, results_times = global_model_solver.run_step(
+                i_tau_disc[:, zeta_q].reshape(-1), time)
+            m_exec_tcpn[:, zeta_q] = m_exec_disc
 
             m_exec[:, zeta_q] = m_exec_step
 
             time_step[zeta_q] = time
+
+            temperature_disc.append(cores_temperature)
+
+            temperature_map.append(board_temperature)
+
+            time_temp.append(results_times)
 
         time_step = scipy.asarray(time_step).reshape((-1, 1))
 
@@ -161,8 +147,8 @@ class AbstractGlobalScheduler(AbstractScheduler):
         if len(temperature_disc) > 0:
             temperature_disc = scipy.concatenate(temperature_disc, axis=1)
 
-        return SchedulerResult(temperature_map, mo, time_step, i_tau_disc, m_exec, m_exec_tcpn, time_step, time_temp,
-                               scipy.asarray([]), temperature_disc, global_specification.simulation_specification.dt)
+        return SchedulerResult(temperature_map, temperature_disc, time_step, time_temp, m_exec, m_exec_tcpn,
+                               i_tau_disc, global_specification.simulation_specification.dt)
 
     @abc.abstractmethod
     def schedule_policy(self, time: float, tasks: List[GlobalSchedulerTask], m: int, active_tasks: List[int],

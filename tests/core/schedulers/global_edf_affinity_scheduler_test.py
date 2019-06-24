@@ -1,11 +1,10 @@
 import time
 import unittest
 
-from core.kernel_generator.global_model import generate_global_model
-from core.kernel_generator.kernel import SimulationKernel
-from core.kernel_generator.processor_model import ProcessorModel, generate_processor_model
-from core.kernel_generator.tasks_model import TasksModel, generate_tasks_model
-from core.kernel_generator.thermal_model import ThermalModel, generate_thermal_model
+from core.kernel_generator.global_model import GlobalModel
+from core.kernel_generator.processor_model import ProcessorModel
+from core.kernel_generator.tasks_model import TasksModel
+from core.kernel_generator.thermal_model import ThermalModel
 from core.problem_specification_models.CpuSpecification import CpuSpecification, MaterialCuboid
 from core.problem_specification_models.EnvironmentSpecification import EnvironmentSpecification
 from core.problem_specification_models.GlobalSpecification import GlobalSpecification
@@ -13,7 +12,7 @@ from core.problem_specification_models.SimulationSpecification import Simulation
 from core.problem_specification_models.TasksSpecification import TasksSpecification, Task
 from core.schedulers.global_edf_affinity_scheduler import GlobalEDFAffinityScheduler
 from output_generation.output_generator import plot_cpu_utilization, plot_task_execution, plot_cpu_temperature, \
-    plot_accumulated_execution_time, draw_heat_matrix
+    plot_accumulated_execution_time
 
 
 class TestGlobalEdfScheduler(unittest.TestCase):
@@ -31,26 +30,15 @@ class TestGlobalEdfScheduler(unittest.TestCase):
 
         simulation_specification: SimulationSpecification = SimulationSpecification(2, 0.01)
 
-        processor_model: ProcessorModel = generate_processor_model(tasks_specification, cpu_specification)
-
-        tasks_model: TasksModel = generate_tasks_model(tasks_specification, cpu_specification)
-
-        thermal_model: ThermalModel = generate_thermal_model(tasks_specification, cpu_specification,
-                                                             environment_specification,
-                                                             simulation_specification)
-
-        global_model, mo = generate_global_model(tasks_model, processor_model, thermal_model, environment_specification)
-
-        simulation_kernel: SimulationKernel = SimulationKernel(tasks_model, processor_model, thermal_model,
-                                                               global_model, mo)
+        scheduler = GlobalEDFAffinityScheduler()
 
         global_specification: GlobalSpecification = GlobalSpecification(tasks_specification, cpu_specification,
                                                                         environment_specification,
                                                                         simulation_specification)
 
-        scheduler = GlobalEDFAffinityScheduler()
+        global_model = GlobalModel(global_specification, True)
 
-        scheduler_simulation = scheduler.simulate(global_specification, simulation_kernel, None)
+        scheduler_simulation = scheduler.simulate(global_specification, global_model, None)
         time2 = time.time()
         print(time2 - time1)
 
@@ -59,8 +47,8 @@ class TestGlobalEdfScheduler(unittest.TestCase):
         # draw_heat_matrix(global_specification, simulation_kernel, scheduler_simulation, "affinity_heat_matrix.mp4")
         plot_cpu_utilization(global_specification, scheduler_simulation, "affinity_cpu_utilization.png")
         plot_task_execution(global_specification, scheduler_simulation, "affinity_task_execution.png")
-        plot_cpu_temperature(global_specification, scheduler_simulation,  "affinity_cpu_temperature.png")
-        plot_accumulated_execution_time(global_specification, scheduler_simulation,  "affinity_accumulated.png")
+        plot_cpu_temperature(global_specification, scheduler_simulation, "affinity_cpu_temperature.png")
+        plot_accumulated_execution_time(global_specification, scheduler_simulation, "affinity_accumulated.png")
 
 
 if __name__ == '__main__':

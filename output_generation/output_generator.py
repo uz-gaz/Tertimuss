@@ -18,7 +18,7 @@ def draw_heat_matrix(global_specification: GlobalSpecification, global_model: Gl
     :param scheduler_result: result of scheduling
     :param save_path: path to save the simulation
     """
-    temp = scheduler_result.m
+    temp = scheduler_result.temperature_map
 
     temp = scipy.transpose(temp)
 
@@ -38,7 +38,7 @@ def draw_heat_matrix(global_specification: GlobalSpecification, global_model: Gl
     cbar.ax.set_ylabel("Temperature ºC", rotation=-90, va="bottom")
 
     def animate(i):
-        ax.set_title("Time: " + '%.2f' % scheduler_result.time_temp[i] + " seconds", loc='left')
+        ax.set_title("Time: " + '%.2f' % scheduler_result.time_tcpn[i] + " seconds", loc='left')
         quad.set_array(heat_map[i].ravel())
         return quad
 
@@ -95,8 +95,8 @@ def plot_cpu_utilization(global_specification: GlobalSpecification, scheduler_re
     :param save_path: path to save the simulation
     """
 
-    i_tau_disc = scheduler_result.sch_oldtfs
-    time_u = scheduler_result.timez
+    i_tau_disc = scheduler_result.scheduler_assignation
+    time_u = scheduler_result.time_scheduler
     n = len(global_specification.tasks_specification.tasks)
     m = global_specification.cpu_specification.number_of_cores
     f, axarr = plt.subplots(m, sharex=True, num="CPU utilization")
@@ -122,8 +122,8 @@ def plot_task_execution(global_specification: GlobalSpecification, scheduler_res
     :param save_path: path to save the simulation
     """
 
-    i_tau_disc = scheduler_result.sch_oldtfs
-    time_u = scheduler_result.timez
+    i_tau_disc = scheduler_result.scheduler_assignation
+    time_u = scheduler_result.time_scheduler
     n = len(global_specification.tasks_specification.tasks)
     m = global_specification.cpu_specification.number_of_cores
     f, axarr = plt.subplots(n, sharex=True, num="Task execution")
@@ -166,8 +166,8 @@ def plot_cpu_temperature(global_specification: GlobalSpecification, scheduler_re
     :param save_path: path to save the simulation
     """
 
-    temperature_disc = scheduler_result.temperature_disc
-    time_temp = scheduler_result.time_temp
+    temperature_disc = scheduler_result.max_temperature_cores
+    time_temp = scheduler_result.time_tcpn
     m = global_specification.cpu_specification.number_of_cores
     f, axarr = plt.subplots(m, sharex=True, num="CPU temperature")
     f.suptitle('CPU temperature')
@@ -191,10 +191,10 @@ def plot_accumulated_execution_time(global_specification: GlobalSpecification, s
     :param save_path: path to save the simulation
     """
 
-    mexec = scheduler_result.mexec
-    mexec_tcpn = scheduler_result.mexec_tcpn
-    time_u = scheduler_result.timez
-    time_step = scheduler_result.time_step
+    mexec = scheduler_result.execution_time_scheduler
+    mexec_tcpn = scheduler_result.execution_time_tcpn
+    time_u = scheduler_result.time_scheduler
+    time_step = scheduler_result.time_tcpn
     n = len(global_specification.tasks_specification.tasks)
     m = global_specification.cpu_specification.number_of_cores
     f, axarr = plt.subplots(m, n, num="Execution time")
