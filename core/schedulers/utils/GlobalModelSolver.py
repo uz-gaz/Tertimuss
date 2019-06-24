@@ -19,10 +19,10 @@ class GlobalModelSolver(object):
         self.__fragmentation_of_step = global_specification.simulation_specification.dt_fragmentation
 
         self.__tcpn_simulator_proc = TcpnSimulatorAccurateOptimizedTasks(global_model.pre_proc_tau,
-                                                                              global_model.post_proc_tau,
-                                                                              global_model.pi_proc_tau,
-                                                                              global_model.lambda_vector_proc_tau,
-                                                                              self.__step / self.__fragmentation_of_step)
+                                                                         global_model.post_proc_tau,
+                                                                         global_model.pi_proc_tau,
+                                                                         global_model.lambda_vector_proc_tau,
+                                                                         self.__step / self.__fragmentation_of_step)
 
         self.__control = scipy.ones(len(global_model.lambda_vector_proc_tau))
         self.__mo = global_model.mo_proc_tau
@@ -63,7 +63,7 @@ class GlobalModelSolver(object):
                 m_exec = scipy.concatenate([mo_actual[2 * self.__n + (2 * self.__n + 1) * i:2 * self.__n + (
                         2 * self.__n + 1) * i + self.__n, 0] for i in range(self.__m)])
 
-                m_exec = m_exec * (1 / self.__step)  # FIXME: Review it
+                m_exec = m_exec * (self.__fragmentation_of_step / self.__step)  # FIXME: Review it
 
                 self.__mo_thermal[-self.__n * self.__m:, 0] = m_exec
                 self.__mo_thermal = self.__tcpn_simulator_thermal.simulate_step(self.__mo_thermal)
