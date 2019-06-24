@@ -64,6 +64,9 @@ class GlobalModel(object):
             self.p_one_micro = thermal_model.p_one_micro
             self.p_board = thermal_model.p_board
 
+            self.ct_exec = thermal_model.ct_exec
+            self.b_ta = thermal_model.b_ta
+
         # """
         # Save copy of processor, task models
         # """

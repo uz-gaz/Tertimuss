@@ -2,10 +2,9 @@ from typing import Optional
 
 import scipy
 
-from core.kernel_generator.kernel import SimulationKernel
+from core.kernel_generator.global_model import GlobalModel
 from core.problem_specification_models.GlobalSpecification import GlobalSpecification
 from core.schedulers.abstract_scheduler import AbstractScheduler, SchedulerResult
-from core.schedulers.utils.global_model_solver import solve_global_model
 from core.schedulers.utils.lineal_programing_problem_for_scheduling import \
     solve_lineal_programing_problem_for_scheduling
 from output_generation.abstract_progress_bar import AbstractProgressBar
@@ -19,11 +18,11 @@ class RtTCPNScheduler(AbstractScheduler):
     def __init__(self) -> None:
         super().__init__()
 
-    def simulate(self, global_specification: GlobalSpecification, simulation_kernel: SimulationKernel,
+    def simulate(self, global_specification: GlobalSpecification, global_model: GlobalModel,
                  progress_bar: Optional[AbstractProgressBar]) -> SchedulerResult:
 
         # True if simulation must save temperature
-        is_thermal_simulation = simulation_kernel.thermal_model is not None
+        is_thermal_simulation = global_model.enable_thermal_mode
 
         _, j_fsc_i, quantum, _ = solve_lineal_programing_problem_for_scheduling(
             global_specification.tasks_specification, global_specification.cpu_specification,

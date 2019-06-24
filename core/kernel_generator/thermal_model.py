@@ -385,6 +385,9 @@ class ThermalModel(object):
         self.p_board = p_board
         self.p_one_micro = p_one_micro
 
+        self.ct_exec = post_heat_dynamic * lambda_vector_heat_dynamic
+        self.b_ta = (post_conv * lambda_vector_conv).dot(pre_conv.transpose())
+
     # def change_frequency(self, tasks_specification: TasksSpecification, cpu_specification: CpuSpecification):
     #     # TODO: TEST
     #     n = len(tasks_specification.tasks)

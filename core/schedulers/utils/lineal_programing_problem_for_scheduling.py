@@ -5,6 +5,7 @@ import scipy.optimize
 import scipy
 import scipy.linalg
 
+from core.kernel_generator.global_model import GlobalModel
 from core.kernel_generator.thermal_model import ThermalModel
 from core.problem_specification_models.CpuSpecification import CpuSpecification
 from core.problem_specification_models.EnvironmentSpecification import EnvironmentSpecification
@@ -16,9 +17,9 @@ def solve_lineal_programing_problem_for_scheduling(tasks_specification: TasksSpe
                                                    cpu_specification: CpuSpecification,
                                                    environment_specification: EnvironmentSpecification,
                                                    simulation_specification: SimulationSpecification,
-                                                   thermal_model: Optional[ThermalModel]) -> [scipy.ndarray,
-                                                                                              scipy.ndarray, float,
-                                                                                              scipy.ndarray]:
+                                                   global_model: Optional[GlobalModel]) -> [scipy.ndarray,
+                                                                                            scipy.ndarray, float,
+                                                                                            scipy.ndarray]:
     h = tasks_specification.h
     ti = scipy.asarray([i.t for i in tasks_specification.tasks])
     ia = h / ti
@@ -45,10 +46,12 @@ def solve_lineal_programing_problem_for_scheduling(tasks_specification: TasksSpe
     objective = scipy.ones(n * m)
 
     # Optimization
-    if thermal_model is not None:
-        a_t = thermal_model.a_t
+    if global_model is not None:
+        a_t = ((global_model.post_thermal - global_model.pre_thermal) * global_model.lambda_vector_thermal).dot(
+            global_model.pi_thermal)
 
-        b = thermal_model.ct_exec
+        b = global_model.ct_exec
+        # TODO. Seguir por aqui
 
         a_int = - ((thermal_model.s_t.dot(scipy.linalg.inv(a_t))).dot(b)).dot(c_h)
 
