@@ -25,6 +25,7 @@ class MaterialCuboid(object):
         self.c_p = c_p
         self.k = k
 
+
 class Origin(object):
     """
     Origins of material cuboid
@@ -76,6 +77,9 @@ class CpuSpecification(object):
         self.cpu_core_specification = cpu_core_specification
         self.number_of_cores = number_of_cores
         self.clock_base_frequency = clock_base_frequency
+
+        # FIXME: This may be defined by the problem specification
+        self.clock_available_frequencies = [0.25, 0.5, 0.75, 1]
 
         # TODO: This may be defined by the problem specification
         self.leakage_delta = 0.1

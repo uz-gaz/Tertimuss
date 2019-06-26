@@ -27,7 +27,7 @@ class RtTCPNScheduler(AbstractScheduler):
         _, j_fsc_i, quantum, _ = solve_lineal_programing_problem_for_scheduling(
             global_specification.tasks_specification, global_specification.cpu_specification,
             global_specification.environment_specification,
-            global_specification.simulation_specification, None)
+            global_specification.simulation_specification, global_model)
 
         n = len(global_specification.tasks_specification.tasks)
         m = global_specification.cpu_specification.number_of_cores

@@ -348,6 +348,7 @@ class ThermalModel(object):
         pre = scipy.concatenate([pre_cond, pre_int, pre_conv], axis=1)
         pre = scipy.concatenate([pre, zero_1], axis=0)
         pre = scipy.concatenate([pre, pre_conv_air], axis=1)
+        pre_before_conv = pre
         pre = scipy.concatenate([pre, zero_2], axis=0)
         pre = scipy.concatenate([pre, pre_heat_leakage], axis=1)
         pre = scipy.concatenate([pre, zero_3], axis=0)
@@ -357,6 +358,7 @@ class ThermalModel(object):
         post = scipy.concatenate([post_cond, post_int, post_conv], axis=1)
         post = scipy.concatenate([post, zero_1], axis=0)
         post = scipy.concatenate([post, post_conv_air], axis=1)
+        post_before_conv = post
         post = scipy.concatenate([post, zero_2], axis=0)
         post = scipy.concatenate([post, post_heat_leakage], axis=1)
         post = scipy.concatenate([post, zero_3], axis=0)
@@ -377,6 +379,12 @@ class ThermalModel(object):
                                 scipy.zeros(cpu_specification.number_of_cores * len(tasks_specification.tasks))
                                 ]).reshape((-1, 1))
 
+        # Creation of S_T
+        s_t = scipy.zeros((cpu_specification.number_of_cores,
+                           len(pre - cpu_specification.number_of_cores * len(tasks_specification.tasks))))
+        for i in range(cpu_specification.number_of_cores):
+            s_t[i, p_board + i * p_one_micro + int(p_one_micro / 2)] = 1
+
         self.pre_sis = pre
         self.post_sis = post
         self.pi_sis = pi
@@ -385,8 +393,19 @@ class ThermalModel(object):
         self.p_board = p_board
         self.p_one_micro = p_one_micro
 
+        # FIXME: Only needed in the tcpn scheduler, check if it is possible to move it away from this file
         self.ct_exec = post_heat_dynamic * lambda_vector_heat_dynamic
+        aux_post = scipy.concatenate([post_before_conv, post_heat_dynamic[: - cpu_specification.number_of_cores * len(
+            tasks_specification.tasks) - 1, :]], axis=1)
+        aux_pre = scipy.concatenate([pre_before_conv, pre_heat_dynamic[: - cpu_specification.number_of_cores * len(
+            tasks_specification.tasks) - 1, :]], axis=1)
+        aux_c = aux_post - aux_pre
+        aux_pi = aux_pre.transpose()
+        aux_lambda_vector = scipy.concatenate([lambda_vector_cond, lambda_vector_int, lambda_vector_conv,
+                                               lambda_vector_conv_air, lambda_vector_heat_dynamic])
+        self.a_t = (aux_c * aux_lambda_vector).dot(aux_pi)
         self.b_ta = (post_conv * lambda_vector_conv).dot(pre_conv.transpose())
+        self.s_t = s_t
 
     # def change_frequency(self, tasks_specification: TasksSpecification, cpu_specification: CpuSpecification):
     #     # TODO: TEST

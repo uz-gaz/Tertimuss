@@ -46,18 +46,21 @@ def solve_lineal_programing_problem_for_scheduling(tasks_specification: TasksSpe
     objective = scipy.ones(n * m)
 
     # Optimization
-    if global_model is not None:
-        a_t = ((global_model.post_thermal - global_model.pre_thermal) * global_model.lambda_vector_thermal).dot(
-            global_model.pi_thermal)
+    if global_model.enable_thermal_mode:
+        a_t = global_model.a_t
 
         b = global_model.ct_exec
-        # TODO. Seguir por aqui
 
-        a_int = - ((thermal_model.s_t.dot(scipy.linalg.inv(a_t))).dot(b)).dot(c_h)
+        s_t = global_model.s_t
+
+        b_ta = global_model.b_ta
+
+        # Fixme: Check why a_t can't be inverted
+        a_int = - ((s_t.dot(scipy.linalg.inv(a_t))).dot(b)).dot(c_h)
 
         b_int = environment_specification.t_max * scipy.ones((m, 1)) + (
-            (thermal_model.s_t.dot(scipy.linalg.inv(thermal_model.a_t))).dot(
-                thermal_model.b_ta.reshape((-1, 1)))) * environment_specification.t_env
+            (s_t.dot(scipy.linalg.inv(a_t))).dot(
+                b_ta.reshape((-1, 1)))) * environment_specification.t_env
 
         a = scipy.concatenate((a_int, au))
         b = scipy.concatenate((b_int.transpose(), bu.transpose()), axis=1)
@@ -96,24 +99,24 @@ def solve_lineal_programing_problem_for_scheduling(tasks_specification: TasksSpe
     if quantum < simulation_specification.dt:
         quantum = simulation_specification.dt
 
-    if thermal_model is not None:
+    if global_model.enable_thermal_mode:
         # Solve differential equation to get a initial condition
-        theta = scipy.linalg.expm(thermal_model.a_t * h)
+        theta = scipy.linalg.expm(global_model.a_t * h)
 
-        beta_1 = (scipy.linalg.inv(thermal_model.a_t)).dot(
-            theta - scipy.identity(len(thermal_model.a_t)))
-        beta_2 = beta_1.dot(thermal_model.b_ta.reshape((- 1, 1)))
-        beta_1 = beta_1.dot(thermal_model.ct_exec)
+        beta_1 = (scipy.linalg.inv(global_model.a_t)).dot(
+            theta - scipy.identity(len(global_model.a_t)))
+        beta_2 = beta_1.dot(global_model.b_ta.reshape((- 1, 1)))
+        beta_1 = beta_1.dot(global_model.ct_exec)
 
         # Set initial condition to zero to archive a final condition where initial = final, SmT(0) = Y(H)
-        m_t_o = scipy.zeros((len(thermal_model.a_t), 1))
+        m_t_o = scipy.zeros((len(global_model.a_t), 1))
         m_t = theta.dot(m_t_o) + beta_1.dot(
             w_alloc.reshape((len(w_alloc), 1))) + beta_2 * environment_specification.t_env
 
         w_alloc_max = j_fsc_i / quantum
         m_t_max = theta.dot(m_t_o) + beta_1.dot(
             w_alloc_max.reshape((len(w_alloc_max), 1))) + environment_specification.t_env * beta_2
-        temp_max = thermal_model.s_t.dot(m_t_max)
+        temp_max = global_model.s_t.dot(m_t_max)
 
         if all(item[0] > environment_specification.t_max for item in temp_max / m):
             raise Exception(
