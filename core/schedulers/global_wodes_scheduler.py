@@ -2,6 +2,7 @@ import abc
 import math
 
 import scipy
+import scipy.optimize
 
 from core.kernel_generator.global_model import GlobalModel
 from core.problem_specification_models.GlobalSpecification import GlobalSpecification
@@ -173,18 +174,20 @@ class GlobalWodesScheduler(AbstractScheduler):
         return SchedulerResult(temperature_map, temperature_disc, time_step, time_temp, m_exec, m_exec_tcpn,
                                i_tau_disc, global_specification.simulation_specification.dt)
 
-    def ilpp_dp(self, scheduler_tasks: List[GlobalSchedulerTask], f_start: float, hyperperiod: float, n: int,
-                m: int) -> [scipy.ndarray, scipy.ndarray, scipy.ndarray]:
-        utilization = sum(map(lambda a: a.c / (a.t * f_start), scheduler_tasks))
+    def ilpp_dp(self, ci: List[float], ti: List[float], n: int, m: int) -> [scipy.ndarray, scipy.ndarray,
+                                                                            scipy.ndarray]:
+        utilization = sum(map(lambda task: task[0] / task[1], zip(ci, ti)))
 
-        jobs = list(map(lambda a: hyperperiod / a.t, scheduler_tasks))
-        t_star = list(map(lambda a: (a.t - a.c) * f_start, scheduler_tasks))
+        hyperperiod = scipy.lcm.reduce(ti)
+
+        jobs = list(map(lambda task: hyperperiod / task, ti))
+
+        t_star = list(map(lambda task: task[1] - task[0], zip(ci, ti)))
 
         d = scipy.zeros((n, max(jobs)))
 
         for i in range(n):
-            d[i, :jobs[i]] = scipy.arange(scheduler_tasks[i].t * f_start, hyperperiod * f_start,
-                                          scheduler_tasks[i].t * f_start)
+            d[i, :jobs[i]] = scipy.arange(ti[i], hyperperiod, ti[i])
         sd = d[0, 0:jobs[0]]
 
         for i in range(1, n):
@@ -222,9 +225,11 @@ class GlobalWodesScheduler(AbstractScheduler):
         for j in range(number_of_interval - 1):
             for i in range(n):
                 i_k = 0
+
+                q = math.floor(sd[j + 1] / ti[i])
+                r = sd[j + 1] % ti[i]
+
                 for k in range(j):
-                    q = math.floor(sd[j + 1] / (scheduler_tasks[i].t * f_start))
-                    r = sd[j + 1] % (scheduler_tasks[i].t * f_start)
                     if r == 0:
                         aeq_2[f1, (k - 1) * n + i] = 1
                     else:
@@ -232,14 +237,50 @@ class GlobalWodesScheduler(AbstractScheduler):
                     i_k = i_k + isd[k]
 
                 if r == 0:
-                    beq_2[f1, 1] = q * scheduler_tasks[i].c * f_start
+                    beq_2[f1, 1] = q * ci[i]
                     f1 = f1 + 1
                 else:
-                    b_1[f2, 1] = -1 * (q * scheduler_tasks[i].c * f_start - q * scheduler_tasks[i].t * f_start +
-                                       max(0, i_k - t_star[i]))
+                    b_1[f2, 1] = -1 * (q * ci[i] - q * ti[i] + max(0, i_k - t_star[i]))
                     f2 = f2 + 1
 
-        # TODO: Seguir desde aqui
+        aeq_2 = aeq_2  # TODO: Seleccionar sólo filas que tengan algún valor distinto de 0
+        a_1 = a_1  # TODO: Seleccionar sólo filas que tengan algún valor distinto de 0
+        beq_2 = beq_2[1:len(aeq_2), :]
+        b_1 = b_1[1:len(a_1), :]
+
+        # Maximum utilization
+        a_2 = scipy.identity(v)
+        b_2 = scipy.zeros((v, 1))
+        f1 = 1
+        for j in range(number_of_interval - 1):
+            b_2[f1:f1 + n + 1, 0] = isd[j]
+            f1 = f1 + n
+
+        a_eq = scipy.concatenate([aeq_1, aeq_2])
+        b_eq = scipy.concatenate([beq_1, beq_2])
+
+        a = scipy.concatenate([a_1, a_2])
+        b = scipy.concatenate([b_1, b_2])
+
+        f = scipy.full((v, 1), -1)
+        lb = scipy.zeros((1, v))
+
+        res = scipy.optimize.linprog(c=f, A_ub=a, b_ub=b, A_eq=a_eq,
+                                     b_eq=b_eq, bounds=zip(lb, len(lb) * [None]), method='simplex')
+
+        if not res.success:
+            # No solution found
+            raise Exception("Error: No solution found when trying to solve the lineal programing problem")
+
+        x = res.x
+
+        # Partitioning
+
+        i = 0
+        s = scipy.zeros((n, number_of_interval - 1))  # FIXME: REVIEW
+        for k in range(d - 1):
+            s[0:n, k] = x[i:i + n - 1]
+            i = i + n
 
 
 @abc.abstractmethod
