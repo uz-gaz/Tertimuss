@@ -3,6 +3,7 @@ import math
 
 import scipy
 import scipy.optimize
+from scipy.linalg import block_diag
 
 from core.kernel_generator.global_model import GlobalModel
 from core.problem_specification_models.GlobalSpecification import GlobalSpecification
@@ -180,14 +181,15 @@ class GlobalWodesScheduler(AbstractScheduler):
 
         hyperperiod = scipy.lcm.reduce(ti)
 
-        jobs = list(map(lambda task: hyperperiod / task, ti))
+        jobs = list(map(lambda task: int(hyperperiod / task), ti))
 
         t_star = list(map(lambda task: task[1] - task[0], zip(ci, ti)))
 
         d = scipy.zeros((n, max(jobs)))
 
         for i in range(n):
-            d[i, :jobs[i]] = scipy.arange(ti[i], hyperperiod, ti[i])
+            d[i, :jobs[i]] = (scipy.arange(ti[i], hyperperiod, ti[i]).tolist() + [hyperperiod])
+
         sd = d[0, 0:jobs[0]]
 
         for i in range(1, n):
@@ -205,14 +207,8 @@ class GlobalWodesScheduler(AbstractScheduler):
 
         # Restrictions
         # - Cpu utilization
-        aeq_1 = scipy.zeros((number_of_interval - 1, v))
-        beq_1 = scipy.zeros((number_of_interval - 1, 1))
-        c = 0
-        for j in range(1, number_of_interval - 1):
-            for i in range(n):
-                aeq_1[j, i + c] = 1
-            c = c + n
-            beq_1[j] = m * isd[j]
+        aeq_1 = block_diag(*((number_of_interval - 1) * [scipy.ones(n)]))
+        beq_1 = scipy.asarray([j * m for j in isd]).reshape((-1, 1))
 
         aeq_2 = scipy.zeros((v, v))
         a_1 = scipy.zeros((v, v))
@@ -220,8 +216,9 @@ class GlobalWodesScheduler(AbstractScheduler):
         b_1 = scipy.zeros((v, 1))
 
         # Temporal
-        f1 = 1
-        f2 = 1
+        f1 = 0
+        f2 = 0
+        # TODO: hasta aqui bien
         for j in range(number_of_interval - 1):
             for i in range(n):
                 i_k = 0
@@ -229,31 +226,35 @@ class GlobalWodesScheduler(AbstractScheduler):
                 q = math.floor(sd[j + 1] / ti[i])
                 r = sd[j + 1] % ti[i]
 
-                for k in range(j):
+                for k in range(j + 1):
                     if r == 0:
-                        aeq_2[f1, (k - 1) * n + i] = 1
+                        aeq_2[f1, k * n + i] = 1
                     else:
-                        a_1[f2, (k - 1) * n + i] = -1
+                        a_1[f2, k * n + i] = -1
                     i_k = i_k + isd[k]
 
                 if r == 0:
-                    beq_2[f1, 1] = q * ci[i]
+                    beq_2[f1, 0] = q * ci[i]
                     f1 = f1 + 1
                 else:
-                    b_1[f2, 1] = -1 * (q * ci[i] - q * ti[i] + max(0, i_k - t_star[i]))
+                    b_1[f2, 0] = -1 * (q * ci[i] - q * ti[i] + max(0, i_k - t_star[i]))
                     f2 = f2 + 1
 
-        aeq_2 = aeq_2  # TODO: Seleccionar sólo filas que tengan algún valor distinto de 0
-        a_1 = a_1  # TODO: Seleccionar sólo filas que tengan algún valor distinto de 0
-        beq_2 = beq_2[1:len(aeq_2), :]
-        b_1 = b_1[1:len(a_1), :]
+        def select_non_zero_rows(array_to_filter):
+            return scipy.concatenate(list(map(lambda filtered_row: filtered_row.reshape(1, -1), (
+                filter(lambda actual_row: scipy.count_nonzero(actual_row) != 0, array_to_filter)))), axis=0)
+
+        aeq_2 = select_non_zero_rows(aeq_2)
+        a_1 = select_non_zero_rows(a_1)
+        beq_2 = beq_2[0:len(aeq_2), :]
+        b_1 = b_1[0:len(a_1), :]
 
         # Maximum utilization
         a_2 = scipy.identity(v)
         b_2 = scipy.zeros((v, 1))
-        f1 = 1
+        f1 = 0
         for j in range(number_of_interval - 1):
-            b_2[f1:f1 + n + 1, 0] = isd[j]
+            b_2[f1:f1 + n, 0] = isd[j]
             f1 = f1 + n
 
         a_eq = scipy.concatenate([aeq_1, aeq_2])
@@ -263,10 +264,9 @@ class GlobalWodesScheduler(AbstractScheduler):
         b = scipy.concatenate([b_1, b_2])
 
         f = scipy.full((v, 1), -1)
-        lb = scipy.zeros((1, v))
 
         res = scipy.optimize.linprog(c=f, A_ub=a, b_ub=b, A_eq=a_eq,
-                                     b_eq=b_eq, bounds=zip(lb, len(lb) * [None]), method='simplex')
+                                     b_eq=b_eq, method='interior-point')  # FIXME: Actually any solution found
 
         if not res.success:
             # No solution found
@@ -279,8 +279,10 @@ class GlobalWodesScheduler(AbstractScheduler):
         i = 0
         s = scipy.zeros((n, number_of_interval - 1))  # FIXME: REVIEW
         for k in range(d - 1):
-            s[0:n, k] = x[i:i + n - 1]
+            s[0:n, k] = x[i:i + n]
             i = i + n
+
+        return s, sd, hyperperiod, isd
 
 
 @abc.abstractmethod
