@@ -122,7 +122,7 @@ class GlobalWodesScheduler(AbstractScheduler):
         f = scipy.full((v, 1), -1)
 
         res = scipy.optimize.linprog(c=f, A_ub=a, b_ub=b, A_eq=a_eq,
-                                     b_eq=b_eq, method='simplex')  # FIXME: Actually any solution found
+                                     b_eq=b_eq, method='revised simplex')  # FIXME: Actually any solution found
 
         """
         There is a linear combination of rows of A_eq that results in zero, suggesting a redundant constraint. However
@@ -222,6 +222,9 @@ class GlobalWodesScheduler(AbstractScheduler):
         simulation_time_steps = int(round(
             global_specification.tasks_specification.h / global_specification.simulation_specification.dt))
 
+        # SD in simulation steps
+        sd_simulation_steps = sd / global_specification.simulation_specification.dt
+
         # Allocation of each task in each simulation step
         i_tau_disc = scipy.zeros((n * m, simulation_time_steps))
 
@@ -256,51 +259,56 @@ class GlobalWodesScheduler(AbstractScheduler):
 
         # Active tasks
         active_task_id = m * [-1]
-        for zeta_q in range(simulation_time_steps):
-            # Update progress
-            if progress_bar is not None:
-                progress_bar.update_progress(zeta_q / simulation_time_steps * 100)
 
-            # Update time
-            time = zeta_q * global_specification.simulation_specification.dt
+        # Global step
+        zeta_q = 0
 
-            # Get active task in this step
-            active_task_id = self.schedule_policy(time, tasks, m, active_task_id,
-                                                  global_specification.cpu_specification.clock_relative_frequencies,
-                                                  cores_temperature)
+        for k in range(len(sd_simulation_steps)):
+            for zeta_q_step in range(sd_simulation_steps):
+                # Update progress
+                if progress_bar is not None:
+                    progress_bar.update_progress(zeta_q / simulation_time_steps * 100)
 
-            for j in range(m):
-                if active_task_id[j] != idle_task_id:
-                    if round(tasks[active_task_id[j]].pending_c, 5) > 0:
-                        # Not end yet
-                        tasks[active_task_id[j]].pending_c -= global_specification.simulation_specification.dt * \
-                                                              global_specification.cpu_specification.clock_relative_frequencies[
-                                                                  j]
-                        i_tau_disc[active_task_id[j] + j * n, zeta_q] = 1
-                        m_exec_step[active_task_id[j] + j * n] += global_specification.simulation_specification.dt
+                # Update time
+                time = zeta_q * global_specification.simulation_specification.dt
 
-                    else:
-                        # Ended
-                        tasks[active_task_id[j]].instances += 1
+                # Get active task in this step
+                active_task_id = self.schedule_policy(time, tasks, m, active_task_id,
+                                                      global_specification.cpu_specification.clock_relative_frequencies,
+                                                      cores_temperature)
 
-                        tasks[active_task_id[j]].pending_c = tasks[active_task_id[j]].c
+                for j in range(m):
+                    if active_task_id[j] != idle_task_id:
+                        if round(tasks[active_task_id[j]].pending_c, 5) > 0:
+                            # Not end yet
+                            tasks[active_task_id[j]].pending_c -= global_specification.simulation_specification.dt * \
+                                                                  global_specification.cpu_specification.clock_relative_frequencies[
+                                                                      j]
+                            i_tau_disc[active_task_id[j] + j * n, zeta_q] = 1
+                            m_exec_step[active_task_id[j] + j * n] += global_specification.simulation_specification.dt
 
-                        tasks[active_task_id[j]].next_arrival += tasks[active_task_id[j]].t
-                        tasks[active_task_id[j]].next_deadline += tasks[active_task_id[j]].t
+                        else:
+                            # Ended
+                            tasks[active_task_id[j]].instances += 1
 
-            m_exec_disc, board_temperature, cores_temperature, results_times = global_model_solver.run_step(
-                i_tau_disc[:, zeta_q].reshape(-1), time)
-            m_exec_tcpn[:, zeta_q] = m_exec_disc
+                            tasks[active_task_id[j]].pending_c = tasks[active_task_id[j]].c
 
-            m_exec[:, zeta_q] = m_exec_step
+                            tasks[active_task_id[j]].next_arrival += tasks[active_task_id[j]].t
+                            tasks[active_task_id[j]].next_deadline += tasks[active_task_id[j]].t
 
-            time_step[zeta_q] = time
+                m_exec_disc, board_temperature, cores_temperature, results_times = global_model_solver.run_step(
+                    i_tau_disc[:, zeta_q].reshape(-1), time)
+                m_exec_tcpn[:, zeta_q] = m_exec_disc
 
-            temperature_disc.append(cores_temperature)
+                m_exec[:, zeta_q] = m_exec_step
 
-            temperature_map.append(board_temperature)
+                time_step[zeta_q] = time
 
-            time_temp.append(results_times)
+                temperature_disc.append(cores_temperature)
+
+                temperature_map.append(board_temperature)
+
+                time_temp.append(results_times)
 
         time_step = scipy.asarray(time_step).reshape((-1, 1))
 
