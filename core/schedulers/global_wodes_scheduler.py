@@ -167,10 +167,10 @@ class GlobalWodesScheduler(AbstractScheduler):
                         sum(map(lambda task: task.c / task.t, global_specification.tasks_specification.tasks)) / (
                                 m * f_max))
 
-        f_start = next(
+        f_star = next(
             (x for x in global_specification.cpu_specification.clock_available_frequencies if x >= phi_start), f_max)
 
-        cc = list(map(lambda a: a.c / f_start, global_specification.tasks_specification.tasks))
+        cc = list(map(lambda a: a.c / f_star, global_specification.tasks_specification.tasks))
 
         cpu_utilization = sum(map(lambda a: a[0] / a[1].t, zip(cc, global_specification.tasks_specification.tasks)))
 
@@ -178,16 +178,45 @@ class GlobalWodesScheduler(AbstractScheduler):
         if cpu_utilization >= m:
             raise Exception("Error: Schedule is not feasible")
 
-        # Tasks set
-        tasks = [GlobalSchedulerTask(global_specification.tasks_specification.tasks[i], i) for i in
-                 range(len(global_specification.tasks_specification.tasks))]
-
+        dummy_task = None
         # Add dummy task
         if cpu_utilization < m:
             h = global_specification.tasks_specification.h
             cc_dummy = (m - sum(map(lambda a: a.c / a.t,
-                                    global_specification.tasks_specification.tasks))) * f_start * h
-            tasks.append(GlobalSchedulerTask(Task(cc_dummy, h, 0), len(tasks)))
+                                    global_specification.tasks_specification.tasks))) * f_star * h
+            dummy_task = GlobalSchedulerTask(Task(cc_dummy, h, 0), len(global_specification.tasks_specification.tasks))
+
+        # Number of cycles
+        cci = list(map(lambda a: a.c * global_specification.cpu_specification.clock_base_frequency,
+                       global_specification.tasks_specification.tasks)) + ([dummy_task.c *
+                                                                            global_specification.cpu_specification.clock_base_frequency]
+                                                                           if dummy_task is not None
+                                                                           else [])
+
+        tci = list(map(lambda a: a.t * f_star * global_specification.cpu_specification.clock_base_frequency,
+                       global_specification.tasks_specification.tasks)) + ([dummy_task.t * f_star *
+                                                                            global_specification.cpu_specification.clock_base_frequency]
+                                                                           if dummy_task is not None
+                                                                           else [])
+
+        # Linear programing problem
+        x, sd, hk, isd = self.ilpp_dp(cci, tci, n, m)
+
+        alpha = len(sd) - 1
+
+        isd = isd / (f_star * global_specification.cpu_specification.clock_base_frequency)
+        sd = sd / (f_star * global_specification.cpu_specification.clock_base_frequency)
+
+        # Tasks set
+        tasks = [GlobalSchedulerTask(global_specification.tasks_specification.tasks[i], i) for i in
+                 range(len(global_specification.tasks_specification.tasks))]
+
+        for i in range(n):
+            tasks[i].pending_c = x[i]
+            tasks[i].next_deadline = isd[i]
+            tasks[i].laxity = sd[1]
+
+        alloc_q = scipy.zeros((m, alpha + 1))
 
         # Number of steps in the simulation
         simulation_time_steps = int(round(
@@ -287,7 +316,6 @@ class GlobalWodesScheduler(AbstractScheduler):
         return SchedulerResult(temperature_map, temperature_disc, time_step, time_temp, m_exec, m_exec_tcpn,
                                i_tau_disc, global_specification.simulation_specification.dt)
 
-    @abc.abstractmethod
     def schedule_policy(self, time: float, tasks: List[GlobalSchedulerTask], m: int, active_tasks: List[int],
                         cores_frequency: Optional[List[float]], cores_temperature: Optional[scipy.ndarray]) -> \
             List[int]:
