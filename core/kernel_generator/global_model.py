@@ -66,7 +66,7 @@ class GlobalModel(object):
 
             self.ct_exec = thermal_model.ct_exec
             self.b_ta = thermal_model.b_ta
-            self.s_t = thermal_model.s_t
+            self.selector_of_core_temperature = thermal_model.selector_of_core_temperature
             self.a_t = thermal_model.a_t
 
         # """

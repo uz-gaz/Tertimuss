@@ -116,7 +116,7 @@ def solve_lineal_programing_problem_for_scheduling(tasks_specification: TasksSpe
         w_alloc_max = j_fsc_i / quantum
         m_t_max = theta.dot(m_t_o) + beta_1.dot(
             w_alloc_max.reshape((len(w_alloc_max), 1))) + environment_specification.t_env * beta_2
-        temp_max = global_model.selector_of_core_temperature.dot(m_t_max)
+        temp_max = global_model.s_t.dot(m_t_max)
 
         if all(item[0] > environment_specification.t_max for item in temp_max / m):
             raise Exception(

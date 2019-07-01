@@ -87,3 +87,11 @@ class GlobalModelSolver(object):
 
     def get_mo(self):
         return self.__mo
+
+    def get_exec_marking(self):
+        # TODO: Do :)
+        return self.__mo
+
+    def get_busy_marking(self):
+        # TODO: Do :)
+        return self.__mo

@@ -2,10 +2,8 @@ from typing import Optional
 
 import scipy
 
-from core.kernel_generator.kernel import SimulationKernel
 from core.problem_specification_models.GlobalSpecification import GlobalSpecification
 from core.schedulers.abstract_scheduler import AbstractScheduler, SchedulerResult
-from core.schedulers.utils.global_model_solver import solve_global_model
 from core.schedulers.utils.lineal_programing_problem_for_scheduling import \
     solve_lineal_programing_problem_for_scheduling
 from output_generation.abstract_progress_bar import AbstractProgressBar
@@ -19,7 +17,7 @@ class RTTcpnThermalAwareScheduler(AbstractScheduler):
     def simulate(self, global_specification: GlobalSpecification, simulation_kernel: SimulationKernel,
                  progress_bar: Optional[AbstractProgressBar]) -> SchedulerResult:
 
-        j_b_i, j_fsc_i, quantum, m_t = solve_lineal_programing_problem_for_scheduling(
+        j_b_i, j_fsc_i, quantum, _ = solve_lineal_programing_problem_for_scheduling(
             global_specification.tasks_specification, global_specification.cpu_specification,
             global_specification.environment_specification,
             global_specification.simulation_specification,

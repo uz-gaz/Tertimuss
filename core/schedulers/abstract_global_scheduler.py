@@ -34,6 +34,8 @@ class AbstractGlobalScheduler(AbstractScheduler):
                  progress_bar: Optional[AbstractProgressBar]) -> SchedulerResult:
         """
 
+        :param global_model:
+        :param progress_bar:
         :type global_specification: object
         """
         # True if simulation must save temperature
