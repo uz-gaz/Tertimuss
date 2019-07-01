@@ -14,6 +14,12 @@ from core.schedulers.utils.lineal_programing_problem_for_scheduling import \
 class GlobalThermalAwareScheduler(AbstractGlobalScheduler):
     def __init__(self) -> None:
         super().__init__()
+        self.sd = None
+        self.j_fsc_i = None
+        self.m_exec_accumulated = None
+        self.quantum = None
+        self.m_exec_step = None
+        self.m_busy = None
 
     def offline_stage(self, global_specification: GlobalSpecification, global_model: GlobalModel) -> float:
         _, j_fsc_i, quantum, _ = solve_lineal_programing_problem_for_scheduling(
@@ -38,13 +44,10 @@ class GlobalThermalAwareScheduler(AbstractGlobalScheduler):
 
         sd_u = scipy.union1d(sd_u, [0])
 
-        sd = sd_u[kd]
-        self.sd = sd
+        self.sd = sd_u[kd]
         self.j_fsc_i = j_fsc_i
         self.m_exec_accumulated = scipy.zeros(n * m)
         self.quantum = quantum
-        self.m_exec_step = scipy.zeros(n * m)
-
         self.m_exec_step = scipy.zeros(n * m)
 
         self.m_busy = scipy.zeros(n * m)
