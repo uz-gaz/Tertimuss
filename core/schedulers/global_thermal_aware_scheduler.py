@@ -20,6 +20,7 @@ class GlobalThermalAwareScheduler(AbstractGlobalScheduler):
         self.quantum = None
         self.m_exec_step = None
         self.m_busy = None
+        self.step = None
 
     def offline_stage(self, global_specification: GlobalSpecification, global_model: GlobalModel) -> float:
         _, j_fsc_i, quantum, _ = solve_lineal_programing_problem_for_scheduling(
@@ -52,6 +53,8 @@ class GlobalThermalAwareScheduler(AbstractGlobalScheduler):
 
         self.m_busy = scipy.zeros(n * m)
 
+        self.step = global_specification.simulation_specification.dt
+
         return quantum
 
     def schedule_policy(self, time: float, tasks: List[GlobalSchedulerTask], m: int, active_tasks: List[int],
@@ -72,18 +75,13 @@ class GlobalThermalAwareScheduler(AbstractGlobalScheduler):
         sd = self.sd
 
         w_alloc = scipy.zeros(n * m)
-
-        e_i_fsc_j = scipy.zeros(n * m)
-        x1 = scipy.zeros(n * m)
-        x2 = scipy.zeros(n * m)
-        s = scipy.zeros(n * m)
         j_fsc_i = self.j_fsc_i
 
         i_re_j = scipy.zeros(n * m)
         i_pr_j = scipy.zeros((m, n))
 
-        steps_in_quantum = 50
-        step = 0.01
+        steps_in_quantum = int(round(self.quantum / self.step))
+        step = self.step
         m_exec_step = self.m_exec_step
 
         m_busy = self.m_busy
@@ -93,26 +91,23 @@ class GlobalThermalAwareScheduler(AbstractGlobalScheduler):
             for j in range(m):
                 for i in range(n):
                     # Calculo del error, y la superficie para el sliding mode control
-                    e_i_fsc_j[i + j * n] = j_fsc_i[i + j * n] * time - m_exec_step[i + j * n]
+                    e_i_fsc_j = j_fsc_i[i + j * n] * time - m_exec_step[i + j * n]
 
                     # Cambio de variables
-                    x1[i + j * n] = e_i_fsc_j[i + j * n]
-                    x2[i + j * n] = m_busy[i + j * n]  # m_bussy
+                    x1 = e_i_fsc_j
+                    x2 = m_busy[i + j * n]  # m_bussy
 
                     # Superficie
-                    s[i + j * n] = x1[i + j * n] - x2[i + j * n] + j_fsc_i[i + j * n]
+                    s = x1 - x2 + j_fsc_i[i + j * n]
 
                     # Control Para tareas temporal en cada procesador w_alloc control en I_tau
-                    w_alloc[i + j * n] = (j_fsc_i[i + j * n] * scipy.sign(s[i + j * n]) + j_fsc_i[i + j * n]) / 2
+                    w_alloc[i + j * n] = (j_fsc_i[i + j * n] * scipy.sign(s) + j_fsc_i[i + j * n]) / 2
 
             m_busy = w_alloc * step
             m_exec_step = m_exec_step + w_alloc * step
 
-            # DISCRETIZATION
-            # Todas las tareas se expulsan de los procesadores
-            # i_tau_disc[:, zeta_q] = 0
-
-            # Se inicializa el conjunto ET de transiciones de tareas para el modelo discreto
+        # DISCRETIZATION
+        # Se inicializa el conjunto ET de transiciones de tareas para el modelo discreto
         et = scipy.zeros((m, n), dtype=int)
 
         fsc = scipy.zeros(m * n)
@@ -126,7 +121,8 @@ class GlobalThermalAwareScheduler(AbstractGlobalScheduler):
                 if round(i_re_j[i + j * n], 4) > 0:
                     et[j, i] = i + 1
 
-        mine_walloc = m * [-1]
+        w_alloc = m * [-1]
+
         for j in range(m):
             # Si el conjunto no es vacio por cada j-esimo CPU, entonces se procede a
             # calcular la prioridad de cada tarea a ser asignada
@@ -157,11 +153,11 @@ class GlobalThermalAwareScheduler(AbstractGlobalScheduler):
                     if j != k:
                         et[k, ind_max_pr] = 0
 
-                mine_walloc[j] = ind_max_pr
+                w_alloc[j] = ind_max_pr
 
                 m_exec_accumulated[ind_max_pr + j * n] += self.quantum
 
         self.m_exec_step = m_exec_step
         self.m_busy = m_busy
         self.m_exec_accumulated = m_exec_accumulated
-        return mine_walloc
+        return w_alloc
