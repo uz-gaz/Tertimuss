@@ -133,19 +133,8 @@ class RtTCPNScheduler(AbstractScheduler):
                         # Control Para tareas temporal en cada procesador w_alloc control en I_tau
                         w_alloc[i + j * n] = (j_fsc_i[i + j * n] * scipy.sign(s[i + j * n]) + j_fsc_i[i + j * n]) / 2
 
-                # mo_next, m_exec_step, m_busy, _, _, _, _ = solve_global_model(
-                #     simulation_kernel.global_model,
-                #     mo.reshape(-1),
-                #     w_alloc,
-                #     global_specification.environment_specification.t_env if is_thermal_simulation else 0,
-                #     [time, time + step])
-                #
-                # mo = mo_next
                 m_busy = w_alloc * step
                 m_exec_step = m_exec_step + w_alloc * step
-                # time_step = scipy.concatenate((time_step, scipy.asarray([time])))
-                # m_exec_tcpn_history = scipy.concatenate((m_exec_tcpn_history, m_exec_step), axis=1)
-                # time = time + step
 
             # DISCRETIZATION
             # Todas las tareas se expulsan de los procesadores

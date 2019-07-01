@@ -38,7 +38,7 @@ class AbstractGlobalScheduler(AbstractScheduler):
         :param progress_bar:
         :type global_specification: object
         """
-        # True if simulation must save temperature
+        # True if simulation must save the temperature map
         is_thermal_simulation = global_model.enable_thermal_mode
 
         idle_task_id = -1
@@ -46,7 +46,7 @@ class AbstractGlobalScheduler(AbstractScheduler):
         n = len(global_specification.tasks_specification.tasks)
         cpu_utilization = sum(map(lambda a: a.c / a.t, global_specification.tasks_specification.tasks))
 
-        # Exit program if can schedule
+        # Exit program if can't be scheduled
         if cpu_utilization >= m:
             raise Exception("Error: Schedule is not feasible")
 
@@ -61,7 +61,7 @@ class AbstractGlobalScheduler(AbstractScheduler):
         # Allocation of each task in each simulation step
         i_tau_disc = scipy.zeros((n * m, simulation_time_steps))
 
-        # Time of each quantum
+        # Time of each simulation step
         time_step = simulation_time_steps * [0]
 
         # Accumulated execution time
@@ -86,12 +86,24 @@ class AbstractGlobalScheduler(AbstractScheduler):
         cores_temperature = scipy.asarray(
             m * [global_specification.environment_specification.t_env]) if is_thermal_simulation else None
 
+        # Run offline stage
+        quantum = self.offline_stage(global_specification, global_model)
+
+        # Number of steps in each quantum
+        simulation_quantum_steps = int(round(
+            quantum / global_specification.simulation_specification.dt))
+        simulation_quantum_steps = 1 if simulation_quantum_steps == 0 else simulation_quantum_steps
+
+        # Number of steps until next quantum
+        quantum_q = 0
+
         # Global model solver
         global_model_solver = GlobalModelSolver(global_model, global_specification)
         del global_model
 
         # Active tasks
         active_task_id = m * [-1]
+
         for zeta_q in range(simulation_time_steps):
             # Update progress
             if progress_bar is not None:
@@ -100,10 +112,14 @@ class AbstractGlobalScheduler(AbstractScheduler):
             # Update time
             time = zeta_q * global_specification.simulation_specification.dt
 
-            # Get active task in this step
-            active_task_id = self.schedule_policy(time, tasks, m, active_task_id,
-                                                  global_specification.cpu_specification.clock_relative_frequencies,
-                                                  cores_temperature)
+            if quantum_q <= 0:
+                # Get active task in this step
+                active_task_id = self.schedule_policy(time, tasks, m, active_task_id,
+                                                      global_specification.cpu_specification.clock_relative_frequencies,
+                                                      cores_temperature)
+                quantum_q = simulation_quantum_steps - 1
+            else:
+                quantum_q = quantum_q - 1
 
             for j in range(m):
                 if active_task_id[j] != idle_task_id:
@@ -151,6 +167,15 @@ class AbstractGlobalScheduler(AbstractScheduler):
 
         return SchedulerResult(temperature_map, temperature_disc, time_step, time_temp, m_exec, m_exec_tcpn,
                                i_tau_disc, global_specification.simulation_specification.dt)
+
+    def offline_stage(self, global_specification: GlobalSpecification, global_model: GlobalModel) -> float:
+        """
+        This method can be overridden with the offline stage scheduler tasks
+        :param global_specification: Global specification
+        :param global_model: Global model
+        :return: the quantum
+        """
+        return global_specification.simulation_specification.dt
 
     @abc.abstractmethod
     def schedule_policy(self, time: float, tasks: List[GlobalSchedulerTask], m: int, active_tasks: List[int],
