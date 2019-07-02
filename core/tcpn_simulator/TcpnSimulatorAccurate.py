@@ -7,8 +7,9 @@ from core.tcpn_simulator.AbstractTcpnSimulator import AbstractTcpnSimulator
 
 class TcpnSimulatorAccurate(AbstractTcpnSimulator):
     """
-    Time continuous petri net simulator
-    # TODO: Add check to shapes
+    Time continuous petri net simulator optimized for the scenario where pi is invariable
+    WARNING: This is only an example not used in the simulator but it may be useful if the petri net model for the
+    simulation change
     """
 
     def __init__(self, pre: scipy.ndarray, post: scipy.ndarray, pi: Optional[scipy.ndarray],

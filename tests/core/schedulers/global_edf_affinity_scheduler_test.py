@@ -21,7 +21,7 @@ class TestGlobalEdfScheduler(unittest.TestCase):
                                                                       Task(3, 12, 9.6)])
         cpu_specification: CpuSpecification = CpuSpecification(MaterialCuboid(x=50, y=50, z=1, p=8933, c_p=385, k=400),
                                                                MaterialCuboid(x=10, y=10, z=2, p=2330, c_p=712, k=148),
-                                                               2, 1)
+                                                               2, 1, [1, 0.5])
 
         environment_specification: EnvironmentSpecification = EnvironmentSpecification(0.001, 45, 110)
 

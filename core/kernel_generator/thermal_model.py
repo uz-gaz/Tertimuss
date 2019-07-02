@@ -411,28 +411,3 @@ class ThermalModel(object):
             s_t[i, p_board + i * p_one_micro + int(p_one_micro / 2)] = 1
 
         self.selector_of_core_temperature = s_t
-
-    # def change_frequency(self, tasks_specification: TasksSpecification, cpu_specification: CpuSpecification):
-    #     # TODO: TEST
-    #     n = len(tasks_specification.tasks)
-    #     m = cpu_specification.number_of_cores
-    #
-    #     # Transition rate
-    #     eta = 100
-    #
-    #     # Total of transitions
-    #     t = m * (2 * n)  # m processors*(n transitions alloc and n tramsition exec)
-    #
-    #     lambda_vector = scipy.zeros(t)
-    #
-    #     for k in range(n):
-    #         f = cpu_specification.clock_frequencies[k]
-    #
-    #         # Execution rates for transitions exec for CPU_k \lambda^exec= eta*F
-    #         lambda_vector[2 * k * n + n:2 * k * n + 2 * n] = eta * f * scipy.ones(n)
-    #
-    #         # Execution rates for transitions alloc \lambda^alloc= eta*\lambda^exec
-    #         lambda_vector[2 * k * n:2 * k * n + n] = eta * lambda_vector[2 * k * n + n:2 * k * n + 2 * n]
-    #
-    #     lambda_proc = scipy.diag(lambda_vector)
-    #     self.lambda_proc = lambda_proc

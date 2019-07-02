@@ -3,7 +3,8 @@ import scipy
 
 class TcpnSimulatorOptimizedTasksAndProcessors(object):
     """
-    Time continuous petri net simulator
+    Time continuous petri net simulator used to simulate task and processors
+    # WARNING: Actually unused
     """
 
     def __init__(self, pre: scipy.ndarray, post: scipy.ndarray, pi: scipy.ndarray, lambda_vector: scipy.ndarray,

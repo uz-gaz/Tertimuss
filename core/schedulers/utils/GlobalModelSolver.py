@@ -45,6 +45,7 @@ class GlobalModelSolver(object):
             self.__mo_thermal = global_model.mo_thermal
             self.__p_board = global_model.p_board
             self.__p_one_micro = global_model.p_one_micro
+            self.__control_thermal = scipy.ones(len(global_model.lambda_vector_thermal))
 
     def run_step(self, w_alloc: List[int], time: float, core_frequencies: List[float]) -> [scipy.ndarray,
                                                                                            scipy.ndarray,
@@ -73,7 +74,7 @@ class GlobalModelSolver(object):
         new_control_processor[self.__n:self.__n + self.__n * self.__m] = scipy.asarray(
             w_alloc) * core_frequencies_as_control
         # Control over t_exec
-        new_control_processor[self.__n:self.__n + self.__n * self.__m] = core_frequencies_as_control
+        new_control_processor[-self.__n * self.__m:] = core_frequencies_as_control
 
         if not scipy.array_equal(self.__control_task_proc, new_control_processor):
             self.__control_task_proc = new_control_processor
@@ -84,13 +85,19 @@ class GlobalModelSolver(object):
             self.__mo = self.__tcpn_simulator_proc.simulate_step(self.__mo)
             partial_results_proc.append(self.__mo)
 
-        # TODO: Include variable frequency in thermal
-
         board_temperature = None
         cores_temperature = None
 
         if self.enable_thermal_mode:
-            # partial_results_thermal = []
+            # Create new control vector
+            new_control_thermal = scipy.copy(self.__control_thermal)
+            # Control over t_alloc
+            new_control_thermal[-self.__n * self.__m:] = core_frequencies_as_control
+
+            if not scipy.array_equal(self.__control_thermal, new_control_thermal):
+                self.__control_thermal = new_control_thermal
+                self.__tcpn_simulator_thermal.set_control(new_control_thermal)
+
             for mo_actual in partial_results_proc:
                 m_exec = scipy.concatenate([mo_actual[2 * self.__n + (2 * self.__n + 1) * i:2 * self.__n + (
                         2 * self.__n + 1) * i + self.__n, 0] for i in range(self.__m)])
