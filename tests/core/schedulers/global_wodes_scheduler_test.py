@@ -1,6 +1,6 @@
 import unittest
 
-from core.schedulers.global_wodes_scheduler import GlobalWodesScheduler
+from core.schedulers.implementations.global_wodes import GlobalWodesScheduler
 
 
 class MyTestCase(unittest.TestCase):

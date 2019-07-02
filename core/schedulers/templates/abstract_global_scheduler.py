@@ -5,7 +5,7 @@ import scipy
 from core.kernel_generator.global_model import GlobalModel
 from core.problem_specification_models.GlobalSpecification import GlobalSpecification
 from core.problem_specification_models.TasksSpecification import Task
-from core.schedulers.abstract_scheduler import AbstractScheduler, SchedulerResult
+from core.schedulers.templates.abstract_scheduler import AbstractScheduler, SchedulerResult
 from typing import List, Optional
 from core.schedulers.utils.GlobalModelSolver import GlobalModelSolver
 from output_generation.abstract_progress_bar import AbstractProgressBar
@@ -101,6 +101,9 @@ class AbstractGlobalScheduler(AbstractScheduler):
         global_model_solver = GlobalModelSolver(global_model, global_specification)
         del global_model
 
+        # Actual set clock frequencies
+        clock_relative_frequencies = global_specification.cpu_specification.clock_relative_frequencies
+
         # Active tasks
         active_task_id = m * [-1]
 
@@ -114,21 +117,33 @@ class AbstractGlobalScheduler(AbstractScheduler):
 
             if quantum_q <= 0:
                 # Get active task in this step
-                active_task_id = self.schedule_policy(time, tasks, m, active_task_id,
-                                                      global_specification.cpu_specification.clock_relative_frequencies,
-                                                      cores_temperature)
-                quantum_q = simulation_quantum_steps - 1
+                # TODO: Check if the processor frequencies returned are in available ones
+                active_task_id, next_quantum, next_core_frequencies = self.schedule_policy(time, tasks, m,
+                                                                                           active_task_id,
+                                                                                           clock_relative_frequencies,
+                                                                                           cores_temperature)
+
+                quantum_q = int(round(next_quantum / global_specification.simulation_specification.dt)) - 1 \
+                    if next_quantum is not None else simulation_quantum_steps - 1
+                quantum_q = 0 if quantum_q < 0 else quantum_q
+
+                clock_relative_frequencies = next_core_frequencies if next_core_frequencies is not None \
+                    else global_specification.cpu_specification.clock_relative_frequencies
+
             else:
                 quantum_q = quantum_q - 1
+
+            # Allocation vector, form: task_1_in_cpu_1 ... task_n_in_cpu_1 ... task_1_in_cpu_m ... task_n_in_cpu_m
+            # 1 for allocation and 0 for no allocation
+            w_alloc = (n * m) * [0]
 
             for j in range(m):
                 if active_task_id[j] != idle_task_id:
                     if round(tasks[active_task_id[j]].pending_c, 5) > 0:
                         # Not end yet
                         tasks[active_task_id[j]].pending_c -= global_specification.simulation_specification.dt * \
-                                                              global_specification.cpu_specification.clock_relative_frequencies[
-                                                                  j]
-                        i_tau_disc[active_task_id[j] + j * n, zeta_q] = 1
+                                                              clock_relative_frequencies[j]
+                        w_alloc[active_task_id[j] + j * n] = 1
                         m_exec_step[active_task_id[j] + j * n] += global_specification.simulation_specification.dt
 
                     else:
@@ -141,7 +156,10 @@ class AbstractGlobalScheduler(AbstractScheduler):
                         tasks[active_task_id[j]].next_deadline += tasks[active_task_id[j]].t
 
             m_exec_disc, board_temperature, cores_temperature, results_times = global_model_solver.run_step(
-                i_tau_disc[:, zeta_q].reshape(-1), time)
+                w_alloc, time, clock_relative_frequencies)
+
+            i_tau_disc[:, zeta_q] = w_alloc
+
             m_exec_tcpn[:, zeta_q] = m_exec_disc
 
             m_exec[:, zeta_q] = m_exec_step
@@ -173,14 +191,14 @@ class AbstractGlobalScheduler(AbstractScheduler):
         This method can be overridden with the offline stage scheduler tasks
         :param global_specification: Global specification
         :param global_model: Global model
-        :return: the quantum
+        :return: 1 - Scheduling quantum (default will be the step specified in problem creation)
         """
         return global_specification.simulation_specification.dt
 
     @abc.abstractmethod
     def schedule_policy(self, time: float, tasks: List[GlobalSchedulerTask], m: int, active_tasks: List[int],
-                        cores_frequency: Optional[List[float]], cores_temperature: Optional[scipy.ndarray]) -> \
-            List[int]:
+                        cores_frequency: List[float], cores_temperature: Optional[scipy.ndarray]) -> \
+            [List[int], Optional[float], Optional[List[float]]]:
         """
         Method to implement with the actual scheduler police
         :param cores_frequency: Frequencies of cores
@@ -189,6 +207,9 @@ class AbstractGlobalScheduler(AbstractScheduler):
         :param m: number of cores
         :param active_tasks: actual id of tasks assigned to cores (task with id -1 is the idle task)
         :param cores_temperature: temperature of each core
-        :return: tasks to assign to cores in next step (task with id -1 is the idle task)
+        :return: 1 - tasks to assign to cores in next step (task with id -1 is the idle task)
+                 2 - next quantum size (if None, will be taken the quantum specified in the offline_stage)
+                 3 - cores relatives frequencies for the next quantum (if None, will be taken the frequencies specified
+                  in the problem specification)
         """
         pass

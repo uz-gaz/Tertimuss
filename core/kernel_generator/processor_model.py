@@ -45,7 +45,7 @@ class ProcessorModel(object):
         # idle place:  p2n+1->p^idle_1
 
         for k in range(m):
-            f = cpu_specification.clock_relative_frequencies[k]
+            # f = cpu_specification.clock_relative_frequencies[k]
 
             i = (2 * n + 1) * k
 
@@ -64,10 +64,10 @@ class ProcessorModel(object):
             pi_alloc[i + 2 * n, k * n: k * n + n] = (1 / eta) * scipy.ones(n)
 
             # Execution rates for transitions alloc \lambda^alloc= eta*\lambda^exec
-            lambda_vector_alloc[k * n:k * n + n] = eta * f * scipy.ones(n)
+            lambda_vector_alloc[k * n:k * n + n] = eta * scipy.ones(n)  # The F will be controlled online
 
             # Execution rates for transitions exec for CPU_k \lambda^exec= eta*F
-            lambda_vector_exec[k * n:k * n + n] = eta * f * scipy.ones(n)
+            lambda_vector_exec[k * n:k * n + n] = eta * scipy.ones(n)  # The F will be controlled online
 
             # Initial condition
             mo[i + 2 * n, 0] = 1
@@ -83,28 +83,3 @@ class ProcessorModel(object):
         self.post_exec_proc = post_exec
         self.pi_exec_proc = pi_exec
         self.lambda_vector_exec_proc = lambda_vector_exec
-
-    # def change_frequency(self, tasks_specification: TasksSpecification, cpu_specification: CpuSpecification):
-    #     # TODO: TEST
-    #     n = len(tasks_specification.tasks)
-    #     m = cpu_specification.number_of_cores
-    #
-    #     # Transition rate
-    #     eta = 100
-    #
-    #     # Total of transitions
-    #     t = m * (2 * n)  # m processors*(n transitions alloc and n tramsition exec)
-    #
-    #     lambda_vector = scipy.zeros(t)
-    #
-    #     for k in range(n):
-    #         f = cpu_specification.clock_frequencies[k]
-    #
-    #         # Execution rates for transitions exec for CPU_k \lambda^exec= eta*F
-    #         lambda_vector[2 * k * n + n:2 * k * n + 2 * n] = eta * f * scipy.ones(n)
-    #
-    #         # Execution rates for transitions alloc \lambda^alloc= eta*\lambda^exec
-    #         lambda_vector[2 * k * n:2 * k * n + n] = eta * lambda_vector[2 * k * n + n:2 * k * n + 2 * n]
-    #
-    #     lambda_proc = scipy.diag(lambda_vector)
-    #     self.lambda_proc = lambda_proc

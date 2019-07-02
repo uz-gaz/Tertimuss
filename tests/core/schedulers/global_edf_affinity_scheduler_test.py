@@ -2,15 +2,12 @@ import time
 import unittest
 
 from core.kernel_generator.global_model import GlobalModel
-from core.kernel_generator.processor_model import ProcessorModel
-from core.kernel_generator.tasks_model import TasksModel
-from core.kernel_generator.thermal_model import ThermalModel
 from core.problem_specification_models.CpuSpecification import CpuSpecification, MaterialCuboid
 from core.problem_specification_models.EnvironmentSpecification import EnvironmentSpecification
 from core.problem_specification_models.GlobalSpecification import GlobalSpecification
 from core.problem_specification_models.SimulationSpecification import SimulationSpecification
 from core.problem_specification_models.TasksSpecification import TasksSpecification, Task
-from core.schedulers.global_edf_affinity_scheduler import GlobalEDFAffinityScheduler
+from core.schedulers.implementations.global_edf_a import GlobalEDFAffinityScheduler
 from output_generation.output_generator import plot_cpu_utilization, plot_task_execution, plot_cpu_temperature, \
     plot_accumulated_execution_time
 

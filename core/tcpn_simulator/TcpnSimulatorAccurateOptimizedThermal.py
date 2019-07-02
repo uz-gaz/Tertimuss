@@ -22,11 +22,20 @@ class TcpnSimulatorAccurateOptimizedThermal(object):
         self.__step = step
         self.__lambda_dot_pi = (scipy.diag(self.__lambda)).dot(self.__pi)
 
-    def simulate_step(self, mo: scipy.ndarray) -> scipy.ndarray:
+    def set_control(self, control: scipy.ndarray):
         """
-        Simulate one step
+        Apply a control action over transitions firing in the Petri net
+        :param control: control
+        """
+        # TODO: Implement
+        self.__control = control
+
+    def simulate_step(self, mo: scipy.ndarray, number_of_steps: int = 1) -> scipy.ndarray:
+        """
+        Simulate number_of_steps steps
 
         :param mo:  actual marking
+        :param number_of_steps: number of steps to simulate
         :return: next marking
         """
 
@@ -39,4 +48,5 @@ class TcpnSimulatorAccurateOptimizedThermal(object):
         # Return the next marking
         # return self.__c.dot(flow) + mo
         # flow = self.__lambda_dot_pi.dot(mo) * self.__step
+        # TODO: Use number_of_steps
         return self.__a.dot(mo) + mo

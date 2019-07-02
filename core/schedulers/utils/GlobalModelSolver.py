@@ -1,3 +1,5 @@
+from typing import List
+
 import scipy
 import scipy.integrate
 
@@ -5,11 +7,16 @@ from core.kernel_generator.global_model import GlobalModel
 from core.problem_specification_models.GlobalSpecification import GlobalSpecification
 from core.tcpn_simulator.TcpnSimulatorAccurateOptimizedTasks import TcpnSimulatorAccurateOptimizedTasks
 from core.tcpn_simulator.TcpnSimulatorAccurateOptimizedThermal import TcpnSimulatorAccurateOptimizedThermal
-from core.tcpn_simulator.TcpnSimulatorOptimizedTasksAndProcessors import TcpnSimulatorOptimizedTasksAndProcessors
 
 
 class GlobalModelSolver(object):
     def __init__(self, global_model: GlobalModel, global_specification: GlobalSpecification):
+        # TODO: Add frequency_constant variable (True or false)
+        """
+
+        :param global_model: Global model
+        :param global_specification: Global specification
+        """
 
         self.__n = len(global_specification.tasks_specification.tasks)
         self.__m = global_specification.cpu_specification.number_of_cores
@@ -24,8 +31,9 @@ class GlobalModelSolver(object):
                                                                          global_model.lambda_vector_proc_tau,
                                                                          self.__step / self.__fragmentation_of_step)
 
-        self.__control = scipy.ones(len(global_model.lambda_vector_proc_tau))
+        self.__control_task_proc = scipy.ones(len(global_model.lambda_vector_proc_tau))
         self.__mo = global_model.mo_proc_tau
+        self.__core_frequencies = global_specification.cpu_specification.clock_relative_frequencies
 
         if global_model.enable_thermal_mode:
             self.__tcpn_simulator_thermal = TcpnSimulatorAccurateOptimizedThermal(global_model.pre_thermal,
@@ -38,21 +46,45 @@ class GlobalModelSolver(object):
             self.__p_board = global_model.p_board
             self.__p_one_micro = global_model.p_one_micro
 
-    def run_step(self, w_alloc: scipy.ndarray, time: float) -> [scipy.ndarray, scipy.ndarray, scipy.ndarray,
-                                                                scipy.ndarray, scipy.ndarray,
-                                                                scipy.ndarray, scipy.ndarray]:
+    def run_step(self, w_alloc: List[int], time: float, core_frequencies: List[float]) -> [scipy.ndarray,
+                                                                                           scipy.ndarray,
+                                                                                           scipy.ndarray,
+                                                                                           scipy.ndarray,
+                                                                                           scipy.ndarray,
+                                                                                           scipy.ndarray,
+                                                                                           scipy.ndarray]:
+        """
+        Run one simulation step
+        :param w_alloc: allocation vector
+        :param time: actual simulation time
+        :param core_frequencies: actual relative cores frequency
+        :return execution time after simulation, board temperature after simulation, cores max temperature after
+                simulation, time of temperatures measurements
+        """
 
-        new_control = scipy.copy(self.__control)
-        new_control[self.__n:self.__n + len(w_alloc)] = w_alloc
+        # TODO: Test
+        # Transform core frequencies to control action over t_alloc and t_exec
+        core_frequencies_as_control = [self.__n * [i] for i in core_frequencies]
+        core_frequencies_as_control = scipy.concatenate(core_frequencies_as_control)
 
-        if not scipy.array_equal(self.__control, new_control):
-            self.__control = new_control
-            self.__tcpn_simulator_proc.set_control(new_control)
+        # Create new control vector
+        new_control_processor = scipy.copy(self.__control_task_proc)
+        # Control over t_alloc
+        new_control_processor[self.__n:self.__n + self.__n * self.__m] = scipy.asarray(
+            w_alloc) * core_frequencies_as_control
+        # Control over t_exec
+        new_control_processor[self.__n:self.__n + self.__n * self.__m] = core_frequencies_as_control
+
+        if not scipy.array_equal(self.__control_task_proc, new_control_processor):
+            self.__control_task_proc = new_control_processor
+            self.__tcpn_simulator_proc.set_control(new_control_processor)
 
         partial_results_proc = []
         for _ in range(self.__fragmentation_of_step):
             self.__mo = self.__tcpn_simulator_proc.simulate_step(self.__mo)
             partial_results_proc.append(self.__mo)
+
+        # TODO: Include variable frequency in thermal
 
         board_temperature = None
         cores_temperature = None
@@ -86,12 +118,4 @@ class GlobalModelSolver(object):
             [time + self.__step])
 
     def get_mo(self):
-        return self.__mo
-
-    def get_exec_marking(self):
-        # TODO: Do :)
-        return self.__mo
-
-    def get_busy_marking(self):
-        # TODO: Do :)
         return self.__mo

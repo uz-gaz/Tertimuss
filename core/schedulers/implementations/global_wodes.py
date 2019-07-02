@@ -1,4 +1,3 @@
-import abc
 import math
 
 import scipy
@@ -8,7 +7,7 @@ from scipy.linalg import block_diag
 from core.kernel_generator.global_model import GlobalModel
 from core.problem_specification_models.GlobalSpecification import GlobalSpecification
 from core.problem_specification_models.TasksSpecification import Task
-from core.schedulers.abstract_scheduler import AbstractScheduler, SchedulerResult
+from core.schedulers.templates.abstract_scheduler import AbstractScheduler, SchedulerResult
 from typing import List, Optional
 from core.schedulers.utils.GlobalModelSolver import GlobalModelSolver
 from output_generation.abstract_progress_bar import AbstractProgressBar

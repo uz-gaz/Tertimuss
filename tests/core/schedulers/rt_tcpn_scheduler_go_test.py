@@ -6,10 +6,9 @@ from core.problem_specification_models.EnvironmentSpecification import Environme
 from core.problem_specification_models.GlobalSpecification import GlobalSpecification
 from core.problem_specification_models.SimulationSpecification import SimulationSpecification
 from core.problem_specification_models.TasksSpecification import TasksSpecification, Task
-from core.schedulers.global_thermal_aware_scheduler import GlobalThermalAwareScheduler
-from core.schedulers.rt_tcpn_scheduler import RtTCPNScheduler
+from core.schedulers.implementations.global_thermal_aware import GlobalThermalAwareScheduler
 from output_generation.output_generator import plot_cpu_utilization, plot_task_execution, plot_cpu_temperature, \
-    plot_accumulated_execution_time, draw_heat_matrix
+    plot_accumulated_execution_time
 
 
 class RtTcpnScheduler(unittest.TestCase):

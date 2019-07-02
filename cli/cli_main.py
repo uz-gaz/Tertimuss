@@ -15,7 +15,7 @@ from core.problem_specification_models.EnvironmentSpecification import Environme
 from core.problem_specification_models.GlobalSpecification import GlobalSpecification
 from core.problem_specification_models.SimulationSpecification import SimulationSpecification
 from core.problem_specification_models.TasksSpecification import TasksSpecification, Task
-from core.schedulers.scheduler_naming_selector import select_scheduler
+from core.schedulers.scheduler_selector_by_name import select_scheduler
 from core.task_generator.task_generator_naming_selector import select_task_generator
 from output_generation.abstract_progress_bar import AbstractProgressBar
 from output_generation.output_generator import draw_heat_matrix, plot_task_execution, plot_cpu_utilization, \

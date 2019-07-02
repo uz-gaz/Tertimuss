@@ -1,17 +1,14 @@
-import hashlib
-import time
 import unittest
 
 import scipy
 
 from core.kernel_generator.global_model import GlobalModel
-from core.kernel_generator.thermal_model import ThermalModel
 from core.problem_specification_models.CpuSpecification import CpuSpecification, MaterialCuboid
 from core.problem_specification_models.EnvironmentSpecification import EnvironmentSpecification
 from core.problem_specification_models.GlobalSpecification import GlobalSpecification
 from core.problem_specification_models.SimulationSpecification import SimulationSpecification
 from core.problem_specification_models.TasksSpecification import TasksSpecification, Task
-from core.schedulers.abstract_scheduler import SchedulerResult
+from core.schedulers.templates.abstract_scheduler import SchedulerResult
 from core.tcpn_simulator.TcpnSimulatorAccurateOptimizedThermal import TcpnSimulatorAccurateOptimizedThermal
 from output_generation.output_generator import draw_heat_matrix
 

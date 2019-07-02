@@ -1,8 +1,8 @@
 from typing import Optional
 
-from core.schedulers.abstract_scheduler import AbstractScheduler
-from core.schedulers.global_edf_affinity_scheduler import GlobalEDFAffinityScheduler
-from core.schedulers.global_edf_scheduler import GlobalEDFScheduler
+from core.schedulers.templates.abstract_scheduler import AbstractScheduler
+from core.schedulers.implementations.global_edf_a import GlobalEDFAffinityScheduler
+from core.schedulers.implementations.global_edf import GlobalEDFScheduler
 from core.schedulers.rt_tcpn_scheduler import RtTCPNScheduler
 from core.schedulers.rt_tcpn_thermal_aware_scheduler import RTTcpnThermalAwareScheduler
 

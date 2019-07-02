@@ -272,8 +272,9 @@ def add_heat_by_dynamic_power(p_board: int, p_one_micro: int, cpu_specification:
 
     post_gen[p_board: p_board + p_micros, :] = block_diag(*(cpu_specification.number_of_cores * [post_power_by_cpu]))
 
-    lambda_gen = scipy.concatenate(
-        [f * scipy.ones(len(tasks_specification.tasks)) for f in cpu_specification.clock_relative_frequencies])
+    # lambda_gen = scipy.concatenate(
+    #     [f * scipy.ones(len(tasks_specification.tasks)) for f in cpu_specification.clock_relative_frequencies])
+    lambda_gen = scipy.ones(len(tasks_specification.tasks) * cpu_specification.number_of_cores)
 
     return pre_gen, post_gen, lambda_gen
 

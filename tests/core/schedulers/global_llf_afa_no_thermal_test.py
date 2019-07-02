@@ -5,8 +5,7 @@ from core.problem_specification_models.CpuSpecification import CpuSpecification
 from core.problem_specification_models.GlobalSpecification import GlobalSpecification
 from core.problem_specification_models.SimulationSpecification import SimulationSpecification
 from core.problem_specification_models.TasksSpecification import TasksSpecification, Task
-from core.schedulers.global_edf_affinity_frequency_aware_scheduler import GlobalEDFAffinityFrequencyAwareScheduler
-from core.schedulers.global_llf_afa_scheduler import GlobalLeastLaxityFirstAFAScheduler
+from core.schedulers.implementations.global_llf_afa import GlobalLeastLaxityFirstAFAScheduler
 from output_generation.output_generator import plot_cpu_utilization, plot_task_execution, \
     plot_accumulated_execution_time
 

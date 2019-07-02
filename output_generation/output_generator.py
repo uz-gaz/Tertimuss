@@ -5,7 +5,7 @@ from matplotlib import animation
 
 from core.kernel_generator.global_model import GlobalModel
 from core.problem_specification_models.GlobalSpecification import GlobalSpecification
-from core.schedulers.abstract_scheduler import SchedulerResult
+from core.schedulers.templates.abstract_scheduler import SchedulerResult
 import matplotlib.pyplot as plt
 
 
