@@ -69,7 +69,6 @@ class GlobalModelSolver(object):
                 simulation, time of temperatures measurements
         """
 
-        # TODO: Test
         # Transform core frequencies to control action over t_alloc and t_exec
         core_frequencies_as_control = [self.__n * [i] for i in core_frequencies]
         core_frequencies_as_control = scipy.concatenate(core_frequencies_as_control)
