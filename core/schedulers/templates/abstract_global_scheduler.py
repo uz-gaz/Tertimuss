@@ -65,6 +65,8 @@ class AbstractGlobalScheduler(AbstractScheduler):
         # Tasks set
         periodic_tasks = [GlobalSchedulerPeriodicTask(global_specification.tasks_specification.tasks[i], i) for i in
                           range(len(global_specification.tasks_specification.tasks))]
+        aperiodic_tasks = [GlobalSchedulerPeriodicTask(global_specification.tasks_specification.tasks[i], i) for i in
+                          range(len(global_specification.tasks_specification.tasks))]
 
         # Number of steps in the simulation
         simulation_time_steps = int(round(
