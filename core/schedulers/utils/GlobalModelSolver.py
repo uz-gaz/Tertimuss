@@ -35,6 +35,12 @@ class GlobalModelSolver(object):
         self.__mo = global_model.mo_proc_tau
         self.__core_frequencies = global_specification.cpu_specification.clock_relative_frequencies
 
+        # M exec of the previous step
+        self.__last_tcpn_m_exec = scipy.zeros(self.__n * self.__m)
+
+        # Real accumulated execution time
+        self.__accumulated_m_exec = scipy.zeros(self.__n * self.__m)
+
         if global_model.enable_thermal_mode:
             self.__tcpn_simulator_thermal = TcpnSimulatorAccurateOptimizedThermal(global_model.pre_thermal,
                                                                                   global_model.post_thermal,
@@ -118,10 +124,21 @@ class GlobalModelSolver(object):
 
             board_temperature = board_temperature.reshape((-1, 1))
 
-        return scipy.concatenate([
+        # As the m_exec computed by the tcpn is relative to the cycles executed, we need to transform it to a time
+        # measurement
+
+        m_exec_this_step = scipy.concatenate([
             self.__mo[
             2 * self.__n + i * (2 * self.__n + 1) + self.__n:2 * self.__n + i * (2 * self.__n + 1) + 2 * self.__n,
-            0].reshape(-1) for i in range(self.__m)]), board_temperature, cores_temperature, scipy.asarray(
+            0].reshape(-1) for i in range(self.__m)])
+
+        m_exec_change = (m_exec_this_step - self.__last_tcpn_m_exec) / core_frequencies_as_control
+
+        self.__last_tcpn_m_exec = m_exec_this_step
+
+        self.__accumulated_m_exec += m_exec_change
+
+        return self.__accumulated_m_exec, board_temperature, cores_temperature, scipy.asarray(
             [time + self.__step])
 
     def get_mo(self):
