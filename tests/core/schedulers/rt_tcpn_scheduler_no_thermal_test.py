@@ -7,7 +7,7 @@ from core.kernel_generator.tasks_model import TasksModel, generate_tasks_model
 from core.problem_specification_models.CpuSpecification import CpuSpecification
 from core.problem_specification_models.GlobalSpecification import GlobalSpecification
 from core.problem_specification_models.SimulationSpecification import SimulationSpecification
-from core.problem_specification_models.TasksSpecification import TasksSpecification, Task
+from core.problem_specification_models.TasksSpecification import TasksSpecification, PeriodicTask
 from core.schedulers.rt_tcpn_scheduler import RtTCPNScheduler
 from output_generation.output_generator import plot_cpu_utilization, plot_task_execution, \
     plot_accumulated_execution_time
@@ -16,9 +16,9 @@ from output_generation.output_generator import plot_cpu_utilization, plot_task_e
 class RtTcpnSchedulerNoThermal(unittest.TestCase):
 
     def test_rt_tcpn_scheduler_no_thermal(self):
-        tasks_specification: TasksSpecification = TasksSpecification([Task(2, 4, None),
-                                                                      Task(3, 8, None),
-                                                                      Task(3, 12, None)])
+        tasks_specification: TasksSpecification = TasksSpecification([PeriodicTask(2, 4, None),
+                                                                      PeriodicTask(3, 8, None),
+                                                                      PeriodicTask(3, 12, None)])
         cpu_specification: CpuSpecification = CpuSpecification(None, None, 2, 1)
 
         simulation_specification: SimulationSpecification = SimulationSpecification(None, 0.01)

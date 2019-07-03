@@ -4,21 +4,33 @@ import scipy
 
 from core.kernel_generator.global_model import GlobalModel
 from core.problem_specification_models.GlobalSpecification import GlobalSpecification
-from core.problem_specification_models.TasksSpecification import Task
+from core.problem_specification_models.TasksSpecification import PeriodicTask, AperiodicTask
 from core.schedulers.templates.abstract_scheduler import AbstractScheduler, SchedulerResult
 from typing import List, Optional
 from core.schedulers.utils.GlobalModelSolver import GlobalModelSolver
 from output_generation.abstract_progress_bar import AbstractProgressBar
 
 
-class GlobalSchedulerTask(Task):
-    def __init__(self, task_specification: Task, task_id: int):
-        super().__init__(task_specification.c, task_specification.t, task_specification.e)
-        self.next_deadline = task_specification.t
-        self.next_arrival = 0
-        self.pending_c = task_specification.c
+class GlobalSchedulerTask(object):
+    def __init__(self, d: float, a: float, c: float, task_id: int):
+        self.next_deadline = d
+        self.next_arrival = a
+        self.pending_c = c
         self.instances = 0
         self.id = task_id
+
+
+class GlobalSchedulerPeriodicTask(PeriodicTask, GlobalSchedulerTask):
+    def __init__(self, task_specification: PeriodicTask, task_id: int):
+        PeriodicTask.__init__(self, task_specification.c, task_specification.t, task_specification.d,
+                              task_specification.e)
+        GlobalSchedulerTask.__init__(self, task_specification.d, 0, task_specification.c, task_id)
+
+
+class GlobalSchedulerAperiodicTask(AperiodicTask, GlobalSchedulerTask):
+    def __init__(self, task_specification: AperiodicTask, task_id: int):
+        super().__init__(task_specification.c, task_specification.a, task_specification.d, task_specification.e)
+        GlobalSchedulerTask.__init__(self, task_specification.d, task_specification.a, task_specification.c, task_id)
 
 
 class AbstractGlobalScheduler(AbstractScheduler):
@@ -51,8 +63,8 @@ class AbstractGlobalScheduler(AbstractScheduler):
             raise Exception("Error: Schedule is not feasible")
 
         # Tasks set
-        tasks = [GlobalSchedulerTask(global_specification.tasks_specification.tasks[i], i) for i in
-                 range(len(global_specification.tasks_specification.tasks))]
+        periodic_tasks = [GlobalSchedulerPeriodicTask(global_specification.tasks_specification.tasks[i], i) for i in
+                          range(len(global_specification.tasks_specification.tasks))]
 
         # Number of steps in the simulation
         simulation_time_steps = int(round(
@@ -118,7 +130,7 @@ class AbstractGlobalScheduler(AbstractScheduler):
             if quantum_q <= 0:
                 # Get active task in this step
                 # TODO: Check if the processor frequencies returned are in available ones
-                active_task_id, next_quantum, next_core_frequencies = self.schedule_policy(time, tasks, m,
+                active_task_id, next_quantum, next_core_frequencies = self.schedule_policy(time, periodic_tasks, m,
                                                                                            active_task_id,
                                                                                            clock_relative_frequencies,
                                                                                            cores_temperature)
@@ -139,21 +151,22 @@ class AbstractGlobalScheduler(AbstractScheduler):
 
             for j in range(m):
                 if active_task_id[j] != idle_task_id:
-                    if round(tasks[active_task_id[j]].pending_c, 5) > 0:
+                    if round(periodic_tasks[active_task_id[j]].pending_c, 5) > 0:
                         # Not end yet
-                        tasks[active_task_id[j]].pending_c -= global_specification.simulation_specification.dt * \
-                                                              clock_relative_frequencies[j]
+                        periodic_tasks[
+                            active_task_id[j]].pending_c -= global_specification.simulation_specification.dt * \
+                                                            clock_relative_frequencies[j]
                         w_alloc[active_task_id[j] + j * n] = 1
                         m_exec_step[active_task_id[j] + j * n] += global_specification.simulation_specification.dt
 
                     else:
                         # Ended
-                        tasks[active_task_id[j]].instances += 1
+                        periodic_tasks[active_task_id[j]].instances += 1
 
-                        tasks[active_task_id[j]].pending_c = tasks[active_task_id[j]].c
+                        periodic_tasks[active_task_id[j]].pending_c = periodic_tasks[active_task_id[j]].c
 
-                        tasks[active_task_id[j]].next_arrival += tasks[active_task_id[j]].t
-                        tasks[active_task_id[j]].next_deadline += tasks[active_task_id[j]].t
+                        periodic_tasks[active_task_id[j]].next_arrival += periodic_tasks[active_task_id[j]].t
+                        periodic_tasks[active_task_id[j]].next_deadline += periodic_tasks[active_task_id[j]].t
 
             m_exec_disc, board_temperature, cores_temperature, results_times = global_model_solver.run_step(
                 w_alloc, time, clock_relative_frequencies)
@@ -196,7 +209,7 @@ class AbstractGlobalScheduler(AbstractScheduler):
         return global_specification.simulation_specification.dt
 
     @abc.abstractmethod
-    def schedule_policy(self, time: float, tasks: List[GlobalSchedulerTask], m: int, active_tasks: List[int],
+    def schedule_policy(self, time: float, tasks: List[GlobalSchedulerPeriodicTask], m: int, active_tasks: List[int],
                         cores_frequency: List[float], cores_temperature: Optional[scipy.ndarray]) -> \
             [List[int], Optional[float], Optional[List[float]]]:
         """

@@ -15,7 +15,7 @@ from core.problem_specification_models.CpuSpecification import CpuSpecification,
 from core.problem_specification_models.EnvironmentSpecification import EnvironmentSpecification
 from core.problem_specification_models.GlobalSpecification import GlobalSpecification
 from core.problem_specification_models.SimulationSpecification import SimulationSpecification
-from core.problem_specification_models.TasksSpecification import TasksSpecification, Task
+from core.problem_specification_models.TasksSpecification import TasksSpecification, PeriodicTask
 from core.schedulers.templates.abstract_scheduler import AbstractScheduler
 from core.schedulers.scheduler_selector_by_name import select_scheduler
 from core.task_generator.task_generator_naming_selector import select_task_generator
@@ -444,9 +444,9 @@ class TaskSpecificationControl(ttk.Frame):
         if len(invalid_fields) > 0:
             raise InputValidationError(invalid_fields)
         else:
-            return TasksSpecification([Task(float(self.tasks_list.item(i).get("text")),
-                                            int(self.tasks_list.item(i).get("values")[0]),
-                                            float(self.tasks_list.item(i).get("values")[
+            return TasksSpecification([PeriodicTask(float(self.tasks_list.item(i).get("text")),
+                                                    int(self.tasks_list.item(i).get("values")[0]),
+                                                    float(self.tasks_list.item(i).get("values")[
                                                       1]) if self.enable_thermal else None) for i in
                                        self.tasks_list.get_children()])
 

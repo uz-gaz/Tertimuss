@@ -5,7 +5,7 @@ from core.kernel_generator.thermal_model import ThermalModel, generate_thermal_m
 from core.problem_specification_models.CpuSpecification import CpuSpecification, MaterialCuboid
 from core.problem_specification_models.EnvironmentSpecification import EnvironmentSpecification
 from core.problem_specification_models.SimulationSpecification import SimulationSpecification
-from core.problem_specification_models.TasksSpecification import TasksSpecification, Task
+from core.problem_specification_models.TasksSpecification import TasksSpecification, PeriodicTask
 from core.schedulers.utils.lineal_programing_problem_for_scheduling import \
     solve_lineal_programing_problem_for_scheduling
 
@@ -13,9 +13,9 @@ from core.schedulers.utils.lineal_programing_problem_for_scheduling import \
 class TestLinealProgramingProblem(unittest.TestCase):
 
     def test_lineal_programing_problem_thermal(self):
-        tasks_specification: TasksSpecification = TasksSpecification([Task(2, 4, 6.4),
-                                                                      Task(3, 8, 8),
-                                                                      Task(3, 12, 9.6)])
+        tasks_specification: TasksSpecification = TasksSpecification([PeriodicTask(2, 4, 6.4),
+                                                                      PeriodicTask(3, 8, 8),
+                                                                      PeriodicTask(3, 12, 9.6)])
         cpu_specification: CpuSpecification = CpuSpecification(MaterialCuboid(x=50, y=50, z=1, p=8933, c_p=385, k=400),
                                                                MaterialCuboid(x=10, y=10, z=2, p=2330, c_p=712, k=148),
                                                                2, 1)

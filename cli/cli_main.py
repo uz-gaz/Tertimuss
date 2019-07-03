@@ -14,7 +14,7 @@ from core.problem_specification_models.CpuSpecification import CpuSpecification,
 from core.problem_specification_models.EnvironmentSpecification import EnvironmentSpecification
 from core.problem_specification_models.GlobalSpecification import GlobalSpecification
 from core.problem_specification_models.SimulationSpecification import SimulationSpecification
-from core.problem_specification_models.TasksSpecification import TasksSpecification, Task
+from core.problem_specification_models.TasksSpecification import TasksSpecification, PeriodicTask
 from core.schedulers.scheduler_selector_by_name import select_scheduler
 from core.task_generator.task_generator_naming_selector import select_task_generator
 from output_generation.abstract_progress_bar import AbstractProgressBar
@@ -135,8 +135,8 @@ def cli_main(args):
 
     if type(tasks) is list:
         tasks_specification = TasksSpecification(list(
-            map(lambda a: Task(a.get("worstCaseExecutionTime"), a.get("period"),
-                               a.get("energyConsumption") if is_specification_with_thermal else None), tasks)))
+            map(lambda a: PeriodicTask(a.get("worstCaseExecutionTime"), a.get("period"),
+                                       a.get("energyConsumption") if is_specification_with_thermal else None), tasks)))
     else:
         tasks_specification = select_task_generator(tasks.get("name"), tasks.get("numberOfTasks"),
                                                     tasks.get("utilizationOfTheTaskSet"), (

@@ -6,15 +6,15 @@ from core.kernel_generator.thermal_model import generate_thermal_model, ThermalM
 from core.problem_specification_models.CpuSpecification import CpuSpecification, MaterialCuboid
 from core.problem_specification_models.EnvironmentSpecification import EnvironmentSpecification
 from core.problem_specification_models.SimulationSpecification import SimulationSpecification
-from core.problem_specification_models.TasksSpecification import TasksSpecification, Task
+from core.problem_specification_models.TasksSpecification import TasksSpecification, PeriodicTask
 
 
 class TestThermalModel(unittest.TestCase):
 
     def test_basic_thermal_model(self):
-        tasks_specification: TasksSpecification = TasksSpecification([Task(2, 4, 6.4),
-                                                                      Task(3, 8, 8),
-                                                                      Task(3, 12, 9.6)])
+        tasks_specification: TasksSpecification = TasksSpecification([PeriodicTask(2, 4, 6.4),
+                                                                      PeriodicTask(3, 8, 8),
+                                                                      PeriodicTask(3, 12, 9.6)])
         cpu_specification: CpuSpecification = CpuSpecification(MaterialCuboid(x=50, y=50, z=1, p=8933, c_p=385, k=400),
                                                                MaterialCuboid(x=10, y=10, z=2, p=2330, c_p=712, k=148),
                                                                2, 1)
@@ -36,11 +36,11 @@ class TestThermalModel(unittest.TestCase):
 
     def test_basic_thermal_model_performance(self):
 
-        tasks_specification: TasksSpecification = TasksSpecification([Task(2, 4, 6.4),
-                                                                      Task(3, 8, 8),
-                                                                      Task(3, 12, 9.6),
-                                                                      Task(4, 16, 6.1),
-                                                                      Task(2, 10, 12)])
+        tasks_specification: TasksSpecification = TasksSpecification([PeriodicTask(2, 4, 6.4),
+                                                                      PeriodicTask(3, 8, 8),
+                                                                      PeriodicTask(3, 12, 9.6),
+                                                                      PeriodicTask(4, 16, 6.1),
+                                                                      PeriodicTask(2, 10, 12)])
         cpu_specification: CpuSpecification = CpuSpecification(MaterialCuboid(x=80, y=80, z=1, p=8933, c_p=385, k=400),
                                                                MaterialCuboid(x=10, y=10, z=2, p=2330, c_p=712, k=148),
                                                                4, 1)

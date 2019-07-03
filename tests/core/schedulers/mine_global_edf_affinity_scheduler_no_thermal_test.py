@@ -4,7 +4,7 @@ from core.kernel_generator.global_model import GlobalModel
 from core.problem_specification_models.CpuSpecification import CpuSpecification
 from core.problem_specification_models.GlobalSpecification import GlobalSpecification
 from core.problem_specification_models.SimulationSpecification import SimulationSpecification
-from core.problem_specification_models.TasksSpecification import TasksSpecification, Task
+from core.problem_specification_models.TasksSpecification import TasksSpecification, PeriodicTask
 from core.schedulers.mine_abstract_global_scheduler_2 import AbstractGlobalScheduler
 from output_generation.output_generator import plot_cpu_utilization, plot_task_execution, \
     plot_accumulated_execution_time
@@ -13,9 +13,9 @@ from output_generation.output_generator import plot_cpu_utilization, plot_task_e
 class TestGlobalEdfSchedulerNoThermal(unittest.TestCase):
 
     def test_global_edf_scheduler_no_thermal(self):
-        tasks_specification: TasksSpecification = TasksSpecification([Task(2, 4, None),
-                                                                      Task(3, 8, None),
-                                                                      Task(3, 12, None)])
+        tasks_specification: TasksSpecification = TasksSpecification([PeriodicTask(2, 4, None),
+                                                                      PeriodicTask(3, 8, None),
+                                                                      PeriodicTask(3, 12, None)])
         cpu_specification: CpuSpecification = CpuSpecification(None, None, 2, 1000)
 
         simulation_specification: SimulationSpecification = SimulationSpecification(None, 0.01)

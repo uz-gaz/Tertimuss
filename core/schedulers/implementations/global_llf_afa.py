@@ -2,7 +2,7 @@ from typing import List, Optional
 
 import scipy
 
-from core.schedulers.templates.abstract_global_scheduler import AbstractGlobalScheduler, GlobalSchedulerTask
+from core.schedulers.templates.abstract_global_scheduler import AbstractGlobalScheduler, GlobalSchedulerPeriodicTask
 
 
 class GlobalLeastLaxityFirstAFAScheduler(AbstractGlobalScheduler):
@@ -14,7 +14,7 @@ class GlobalLeastLaxityFirstAFAScheduler(AbstractGlobalScheduler):
     def __init__(self) -> None:
         super().__init__()
 
-    def schedule_policy(self, time: float, tasks: List[GlobalSchedulerTask], m: int, active_tasks: List[int],
+    def schedule_policy(self, time: float, tasks: List[GlobalSchedulerPeriodicTask], m: int, active_tasks: List[int],
                         cores_frequency: Optional[List[float]], cores_temperature: Optional[scipy.ndarray]) -> \
             [List[int], Optional[float], Optional[List[float]]]:
         """

@@ -6,15 +6,15 @@ from scipy.linalg import block_diag
 
 from core.kernel_generator.global_model import GlobalModel
 from core.problem_specification_models.GlobalSpecification import GlobalSpecification
-from core.problem_specification_models.TasksSpecification import Task
+from core.problem_specification_models.TasksSpecification import PeriodicTask
 from core.schedulers.templates.abstract_scheduler import AbstractScheduler, SchedulerResult
 from typing import List, Optional
 from core.schedulers.utils.GlobalModelSolver import GlobalModelSolver
 from output_generation.abstract_progress_bar import AbstractProgressBar
 
 
-class GlobalSchedulerTask(Task):
-    def __init__(self, task_specification: Task, task_id: int):
+class GlobalSchedulerTask(PeriodicTask):
+    def __init__(self, task_specification: PeriodicTask, task_id: int):
         super().__init__(task_specification.c, task_specification.t, task_specification.e)
         self.next_deadline = task_specification.t
         self.next_arrival = 0
@@ -183,7 +183,7 @@ class GlobalWodesScheduler(AbstractScheduler):
             h = global_specification.tasks_specification.h
             cc_dummy = (m - sum(map(lambda a: a.c / a.t,
                                     global_specification.tasks_specification.tasks))) * f_star * h
-            dummy_task = GlobalSchedulerTask(Task(cc_dummy, h, 0), len(global_specification.tasks_specification.tasks))
+            dummy_task = GlobalSchedulerTask(PeriodicTask(cc_dummy, h, 0), len(global_specification.tasks_specification.tasks))
 
         # Number of cycles
         cci = list(map(lambda a: a.c * global_specification.cpu_specification.clock_base_frequency,
