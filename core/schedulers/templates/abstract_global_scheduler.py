@@ -120,6 +120,9 @@ class AbstractGlobalScheduler(AbstractScheduler):
             quantum / global_specification.simulation_specification.dt))
         simulation_quantum_steps = 1 if simulation_quantum_steps == 0 else simulation_quantum_steps
 
+        # Accumulated execution time in each step
+        m_exec_step = scipy.zeros(n * m)
+
         # Number of steps until next quantum
         quantum_q = 0
 
@@ -158,9 +161,7 @@ class AbstractGlobalScheduler(AbstractScheduler):
                 executable_tasks = [actual_task for actual_task in tasks_set if
                                     int(round(
                                         actual_task.next_arrival / global_specification.simulation_specification.dt
-                                    )) <= zeta_q <= int(round(
-                                        actual_task.next_deadline / global_specification.simulation_specification.dt
-                                    )) and int(round(
+                                    )) <= zeta_q and int(round(
                                         actual_task.pending_c / global_specification.simulation_specification.dt
                                     )) > 0]
 
@@ -190,33 +191,30 @@ class AbstractGlobalScheduler(AbstractScheduler):
             # 1 for allocation and 0 for no allocation
             w_alloc = (n * m) * [0]
 
-            # Accumulated execution time in each step
-            m_exec_step = scipy.zeros(n * m)
-
             for j in range(m):
                 if active_task_id[j] != idle_task_id:
-                    if round(tasks_set[active_task_id[j]].pending_c, 5) > 0:
-                        # Not end yet
-                        tasks_set[
-                            active_task_id[j]].pending_c -= global_specification.simulation_specification.dt * \
-                                                            clock_relative_frequencies[j]
-                        w_alloc[active_task_id[j] + j * n] = 1
-                        m_exec_step[active_task_id[j] + j * n] += global_specification.simulation_specification.dt
+                    # Task not ended yet
+                    tasks_set[
+                        active_task_id[j]].pending_c -= global_specification.simulation_specification.dt * \
+                                                        clock_relative_frequencies[j]
+                    w_alloc[active_task_id[j] + j * n] = 1
+                    m_exec_step[active_task_id[j] + j * n] += global_specification.simulation_specification.dt
 
-                    elif j < len(periodic_tasks):
-                        # It only manage the end of periodic tasks
-                        # periodic_tasks[active_task_id[j]].instances += 1
+                    if round(tasks_set[active_task_id[j]].pending_c, 5) <= 0:
+                        if j < len(periodic_tasks):
+                            # It only manage the end of periodic tasks
+                            # periodic_tasks[active_task_id[j]].instances += 1
 
-                        periodic_tasks[active_task_id[j]].pending_c = periodic_tasks[active_task_id[j]].c
+                            tasks_set[active_task_id[j]].pending_c = periodic_tasks[active_task_id[j]].c
 
-                        periodic_tasks[active_task_id[j]].next_arrival += periodic_tasks[active_task_id[j]].t
-                        periodic_tasks[active_task_id[j]].next_deadline += periodic_tasks[active_task_id[j]].t
-                    else:
-                        # Aperiodic tasks only have to be to be executed once so arrive time and deadline will be
-                        # higher than the hyperperiod
+                            tasks_set[active_task_id[j]].next_arrival += periodic_tasks[active_task_id[j]].t
+                            tasks_set[active_task_id[j]].next_deadline += periodic_tasks[active_task_id[j]].t
+                        else:
+                            # Aperiodic tasks only have to be to be executed once so arrive time and deadline will be
+                            # higher than the hyperperiod
 
-                        tasks_set[active_task_id[j]].next_arrival += global_specification.tasks_specification.h
-                        tasks_set[active_task_id[j]].next_deadline += global_specification.tasks_specification.h
+                            tasks_set[active_task_id[j]].next_arrival += global_specification.tasks_specification.h
+                            tasks_set[active_task_id[j]].next_deadline += global_specification.tasks_specification.h
 
             m_exec_disc, board_temperature, cores_temperature, results_times = global_model_solver.run_step(
                 w_alloc, time, clock_relative_frequencies)

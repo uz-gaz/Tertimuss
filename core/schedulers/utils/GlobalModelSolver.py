@@ -46,7 +46,7 @@ class GlobalModelSolver(object):
         self.__t_alloc_start_index = len(global_specification.tasks_specification.periodic_tasks)
 
         # Processor model places start index
-        self.__m_processor_start_index = len(global_specification.tasks_specification.periodic_tasks) + len(
+        self.__m_processor_start_index = 2 * len(global_specification.tasks_specification.periodic_tasks) + len(
             global_specification.tasks_specification.aperiodic_tasks)
 
         if global_model.enable_thermal_mode:
