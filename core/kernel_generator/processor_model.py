@@ -10,7 +10,7 @@ class ProcessorModel(object):
     """
 
     def __init__(self, tasks_specification: TasksSpecification, cpu_specification: CpuSpecification):
-        n = len(tasks_specification.tasks)
+        n = len(tasks_specification.periodic_tasks) + len(tasks_specification.aperiodic_tasks)
         m = cpu_specification.number_of_cores
 
         # Transition rate (n)

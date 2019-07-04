@@ -18,7 +18,8 @@ class GlobalModelSolver(object):
         :param global_specification: Global specification
         """
 
-        self.__n = len(global_specification.tasks_specification.tasks)
+        self.__n = len(global_specification.tasks_specification.periodic_tasks) + \
+                   len(global_specification.tasks_specification.aperiodic_tasks)
         self.__m = global_specification.cpu_specification.number_of_cores
         self.__step = global_specification.simulation_specification.dt
         self.enable_thermal_mode = global_model.enable_thermal_mode
@@ -40,6 +41,13 @@ class GlobalModelSolver(object):
 
         # Real accumulated execution time
         self.__accumulated_m_exec = scipy.zeros(self.__n * self.__m)
+
+        # T_alloc start index
+        self.__t_alloc_start_index = len(global_specification.tasks_specification.periodic_tasks)
+
+        # Processor model places start index
+        self.__m_processor_start_index = len(global_specification.tasks_specification.periodic_tasks) + len(
+            global_specification.tasks_specification.aperiodic_tasks)
 
         if global_model.enable_thermal_mode:
             self.__tcpn_simulator_thermal = TcpnSimulatorAccurateOptimizedThermal(global_model.pre_thermal,
@@ -76,8 +84,8 @@ class GlobalModelSolver(object):
         # Create new control vector
         new_control_processor = scipy.copy(self.__control_task_proc)
         # Control over t_alloc
-        new_control_processor[self.__n:self.__n + self.__n * self.__m] = scipy.asarray(
-            w_alloc) * core_frequencies_as_control
+        new_control_processor[self.__t_alloc_start_index:self.__t_alloc_start_index + self.__n * self.__m] = \
+            scipy.asarray(w_alloc) * core_frequencies_as_control
         # Control over t_exec
         new_control_processor[-self.__n * self.__m:] = core_frequencies_as_control
 
@@ -128,8 +136,9 @@ class GlobalModelSolver(object):
 
         m_exec_this_step = scipy.concatenate([
             self.__mo[
-            2 * self.__n + i * (2 * self.__n + 1) + self.__n:2 * self.__n + i * (2 * self.__n + 1) + 2 * self.__n,
-            0].reshape(-1) for i in range(self.__m)])
+            self.__m_processor_start_index + i * (2 * self.__n + 1) +
+            self.__n:self.__m_processor_start_index + i * (
+                    2 * self.__n + 1) + 2 * self.__n, 0].reshape(-1) for i in range(self.__m)])
 
         m_exec_change = (m_exec_this_step - self.__last_tcpn_m_exec) / core_frequencies_as_control
 

@@ -54,11 +54,15 @@ def draw_heat_matrix(global_specification: GlobalSpecification, global_model: Gl
 
 
 def __get_heat_matrix(temp, global_specification: GlobalSpecification) -> scipy.ndarray:
-    mx = round(global_specification.cpu_specification.cpu_core_specification.x / global_specification.simulation_specification.step)
-    my = round(global_specification.cpu_specification.cpu_core_specification.y / global_specification.simulation_specification.step)
+    mx = round(
+        global_specification.cpu_specification.cpu_core_specification.x / global_specification.simulation_specification.step)
+    my = round(
+        global_specification.cpu_specification.cpu_core_specification.y / global_specification.simulation_specification.step)
     m = global_specification.cpu_specification.number_of_cores
-    x = round(global_specification.cpu_specification.board_specification.x / global_specification.simulation_specification.step)
-    y = round(global_specification.cpu_specification.board_specification.y / global_specification.simulation_specification.step)
+    x = round(
+        global_specification.cpu_specification.board_specification.x / global_specification.simulation_specification.step)
+    y = round(
+        global_specification.cpu_specification.board_specification.y / global_specification.simulation_specification.step)
 
     board_mat = scipy.zeros((x, y))
     cpus_mat = scipy.zeros((mx * m, my))
@@ -97,14 +101,22 @@ def plot_cpu_utilization(global_specification: GlobalSpecification, scheduler_re
 
     i_tau_disc = scheduler_result.scheduler_assignation
     time_u = scheduler_result.time_scheduler
-    n = len(global_specification.tasks_specification.tasks)
+    n_periodic = len(global_specification.tasks_specification.periodic_tasks)
+    n_aperiodic = len(global_specification.tasks_specification.aperiodic_tasks)
     m = global_specification.cpu_specification.number_of_cores
     f, axarr = plt.subplots(m, sharex=True, num="CPU utilization")
     f.suptitle('CPU utilization')
     for i in range(m):
         axarr[i].set_title("CPU " + str(i))
-        for j in range(n):
-            axarr[i].plot(time_u, i_tau_disc[i * n + j], label="Task " + str(j), drawstyle='steps')
+        for j in range(n_periodic):
+            axarr[i].plot(time_u, i_tau_disc[i * (n_periodic + n_aperiodic) + j], label="Task " + str(j),
+                          drawstyle='steps')
+
+        for j in range(n_aperiodic):
+            axarr[i].plot(time_u, i_tau_disc[i * (n_periodic + n_aperiodic) + n_periodic + j],
+                          label="Aperiodic " + str(j),
+                          drawstyle='steps')
+
         axarr[i].legend(loc='best')
 
     if save_path is None:
@@ -124,31 +136,57 @@ def plot_task_execution(global_specification: GlobalSpecification, scheduler_res
 
     i_tau_disc = scheduler_result.scheduler_assignation
     time_u = scheduler_result.time_scheduler
-    n = len(global_specification.tasks_specification.tasks)
+    n_periodic = len(global_specification.tasks_specification.periodic_tasks)
+    n_aperiodic = len(global_specification.tasks_specification.aperiodic_tasks)
     m = global_specification.cpu_specification.number_of_cores
-    f, axarr = plt.subplots(n, sharex=True, num="Task execution")
+    f, axarr = plt.subplots((n_periodic + n_aperiodic), sharex=True, num="Task execution")
     f.suptitle('Task execution')
-    utilization_by_task = scipy.zeros((n, len(i_tau_disc[0])))
+    utilization_by_task = scipy.zeros(((n_periodic + n_aperiodic), len(i_tau_disc[0])))
 
     total_steps_number = int(
         global_specification.tasks_specification.h / global_specification.simulation_specification.dt)
-    deadline_by_task = scipy.zeros((n, total_steps_number))
+    deadline_by_task = scipy.zeros(((n_periodic + n_aperiodic), total_steps_number))
+    arrives_by_task = scipy.zeros((n_aperiodic, total_steps_number))
     deadlines_time = [i * global_specification.simulation_specification.dt for i in range(total_steps_number)]
 
-    for i in range(n):
+    # Periodic tasks execution and deadlines
+    for i in range(n_periodic):
         actual_deadline = int(
-            global_specification.tasks_specification.tasks[i].t / global_specification.simulation_specification.dt)
+            global_specification.tasks_specification.periodic_tasks[
+                i].t / global_specification.simulation_specification.dt)
         for j in range(len(i_tau_disc[0])):
             for k in range(m):
-                utilization_by_task[i, j] += i_tau_disc[n * k + i, j]
+                utilization_by_task[i, j] += i_tau_disc[(n_periodic + n_aperiodic) * k + i, j]
         for j in range(total_steps_number):
             if j % actual_deadline == 0:
                 deadline_by_task[i][j] = 1
 
-    for j in range(n):
+    # Aperiodic tasks execution and deadlines
+    for i in range(n_aperiodic):
+        deadline = int(
+            global_specification.tasks_specification.aperiodic_tasks[
+                i].t / global_specification.simulation_specification.dt)
+        arrive = int(
+            global_specification.tasks_specification.aperiodic_tasks[
+                i].a / global_specification.simulation_specification.dt)
+        for j in range(len(i_tau_disc[0])):
+            for k in range(m):
+                utilization_by_task[i + n_periodic, j] += i_tau_disc[(n_periodic + n_aperiodic) * k + n_periodic + i, j]
+
+        deadline_by_task[n_periodic + i][deadline] = 1
+        arrives_by_task[i][arrive] = 1
+
+    for j in range(n_periodic):
         axarr[j].set_title("Task " + str(j))
         axarr[j].plot(time_u, utilization_by_task[j], label="Execution", drawstyle='steps')
         axarr[j].plot(deadlines_time, deadline_by_task[j], label="Deadline", drawstyle='steps')
+        axarr[j].legend(loc='best')
+
+    for j in range(n_aperiodic):
+        axarr[j].set_title("Aperiodic " + str(j))
+        axarr[j].plot(time_u, utilization_by_task[n_periodic + j], label="Execution", drawstyle='steps')
+        axarr[j].plot(deadlines_time, deadline_by_task[n_periodic + j], label="Deadline", drawstyle='steps')
+        axarr[j].plot(deadlines_time, arrives_by_task[j], label="Arrive", drawstyle='steps')
         axarr[j].legend(loc='best')
 
     if save_path is None:
@@ -195,16 +233,25 @@ def plot_accumulated_execution_time(global_specification: GlobalSpecification, s
     mexec_tcpn = scheduler_result.execution_time_tcpn
     time_u = scheduler_result.time_scheduler
     time_step = scheduler_result.time_tcpn
-    n = len(global_specification.tasks_specification.tasks)
+    n_periodic = len(global_specification.tasks_specification.periodic_tasks)
+    n_aperiodic = len(global_specification.tasks_specification.aperiodic_tasks)
     m = global_specification.cpu_specification.number_of_cores
-    f, axarr = plt.subplots(m, n, num="Execution time")
+    f, axarr = plt.subplots(m, (n_periodic + n_aperiodic), num="Execution time")
     f.suptitle('Execution time')
     for i in range(m):
-        for j in range(n):
+        for j in range(n_periodic):
             axarr[i][j].set_title("CPU " + str(i) + " task " + str(j))
-            axarr[i][j].plot(time_u, mexec[i * n + j], label="mexec")
-            axarr[i][j].plot(time_step, mexec_tcpn[i * n + j], label="mexec tcpn")
+            axarr[i][j].plot(time_u, mexec[i * (n_periodic + n_aperiodic) + j], label="mexec")
+            axarr[i][j].plot(time_step, mexec_tcpn[i * (n_periodic + n_aperiodic) + j], label="mexec tcpn")
             axarr[i][j].legend(loc='best')
+
+    for i in range(m):
+        for j in range(n_aperiodic):
+            axarr[i][j + n_periodic].set_title("CPU " + str(i) + " aperiodic " + str(j))
+            axarr[i][j + n_periodic].plot(time_u, mexec[i * (n_periodic + n_aperiodic) + n_periodic + j], label="mexec")
+            axarr[i][j + n_periodic].plot(time_step, mexec_tcpn[i * (n_periodic + n_aperiodic) + n_periodic + j],
+                                          label="mexec tcpn")
+            axarr[i][j + n_periodic].legend(loc='best')
 
     if save_path is None:
         plt.show()

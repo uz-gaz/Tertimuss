@@ -16,7 +16,10 @@ class GlobalModel(object):
     def __init__(self, global_specification: GlobalSpecification, enable_thermal_model: bool):
         self.enable_thermal_mode = enable_thermal_model
 
-        n = len(global_specification.tasks_specification.tasks)
+        n_periodic = len(global_specification.tasks_specification.periodic_tasks)
+
+        n_aperiodic = len(global_specification.tasks_specification.aperiodic_tasks)
+
         m = global_specification.cpu_specification.number_of_cores
 
         tasks_model: TasksModel = TasksModel(global_specification.tasks_specification,
@@ -26,18 +29,24 @@ class GlobalModel(object):
                                                          global_specification.cpu_specification)
 
         pre = scipy.block([
-            [tasks_model.pre_tau, tasks_model.pre_alloc_tau, scipy.zeros((n * m, 2 * n))],
-            [scipy.zeros((m * (2 * n + 1), n)), processor_model.pre_alloc_proc, processor_model.pre_exec_proc]
+            [tasks_model.pre_tau, tasks_model.pre_alloc_tau,
+             scipy.zeros((n_periodic + n_periodic + n_aperiodic, (n_periodic + n_aperiodic) * m))],
+            [scipy.zeros((m * (2 * (n_periodic + n_aperiodic) + 1), n_periodic)), processor_model.pre_alloc_proc,
+             processor_model.pre_exec_proc]
         ])
 
         post = scipy.block([
-            [tasks_model.post_tau, tasks_model.post_alloc_tau, scipy.zeros((n * m, 2 * n))],
-            [scipy.zeros((m * (2 * n + 1), n)), processor_model.post_alloc_proc, processor_model.post_exec_proc]
+            [tasks_model.post_tau, tasks_model.post_alloc_tau,
+             scipy.zeros((n_periodic + n_periodic + n_aperiodic, (n_periodic + n_aperiodic) * m))],
+            [scipy.zeros((m * (2 * (n_periodic + n_aperiodic) + 1), n_periodic)), processor_model.post_alloc_proc,
+             processor_model.post_exec_proc]
         ])
 
         pi = scipy.block([
-            [tasks_model.pi_tau, tasks_model.pi_alloc_tau, scipy.zeros((n * m, 2 * n))],
-            [scipy.zeros((m * (2 * n + 1), n)), processor_model.pi_alloc_proc, processor_model.pi_exec_proc]
+            [tasks_model.pi_tau, tasks_model.pi_alloc_tau,
+             scipy.zeros((n_periodic + n_periodic + n_aperiodic, (n_periodic + n_aperiodic) * m))],
+            [scipy.zeros((m * (2 * (n_periodic + n_aperiodic) + 1), n_periodic)), processor_model.pi_alloc_proc,
+             processor_model.pi_exec_proc]
         ]).transpose()
 
         lambda_vector = scipy.block([tasks_model.lambda_vector_tau, processor_model.lambda_vector_alloc_proc,

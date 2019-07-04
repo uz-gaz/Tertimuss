@@ -91,7 +91,7 @@ class AbstractGlobalScheduler(AbstractScheduler):
         i_tau_disc = scipy.zeros((n * m, simulation_time_steps))
 
         # Time of each simulation step
-        time_step = scipy.zeros((simulation_time_steps, 0))
+        time_step = scipy.zeros((simulation_time_steps, 1))
 
         # Accumulated execution time
         m_exec = scipy.ndarray((n * m, simulation_time_steps))
@@ -155,11 +155,17 @@ class AbstractGlobalScheduler(AbstractScheduler):
             # Manage periodic tasks
             if quantum_q <= 0:
                 # Get executable tasks in this interval
-                # TODO: Select only tasks who arrival <= time and deadline >= time and c != 0
-                tasks_to_be_scheduled = periodic_tasks
+                executable_tasks = [actual_task for actual_task in tasks_set if
+                                    int(round(
+                                        actual_task.next_arrival / global_specification.simulation_specification.dt
+                                    )) <= zeta_q <= int(round(
+                                        actual_task.next_deadline / global_specification.simulation_specification.dt
+                                    )) and int(round(
+                                        actual_task.pending_c / global_specification.simulation_specification.dt
+                                    )) > 0]
 
                 # Get active task in this step
-                active_task_id, next_quantum, next_core_frequencies = self.schedule_policy(time, tasks_to_be_scheduled,
+                active_task_id, next_quantum, next_core_frequencies = self.schedule_policy(time, executable_tasks,
                                                                                            active_task_id,
                                                                                            clock_relative_frequencies,
                                                                                            cores_temperature)
@@ -223,11 +229,12 @@ class AbstractGlobalScheduler(AbstractScheduler):
 
             time_step[zeta_q, 0] = time
 
-            max_temperature_cores.append(cores_temperature)
-
-            temperature_map.append(board_temperature)
-
             time_temp.append(results_times)
+
+            if is_thermal_simulation:
+                max_temperature_cores.append(cores_temperature)
+
+                temperature_map.append(board_temperature)
 
         if len(temperature_map) > 0:
             temperature_map = scipy.concatenate(temperature_map, axis=1)
