@@ -201,7 +201,7 @@ class AbstractGlobalScheduler(AbstractScheduler):
                     m_exec_step[active_task_id[j] + j * n] += global_specification.simulation_specification.dt
 
                     if round(tasks_set[active_task_id[j]].pending_c, 5) <= 0:
-                        if j < len(periodic_tasks):
+                        if active_task_id[j] < len(periodic_tasks):
                             # It only manage the end of periodic tasks
                             # periodic_tasks[active_task_id[j]].instances += 1
 

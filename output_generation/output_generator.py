@@ -165,7 +165,7 @@ def plot_task_execution(global_specification: GlobalSpecification, scheduler_res
     for i in range(n_aperiodic):
         deadline = int(
             global_specification.tasks_specification.aperiodic_tasks[
-                i].t / global_specification.simulation_specification.dt)
+                i].d / global_specification.simulation_specification.dt)
         arrive = int(
             global_specification.tasks_specification.aperiodic_tasks[
                 i].a / global_specification.simulation_specification.dt)
@@ -183,11 +183,12 @@ def plot_task_execution(global_specification: GlobalSpecification, scheduler_res
         axarr[j].legend(loc='best')
 
     for j in range(n_aperiodic):
-        axarr[j].set_title("Aperiodic " + str(j))
-        axarr[j].plot(time_u, utilization_by_task[n_periodic + j], label="Execution", drawstyle='steps')
-        axarr[j].plot(deadlines_time, deadline_by_task[n_periodic + j], label="Deadline", drawstyle='steps')
-        axarr[j].plot(deadlines_time, arrives_by_task[j], label="Arrive", drawstyle='steps')
-        axarr[j].legend(loc='best')
+        axarr[j + n_periodic].set_title("Aperiodic " + str(j))
+        axarr[j + n_periodic].plot(time_u, utilization_by_task[n_periodic + j], label="Execution", drawstyle='steps')
+        axarr[j + n_periodic].plot(deadlines_time, deadline_by_task[n_periodic + j], label="Deadline",
+                                   drawstyle='steps')
+        axarr[j + n_periodic].plot(deadlines_time, arrives_by_task[j], label="Arrive", drawstyle='steps')
+        axarr[j + n_periodic].legend(loc='best')
 
     if save_path is None:
         plt.show()
