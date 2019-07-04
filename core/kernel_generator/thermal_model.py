@@ -390,29 +390,5 @@ class ThermalModel(object):
         self.mo_sis = mo
         self.p_board = p_board
         self.p_one_micro = p_one_micro
-
-        # FIXME: Only needed in the tcpn scheduler, check if it is possible to move it away from this file
-        self.a_t = ((self.pre_sis - self.post_sis)[
-                    :self.p_board + cpu_specification.number_of_cores * self.p_one_micro] * lambda_vector[
-                                                                                            :self.p_board + cpu_specification.number_of_cores * self.p_one_micro].reshape(
-            (-1, 1)))
-        self.a_t = self.a_t.dot(
-            scipy.transpose(self.pre_sis[
-                            :self.p_board + cpu_specification.number_of_cores * self.p_one_micro]))
-
-        self.ct_exec = post_heat_dynamic[
-                       :self.p_board + cpu_specification.number_of_cores * self.p_one_micro] * lambda_vector_heat_dynamic[
-                                                                                               :self.p_board + cpu_specification.number_of_cores * self.p_one_micro]
-
-        self.b_ta = (post_conv[
-                     :self.p_board + cpu_specification.number_of_cores * self.p_one_micro] * lambda_vector_conv[
-                                                                                             :self.p_board + cpu_specification.number_of_cores * self.p_one_micro]).dot(
-            scipy.ones(self.p_board))
-
-        # Creation of S_T
-        s_t = scipy.zeros(
-            (cpu_specification.number_of_cores, self.p_board + cpu_specification.number_of_cores * self.p_one_micro))
-        for i in range(cpu_specification.number_of_cores):
-            s_t[i, p_board + i * p_one_micro + int(p_one_micro / 2)] = 1
-
-        self.selector_of_core_temperature = s_t
+        self.t_board = t_board
+        self.t_one_micro = t_one_micro

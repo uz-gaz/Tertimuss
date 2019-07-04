@@ -7,7 +7,11 @@ from core.problem_specification_models.EnvironmentSpecification import Environme
 from core.problem_specification_models.GlobalSpecification import GlobalSpecification
 from core.problem_specification_models.SimulationSpecification import SimulationSpecification
 from core.problem_specification_models.TasksSpecification import TasksSpecification, PeriodicTask, AperiodicTask
+from core.schedulers.implementations.global_edf import GlobalEDFScheduler
 from core.schedulers.implementations.global_edf_a import GlobalEDFAffinityScheduler
+from core.schedulers.implementations.global_edf_afa import GlobalEDFAffinityFrequencyAwareScheduler
+from core.schedulers.implementations.global_llf_afa import GlobalLeastLaxityFirstAFAScheduler
+from core.schedulers.implementations.global_thermal_aware import GlobalThermalAwareScheduler
 from output_generation.output_generator import plot_cpu_utilization, plot_task_execution, plot_cpu_temperature, \
     plot_accumulated_execution_time
 
@@ -29,7 +33,7 @@ class TestGlobalEdfScheduler(unittest.TestCase):
 
         simulation_specification: SimulationSpecification = SimulationSpecification(2, 0.01)
 
-        scheduler = GlobalEDFAffinityScheduler()
+        scheduler = GlobalThermalAwareScheduler()
 
         global_specification: GlobalSpecification = GlobalSpecification(tasks_specification, cpu_specification,
                                                                         environment_specification,

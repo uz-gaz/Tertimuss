@@ -1,4 +1,3 @@
-from scipy import linalg
 import scipy
 
 from core.kernel_generator.processor_model import ProcessorModel
@@ -72,8 +71,10 @@ class GlobalModel(object):
             self.lambda_vector_thermal = thermal_model.lambda_vector_sis
             self.p_one_micro = thermal_model.p_one_micro
             self.p_board = thermal_model.p_board
+            self.t_one_micro = thermal_model.t_one_micro
+            self.t_board = thermal_model.t_board
 
-            self.ct_exec = thermal_model.ct_exec
-            self.b_ta = thermal_model.b_ta
-            self.selector_of_core_temperature = thermal_model.selector_of_core_temperature
-            self.a_t = thermal_model.a_t
+            # self.ct_exec = thermal_model.ct_exec
+            # self.b_ta = thermal_model.b_ta
+            # self.selector_of_core_temperature = thermal_model.selector_of_core_temperature
+            # self.a_t = thermal_model.a_t

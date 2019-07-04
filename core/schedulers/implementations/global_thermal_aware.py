@@ -9,7 +9,8 @@ import scipy.optimize
 from core.kernel_generator.global_model import GlobalModel
 from core.problem_specification_models.GlobalSpecification import GlobalSpecification
 
-from core.schedulers.templates.abstract_global_scheduler import AbstractGlobalScheduler
+from core.schedulers.templates.abstract_global_scheduler import AbstractGlobalScheduler, GlobalSchedulerPeriodicTask, \
+    GlobalSchedulerAperiodicTask
 from core.schedulers.implementations.global_wodes import GlobalSchedulerTask
 
 
@@ -23,6 +24,66 @@ class GlobalThermalAwareScheduler(AbstractGlobalScheduler):
         self.m_exec_step = None
         self.m_busy = None
         self.step = None
+        self.__m = None
+        self.__n = None
+
+    @staticmethod
+    def __obtain_thermal_constraint(global_specification: GlobalSpecification, global_model: GlobalModel) -> [
+        scipy.ndarray, scipy.ndarray, scipy.ndarray, scipy.ndarray]:
+
+        # TODO: Correct because exec is of the form n1, n2, n3, ap1, ... n1, n2, n3, ap1
+        # Seguramente habrá que recrear el thermal model sólo para periódicas
+        m = global_specification.cpu_specification.number_of_cores
+
+        # Only take the matrix parts that correspond to periodic tasks
+        c_periodic = global_model.pre_thermal - global_model.post_thermal
+        pre_periodic = global_model.pre_thermal
+
+        if len(global_specification.tasks_specification.aperiodic_tasks) > 0:
+            c_periodic = c_periodic[:, : - m * len(global_specification.tasks_specification.aperiodic_tasks)]
+            pre_periodic = pre_periodic[:, : - m * len(global_specification.tasks_specification.aperiodic_tasks)]
+
+        a_t = (c_periodic[:global_model.p_board + m * global_model.p_one_micro] * global_model.lambda_vector_thermal[
+                                                                                  :global_model.p_board + m *
+                                                                                   global_model.p_one_micro]).reshape(
+            (-1, 1)).dot(scipy.transpose(pre_periodic[:global_model.p_board + m * global_model.p_one_micro]))
+
+        post_heat_dynamic = global_model.post_thermal[:, -m * (
+                len(global_specification.tasks_specification.periodic_tasks) + len(
+            global_specification.tasks_specification.aperiodic_tasks)):-m * len(
+            global_specification.tasks_specification.aperiodic_tasks)]
+
+        lambda_vector_heat_dynamic = global_model.lambda_vector_thermal[-m * (
+                len(global_specification.tasks_specification.periodic_tasks) + len(
+            global_specification.tasks_specification.aperiodic_tasks)):-m * len(
+            global_specification.tasks_specification.aperiodic_tasks)]
+
+        ct_exec = post_heat_dynamic[
+                  :global_model.p_board + m * global_model.p_one_micro] * lambda_vector_heat_dynamic[
+                                                                          :global_model.p_board + m *
+                                                                           global_model.p_one_micro]
+
+        post_conv = global_model.post_thermal[:,
+                    global_model.t_board + m * global_model.t_one_micro + 2 * m * global_model.p_one_micro:
+                    global_model.t_board + m * global_model.t_one_micro + 2 * m * global_model.p_one_micro +
+                    global_model.p_board]
+
+        lambda_vector_conv = global_model.lambda_vector_thermal[
+                             global_model.t_board + m * global_model.t_one_micro + 2 * m * global_model.p_one_micro:
+                             global_model.t_board + m * global_model.t_one_micro + 2 * m * global_model.p_one_micro +
+                             global_model.p_board]
+
+        b_ta = (post_conv[:global_model.p_board + m * global_model.p_one_micro] *
+                lambda_vector_conv[:global_model.p_board + m * global_model.p_one_micro]).dot(
+            scipy.ones(global_model.p_board))
+
+        # Creation of S_T
+        s_t = scipy.zeros(
+            (m, global_model.p_board + m * global_model.p_one_micro))
+        for i in range(m):
+            s_t[i, global_model.p_board + i * global_model.p_one_micro + int(global_model.p_one_micro / 2)] = 1
+
+        return a_t, ct_exec, b_ta, s_t
 
     @staticmethod
     def __solve_linear_programing_problem(global_specification: GlobalSpecification,
@@ -30,20 +91,21 @@ class GlobalThermalAwareScheduler(AbstractGlobalScheduler):
                                                                                    scipy.ndarray, float,
                                                                                    scipy.ndarray]:
         h = global_specification.tasks_specification.h
-        ti = scipy.asarray([i.t for i in global_specification.tasks_specification.tasks])
+        ti = scipy.asarray([i.t for i in global_specification.tasks_specification.periodic_tasks])
         ia = h / ti
-        n = len(global_specification.tasks_specification.tasks)
+        n = len(global_specification.tasks_specification.periodic_tasks)
         m = global_specification.cpu_specification.number_of_cores
 
         # Inequality constraint
         # Create matrix diag([cc1/H ... ccn/H cc1/H .....]) of n*m
 
-        ch_vector = scipy.asarray(m * [i.c for i in global_specification.tasks_specification.tasks]) / h
+        ch_vector = scipy.asarray(m * [i.c for i in global_specification.tasks_specification.periodic_tasks]) / h
         c_h = scipy.diag(ch_vector)
 
         a_eq = scipy.tile(scipy.eye(n), m)
 
-        au = scipy.linalg.block_diag(*(m * [[i.c for i in global_specification.tasks_specification.tasks]])) / h
+        au = scipy.linalg.block_diag(
+            *(m * [[i.c for i in global_specification.tasks_specification.periodic_tasks]])) / h
 
         beq = scipy.transpose(ia)
         bu = scipy.ones((m, 1))
@@ -56,15 +118,14 @@ class GlobalThermalAwareScheduler(AbstractGlobalScheduler):
 
         # Optimization
         if global_model.enable_thermal_mode:
-            a_t = global_model.a_t
+            # a_t = global_model.a_t
+            # b = global_model.ct_exec
+            # s_t = global_model.selector_of_core_temperature
+            # b_ta = global_model.b_ta
 
-            b = global_model.ct_exec
+            a_t, b, b_ta, s_t = GlobalThermalAwareScheduler.__obtain_thermal_constraint(global_specification,
+                                                                                        global_model)
 
-            s_t = global_model.selector_of_core_temperature
-
-            b_ta = global_model.b_ta
-
-            # Fixme: Check why a_t can't be inverted
             a_int = - ((s_t.dot(scipy.linalg.inv(a_t))).dot(b)).dot(c_h)
 
             b_int = global_specification.environment_specification.t_max * scipy.ones((m, 1)) + (
@@ -129,21 +190,24 @@ class GlobalThermalAwareScheduler(AbstractGlobalScheduler):
 
         return j_fsc_i, quantum
 
-    def offline_stage(self, global_specification: GlobalSpecification, global_model: GlobalModel) -> [float,
-                                                                                                      List[float]]:
+    def offline_stage(self, global_specification: GlobalSpecification, global_model: GlobalModel,
+                      periodic_tasks: List[GlobalSchedulerPeriodicTask],
+                      aperiodic_tasks: List[GlobalSchedulerAperiodicTask]) -> float:
         """
-        This method can be overridden with the offline stage scheduler tasks
+        Method to implement with the offline stage scheduler tasks
+        :param aperiodic_tasks: list of aperiodic tasks with their assigned ids
+        :param periodic_tasks: list of periodic tasks with their assigned ids
         :param global_specification: Global specification
         :param global_model: Global model
-        :return: 1 - Scheduling quantum
+        :return: 1 - Scheduling quantum (default will be the step specified in problem creation)
         """
 
         j_fsc_i, quantum = self.__solve_linear_programing_problem(global_specification, global_model)
 
-        n = len(global_specification.tasks_specification.tasks)
+        n = len(global_specification.tasks_specification.periodic_tasks)
         m = global_specification.cpu_specification.number_of_cores
 
-        ti = [i.t for i in global_specification.tasks_specification.tasks]
+        ti = [i.t for i in global_specification.tasks_specification.periodic_tasks]
 
         jobs = [int(i) for i in global_specification.tasks_specification.h / ti]
 
@@ -167,33 +231,50 @@ class GlobalThermalAwareScheduler(AbstractGlobalScheduler):
 
         self.step = global_specification.simulation_specification.dt
 
+        self.__m = global_specification.cpu_specification.number_of_cores
+        self.__n = n
+
         return quantum
 
-    def schedule_policy(self, time: float, tasks: List[GlobalSchedulerTask], m: int, active_tasks: List[int],
-                        cores_frequency: Optional[List[float]], cores_temperature: Optional[scipy.ndarray]) -> \
+    def aperiodic_arrive(self, time: float, executable_tasks: List[GlobalSchedulerTask], active_tasks: List[int],
+                         actual_cores_frequency: List[float], cores_max_temperature: Optional[scipy.ndarray],
+                         aperiodic_task_ids: List[int]) -> bool:
+        """
+        Method to implement with the actual on aperiodic arrive scheduler police
+        :param actual_cores_frequency: Frequencies of cores
+        :param time: actual simulation time passed
+        :param executable_tasks: actual tasks that can be executed ( c > 0 and arrive_time <= time)
+        :param active_tasks: actual id of tasks assigned to cores (task with id -1 is the idle task)
+        :param cores_max_temperature: temperature of each core
+        :param aperiodic_task_ids: ids of the aperiodic tasks arrived
+        :return: true if want to immediately call the scheduler (schedule_policy method), false otherwise
+        """
+        # Nothing to do, this scheduler won't execute aperiodics
+        return False
+
+    def schedule_policy(self, time: float, executable_tasks: List[GlobalSchedulerTask], active_tasks: List[int],
+                        actual_cores_frequency: List[float], cores_max_temperature: Optional[scipy.ndarray]) -> \
             [List[int], Optional[float], Optional[List[float]]]:
         """
         Method to implement with the actual scheduler police
-        :param cores_frequency: Frequencies of cores
+        :param actual_cores_frequency: Frequencies of cores
         :param time: actual simulation time passed
-        :param tasks: tasks
-        :param m: number of cores
+        :param executable_tasks: actual tasks that can be executed ( c > 0 and arrive_time <= time)
         :param active_tasks: actual id of tasks assigned to cores (task with id -1 is the idle task)
-        :param cores_temperature: temperature of each core
+        :param cores_max_temperature: temperature of each core
         :return: 1 - tasks to assign to cores in next step (task with id -1 is the idle task)
                  2 - next quantum size (if None, will be taken the quantum specified in the offline_stage)
                  3 - cores relatives frequencies for the next quantum (if None, will be taken the frequencies specified
-                  in the offline_stage)
+                  in the problem specification)
         """
-        n = len(tasks)
 
         sd = self.sd
 
-        w_alloc = scipy.zeros(n * m)
+        w_alloc = scipy.zeros(self.__n * self.__m)
         j_fsc_i = self.j_fsc_i
 
-        i_re_j = scipy.zeros(n * m)
-        i_pr_j = scipy.zeros((m, n))
+        i_re_j = scipy.zeros(self.__n * self.__m)
+        i_pr_j = scipy.zeros((self.__m, self.__n))
 
         steps_in_quantum = int(round(self.quantum / self.step))
         step = self.step
@@ -203,47 +284,49 @@ class GlobalThermalAwareScheduler(AbstractGlobalScheduler):
         m_exec_accumulated = self.m_exec_accumulated
 
         for time_q in range(steps_in_quantum):
-            for j in range(m):
-                for i in range(n):
+            for j in range(self.__m):
+                for i in range(self.__n):
                     # Calculo del error, y la superficie para el sliding mode control
-                    e_i_fsc_j = j_fsc_i[i + j * n] * time - m_exec_step[i + j * n]
+                    e_i_fsc_j = j_fsc_i[i + j * self.__n] * time - m_exec_step[i + j * self.__n]
 
                     # Cambio de variables
                     x1 = e_i_fsc_j
-                    x2 = m_busy[i + j * n]  # m_bussy
+                    x2 = m_busy[i + j * self.__n]  # m_bussy
 
                     # Superficie
-                    s = x1 - x2 + j_fsc_i[i + j * n]
+                    s = x1 - x2 + j_fsc_i[i + j * self.__n]
 
                     # Control Para tareas temporal en cada procesador w_alloc control en I_tau
-                    w_alloc[i + j * n] = (j_fsc_i[i + j * n] * scipy.sign(s) + j_fsc_i[i + j * n]) / 2
+                    w_alloc[i + j * self.__n] = (j_fsc_i[i + j * self.__n] * scipy.sign(s) + j_fsc_i[
+                        i + j * self.__n]) / 2
 
             m_busy = w_alloc * step
             m_exec_step = m_exec_step + w_alloc * step
 
         # DISCRETIZATION
         # Se inicializa el conjunto ET de transiciones de tareas para el modelo discreto
-        et = scipy.zeros((m, n), dtype=int)
+        et = scipy.zeros((self.__m, self.__n), dtype=int)
 
-        fsc = scipy.zeros(m * n)
+        fsc = scipy.zeros(self.__m * self.__n)
 
         # Se calcula el remaining jobs execution Re_tau(j,i)
-        for j in range(m):
-            for i in range(n):
-                fsc[i + j * n] = j_fsc_i[i + j * n] * sd
-                i_re_j[i + j * n] = m_exec_step[i + j * n] - m_exec_accumulated[i + j * n]
+        for j in range(self.__m):
+            for i in range(self.__n):
+                fsc[i + j * self.__n] = j_fsc_i[i + j * self.__n] * sd
+                i_re_j[i + j * self.__n] = m_exec_step[i + j * self.__n] - m_exec_accumulated[i + j * self.__n]
 
-                if round(i_re_j[i + j * n], 4) > 0:
+                if round(i_re_j[i + j * self.__n], 4) > 0:
                     et[j, i] = i + 1
 
-        w_alloc = m * [-1]
+        w_alloc = self.__m * [-1]
 
-        for j in range(m):
+        for j in range(self.__m):
             # Si el conjunto no es vacio por cada j-esimo CPU, entonces se procede a
             # calcular la prioridad de cada tarea a ser asignada
             if scipy.count_nonzero(et[j]) > 0:
                 # Prioridad es igual al marcado del lugar continuo menos el marcado del lugar discreto
-                i_pr_j[j, :] = j_fsc_i[j * n: j * n + n] * sd - m_exec_accumulated[j * n:j * n + n]
+                i_pr_j[j, :] = j_fsc_i[j * self.__n: j * self.__n + self.__n] * \
+                               sd - m_exec_accumulated[j * self.__n:j * self.__n + self.__n]
 
                 # Se ordenan de manera descendente por orden de prioridad,
                 # IndMaxPr contiene los indices de las tareas ordenado de mayor a
@@ -264,13 +347,13 @@ class GlobalThermalAwareScheduler(AbstractGlobalScheduler):
                 # si se asigna la procesador j la tarea de mayor prioridad IndMaxPr(1), entonces si en el
                 # conjunto ET para los procesadores restantes debe pasar que ET(k,IndMaxPr(1))=0,
                 # para evitar que las tareas se ejecuten de manera paralela
-                for k in range(m):
+                for k in range(self.__m):
                     if j != k:
                         et[k, ind_max_pr] = 0
 
                 w_alloc[j] = ind_max_pr
 
-                m_exec_accumulated[ind_max_pr + j * n] += self.quantum
+                m_exec_accumulated[ind_max_pr + j * self.__n] += self.quantum
 
         self.m_exec_step = m_exec_step
         self.m_busy = m_busy
