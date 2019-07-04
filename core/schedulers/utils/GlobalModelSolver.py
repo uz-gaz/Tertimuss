@@ -112,10 +112,11 @@ class GlobalModelSolver(object):
                 self.__tcpn_simulator_thermal.set_control(new_control_thermal)
 
             for mo_actual in partial_results_proc:
-                m_exec = scipy.concatenate([mo_actual[2 * self.__n + (2 * self.__n + 1) * i:2 * self.__n + (
-                        2 * self.__n + 1) * i + self.__n, 0] for i in range(self.__m)])
+                m_busy = scipy.concatenate([mo_actual[self.__m_processor_start_index + i * (
+                            2 * self.__n + 1):self.__m_processor_start_index + i * (2 * self.__n + 1) + self.__n,
+                                            0].reshape(-1) for i in range(self.__m)])
 
-                m_exec = m_exec * (self.__fragmentation_of_step / self.__step)  # FIXME: Review it
+                m_exec = m_busy * (self.__fragmentation_of_step / self.__step)  # FIXME: Review it
 
                 self.__mo_thermal[-self.__n * self.__m:, 0] = m_exec
                 self.__mo_thermal = self.__tcpn_simulator_thermal.simulate_step(self.__mo_thermal)

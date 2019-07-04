@@ -6,7 +6,7 @@ from scipy.linalg import block_diag
 from core.problem_specification_models.CpuSpecification import CpuSpecification, MaterialCuboid, Origin
 from core.problem_specification_models.EnvironmentSpecification import EnvironmentSpecification
 from core.problem_specification_models.SimulationSpecification import SimulationSpecification
-from core.problem_specification_models.TasksSpecification import TasksSpecification
+from core.problem_specification_models.TasksSpecification import TasksSpecification, Task
 
 
 def simple_conductivity(material_cuboid: MaterialCuboid,
@@ -247,6 +247,8 @@ def add_heat_by_leakage_power(p_board: int, p_one_micro: int, cpu_specification:
 def add_heat_by_dynamic_power(p_board: int, p_one_micro: int, cpu_specification: CpuSpecification,
                               tasks_specification: TasksSpecification) \
         -> [scipy.ndarray, scipy.ndarray, scipy.ndarray]:
+    n = len(tasks_specification.periodic_tasks) + len(tasks_specification.aperiodic_tasks)
+
     rho = cpu_specification.cpu_core_specification.p
     cp = cpu_specification.cpu_core_specification.c_p
     v_cpu = cpu_specification.cpu_core_specification.z * cpu_specification.cpu_core_specification.x * \
@@ -256,10 +258,10 @@ def add_heat_by_dynamic_power(p_board: int, p_one_micro: int, cpu_specification:
     p_micros = p_one_micro * cpu_specification.number_of_cores
 
     # Total places (p_board + p_micros + p_air + p_alpha_heat_generation + one for each t_exec)
-    total_places = p_board + p_micros + 1 + 1 + cpu_specification.number_of_cores * len(tasks_specification.tasks)
+    total_places = p_board + p_micros + 1 + 1 + cpu_specification.number_of_cores * n
 
     # Number of transitions one for each t_exec
-    number_of_transitions = cpu_specification.number_of_cores * len(tasks_specification.tasks)
+    number_of_transitions = cpu_specification.number_of_cores * n
 
     pre_gen = scipy.zeros((total_places, number_of_transitions))
     pre_gen[p_board + p_micros + 1 + 1:p_board + p_micros + 1 + 1 + number_of_transitions, :] = scipy.identity(
@@ -267,14 +269,15 @@ def add_heat_by_dynamic_power(p_board: int, p_one_micro: int, cpu_specification:
 
     post_gen = scipy.zeros((total_places, number_of_transitions))
 
+    tasks: List[Task] = tasks_specification.periodic_tasks + tasks_specification.aperiodic_tasks
     post_power_by_cpu = scipy.concatenate(
-        [scipy.full((p_one_micro, 1), task.e / (v_cpu * rho * cp)) for task in tasks_specification.tasks], axis=1)
+        [scipy.full((p_one_micro, 1), task.e / (v_cpu * rho * cp)) for task in tasks], axis=1)
 
     post_gen[p_board: p_board + p_micros, :] = block_diag(*(cpu_specification.number_of_cores * [post_power_by_cpu]))
 
     # lambda_gen = scipy.concatenate(
     #     [f * scipy.ones(len(tasks_specification.tasks)) for f in cpu_specification.clock_relative_frequencies])
-    lambda_gen = scipy.ones(len(tasks_specification.tasks) * cpu_specification.number_of_cores)
+    lambda_gen = scipy.ones(n * cpu_specification.number_of_cores)
 
     return pre_gen, post_gen, lambda_gen
 
@@ -340,7 +343,9 @@ class ThermalModel(object):
                               cpu_specification.number_of_cores + 2 * p_one_micro * cpu_specification.number_of_cores +
                               p_board + 1))
 
-        zero_3 = scipy.zeros((cpu_specification.number_of_cores * len(tasks_specification.tasks), t_board +
+        n = len(tasks_specification.periodic_tasks) + len(tasks_specification.aperiodic_tasks)
+
+        zero_3 = scipy.zeros((cpu_specification.number_of_cores * n, t_board +
                               t_one_micro * cpu_specification.number_of_cores + 2 * p_one_micro *
                               cpu_specification.number_of_cores + p_board + 1 + cpu_specification.number_of_cores *
                               p_one_micro + 1))
@@ -375,7 +380,7 @@ class ThermalModel(object):
         mo = scipy.concatenate([scipy.full(p_board + p_one_micro * cpu_specification.number_of_cores + 1,
                                            environment_specification.t_env),
                                 scipy.asarray([1]),
-                                scipy.zeros(cpu_specification.number_of_cores * len(tasks_specification.tasks))
+                                scipy.zeros(cpu_specification.number_of_cores * n)
                                 ]).reshape((-1, 1))
 
         self.pre_sis = pre

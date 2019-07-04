@@ -18,7 +18,8 @@ class TestGlobalEdfScheduler(unittest.TestCase):
         time1 = time.time()
         tasks_specification: TasksSpecification = TasksSpecification([PeriodicTask(2, 4, 4, 6.4),
                                                                       PeriodicTask(3, 8, 8, 8),
-                                                                      PeriodicTask(3, 12, 12, 9.6),
+                                                                      PeriodicTask(3, 12, 12, 9.6)
+                                                                         ,
                                                                       AperiodicTask(2, 10, 20, 6)])
         cpu_specification: CpuSpecification = CpuSpecification(MaterialCuboid(x=50, y=50, z=1, p=8933, c_p=385, k=400),
                                                                MaterialCuboid(x=10, y=10, z=2, p=2330, c_p=712, k=148),
@@ -34,7 +35,7 @@ class TestGlobalEdfScheduler(unittest.TestCase):
                                                                         environment_specification,
                                                                         simulation_specification)
 
-        global_model = GlobalModel(global_specification, False)
+        global_model = GlobalModel(global_specification, True)
 
         scheduler_simulation = scheduler.simulate(global_specification, global_model, None)
         time2 = time.time()
@@ -45,7 +46,7 @@ class TestGlobalEdfScheduler(unittest.TestCase):
         # draw_heat_matrix(global_specification, simulation_kernel, scheduler_simulation, "affinity_heat_matrix.mp4")
         plot_cpu_utilization(global_specification, scheduler_simulation, "affinity_cpu_utilizationv2.png")
         plot_task_execution(global_specification, scheduler_simulation, "affinity_task_executionv2.png")
-        # plot_cpu_temperature(global_specification, scheduler_simulation, "affinity_cpu_temperaturev2.png")
+        plot_cpu_temperature(global_specification, scheduler_simulation, "affinity_cpu_temperaturev2.png")
         plot_accumulated_execution_time(global_specification, scheduler_simulation, "affinity_accumulatedv2.png")
 
 
