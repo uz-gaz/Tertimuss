@@ -86,19 +86,19 @@ def simple_conductivity(material_cuboid: MaterialCuboid,
 
 
 def __get_cpu_coordinates(origin: Origin, cpu_spec: MaterialCuboid, board_spec: MaterialCuboid,
-                          simulation_specification: SimulationSpecification) -> List[int]:
-    x: int = round(cpu_spec.x / simulation_specification.step)
-    y: int = round(cpu_spec.y / simulation_specification.step)
+                          step: float) -> List[int]:
+    x: int = round(cpu_spec.x / step)
+    y: int = round(cpu_spec.y / step)
 
-    x_0: int = round(origin.x / simulation_specification.step)
-    y_0: int = round(origin.y / simulation_specification.step)
+    x_0: int = round(origin.x / step)
+    y_0: int = round(origin.y / step)
 
     x_1: int = x_0 + x
     y_1: int = y_0 + y
 
     places = []
 
-    x_board: int = round(board_spec.x / simulation_specification.step)
+    x_board: int = round(board_spec.x / step)
 
     for j in range(y_0, y_1):
         local_places = []
@@ -117,8 +117,8 @@ def __get_cpu_coordinates(origin: Origin, cpu_spec: MaterialCuboid, board_spec: 
 
 
 def add_interactions_layer(p_board: int, p_one_micro: int, cpu_specification: CpuSpecification,
-                           simulation_specification: SimulationSpecification) -> [scipy.ndarray, scipy.ndarray,
-                                                                                  scipy.ndarray]:
+                           step: float) -> [scipy.ndarray, scipy.ndarray,
+                                            scipy.ndarray]:
     # Places and transitions for all CPUs
     p_micros = p_one_micro * cpu_specification.number_of_cores
 
@@ -131,7 +131,7 @@ def add_interactions_layer(p_board: int, p_one_micro: int, cpu_specification: Cp
             cpu_specification.cpu_origins[i],
             cpu_specification.cpu_core_specification,
             cpu_specification.board_specification,
-            simulation_specification)
+            step)
 
     rho_p1 = cpu_specification.board_specification.p
     k_p1 = cpu_specification.board_specification.k
@@ -318,7 +318,7 @@ class ThermalModel(object):
         # Add transitions between micro and board
         # Connections between micro places and board places
         pre_int, post_int, lambda_vector_int = add_interactions_layer(p_board, p_one_micro, cpu_specification,
-                                                                      simulation_specification)
+                                                                      simulation_specification.step)
 
         # Convection
         pre_conv, post_conv, lambda_vector_conv, pre_conv_air, post_conv_air, lambda_vector_conv_air = \

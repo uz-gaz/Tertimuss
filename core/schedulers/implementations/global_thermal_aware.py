@@ -5,9 +5,12 @@ from typing import List, Optional
 import scipy
 
 import scipy.optimize
+from scipy.linalg import block_diag
 
-from core.kernel_generator.global_model import GlobalModel
+from core.kernel_generator.thermal_model import simple_conductivity, add_interactions_layer, add_convection, \
+    add_heat_by_dynamic_power
 from core.problem_specification_models.GlobalSpecification import GlobalSpecification
+from core.problem_specification_models.TasksSpecification import TasksSpecification
 
 from core.schedulers.templates.abstract_global_scheduler import AbstractGlobalScheduler, GlobalSchedulerPeriodicTask, \
     GlobalSchedulerAperiodicTask
@@ -28,68 +31,86 @@ class GlobalThermalAwareScheduler(AbstractGlobalScheduler):
         self.__n = None
 
     @staticmethod
-    def __obtain_thermal_constraint(global_specification: GlobalSpecification, global_model: GlobalModel) -> [
+    def __obtain_thermal_constraint(global_specification: GlobalSpecification) -> [
         scipy.ndarray, scipy.ndarray, scipy.ndarray, scipy.ndarray]:
 
-        # TODO: Correct because exec is of the form n1, n2, n3, ap1, ... n1, n2, n3, ap1
-        # Seguramente habrá que recrear el thermal model sólo para periódicas
-        m = global_specification.cpu_specification.number_of_cores
+        tasks_specification = TasksSpecification(global_specification.tasks_specification.periodic_tasks)
+        cpu_specification = global_specification.cpu_specification
+        environment_specification = global_specification.environment_specification
+        simulation_specification = global_specification.simulation_specification
 
-        # Only take the matrix parts that correspond to periodic tasks
-        c_periodic = global_model.pre_thermal - global_model.post_thermal
-        pre_periodic = global_model.pre_thermal
+        # Board and micros conductivity
+        pre_board_cond, post_board_cond, lambda_board_cond = simple_conductivity(cpu_specification.board_specification,
+                                                                                 simulation_specification)
 
-        if len(global_specification.tasks_specification.aperiodic_tasks) > 0:
-            c_periodic = c_periodic[:, : - m * len(global_specification.tasks_specification.aperiodic_tasks)]
-            pre_periodic = pre_periodic[:, : - m * len(global_specification.tasks_specification.aperiodic_tasks)]
+        pre_micro_cond, post_micro_cond, lambda_micro_cond = simple_conductivity(
+            cpu_specification.cpu_core_specification, simulation_specification)
 
-        a_t = (c_periodic[:global_model.p_board + m * global_model.p_one_micro] * global_model.lambda_vector_thermal[
-                                                                                  :global_model.p_board + m *
-                                                                                   global_model.p_one_micro]).reshape(
-            (-1, 1)).dot(scipy.transpose(pre_periodic[:global_model.p_board + m * global_model.p_one_micro]))
+        # Number of places for the board
+        p_board = pre_board_cond.shape[0]
 
-        post_heat_dynamic = global_model.post_thermal[:, -m * (
-                len(global_specification.tasks_specification.periodic_tasks) + len(
-            global_specification.tasks_specification.aperiodic_tasks)):-m * len(
-            global_specification.tasks_specification.aperiodic_tasks)]
+        # Number of places and transitions for one CPU
+        p_one_micro = pre_micro_cond.shape[0]
 
-        lambda_vector_heat_dynamic = global_model.lambda_vector_thermal[-m * (
-                len(global_specification.tasks_specification.periodic_tasks) + len(
-            global_specification.tasks_specification.aperiodic_tasks)):-m * len(
-            global_specification.tasks_specification.aperiodic_tasks)]
+        # Create pre, post and lambda from the system with board and number of CPUs
+        pre_cond = block_diag(*([pre_board_cond] + cpu_specification.number_of_cores * [pre_micro_cond]))
+        del pre_board_cond  # Recover memory space
+        del pre_micro_cond  # Recover memory space
 
-        ct_exec = post_heat_dynamic[
-                  :global_model.p_board + m * global_model.p_one_micro] * lambda_vector_heat_dynamic[
-                                                                          :global_model.p_board + m *
-                                                                           global_model.p_one_micro]
+        post_cond = block_diag(*([post_board_cond] + cpu_specification.number_of_cores * [post_micro_cond]))
+        del post_board_cond  # Recover memory space
+        del post_micro_cond  # Recover memory space
 
-        post_conv = global_model.post_thermal[:,
-                    global_model.t_board + m * global_model.t_one_micro + 2 * m * global_model.p_one_micro:
-                    global_model.t_board + m * global_model.t_one_micro + 2 * m * global_model.p_one_micro +
-                    global_model.p_board]
+        lambda_vector_cond = scipy.concatenate(
+            [lambda_board_cond] + cpu_specification.number_of_cores * [lambda_micro_cond])
+        del lambda_board_cond  # Recover memory space
+        del lambda_micro_cond  # Recover memory space
 
-        lambda_vector_conv = global_model.lambda_vector_thermal[
-                             global_model.t_board + m * global_model.t_one_micro + 2 * m * global_model.p_one_micro:
-                             global_model.t_board + m * global_model.t_one_micro + 2 * m * global_model.p_one_micro +
-                             global_model.p_board]
+        # Add transitions between micro and board
+        # Connections between micro places and board places
+        pre_int, post_int, lambda_vector_int = add_interactions_layer(p_board, p_one_micro, cpu_specification,
+                                                                      simulation_specification.step)
 
-        b_ta = (post_conv[:global_model.p_board + m * global_model.p_one_micro] *
-                lambda_vector_conv[:global_model.p_board + m * global_model.p_one_micro]).dot(
-            scipy.ones(global_model.p_board))
+        # Convection
+        pre_conv, post_conv, lambda_vector_conv, pre_conv_air, post_conv_air, lambda_vector_conv_air = \
+            add_convection(p_board, p_one_micro, cpu_specification, environment_specification)
+
+        # Heat generation dynamic
+        pre_heat_dynamic, post_heat_dynamic, lambda_vector_heat_dynamic = add_heat_by_dynamic_power(p_board,
+                                                                                                    p_one_micro,
+                                                                                                    cpu_specification,
+                                                                                                    tasks_specification)
+
+        places_board_and_micros = p_board + cpu_specification.number_of_cores * p_one_micro
+
+        # Creation of pre matrix
+        pre = scipy.concatenate([pre_cond, pre_int, pre_conv, pre_heat_dynamic[:places_board_and_micros]], axis=1)
+
+        # Creation of post matrix
+        post = scipy.concatenate([post_cond, post_int, post_conv, post_heat_dynamic[:places_board_and_micros]], axis=1)
+
+        # Creation of lambda matrix
+        lambda_vector = scipy.concatenate([lambda_vector_cond, lambda_vector_int, lambda_vector_conv,
+                                           lambda_vector_heat_dynamic])
+
+        a_t = ((pre - post) * lambda_vector).dot(scipy.transpose(pre))
+
+        ct_exec = post_heat_dynamic[:places_board_and_micros] * lambda_vector_heat_dynamic
+
+        b_ta = (post_conv * lambda_vector_conv).dot(scipy.ones(p_board))
 
         # Creation of S_T
         s_t = scipy.zeros(
-            (m, global_model.p_board + m * global_model.p_one_micro))
-        for i in range(m):
-            s_t[i, global_model.p_board + i * global_model.p_one_micro + int(global_model.p_one_micro / 2)] = 1
+            (cpu_specification.number_of_cores, p_board + cpu_specification.number_of_cores * p_one_micro))
+        for i in range(cpu_specification.number_of_cores):
+            s_t[i, p_board + i * p_one_micro + int(p_one_micro / 2)] = 1
 
         return a_t, ct_exec, b_ta, s_t
 
     @staticmethod
-    def __solve_linear_programing_problem(global_specification: GlobalSpecification,
-                                          global_model: Optional[GlobalModel]) -> [scipy.ndarray,
-                                                                                   scipy.ndarray, float,
-                                                                                   scipy.ndarray]:
+    def __solve_linear_programing_problem(global_specification: GlobalSpecification, is_thermal_simulation: bool) -> [
+        scipy.ndarray, scipy.ndarray, float, scipy.ndarray]:
+
         h = global_specification.tasks_specification.h
         ti = scipy.asarray([i.t for i in global_specification.tasks_specification.periodic_tasks])
         ia = h / ti
@@ -98,7 +119,6 @@ class GlobalThermalAwareScheduler(AbstractGlobalScheduler):
 
         # Inequality constraint
         # Create matrix diag([cc1/H ... ccn/H cc1/H .....]) of n*m
-
         ch_vector = scipy.asarray(m * [i.c for i in global_specification.tasks_specification.periodic_tasks]) / h
         c_h = scipy.diag(ch_vector)
 
@@ -116,17 +136,16 @@ class GlobalThermalAwareScheduler(AbstractGlobalScheduler):
         # Objective function
         objective = scipy.ones(n * m)
 
+        a_t = None
+        ct_exec = None
+        b_ta = None
+        s_t = None
+
         # Optimization
-        if global_model.enable_thermal_mode:
-            # a_t = global_model.a_t
-            # b = global_model.ct_exec
-            # s_t = global_model.selector_of_core_temperature
-            # b_ta = global_model.b_ta
+        if is_thermal_simulation:
+            a_t, ct_exec, b_ta, s_t = GlobalThermalAwareScheduler.__obtain_thermal_constraint(global_specification)
 
-            a_t, b, b_ta, s_t = GlobalThermalAwareScheduler.__obtain_thermal_constraint(global_specification,
-                                                                                        global_model)
-
-            a_int = - ((s_t.dot(scipy.linalg.inv(a_t))).dot(b)).dot(c_h)
+            a_int = - ((s_t.dot(scipy.linalg.inv(a_t))).dot(ct_exec)).dot(c_h)
 
             b_int = global_specification.environment_specification.t_max * scipy.ones((m, 1)) + (
                 (s_t.dot(scipy.linalg.inv(a_t))).dot(
@@ -151,7 +170,8 @@ class GlobalThermalAwareScheduler(AbstractGlobalScheduler):
         j_fsc_i = j_b_i * ch_vector
 
         # Quantum calc
-        sd = scipy.union1d(functools.reduce(operator.add, [list(range(ti[i], h + 1, ti[i])) for i in range(n)], []), 0)
+        sd = scipy.union1d(
+            functools.reduce(operator.add, [list(scipy.arange(ti[i], h + 1, ti[i])) for i in range(n)], []), 0)
 
         round_factor = 4  # Fixme: Check if higher round factor can be applied
         fraction_denominator = 10 ** round_factor
@@ -166,23 +186,23 @@ class GlobalThermalAwareScheduler(AbstractGlobalScheduler):
         if quantum < global_specification.simulation_specification.dt:
             quantum = global_specification.simulation_specification.dt
 
-        if global_model.enable_thermal_mode:
+        if is_thermal_simulation:
             # Solve differential equation to get a initial condition
-            theta = scipy.linalg.expm(global_model.a_t * h)
+            theta = scipy.linalg.expm(a_t * h)
 
-            beta_1 = (scipy.linalg.inv(global_model.a_t)).dot(
-                theta - scipy.identity(len(global_model.a_t)))
-            beta_2 = beta_1.dot(global_model.b_ta.reshape((- 1, 1)))
-            beta_1 = beta_1.dot(global_model.ct_exec)
+            beta_1 = (scipy.linalg.inv(a_t)).dot(
+                theta - scipy.identity(len(a_t)))
+            beta_2 = beta_1.dot(b_ta.reshape((- 1, 1)))
+            beta_1 = beta_1.dot(ct_exec)
 
             # Set initial condition to zero to archive a final condition where initial = final, SmT(0) = Y(H)
-            m_t_o = scipy.zeros((len(global_model.a_t), 1))
+            m_t_o = scipy.zeros((len(a_t), 1))
 
             w_alloc_max = j_fsc_i / quantum
             m_t_max = theta.dot(m_t_o) + beta_1.dot(
                 w_alloc_max.reshape(
                     (len(w_alloc_max), 1))) + global_specification.environment_specification.t_env * beta_2
-            temp_max = global_model.selector_of_core_temperature.dot(m_t_max)
+            temp_max = s_t.dot(m_t_max)
 
             if all(item[0] > global_specification.environment_specification.t_max for item in temp_max / m):
                 raise Exception(
@@ -190,7 +210,7 @@ class GlobalThermalAwareScheduler(AbstractGlobalScheduler):
 
         return j_fsc_i, quantum
 
-    def offline_stage(self, global_specification: GlobalSpecification, global_model: GlobalModel,
+    def offline_stage(self, global_specification: GlobalSpecification,
                       periodic_tasks: List[GlobalSchedulerPeriodicTask],
                       aperiodic_tasks: List[GlobalSchedulerAperiodicTask]) -> float:
         """
@@ -198,11 +218,12 @@ class GlobalThermalAwareScheduler(AbstractGlobalScheduler):
         :param aperiodic_tasks: list of aperiodic tasks with their assigned ids
         :param periodic_tasks: list of periodic tasks with their assigned ids
         :param global_specification: Global specification
-        :param global_model: Global model
         :return: 1 - Scheduling quantum (default will be the step specified in problem creation)
         """
 
-        j_fsc_i, quantum = self.__solve_linear_programing_problem(global_specification, global_model)
+        is_thermal_simulation = global_specification.environment_specification is not None
+
+        j_fsc_i, quantum = self.__solve_linear_programing_problem(global_specification, is_thermal_simulation)
 
         n = len(global_specification.tasks_specification.periodic_tasks)
         m = global_specification.cpu_specification.number_of_cores
@@ -216,7 +237,7 @@ class GlobalThermalAwareScheduler(AbstractGlobalScheduler):
         kd = 1
         sd_u = []
         for i in range(n):
-            diagonal[i, 0: jobs[i]] = list(range(ti[i], global_specification.tasks_specification.h + 1, ti[i]))
+            diagonal[i, 0: jobs[i]] = list(scipy.arange(ti[i], global_specification.tasks_specification.h + 1, ti[i]))
             sd_u = scipy.union1d(sd_u, diagonal[i, 0: jobs[i]])
 
         sd_u = scipy.union1d(sd_u, [0])

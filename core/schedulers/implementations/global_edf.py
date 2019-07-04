@@ -17,7 +17,7 @@ class GlobalEDFScheduler(AbstractGlobalScheduler):
         super().__init__()
         self.__m = None
 
-    def offline_stage(self, global_specification: GlobalSpecification, global_model: GlobalModel,
+    def offline_stage(self, global_specification: GlobalSpecification,
                       periodic_tasks: List[GlobalSchedulerPeriodicTask],
                       aperiodic_tasks: List[GlobalSchedulerAperiodicTask]) -> float:
         """
@@ -25,11 +25,10 @@ class GlobalEDFScheduler(AbstractGlobalScheduler):
         :param aperiodic_tasks: list of aperiodic tasks with their assigned ids
         :param periodic_tasks: list of periodic tasks with their assigned ids
         :param global_specification: Global specification
-        :param global_model: Global model
         :return: 1 - Scheduling quantum (default will be the step specified in problem creation)
         """
         self.__m = global_specification.cpu_specification.number_of_cores
-        return super().offline_stage(global_specification, global_model, periodic_tasks, aperiodic_tasks)
+        return super().offline_stage(global_specification, periodic_tasks, aperiodic_tasks)
 
     def aperiodic_arrive(self, time: float, executable_tasks: List[GlobalSchedulerTask], active_tasks: List[int],
                          actual_cores_frequency: List[float], cores_max_temperature: Optional[scipy.ndarray],
