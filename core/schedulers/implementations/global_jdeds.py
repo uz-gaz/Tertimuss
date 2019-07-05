@@ -215,6 +215,16 @@ class GlobalJDEDSScheduler(AbstractGlobalScheduler):
         # Nothing to do
         return False
 
+    def __sp_interrupt(self, time: float) -> bool:
+        """
+
+        :param time:
+        :return: true if need to schedule
+        """
+        tasks_laxity = [(self.__interval_end - i[0], i[1]) for i in self.__interval_cc_left]
+        id_free_task = []
+        pass
+
     def schedule_policy(self, time: float, executable_tasks: List[GlobalSchedulerTask], active_tasks: List[int],
                         actual_cores_frequency: List[float], cores_max_temperature: Optional[scipy.ndarray]) -> \
             [List[int], Optional[float], Optional[List[float]]]:
