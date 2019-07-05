@@ -238,6 +238,9 @@ class GlobalJDEDSScheduler(AbstractGlobalScheduler):
 
         return new_task_arrive or tasks_have_ended or tasks_laxity_zero
 
+    def __schedule_policy_imp(self):
+        pass
+
     def schedule_policy(self, time: float, executable_tasks: List[GlobalSchedulerTask], active_tasks: List[int],
                         actual_cores_frequency: List[float], cores_max_temperature: Optional[scipy.ndarray]) -> \
             [List[int], Optional[float], Optional[List[float]]]:
