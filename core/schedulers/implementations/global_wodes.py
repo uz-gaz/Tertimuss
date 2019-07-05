@@ -139,7 +139,7 @@ class GlobalWodesScheduler(AbstractScheduler):
 
         i = 0
         s = scipy.zeros((n, number_of_interval - 1))  # FIXME: REVIEW
-        for k in range(d - 1):
+        for k in range(number_of_interval - 1):
             s[0:n, k] = x[i:i + n]
             i = i + n
 
