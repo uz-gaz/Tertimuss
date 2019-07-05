@@ -120,8 +120,9 @@ class GlobalWodesScheduler(AbstractScheduler):
 
         f = scipy.full((v, 1), -1)
 
+        # FIXME: Presolve = False may be only a temporal solution
         res = scipy.optimize.linprog(c=f, A_ub=a, b_ub=b, A_eq=a_eq,
-                                     b_eq=b_eq, method='simplex')  # FIXME: Actually any solution found
+                                     b_eq=b_eq, method='simplex', options={"presolve": False})
 
         """
         There is a linear combination of rows of A_eq that results in zero, suggesting a redundant constraint. However
