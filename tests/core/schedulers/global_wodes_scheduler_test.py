@@ -9,6 +9,12 @@ class GlobalWodes(unittest.TestCase):
         gw = GlobalWodesScheduler()
         s, sd, hyperperiod, isd = gw.ilpp_dp(ci, ti, 3, 2)
 
+    def test_lpp_2(self):
+        ci = [2000, 5000, 6000, 1800]
+        ti = [3400, 6800, 10200, 20400]
+        gw = GlobalWodesScheduler()
+        s, sd, hyperperiod, isd = gw.ilpp_dp(ci, ti, 4, 2)
+
 
 if __name__ == '__main__':
     unittest.main()
