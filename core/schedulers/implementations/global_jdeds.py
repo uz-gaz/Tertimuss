@@ -215,15 +215,28 @@ class GlobalJDEDSScheduler(AbstractGlobalScheduler):
         # Nothing to do
         return False
 
-    def __sp_interrupt(self, time: float) -> bool:
+    def __sp_interrupt(self, executable_tasks: List[GlobalSchedulerTask], active_tasks: List[int], time: float) -> bool:
         """
 
         :param time:
         :return: true if need to schedule
         """
-        tasks_laxity = [(self.__interval_end - i[0], i[1]) for i in self.__interval_cc_left]
-        id_free_task = []
-        pass
+        # Decimals precision
+        decimals_precision = 5
+
+        # True if any task has arrived in this step
+        new_task_arrive = any([round(i.next_arrival, decimals_precision) == round(time, decimals_precision)
+                               for i in executable_tasks])
+
+        # True if any task have ended in this step
+        tasks_have_ended = any([round(i[0], decimals_precision) == 0 and i[1] in active_tasks
+                                for i in self.__interval_cc_left])
+
+        # True if any task laxity is 0
+        tasks_laxity_zero = any([round(self.__interval_end - time - i[0], decimals_precision) <= 0
+                                 for i in self.__interval_cc_left])
+
+        return new_task_arrive or tasks_have_ended or tasks_laxity_zero
 
     def schedule_policy(self, time: float, executable_tasks: List[GlobalSchedulerTask], active_tasks: List[int],
                         actual_cores_frequency: List[float], cores_max_temperature: Optional[scipy.ndarray]) -> \
