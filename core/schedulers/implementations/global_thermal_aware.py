@@ -12,8 +12,7 @@ from core.problem_specification_models.GlobalSpecification import GlobalSpecific
 from core.problem_specification_models.TasksSpecification import TasksSpecification
 
 from core.schedulers.templates.abstract_global_scheduler import AbstractGlobalScheduler, GlobalSchedulerPeriodicTask, \
-    GlobalSchedulerAperiodicTask
-from core.schedulers.implementations.global_wodes import GlobalSchedulerTask
+    GlobalSchedulerAperiodicTask, GlobalSchedulerTask
 
 
 class GlobalThermalAwareScheduler(AbstractGlobalScheduler):

@@ -50,6 +50,32 @@ class GlobalWodes(unittest.TestCase):
         plot_cpu_temperature(global_specification, scheduler_simulation, "jdeds_cpu_temperature_thermal.png")
         plot_accumulated_execution_time(global_specification, scheduler_simulation, "jdeds_accumulated_thermal.png")
 
+    def test_scheduler_no_thermal(self):
+        tasks_specification: TasksSpecification = TasksSpecification([PeriodicTask(2, 4, 4, 6.4),
+                                                                      PeriodicTask(5, 8, 8, 8),
+                                                                      PeriodicTask(6, 12, 12, 9.6)])
+        cpu_specification: CpuSpecification = CpuSpecification(MaterialCuboid(x=50, y=50, z=1, p=8933, c_p=385, k=400),
+                                                               MaterialCuboid(x=10, y=10, z=2, p=2330, c_p=712, k=148),
+                                                               2, 1000, [1, 1], [0.15, 0.4, 0.6, 0.85, 1])
+
+        environment_specification: EnvironmentSpecification = EnvironmentSpecification(0.001, 45, 110)
+
+        simulation_specification: SimulationSpecification = SimulationSpecification(2, 0.01)
+
+        scheduler = GlobalJDEDSScheduler()
+
+        global_specification: GlobalSpecification = GlobalSpecification(tasks_specification, cpu_specification,
+                                                                        environment_specification,
+                                                                        simulation_specification)
+
+        global_model = GlobalModel(global_specification, False)
+
+        scheduler_simulation = scheduler.simulate(global_specification, global_model, None)
+
+        plot_cpu_utilization(global_specification, scheduler_simulation, "jdeds_cpu_utilization_no_thermal.png")
+        plot_task_execution(global_specification, scheduler_simulation, "jdeds_task_execution_no_thermal.png")
+        plot_accumulated_execution_time(global_specification, scheduler_simulation, "jdeds_accumulated_no_thermal.png")
+
 
 if __name__ == '__main__':
     unittest.main()
