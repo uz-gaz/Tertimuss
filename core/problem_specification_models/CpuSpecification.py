@@ -82,8 +82,14 @@ class CpuSpecification(object):
         self.clock_available_frequencies = clock_available_frequencies
 
         # TODO: This may be defined by the problem specification
+        # Convection properties
         self.leakage_delta = 0.1
         self.leakage_alpha = 0.001
+
+        # TODO: search an appropriate name for this variables
+        # Heat generation properties
+        self.dvfs_mult = 1.52
+        self.dvfs_const = 0.08
 
         def generate_automatic_origins(x0: float, x1: float, y0: float, y1: float, mx: float, my: float,
                                        n: int) -> List[Origin]:

@@ -1,3 +1,4 @@
+import abc
 from typing import List
 
 import scipy
@@ -6,7 +7,7 @@ from scipy.linalg import block_diag
 from core.problem_specification_models.CpuSpecification import CpuSpecification, MaterialCuboid, Origin
 from core.problem_specification_models.EnvironmentSpecification import EnvironmentSpecification
 from core.problem_specification_models.SimulationSpecification import SimulationSpecification
-from core.problem_specification_models.TasksSpecification import TasksSpecification, Task
+from core.problem_specification_models.TasksSpecification import TasksSpecification
 
 
 class ThermalModel(object):
@@ -248,15 +249,26 @@ class ThermalModel(object):
         return pre_gen, post_gen, lambda_gen
 
     @staticmethod
-    def add_heat_by_dynamic_power(p_board: int, p_one_micro: int, cpu_specification: CpuSpecification,
+    @abc.abstractmethod
+    def _get_dynamic_power_consumption(cpu_specification: CpuSpecification,
+                                       tasks_specification: TasksSpecification,
+                                       clock_relative_frequencies: List[float]) -> scipy.ndarray:
+        """
+        Method to implement. Return an array with shape (m , n). Each place contains the weight in the
+        arcs t_exec_n -> cpu_m
+
+        :param cpu_specification: Cpu specification
+        :param tasks_specification: Tasks specification
+        :param clock_relative_frequencies: Core frequencies
+        :return: an array with shape (m , n). Each place contains the weight in the arcs t_exec_n -> cpu_m
+        """
+        pass
+
+    @classmethod
+    def add_heat_by_dynamic_power(cls, p_board: int, p_one_micro: int, cpu_specification: CpuSpecification,
                                   tasks_specification: TasksSpecification) \
             -> [scipy.ndarray, scipy.ndarray, scipy.ndarray]:
         n = len(tasks_specification.periodic_tasks) + len(tasks_specification.aperiodic_tasks)
-
-        rho = cpu_specification.cpu_core_specification.p
-        cp = cpu_specification.cpu_core_specification.c_p
-        v_cpu = cpu_specification.cpu_core_specification.z * cpu_specification.cpu_core_specification.x * \
-                cpu_specification.cpu_core_specification.y / (1000 ** 3)
 
         # Places and transitions for all CPUs
         p_micros = p_one_micro * cpu_specification.number_of_cores
@@ -273,23 +285,53 @@ class ThermalModel(object):
 
         post_gen = scipy.zeros((total_places, number_of_transitions))
 
-        tasks: List[Task] = tasks_specification.periodic_tasks + tasks_specification.aperiodic_tasks
-        post_power_by_cpu = scipy.concatenate(
-            [scipy.full((p_one_micro, 1), task.e / (v_cpu * rho * cp)) for task in tasks], axis=1)
+        # Get power consumption by task in cpu
+        dynamic_power_consumption = cls._get_dynamic_power_consumption(cpu_specification, tasks_specification,
+                                                                       cpu_specification.clock_relative_frequencies)
 
+        # Transitions from exec to core places
         post_gen[p_board: p_board + p_micros, :] = block_diag(
-            *(cpu_specification.number_of_cores * [post_power_by_cpu]))
+            *[scipy.repeat(i.reshape((1, -1)), p_one_micro, axis=0) for i in dynamic_power_consumption])
 
-        # lambda_gen = scipy.concatenate(
-        #     [f * scipy.ones(len(tasks_specification.tasks)) for f in cpu_specification.clock_relative_frequencies])
-        lambda_gen = scipy.ones(n * cpu_specification.number_of_cores)
+        lambda_gen = scipy.concatenate([f * scipy.ones(n) for f in cpu_specification.clock_relative_frequencies])
 
         return pre_gen, post_gen, lambda_gen
 
-    @staticmethod
-    def change_frequency(frequency_vector: List[float], pre: scipy.ndarray, post: scipy.ndarray, pi: scipy.ndarray,
-                         lambda_vector: scipy.ndarray) -> [scipy.ndarray, scipy.ndarray, scipy.ndarray, scipy.ndarray]:
-        pass
+    @classmethod
+    def change_frequency(cls, frequency_vector: List[float], post: scipy.ndarray, lambda_vector: scipy.ndarray,
+                         cpu_specification: CpuSpecification, tasks_specification: TasksSpecification, p_board: int,
+                         p_one_micro: int) -> [scipy.ndarray, scipy.ndarray, scipy.ndarray, scipy.ndarray]:
+        """
+        Return new models adapted to the new frequencies
+        :param p_one_micro:
+        :param p_board:
+        :param frequency_vector:
+        :param post:
+        :param lambda_vector:
+        :param cpu_specification:
+        :param tasks_specification:
+        :return:
+        """
+        # Get power consumption by task in cpu
+        dynamic_power_consumption = cls._get_dynamic_power_consumption(cpu_specification, tasks_specification,
+                                                                       frequency_vector)
+
+        # Transitions from exec to core places
+        post_sustitution = block_diag(
+            *[scipy.repeat(i.reshape((1, -1)), p_one_micro, axis=0) for i in dynamic_power_consumption])
+
+        n: int = len(tasks_specification.periodic_tasks) + len(tasks_specification.aperiodic_tasks)
+
+        m = cpu_specification.number_of_cores
+
+        lambda_sustitution = scipy.concatenate(
+            [f * scipy.ones(n) for f in frequency_vector])
+
+        lambda_vector[-n * m:] = lambda_sustitution
+
+        post[p_board: p_board + p_one_micro * m, -n * m:] = post_sustitution
+
+        return post, lambda_vector
 
     def __init__(self, tasks_specification: TasksSpecification, cpu_specification: CpuSpecification,
                  environment_specification: EnvironmentSpecification,
