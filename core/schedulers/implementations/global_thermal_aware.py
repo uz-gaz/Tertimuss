@@ -7,8 +7,7 @@ import scipy
 import scipy.optimize
 from scipy.linalg import block_diag
 
-from core.kernel_generator.thermal_model import simple_conductivity, add_interactions_layer, add_convection, \
-    add_heat_by_dynamic_power
+from core.kernel_generator.thermal_model import ThermalModel
 from core.problem_specification_models.GlobalSpecification import GlobalSpecification
 from core.problem_specification_models.TasksSpecification import TasksSpecification
 
@@ -40,10 +39,11 @@ class GlobalThermalAwareScheduler(AbstractGlobalScheduler):
         simulation_specification = global_specification.simulation_specification
 
         # Board and micros conductivity
-        pre_board_cond, post_board_cond, lambda_board_cond = simple_conductivity(cpu_specification.board_specification,
-                                                                                 simulation_specification)
+        pre_board_cond, post_board_cond, lambda_board_cond = ThermalModel.simple_conductivity(
+            cpu_specification.board_specification,
+            simulation_specification)
 
-        pre_micro_cond, post_micro_cond, lambda_micro_cond = simple_conductivity(
+        pre_micro_cond, post_micro_cond, lambda_micro_cond = ThermalModel.simple_conductivity(
             cpu_specification.cpu_core_specification, simulation_specification)
 
         # Number of places for the board
@@ -68,18 +68,20 @@ class GlobalThermalAwareScheduler(AbstractGlobalScheduler):
 
         # Add transitions between micro and board
         # Connections between micro places and board places
-        pre_int, post_int, lambda_vector_int = add_interactions_layer(p_board, p_one_micro, cpu_specification,
-                                                                      simulation_specification.step)
+        pre_int, post_int, lambda_vector_int = ThermalModel.add_interactions_layer(p_board, p_one_micro,
+                                                                                   cpu_specification,
+                                                                                   simulation_specification.step)
 
         # Convection
         pre_conv, post_conv, lambda_vector_conv, pre_conv_air, post_conv_air, lambda_vector_conv_air = \
-            add_convection(p_board, p_one_micro, cpu_specification, environment_specification)
+            ThermalModel.add_convection(p_board, p_one_micro, cpu_specification, environment_specification)
 
         # Heat generation dynamic
-        pre_heat_dynamic, post_heat_dynamic, lambda_vector_heat_dynamic = add_heat_by_dynamic_power(p_board,
-                                                                                                    p_one_micro,
-                                                                                                    cpu_specification,
-                                                                                                    tasks_specification)
+        pre_heat_dynamic, post_heat_dynamic, lambda_vector_heat_dynamic = ThermalModel.add_heat_by_dynamic_power(
+            p_board,
+            p_one_micro,
+            cpu_specification,
+            tasks_specification)
 
         places_board_and_micros = p_board + cpu_specification.number_of_cores * p_one_micro
 

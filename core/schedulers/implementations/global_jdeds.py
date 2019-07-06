@@ -3,7 +3,6 @@ from typing import List, Optional
 
 import scipy
 
-from core.kernel_generator.global_model import GlobalModel
 from core.problem_specification_models.GlobalSpecification import GlobalSpecification
 from core.schedulers.templates.abstract_global_scheduler import AbstractGlobalScheduler, GlobalSchedulerPeriodicTask, \
     GlobalSchedulerAperiodicTask, GlobalSchedulerTask
@@ -20,10 +19,23 @@ class GlobalJDEDSScheduler(AbstractGlobalScheduler):
 
     def __init__(self) -> None:
         super().__init__()
-        self.__m = None
 
-    def ilpp_dp(self, ci: List[float], ti: List[float], n: int, m: int) -> [scipy.ndarray, scipy.ndarray,
-                                                                            scipy.ndarray]:
+        # Declare class variables
+        self.__m = None
+        self.__n = None
+        self.__intervals_end = None
+        self.__execution_by_intervals = None
+        self.__interval_cc_left = None
+        self.__actual_interval_end = None
+        self.__actual_interval_index = None
+        self.__dt = None
+
+        # Decimals precision
+        self.__decimals_precision = 5
+
+    @staticmethod
+    def ilpp_dp(ci: List[int], ti: List[int], n: int, m: int) -> [scipy.ndarray, scipy.ndarray,
+                                                                  scipy.ndarray]:
         hyperperiod = scipy.lcm.reduce(ti)
 
         jobs = list(map(lambda task: int(hyperperiod / task), ti))
@@ -144,60 +156,69 @@ class GlobalJDEDSScheduler(AbstractGlobalScheduler):
         # Calculate F start
         f_max = global_specification.cpu_specification.clock_available_frequencies[-1]
         phi_min = global_specification.cpu_specification.clock_available_frequencies[0]
-        phi_start = max(phi_min,
-                        sum(map(lambda task: task.c / task.t, periodic_tasks)) / (
-                                self.__m * f_max))
+        phi_start = max(phi_min, sum([i.c / i.t for i in periodic_tasks]) / (self.__m * f_max))
 
         f_star = next(
             (x for x in global_specification.cpu_specification.clock_available_frequencies if x >= phi_start), f_max)
+
+        # F star in HZ
+        f_star_hz = round(f_star * global_specification.cpu_specification.clock_base_frequency)
 
         cc = list(map(lambda a: a.c / f_star, periodic_tasks))  # FIXME: Check this
 
         cpu_utilization = sum(map(lambda a: a[0] / a[1].t, zip(cc, periodic_tasks)))
 
         # Exit program if can schedule
-        if cpu_utilization >= self.__m:
+        if round(cpu_utilization, self.__decimals_precision) >= self.__m:
             raise Exception("Error: Schedule is not feasible")
 
-        dummy_task = False
-        cc_dummy = 0
-        ti_dummy = global_specification.tasks_specification.h
-
-        # Add dummy task
-        if cpu_utilization < self.__m:
-            h = global_specification.tasks_specification.h
-            cc_dummy = (self.__m - sum(
-                map(lambda a: a.c / a.t, global_specification.tasks_specification.tasks))) * f_star * h
-
         # Number of cycles
-        cci = list(map(lambda a: a.c * global_specification.cpu_specification.clock_base_frequency,
-                       periodic_tasks)) + ([cc_dummy * global_specification.cpu_specification.clock_base_frequency]
-                                           if dummy_task else [])
+        cci = list(
+            map(lambda a: int(a.c * global_specification.cpu_specification.clock_base_frequency), periodic_tasks))
 
-        tci = list(map(lambda a: a.t * f_star * global_specification.cpu_specification.clock_base_frequency,
-                       periodic_tasks)) + ([ti_dummy * global_specification.cpu_specification.clock_base_frequency]
-                                           if dummy_task else [])
+        tci = list(map(lambda a: int(a.t * f_star_hz), periodic_tasks))
+
+        # Add dummy task if needed
+        hyperperiod_hz = int(global_specification.tasks_specification.h * f_star_hz)
+
+        a_i = [int(hyperperiod_hz / i) for i in tci]
+
+        total_used_cycles = sum([i[0] * i[1] for i in zip(cci, a_i)])
+
+        if total_used_cycles < self.__m * hyperperiod_hz:
+            cci.append(int(self.__m * hyperperiod_hz - total_used_cycles))
+            tci.append(hyperperiod_hz)
 
         # Linear programing problem
-        x, sd, _, _ = self.ilpp_dp(cci, tci, self.__n, self.__m)
+        x, sd, _, _ = self.ilpp_dp(cci, tci, len(tci), self.__m)
 
         # isd = isd / (f_star * global_specification.cpu_specification.clock_base_frequency)
-        sd = sd / (f_star * global_specification.cpu_specification.clock_base_frequency)
-        x = x / (f_star * global_specification.cpu_specification.clock_base_frequency)
+        sd = sd / f_star_hz
+        x = x / f_star_hz
+
+        # Delete dummy task
+        if total_used_cycles < self.__m * hyperperiod_hz:
+            x = x[:-1, :]
 
         # All intervals
-        self.__intervals_end = sd[1:]
+        self.__intervals_end = [round(i, self.__decimals_precision) for i in sd[1:]]
 
         # All executions by intervals
         self.__execution_by_intervals = x
 
         # [(cc left in the interval, task id)]
-        self.__interval_cc_left = [(i[0], i[1].id) for i in zip([x[0], periodic_tasks])]
+        self.__interval_cc_left = [(i[0], i[1].id) for i in zip((x[:, 0]).reshape(-1), periodic_tasks)]
 
         # Time when the interval end
-        self.__interval_end = sd[1]
+        self.__actual_interval_end = self.__intervals_end[0]
 
-        return super().offline_stage(global_specification, periodic_tasks, aperiodic_tasks)
+        # Index of the actual interval
+        self.__actual_interval_index = 0
+
+        # Quantum
+        self.__dt = super().offline_stage(global_specification, periodic_tasks, aperiodic_tasks)
+
+        return self.__dt
 
     def aperiodic_arrive(self, time: float, executable_tasks: List[GlobalSchedulerTask], active_tasks: List[int],
                          actual_cores_frequency: List[float], cores_max_temperature: Optional[scipy.ndarray],
@@ -215,31 +236,67 @@ class GlobalJDEDSScheduler(AbstractGlobalScheduler):
         # Nothing to do
         return False
 
-    def __sp_interrupt(self, executable_tasks: List[GlobalSchedulerTask], active_tasks: List[int], time: float) -> bool:
+    def __sp_interrupt(self, active_tasks: List[int], time: float) -> bool:
         """
-
+        Check if a schedule is necessary
+        :param active_tasks: actual tasks in execution
         :param time:
         :return: true if need to schedule
         """
-        # Decimals precision
-        decimals_precision = 5
-
         # True if any task has arrived in this step
-        new_task_arrive = any([round(i.next_arrival, decimals_precision) == round(time, decimals_precision)
-                               for i in executable_tasks])
+        # new_task_arrive = any(
+        #    [round(i.next_arrival, self.__decimals_precision) == round(time, self.__decimals_precision)
+        #     for i in executable_tasks])
 
         # True if any task have ended in this step
-        tasks_have_ended = any([round(i[0], decimals_precision) == 0 and i[1] in active_tasks
+        tasks_have_ended = any([round(i[0], self.__decimals_precision) == 0 and i[1] in active_tasks
                                 for i in self.__interval_cc_left])
 
         # True if any task laxity is 0
-        tasks_laxity_zero = any([round(self.__interval_end - time - i[0], decimals_precision) <= 0
-                                 for i in self.__interval_cc_left])
+        executable_tasks_interval = [i for i in self.__interval_cc_left if round(i[0], self.__decimals_precision) > 0.0]
+        tasks_laxity_zero = any([round(self.__actual_interval_end - time - i[0], self.__decimals_precision) <= 0
+                                 for i in executable_tasks_interval])
 
-        return new_task_arrive or tasks_have_ended or tasks_laxity_zero
+        # True if new quantum has started (True if any task has arrived in this step)
+        new_quantum_start = round(time, self.__decimals_precision) in (self.__intervals_end + [0.0])
 
-    def __schedule_policy_imp(self):
-        pass
+        # True if new aperiodic has arrived
+        # TODO:
+
+        return tasks_have_ended or tasks_laxity_zero or new_quantum_start
+
+    def __schedule_policy_imp(self, time: float, active_tasks: List[int]) -> List[int]:
+        """
+        Assign tasks to cores
+        :param time: actual time
+        :param active_tasks: actual tasks in execution
+        :return: next tasks to execute
+        """
+        # Contains tasks that can be executed
+        executable_tasks = [i for i in self.__interval_cc_left if round(i[0], self.__decimals_precision) > 0.0]
+
+        # Contains all zero laxity tasks
+        interval_time_left = self.__actual_interval_end - time
+        tasks_laxity_zero = [i[1] for i in executable_tasks if
+                             round(interval_time_left - i[0], self.__decimals_precision) <= 0]
+
+        # Update executable tasks
+        executable_tasks = [i for i in executable_tasks if i[1] not in tasks_laxity_zero]
+
+        # Select active tasks
+        active_tasks_to_execute = [i[1] for i in executable_tasks if i[1] in active_tasks]
+
+        # Update executable tasks
+        executable_tasks = [i for i in executable_tasks if i[1] not in active_tasks_to_execute]
+
+        # Sort the rest of the array
+        executable_tasks.sort(reverse=True, key=lambda i: i[0])
+        executable_tasks = [i[1] for i in executable_tasks]
+
+        # Tasks with laxity zero, active tasks, rest of the tasks, idle tasks
+        tasks_to_execute = tasks_laxity_zero + active_tasks_to_execute + executable_tasks + self.__m * [-1]
+
+        return tasks_to_execute[:self.__m]
 
     def schedule_policy(self, time: float, executable_tasks: List[GlobalSchedulerTask], active_tasks: List[int],
                         actual_cores_frequency: List[float], cores_max_temperature: Optional[scipy.ndarray]) -> \
@@ -256,13 +313,24 @@ class GlobalJDEDSScheduler(AbstractGlobalScheduler):
                  3 - cores relatives frequencies for the next quantum (if None, will be taken the frequencies specified
                   in the problem specification)
         """
-        # TODO: Implement
-        alive_tasks = [x for x in executable_tasks if x.next_arrival <= time]
-        task_order = scipy.argsort(list(map(lambda x: x.next_deadline, alive_tasks)))
-        tasks_to_execute = ([alive_tasks[i].id for i in task_order] + (self.__m - len(alive_tasks)) * [-1])[0:self.__m]
 
-        # Assign highest priority task to faster processor
-        tasks_to_execute = [x for _, x in sorted(zip(actual_cores_frequency, tasks_to_execute), reverse=True)]
+        # Check if new interval have arrived and update everything
+        new_quantum_start = round(time, self.__decimals_precision) == self.__actual_interval_end
+        if new_quantum_start:
+            self.__actual_interval_index += 1
+            self.__actual_interval_end = self.__intervals_end[self.__actual_interval_index]
+            self.__interval_cc_left = [(i[0], i[1][1]) for i in
+                                       zip(self.__execution_by_intervals[:, self.__actual_interval_index],
+                                           self.__interval_cc_left)]
+
+        # Obtain new tasks to execute
+        tasks_to_execute = active_tasks
+        if self.__sp_interrupt(active_tasks, time):
+            tasks_to_execute = self.__schedule_policy_imp(time, active_tasks)
+
+        # Update cc in tasks being executed
+        self.__interval_cc_left = [(i[0] - self.__dt, i[1]) if i[1] in tasks_to_execute else i for i in
+                                   self.__interval_cc_left]
 
         # Do affinity
         for i in range(self.__m):

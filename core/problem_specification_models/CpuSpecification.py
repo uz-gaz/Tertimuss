@@ -61,16 +61,17 @@ class CoreSpecification(object):
 class CpuSpecification(object):
 
     def __init__(self, board_specification: Optional[MaterialCuboid], cpu_core_specification: Optional[MaterialCuboid],
-                 number_of_cores: int, clock_base_frequency: int,
-                 clock_relative_frequencies: Optional[List[float]] = None,
-                 cpu_origins: Optional[List[Origin]] = None):
+                 number_of_cores: int, clock_base_frequency: int, clock_frequencies_at_start: List[float],
+                 clock_available_frequencies: List[float], cpu_origins: Optional[List[Origin]] = None):
         """
         CPU specification
         :param board_specification: Spec of board
         :param cpu_core_specification: Spec of homogeneous CPU core
         :param number_of_cores: Number of homogeneous CPU cores
         :param clock_base_frequency: Clock base frequency in Hz
-        :param clock_relative_frequencies: Frequency scale of homogeneous CPU cores relative to the base frequency
+        :param clock_frequencies_at_start: Frequency scale of homogeneous CPU cores relative to the base frequency
+        :param clock_available_frequencies: Available frequencies scale of homogeneous CPU cores relative to the base
+        frequency
         range: [0,1]
         """
         self.board_specification = board_specification
@@ -78,8 +79,7 @@ class CpuSpecification(object):
         self.number_of_cores = number_of_cores
         self.clock_base_frequency = clock_base_frequency
 
-        # FIXME: This may be defined by the problem specification
-        self.clock_available_frequencies = [0.25, 0.5, 0.75, 1]
+        self.clock_available_frequencies = clock_available_frequencies
 
         # TODO: This may be defined by the problem specification
         self.leakage_delta = 0.1
@@ -105,8 +105,7 @@ class CpuSpecification(object):
         else:
             self.cpu_origins = cpu_origins
 
-        self.clock_relative_frequencies = number_of_cores * [1.0] if clock_relative_frequencies is None \
-            else clock_relative_frequencies
+        self.clock_relative_frequencies = clock_frequencies_at_start
 
     '''
         # Constructor for heterogeneous CPU cores  
