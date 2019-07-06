@@ -1,5 +1,7 @@
 from typing import Optional
 
+from core.kernel_generator.thermal_model_selector import ThermalModelSelector
+
 
 class SimulationSpecification(object):
     """
@@ -14,4 +16,7 @@ class SimulationSpecification(object):
         """
         self.step = step
         self.dt = dt
-        self.dt_fragmentation: int = 10
+
+        # TODO: Put in the specification
+        self.thermal_model_selector = ThermalModelSelector.THERMAL_MODEL_ENERGY_BASED
+        self.dt_fragmentation = 10

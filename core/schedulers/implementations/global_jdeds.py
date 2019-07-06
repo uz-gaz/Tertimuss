@@ -29,6 +29,7 @@ class GlobalJDEDSScheduler(AbstractGlobalScheduler):
         self.__actual_interval_end = None
         self.__actual_interval_index = None
         self.__dt = None
+        self.__f_star = None
 
         # Decimals precision
         self.__decimals_precision = 5
@@ -218,6 +219,9 @@ class GlobalJDEDSScheduler(AbstractGlobalScheduler):
         # Quantum
         self.__dt = super().offline_stage(global_specification, periodic_tasks, aperiodic_tasks)
 
+        # Processor frequencies
+        self.__f_star = f_star
+
         return self.__dt
 
     def aperiodic_arrive(self, time: float, executable_tasks: List[GlobalSchedulerTask], active_tasks: List[int],
@@ -338,4 +342,5 @@ class GlobalJDEDSScheduler(AbstractGlobalScheduler):
             for j in range(self.__m):
                 if tasks_to_execute[j] == actual and actual_cores_frequency[j] == actual_cores_frequency[i]:
                     tasks_to_execute[j], tasks_to_execute[i] = tasks_to_execute[i], tasks_to_execute[j]
-        return tasks_to_execute, None, None
+
+        return tasks_to_execute, None, self.__m * [self.__f_star]

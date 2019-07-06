@@ -16,17 +16,32 @@ class TcpnSimulatorAccurateOptimizedThermal(object):
         """
         self.__pi = pi
         self.__c = post - pre
-        self.__a = (self.__c * lambda_vector).dot(self.__pi) * step
+        self.__pre = pre
         self.__lambda = lambda_vector
         self.__step = step
-        self.__lambda_dot_pi = self.__lambda.reshape((-1, 1)) * self.__pi
+        self.__a = (self.__c * self.__lambda).dot(self.__pi) * self.__step
 
-    def set_control(self, control: scipy.ndarray):
+    def set_post_and_lambda(self, post: scipy.ndarray, lambda_vector: scipy.ndarray):
         """
-        Apply a control action over transitions firing in the Petri net
-        :param control: control
+        Change petri net post and lambda
         """
-        self.__a = (self.__c * control).dot(self.__lambda_dot_pi) * self.__step
+        self.__c = post - self.__pre
+        self.__lambda = lambda_vector
+        self.__a = (self.__c * self.__lambda).dot(self.__pi) * self.__step
+
+    def get_post(self):
+        """
+        Get post matrix
+        :return:
+        """
+        return self.__c + self.__pre
+
+    def get_lambda(self):
+        """
+        Get lambda vector
+        :return:
+        """
+        return self.__lambda
 
     def simulate_step(self, mo: scipy.ndarray) -> scipy.ndarray:
         """

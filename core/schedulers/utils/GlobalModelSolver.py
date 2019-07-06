@@ -4,6 +4,9 @@ import scipy
 import scipy.integrate
 
 from core.kernel_generator.global_model import GlobalModel
+from core.kernel_generator.thermal_model_energy import ThermalModelEnergy
+from core.kernel_generator.thermal_model_frequency import ThermalModelFrequencyAware
+from core.kernel_generator.thermal_model_selector import ThermalModelSelector
 from core.problem_specification_models.GlobalSpecification import GlobalSpecification
 from core.tcpn_simulator.TcpnSimulatorAccurateOptimizedTasks import TcpnSimulatorAccurateOptimizedTasks
 from core.tcpn_simulator.TcpnSimulatorAccurateOptimizedThermal import TcpnSimulatorAccurateOptimizedThermal
@@ -11,7 +14,6 @@ from core.tcpn_simulator.TcpnSimulatorAccurateOptimizedThermal import TcpnSimula
 
 class GlobalModelSolver(object):
     def __init__(self, global_model: GlobalModel, global_specification: GlobalSpecification):
-        # TODO: Add frequency_constant variable (True or false)
         """
 
         :param global_model: Global model
@@ -49,6 +51,13 @@ class GlobalModelSolver(object):
         self.__m_processor_start_index = 2 * len(global_specification.tasks_specification.periodic_tasks) + len(
             global_specification.tasks_specification.aperiodic_tasks)
 
+        # Selected thermal model
+        self.__thermal_model_selected = global_specification.simulation_specification.thermal_model_selector
+
+        # Model specification
+        self.__cpu_specification = global_specification.cpu_specification
+        self.__tasks_specification = global_specification.tasks_specification
+
         if global_model.enable_thermal_mode:
             self.__tcpn_simulator_thermal = TcpnSimulatorAccurateOptimizedThermal(global_model.pre_thermal,
                                                                                   global_model.post_thermal,
@@ -59,7 +68,7 @@ class GlobalModelSolver(object):
             self.__mo_thermal = global_model.mo_thermal
             self.__p_board = global_model.p_board
             self.__p_one_micro = global_model.p_one_micro
-            self.__control_thermal = scipy.ones(len(global_model.lambda_vector_thermal))
+            self.__control_thermal = scipy.asarray(global_specification.cpu_specification.clock_relative_frequencies)
 
     def run_step(self, w_alloc: List[int], time: float, core_frequencies: List[float]) -> [scipy.ndarray,
                                                                                            scipy.ndarray,
@@ -103,17 +112,31 @@ class GlobalModelSolver(object):
 
         if self.enable_thermal_mode:
             # Create new control vector
-            new_control_thermal = scipy.copy(self.__control_thermal)
-            # Control over t_alloc
-            new_control_thermal[-self.__n * self.__m:] = core_frequencies_as_control
+            new_control_thermal = scipy.asarray(core_frequencies)
 
             if not scipy.array_equal(self.__control_thermal, new_control_thermal):
                 self.__control_thermal = new_control_thermal
-                self.__tcpn_simulator_thermal.set_control(new_control_thermal)
+
+                # Obtain post and lambda for the new frequency
+                post, lambda_vector = ThermalModelEnergy.change_frequency(core_frequencies,
+                                                                          self.__tcpn_simulator_thermal.get_post(),
+                                                                          self.__tcpn_simulator_thermal.get_lambda(),
+                                                                          self.__cpu_specification,
+                                                                          self.__tasks_specification, self.__p_board,
+                                                                          self.__p_one_micro) \
+                    if self.__thermal_model_selected == ThermalModelSelector.THERMAL_MODEL_ENERGY_BASED \
+                    else ThermalModelFrequencyAware.change_frequency(core_frequencies,
+                                                                     self.__tcpn_simulator_thermal.get_post(),
+                                                                     self.__tcpn_simulator_thermal.get_lambda(),
+                                                                     self.__cpu_specification,
+                                                                     self.__tasks_specification, self.__p_board,
+                                                                     self.__p_one_micro)
+
+                self.__tcpn_simulator_thermal.set_post_and_lambda(post, lambda_vector)
 
             for mo_actual in partial_results_proc:
                 m_busy = scipy.concatenate([mo_actual[self.__m_processor_start_index + i * (
-                            2 * self.__n + 1):self.__m_processor_start_index + i * (2 * self.__n + 1) + self.__n,
+                        2 * self.__n + 1):self.__m_processor_start_index + i * (2 * self.__n + 1) + self.__n,
                                             0].reshape(-1) for i in range(self.__m)])
 
                 m_exec = m_busy * (self.__fragmentation_of_step / self.__step)  # FIXME: Review it

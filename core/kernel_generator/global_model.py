@@ -3,9 +3,11 @@ import scipy
 from core.kernel_generator.processor_model import ProcessorModel
 from core.kernel_generator.tasks_model import TasksModel
 from core.kernel_generator.thermal_model import ThermalModel
+from core.kernel_generator.thermal_model_energy import ThermalModelEnergy
+from core.kernel_generator.thermal_model_frequency import ThermalModelFrequencyAware
+from core.kernel_generator.thermal_model_selector import ThermalModelSelector
 
 from core.problem_specification_models.GlobalSpecification import GlobalSpecification
-
 
 class GlobalModel(object):
     """
@@ -60,10 +62,17 @@ class GlobalModel(object):
         self.lambda_vector_proc_tau = lambda_vector
 
         if enable_thermal_model:
-            thermal_model: ThermalModel = ThermalModel(global_specification.tasks_specification,
-                                                       global_specification.cpu_specification,
-                                                       global_specification.environment_specification,
-                                                       global_specification.simulation_specification)
+            thermal_model: ThermalModel = ThermalModelEnergy(global_specification.tasks_specification,
+                                                             global_specification.cpu_specification,
+                                                             global_specification.environment_specification,
+                                                             global_specification.simulation_specification) \
+                if global_specification.simulation_specification.thermal_model_selector == \
+                   ThermalModelSelector.THERMAL_MODEL_ENERGY_BASED \
+                else ThermalModelFrequencyAware(global_specification.tasks_specification,
+                                                global_specification.cpu_specification,
+                                                global_specification.environment_specification,
+                                                global_specification.simulation_specification)
+
             self.mo_thermal = thermal_model.mo_sis
             self.pre_thermal = thermal_model.pre_sis
             self.post_thermal = thermal_model.post_sis
@@ -73,8 +82,3 @@ class GlobalModel(object):
             self.p_board = thermal_model.p_board
             self.t_one_micro = thermal_model.t_one_micro
             self.t_board = thermal_model.t_board
-
-            # self.ct_exec = thermal_model.ct_exec
-            # self.b_ta = thermal_model.b_ta
-            # self.selector_of_core_temperature = thermal_model.selector_of_core_temperature
-            # self.a_t = thermal_model.a_t
