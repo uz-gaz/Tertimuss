@@ -1,8 +1,10 @@
-from core.kernel_generator.thermal_model import ThermalModel
+
 
 from typing import List
 
 import scipy
+
+from core.kernel_generator.thermal_model import ThermalModel
 from core.problem_specification_models.CpuSpecification import CpuSpecification
 from core.problem_specification_models.TasksSpecification import TasksSpecification, Task
 

@@ -52,7 +52,7 @@ class GlobalModelSolver(object):
             global_specification.tasks_specification.aperiodic_tasks)
 
         # Selected thermal model
-        self.__thermal_model_selected = global_specification.simulation_specification.thermal_model_selector
+        self.__thermal_model_selected = global_specification.tcpn_model_specification.thermal_model_selector
 
         # Model specification
         self.__cpu_specification = global_specification.cpu_specification
@@ -118,19 +118,13 @@ class GlobalModelSolver(object):
                 self.__control_thermal = new_control_thermal
 
                 # Obtain post and lambda for the new frequency
-                post, lambda_vector = ThermalModelEnergy.change_frequency(core_frequencies,
-                                                                          self.__tcpn_simulator_thermal.get_post(),
-                                                                          self.__tcpn_simulator_thermal.get_lambda(),
-                                                                          self.__cpu_specification,
-                                                                          self.__tasks_specification, self.__p_board,
-                                                                          self.__p_one_micro) \
-                    if self.__thermal_model_selected == ThermalModelSelector.THERMAL_MODEL_ENERGY_BASED \
-                    else ThermalModelFrequencyAware.change_frequency(core_frequencies,
-                                                                     self.__tcpn_simulator_thermal.get_post(),
-                                                                     self.__tcpn_simulator_thermal.get_lambda(),
-                                                                     self.__cpu_specification,
-                                                                     self.__tasks_specification, self.__p_board,
-                                                                     self.__p_one_micro)
+                post, lambda_vector = self.__thermal_model_selected.value.change_frequency(core_frequencies,
+                                                                                           self.__tcpn_simulator_thermal.get_post(),
+                                                                                           self.__tcpn_simulator_thermal.get_lambda(),
+                                                                                           self.__cpu_specification,
+                                                                                           self.__tasks_specification,
+                                                                                           self.__p_board,
+                                                                                           self.__p_one_micro)
 
                 self.__tcpn_simulator_thermal.set_post_and_lambda(post, lambda_vector)
 

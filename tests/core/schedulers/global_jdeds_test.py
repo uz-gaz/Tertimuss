@@ -1,10 +1,12 @@
 import unittest
 
 from core.kernel_generator.global_model import GlobalModel
+from core.kernel_generator.thermal_model_selector import ThermalModelSelector
 from core.problem_specification_models.CpuSpecification import MaterialCuboid, CpuSpecification
 from core.problem_specification_models.EnvironmentSpecification import EnvironmentSpecification
 from core.problem_specification_models.GlobalSpecification import GlobalSpecification
 from core.problem_specification_models.SimulationSpecification import SimulationSpecification
+from core.problem_specification_models.TCPNModelSpecification import TCPNModelSpecification
 from core.problem_specification_models.TasksSpecification import TasksSpecification, PeriodicTask, AperiodicTask
 from core.schedulers.implementations.global_jdeds import GlobalJDEDSScheduler
 from output_generation.output_generator import plot_cpu_utilization, plot_task_execution, plot_cpu_temperature, \
@@ -34,11 +36,15 @@ class GlobalWodes(unittest.TestCase):
 
         simulation_specification: SimulationSpecification = SimulationSpecification(2, 0.01)
 
+        tcpn_model_specification: TCPNModelSpecification = TCPNModelSpecification(
+            ThermalModelSelector.THERMAL_MODEL_ENERGY_BASED)
+
         scheduler = GlobalJDEDSScheduler()
 
         global_specification: GlobalSpecification = GlobalSpecification(tasks_specification, cpu_specification,
                                                                         environment_specification,
-                                                                        simulation_specification)
+                                                                        simulation_specification,
+                                                                        tcpn_model_specification)
 
         global_model = GlobalModel(global_specification, True)
 
@@ -62,11 +68,14 @@ class GlobalWodes(unittest.TestCase):
 
         simulation_specification: SimulationSpecification = SimulationSpecification(2, 0.01)
 
+        tcpn_model_specification: TCPNModelSpecification = TCPNModelSpecification(
+            ThermalModelSelector.THERMAL_MODEL_ENERGY_BASED)
+
         scheduler = GlobalJDEDSScheduler()
 
         global_specification: GlobalSpecification = GlobalSpecification(tasks_specification, cpu_specification,
                                                                         environment_specification,
-                                                                        simulation_specification)
+                                                                        simulation_specification, tcpn_model_specification)
 
         global_model = GlobalModel(global_specification, False)
 

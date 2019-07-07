@@ -165,17 +165,27 @@ class AbstractGlobalScheduler(AbstractScheduler):
                                         actual_task.pending_c / global_specification.simulation_specification.dt
                                     )) > 0]
 
+                # avaliable_tasks_to_execute = [actual_task.id for actual_task in executable_tasks] + [-1]
+                #
+                # scheduler_selected_tasks = scipy.asarray(active_task_id)
+
                 # Get active task in this step
                 active_task_id, next_quantum, next_core_frequencies = self.schedule_policy(time, executable_tasks,
                                                                                            active_task_id,
                                                                                            clock_relative_frequencies,
                                                                                            cores_temperature)
+                # TODO: Check if tasks returned are in available ones
+                # active_task_id = [actual_task if actual_task in avaliable_tasks_to_execute else -1 for actual_task in
+                #                   active_task_id]
+                #
+                # if not scipy.array_equal(scheduler_selected_tasks, scipy.asarray(active_task_id)):
+                #     print("Warning: At least one of the frequencies selected on time", time, "is not available")
 
                 # Check if the processor frequencies returned are in available ones
                 if next_core_frequencies is not None and all(
                         [x in global_specification.cpu_specification.clock_relative_frequencies for x in
                          next_core_frequencies]):
-                    print("Warning: At least one of the frequencies selected on time", time, "is not available")
+                    print("Warning: At least one task selected on time", time, "to execute is not available ones")
 
                 quantum_q = int(round(next_quantum / global_specification.simulation_specification.dt)) - 1 \
                     if next_quantum is not None else simulation_quantum_steps - 1

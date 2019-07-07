@@ -1,10 +1,12 @@
 import unittest
 
 from core.kernel_generator.global_model import GlobalModel
+from core.kernel_generator.thermal_model_selector import ThermalModelSelector
 from core.problem_specification_models.CpuSpecification import CpuSpecification, MaterialCuboid
 from core.problem_specification_models.EnvironmentSpecification import EnvironmentSpecification
 from core.problem_specification_models.GlobalSpecification import GlobalSpecification
 from core.problem_specification_models.SimulationSpecification import SimulationSpecification
+from core.problem_specification_models.TCPNModelSpecification import TCPNModelSpecification
 from core.problem_specification_models.TasksSpecification import TasksSpecification, PeriodicTask
 from core.schedulers.implementations.global_thermal_aware import GlobalThermalAwareScheduler
 from output_generation.output_generator import plot_cpu_utilization, plot_task_execution, plot_cpu_temperature, \
@@ -15,8 +17,8 @@ class RtTcpnScheduler(unittest.TestCase):
 
     def test_global_thermal_aware_scheduler_thermal(self):
         tasks_specification: TasksSpecification = TasksSpecification([PeriodicTask(2, 4, 4, 6.4),
-                                                                      PeriodicTask(3, 8, 8, 8),
-                                                                      PeriodicTask(3, 12, 12, 9.6)])
+                                                                      PeriodicTask(5, 8, 8, 8),
+                                                                      PeriodicTask(6, 12, 12, 9.6)])
         cpu_specification: CpuSpecification = CpuSpecification(MaterialCuboid(x=50, y=50, z=1, p=8933, c_p=385, k=400),
                                                                MaterialCuboid(x=10, y=10, z=2, p=2330, c_p=712, k=148),
                                                                2, 1000, [1, 1], [0.15, 0.4, 0.6, 0.85, 1])
@@ -25,9 +27,13 @@ class RtTcpnScheduler(unittest.TestCase):
 
         simulation_specification: SimulationSpecification = SimulationSpecification(2, 0.01)
 
+        tcpn_model_specification: TCPNModelSpecification = TCPNModelSpecification(
+            ThermalModelSelector.THERMAL_MODEL_ENERGY_BASED)
+
         global_specification: GlobalSpecification = GlobalSpecification(tasks_specification, cpu_specification,
                                                                         environment_specification,
-                                                                        simulation_specification)
+                                                                        simulation_specification,
+                                                                        tcpn_model_specification)
 
         global_model = GlobalModel(global_specification, True)
 
@@ -44,8 +50,8 @@ class RtTcpnScheduler(unittest.TestCase):
 
     def test_global_thermal_aware_scheduler_no_thermal(self):
         tasks_specification: TasksSpecification = TasksSpecification([PeriodicTask(2, 4, 4, 6.4),
-                                                                      PeriodicTask(3, 8, 8, 8),
-                                                                      PeriodicTask(3, 12, 12, 9.6)])
+                                                                      PeriodicTask(5, 8, 8, 8),
+                                                                      PeriodicTask(6, 12, 12, 9.6)])
         cpu_specification: CpuSpecification = CpuSpecification(MaterialCuboid(x=50, y=50, z=1, p=8933, c_p=385, k=400),
                                                                MaterialCuboid(x=10, y=10, z=2, p=2330, c_p=712, k=148),
                                                                2, 1000, [1, 1], [0.15, 0.4, 0.6, 0.85, 1])
@@ -54,9 +60,12 @@ class RtTcpnScheduler(unittest.TestCase):
 
         simulation_specification: SimulationSpecification = SimulationSpecification(2, 0.01)
 
+        tcpn_model_specification: TCPNModelSpecification = TCPNModelSpecification(
+            ThermalModelSelector.THERMAL_MODEL_ENERGY_BASED)
+
         global_specification: GlobalSpecification = GlobalSpecification(tasks_specification, cpu_specification,
                                                                         environment_specification,
-                                                                        simulation_specification)
+                                                                        simulation_specification, tcpn_model_specification)
 
         global_model = GlobalModel(global_specification, True)
 

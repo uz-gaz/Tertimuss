@@ -1,14 +1,14 @@
 from typing import List
 
-from core.kernel_generator.thermal_model import ThermalModel
+import core.kernel_generator.thermal_model as thermal_model
 
 import scipy
 
-from core.problem_specification_models.CpuSpecification import CpuSpecification
+from core.problem_specification_models import CpuSpecification
 from core.problem_specification_models.TasksSpecification import TasksSpecification
 
 
-class ThermalModelFrequencyAware(ThermalModel):
+class ThermalModelFrequencyAware(thermal_model.ThermalModel):
     """
     Thermal model where cpu frequency is used to simulate the task heat generation
     """

@@ -1,11 +1,12 @@
-import time
 import unittest
 
 from core.kernel_generator.global_model import GlobalModel
+from core.kernel_generator.thermal_model_selector import ThermalModelSelector
 from core.problem_specification_models.CpuSpecification import CpuSpecification, MaterialCuboid
 from core.problem_specification_models.EnvironmentSpecification import EnvironmentSpecification
 from core.problem_specification_models.GlobalSpecification import GlobalSpecification
 from core.problem_specification_models.SimulationSpecification import SimulationSpecification
+from core.problem_specification_models.TCPNModelSpecification import TCPNModelSpecification
 from core.problem_specification_models.TasksSpecification import TasksSpecification, PeriodicTask, AperiodicTask
 from core.schedulers.implementations.global_edf_a import GlobalEDFAffinityScheduler
 from output_generation.output_generator import plot_cpu_utilization, plot_task_execution, plot_cpu_temperature, \
@@ -16,8 +17,8 @@ class TestGlobalEdfScheduler(unittest.TestCase):
 
     def test_global_edf_a_thermal(self):
         tasks_specification: TasksSpecification = TasksSpecification([PeriodicTask(2, 4, 4, 6.4),
-                                                                      PeriodicTask(3, 8, 8, 8),
-                                                                      PeriodicTask(3, 12, 12, 9.6)])
+                                                                      PeriodicTask(5, 8, 8, 8),
+                                                                      PeriodicTask(6, 12, 12, 9.6)])
         cpu_specification: CpuSpecification = CpuSpecification(MaterialCuboid(x=50, y=50, z=1, p=8933, c_p=385, k=400),
                                                                MaterialCuboid(x=10, y=10, z=2, p=2330, c_p=712, k=148),
                                                                2, 1000, [1, 1], [0.15, 0.4, 0.6, 0.85, 1])
@@ -26,11 +27,14 @@ class TestGlobalEdfScheduler(unittest.TestCase):
 
         simulation_specification: SimulationSpecification = SimulationSpecification(2, 0.01)
 
+        tcpn_model_specification: TCPNModelSpecification = TCPNModelSpecification(
+            ThermalModelSelector.THERMAL_MODEL_ENERGY_BASED)
         scheduler = GlobalEDFAffinityScheduler()
 
         global_specification: GlobalSpecification = GlobalSpecification(tasks_specification, cpu_specification,
                                                                         environment_specification,
-                                                                        simulation_specification)
+                                                                        simulation_specification,
+                                                                        tcpn_model_specification)
 
         global_model = GlobalModel(global_specification, True)
 
@@ -45,8 +49,8 @@ class TestGlobalEdfScheduler(unittest.TestCase):
 
     def test_global_edf_a_var_frequency_thermal(self):
         tasks_specification: TasksSpecification = TasksSpecification([PeriodicTask(2, 4, 4, 6.4),
-                                                                      PeriodicTask(3, 8, 8, 8),
-                                                                      PeriodicTask(3, 12, 12, 9.6)])
+                                                                      PeriodicTask(5, 8, 8, 8),
+                                                                      PeriodicTask(6, 12, 12, 9.6)])
         cpu_specification: CpuSpecification = CpuSpecification(MaterialCuboid(x=50, y=50, z=1, p=8933, c_p=385, k=400),
                                                                MaterialCuboid(x=10, y=10, z=2, p=2330, c_p=712, k=148),
                                                                2, 1000, [1, 0.5], [0.15, 0.4, 0.6, 0.85, 1])
@@ -55,11 +59,15 @@ class TestGlobalEdfScheduler(unittest.TestCase):
 
         simulation_specification: SimulationSpecification = SimulationSpecification(2, 0.01)
 
+        tcpn_model_specification: TCPNModelSpecification = TCPNModelSpecification(
+            ThermalModelSelector.THERMAL_MODEL_ENERGY_BASED)
+
         scheduler = GlobalEDFAffinityScheduler()
 
         global_specification: GlobalSpecification = GlobalSpecification(tasks_specification, cpu_specification,
                                                                         environment_specification,
-                                                                        simulation_specification)
+                                                                        simulation_specification,
+                                                                        tcpn_model_specification)
 
         global_model = GlobalModel(global_specification, True)
 
@@ -74,8 +82,8 @@ class TestGlobalEdfScheduler(unittest.TestCase):
 
     def test_global_edf_a_aperiodic_thermal(self):
         tasks_specification: TasksSpecification = TasksSpecification([PeriodicTask(2, 4, 4, 6.4),
-                                                                      PeriodicTask(3, 8, 8, 8),
-                                                                      PeriodicTask(3, 12, 12, 9.6),
+                                                                      PeriodicTask(5, 8, 8, 8),
+                                                                      PeriodicTask(6, 12, 12, 9.6),
                                                                       AperiodicTask(2, 10, 20, 6)])
         cpu_specification: CpuSpecification = CpuSpecification(MaterialCuboid(x=50, y=50, z=1, p=8933, c_p=385, k=400),
                                                                MaterialCuboid(x=10, y=10, z=2, p=2330, c_p=712, k=148),
@@ -85,11 +93,15 @@ class TestGlobalEdfScheduler(unittest.TestCase):
 
         simulation_specification: SimulationSpecification = SimulationSpecification(2, 0.01)
 
+        tcpn_model_specification: TCPNModelSpecification = TCPNModelSpecification(
+            ThermalModelSelector.THERMAL_MODEL_ENERGY_BASED)
+
         scheduler = GlobalEDFAffinityScheduler()
 
         global_specification: GlobalSpecification = GlobalSpecification(tasks_specification, cpu_specification,
                                                                         environment_specification,
-                                                                        simulation_specification)
+                                                                        simulation_specification,
+                                                                        tcpn_model_specification)
 
         global_model = GlobalModel(global_specification, True)
 
@@ -104,8 +116,8 @@ class TestGlobalEdfScheduler(unittest.TestCase):
 
     def test_global_edf_a_no_thermal(self):
         tasks_specification: TasksSpecification = TasksSpecification([PeriodicTask(2, 4, 4, 6.4),
-                                                                      PeriodicTask(3, 8, 8, 8),
-                                                                      PeriodicTask(3, 12, 12, 9.6)])
+                                                                      PeriodicTask(5, 8, 8, 8),
+                                                                      PeriodicTask(6, 12, 12, 9.6)])
         cpu_specification: CpuSpecification = CpuSpecification(MaterialCuboid(x=50, y=50, z=1, p=8933, c_p=385, k=400),
                                                                MaterialCuboid(x=10, y=10, z=2, p=2330, c_p=712, k=148),
                                                                2, 1000, [1, 1], [0.15, 0.4, 0.6, 0.85, 1])
@@ -114,11 +126,15 @@ class TestGlobalEdfScheduler(unittest.TestCase):
 
         simulation_specification: SimulationSpecification = SimulationSpecification(2, 0.01)
 
+        tcpn_model_specification: TCPNModelSpecification = TCPNModelSpecification(
+            ThermalModelSelector.THERMAL_MODEL_ENERGY_BASED)
+
         scheduler = GlobalEDFAffinityScheduler()
 
         global_specification: GlobalSpecification = GlobalSpecification(tasks_specification, cpu_specification,
                                                                         environment_specification,
-                                                                        simulation_specification)
+                                                                        simulation_specification,
+                                                                        tcpn_model_specification)
 
         global_model = GlobalModel(global_specification, False)
 
