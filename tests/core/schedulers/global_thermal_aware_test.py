@@ -10,7 +10,7 @@ from core.problem_specification_models.TCPNModelSpecification import TCPNModelSp
 from core.problem_specification_models.TasksSpecification import TasksSpecification, PeriodicTask
 from core.schedulers.implementations.global_thermal_aware import GlobalThermalAwareScheduler
 from output_generation.output_generator import plot_cpu_utilization, plot_task_execution, plot_cpu_temperature, \
-    plot_accumulated_execution_time
+    plot_accumulated_execution_time, plot_cpu_frequency, plot_task_execution_percentage
 
 
 class RtTcpnScheduler(unittest.TestCase):
@@ -47,6 +47,9 @@ class RtTcpnScheduler(unittest.TestCase):
         plot_cpu_temperature(global_specification, scheduler_simulation, "out/global_thermal_aware_cpu_temperature.png")
         plot_accumulated_execution_time(global_specification, scheduler_simulation,
                                         "out/global_thermal_aware_accumulated.png")
+        plot_cpu_frequency(global_specification, scheduler_simulation, "out/global_thermal_aware_frequency.png")
+        plot_task_execution_percentage(global_specification, scheduler_simulation,
+                                       "out/global_thermal_aware_execution_percentage.png")
 
     def test_global_thermal_aware_scheduler_no_thermal(self):
         tasks_specification: TasksSpecification = TasksSpecification([PeriodicTask(2, 4, 4, 6.4),
@@ -65,7 +68,8 @@ class RtTcpnScheduler(unittest.TestCase):
 
         global_specification: GlobalSpecification = GlobalSpecification(tasks_specification, cpu_specification,
                                                                         environment_specification,
-                                                                        simulation_specification, tcpn_model_specification)
+                                                                        simulation_specification,
+                                                                        tcpn_model_specification)
 
         global_model = GlobalModel(global_specification, True)
 
@@ -81,6 +85,10 @@ class RtTcpnScheduler(unittest.TestCase):
         plot_cpu_temperature(global_specification, scheduler_simulation, "out/global_thermal_aware_cpu_temperature.png")
         plot_accumulated_execution_time(global_specification, scheduler_simulation,
                                         "out/global_thermal_aware_no_thermal_accumulated.png")
+        plot_cpu_frequency(global_specification, scheduler_simulation,
+                           "out/global_thermal_aware_no_thermal_frequency.png")
+        plot_task_execution_percentage(global_specification, scheduler_simulation,
+                                       "out/global_thermal_aware_no_thermal_execution_percentage.png")
 
 
 if __name__ == '__main__':

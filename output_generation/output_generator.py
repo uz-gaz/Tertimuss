@@ -124,6 +124,7 @@ def plot_cpu_utilization(global_specification: GlobalSpecification, scheduler_re
         plt.show()
     else:
         plt.savefig(save_path)
+        plt.close(f)
 
 
 def plot_task_execution(global_specification: GlobalSpecification, scheduler_result: SchedulerResult,
@@ -195,6 +196,7 @@ def plot_task_execution(global_specification: GlobalSpecification, scheduler_res
         plt.show()
     else:
         plt.savefig(save_path)
+        plt.close(f)
 
 
 def plot_cpu_temperature(global_specification: GlobalSpecification, scheduler_result: SchedulerResult,
@@ -220,6 +222,7 @@ def plot_cpu_temperature(global_specification: GlobalSpecification, scheduler_re
         plt.show()
     else:
         plt.savefig(save_path)
+        plt.close(f)
 
 
 def plot_accumulated_execution_time(global_specification: GlobalSpecification, scheduler_result: SchedulerResult,
@@ -259,6 +262,7 @@ def plot_accumulated_execution_time(global_specification: GlobalSpecification, s
         plt.show()
     else:
         plt.savefig(save_path)
+        plt.close(f)
 
 
 def plot_cpu_frequency(global_specification: GlobalSpecification, scheduler_result: SchedulerResult,
@@ -285,6 +289,7 @@ def plot_cpu_frequency(global_specification: GlobalSpecification, scheduler_resu
         plt.show()
     else:
         plt.savefig(save_path)
+        plt.close(f)
 
 
 def plot_task_execution_percentage(global_specification: GlobalSpecification, scheduler_result: SchedulerResult,
@@ -297,10 +302,16 @@ def plot_task_execution_percentage(global_specification: GlobalSpecification, sc
     """
 
     i_tau_disc = scheduler_result.scheduler_assignation
-    time_u = scheduler_result.time_scheduler
+    frequencies = scheduler_result.frequencies
 
     n_periodic = len(global_specification.tasks_specification.periodic_tasks)
     n_aperiodic = len(global_specification.tasks_specification.aperiodic_tasks)
+
+    frequencies_disc_f = scipy.concatenate(
+        [scipy.repeat(i.reshape(1, -1), n_periodic + n_aperiodic, axis=0) for i in frequencies],
+        axis=0)
+
+    i_tau_disc = i_tau_disc * frequencies_disc_f
 
     hyperperiod = int(global_specification.tasks_specification.h / global_specification.simulation_specification.dt)
 
@@ -309,14 +320,25 @@ def plot_task_execution_percentage(global_specification: GlobalSpecification, sc
 
     task_percentage_periodic = [scipy.zeros(i) for i in ai]
 
-    ci_dt = [math.ceil(i.c / global_specification.simulation_specification.dt) for i in
-             global_specification.tasks_specification.periodic_tasks]
+    task_percentage_aperiodic = []
 
-    di_dt = [math.floor(i.d / global_specification.simulation_specification.dt) for i in
-             global_specification.tasks_specification.periodic_tasks]
+    ci_p_dt = [math.ceil(i.c / global_specification.simulation_specification.dt) for i in
+               global_specification.tasks_specification.periodic_tasks]
 
-    ti_dt = [int(i.t / global_specification.simulation_specification.dt) for i in
-             global_specification.tasks_specification.periodic_tasks]
+    di_p_dt = [math.floor(i.d / global_specification.simulation_specification.dt) for i in
+               global_specification.tasks_specification.periodic_tasks]
+
+    ti_p_dt = [int(i.t / global_specification.simulation_specification.dt) for i in
+               global_specification.tasks_specification.periodic_tasks]
+
+    ci_a_dt = [math.ceil(i.c / global_specification.simulation_specification.dt) for i in
+               global_specification.tasks_specification.aperiodic_tasks]
+
+    ai_a_dt = [math.ceil(i.a / global_specification.simulation_specification.dt) for i in
+               global_specification.tasks_specification.aperiodic_tasks]
+
+    di_a_dt = [math.floor(i.d / global_specification.simulation_specification.dt) for i in
+               global_specification.tasks_specification.aperiodic_tasks]
 
     i_tau_disc_accond = scipy.zeros((n_periodic + n_aperiodic, len(i_tau_disc[0])))
 
@@ -325,23 +347,35 @@ def plot_task_execution_percentage(global_specification: GlobalSpecification, sc
                                                 i * (n_periodic + n_aperiodic): (i + 1) * (n_periodic + n_aperiodic), :]
 
     for i in range(n_periodic):
-        period_ranges = range(0, hyperperiod, ti_dt[i])
-        task_percentage_periodic[i][:] = [sum(i_tau_disc_accond[i, j: j + di_dt[i]]) / ci_dt[i] for j in period_ranges]
+        period_ranges = range(0, hyperperiod, ti_p_dt[i])
+        task_percentage_periodic[i][:] = [sum(i_tau_disc_accond[i, j: j + di_p_dt[i]]) / ci_p_dt[i] for j in
+                                          period_ranges]
 
-    # TODO: Incluir aperiodicas, en las aperiodicas mostrar el porcentaje de ejecución fuera del período también para así
-    # detectar errores
+    for i in range(n_aperiodic):
+        execution_aperiodic = sum(i_tau_disc_accond[n_periodic + i, ai_a_dt[i]: di_a_dt[i]]) / ci_a_dt[i]
+        task_percentage_aperiodic.append([execution_aperiodic])
 
-    f, axarr = plt.subplots((n_periodic), sharex=True, num="Task execution")
-    f.suptitle('Task execution')
+    f, axarr = plt.subplots((n_periodic + n_aperiodic), num="Task execution")
+    f.suptitle('Task execution percentage in each period')
 
     for j in range(n_periodic):
         axarr[j].set_title("Task " + str(j))
-        axarr[j].plot(time_u, utilization_by_task[j], label="Execution", drawstyle='steps')
-        axarr[j].plot(deadlines_time, deadline_by_task[j], label="Deadline", drawstyle='steps')
-        axarr[j].legend(loc='best')
+        a_dibujar = task_percentage_periodic[j]
+        axarr[j].bar(list(range(len(a_dibujar))), a_dibujar,
+                     align='center')
+        axarr[j].set_xticklabels([])
 
+    for j in range(n_aperiodic):
+        axarr[n_periodic + j].set_title("Aperiodic  " + str(j))
+        axarr[n_periodic + j].bar([1], task_percentage_aperiodic[j],
+                                  align='center')
+        axarr[n_periodic + j].set_xticklabels([])
+
+    f.tight_layout()
+    # plt.subplots_adjust(top=0.90)
 
     if save_path is None:
         plt.show()
     else:
         plt.savefig(save_path)
+        plt.close(f)

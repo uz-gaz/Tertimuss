@@ -10,7 +10,7 @@ from core.problem_specification_models.TCPNModelSpecification import TCPNModelSp
 from core.problem_specification_models.TasksSpecification import TasksSpecification, PeriodicTask, AperiodicTask
 from core.schedulers.implementations.global_jdeds import GlobalJDEDSScheduler
 from output_generation.output_generator import plot_cpu_utilization, plot_task_execution, plot_cpu_temperature, \
-    plot_accumulated_execution_time
+    plot_accumulated_execution_time, plot_cpu_frequency, plot_task_execution_percentage
 
 
 class GlobalWodes(unittest.TestCase):
@@ -54,7 +54,11 @@ class GlobalWodes(unittest.TestCase):
         plot_cpu_utilization(global_specification, scheduler_simulation, "out/jdeds_cpu_utilization_thermal.png")
         plot_task_execution(global_specification, scheduler_simulation, "out/jdeds_task_execution_thermal.png")
         plot_cpu_temperature(global_specification, scheduler_simulation, "out/jdeds_cpu_temperature_thermal.png")
-        plot_accumulated_execution_time(global_specification, scheduler_simulation, "jdeds_accumulated_thermal.png")
+        plot_accumulated_execution_time(global_specification, scheduler_simulation, "out/jdeds_accumulated_thermal.png")
+        plot_cpu_frequency(global_specification, scheduler_simulation,
+                           "out/jdeds_frequency.png")
+        plot_task_execution_percentage(global_specification, scheduler_simulation,
+                                       "out/jdeds_execution_percentage.png")
 
     def test_scheduler_no_thermal(self):
         tasks_specification: TasksSpecification = TasksSpecification([PeriodicTask(2, 4, 4, 6.4),
@@ -75,15 +79,21 @@ class GlobalWodes(unittest.TestCase):
 
         global_specification: GlobalSpecification = GlobalSpecification(tasks_specification, cpu_specification,
                                                                         environment_specification,
-                                                                        simulation_specification, tcpn_model_specification)
+                                                                        simulation_specification,
+                                                                        tcpn_model_specification)
 
         global_model = GlobalModel(global_specification, False)
 
         scheduler_simulation = scheduler.simulate(global_specification, global_model, None)
 
-        plot_cpu_utilization(global_specification, scheduler_simulation, "out/jdeds_cpu_utilization_no_thermal.png")
-        plot_task_execution(global_specification, scheduler_simulation, "out/jdeds_task_execution_no_thermal.png")
-        plot_accumulated_execution_time(global_specification, scheduler_simulation, "out/jdeds_accumulated_no_thermal.png")
+        plot_cpu_utilization(global_specification, scheduler_simulation, "out/jdeds_no_thermal__cpu_utilization.png")
+        plot_task_execution(global_specification, scheduler_simulation, "out/jdeds_no_thermal__task_execution.png")
+        plot_accumulated_execution_time(global_specification, scheduler_simulation,
+                                        "out/jdeds_no_thermal__accumulated.png")
+        plot_cpu_frequency(global_specification, scheduler_simulation,
+                           "out/jdeds_no_thermal_frequency.png")
+        plot_task_execution_percentage(global_specification, scheduler_simulation,
+                                       "out/jdeds_no_thermal__execution_percentage.png")
 
 
 if __name__ == '__main__':
