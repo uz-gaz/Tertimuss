@@ -168,21 +168,22 @@ class AbstractGlobalScheduler(AbstractScheduler):
                                         actual_task.pending_c / global_specification.simulation_specification.dt
                                     )) > 0]
 
-                # avaliable_tasks_to_execute = [actual_task.id for actual_task in executable_tasks] + [-1]
-                #
-                # scheduler_selected_tasks = scipy.asarray(active_task_id)
+                available_tasks_to_execute = [actual_task.id for actual_task in executable_tasks] + [-1]
 
                 # Get active task in this step
                 active_task_id, next_quantum, next_core_frequencies = self.schedule_policy(time, executable_tasks,
                                                                                            active_task_id,
                                                                                            clock_relative_frequencies,
                                                                                            cores_temperature)
-                # TODO: Check if tasks returned are in available ones
-                # active_task_id = [actual_task if actual_task in avaliable_tasks_to_execute else -1 for actual_task in
-                #                   active_task_id]
-                #
-                # if not scipy.array_equal(scheduler_selected_tasks, scipy.asarray(active_task_id)):
-                #     print("Warning: At least one of the frequencies selected on time", time, "is not available")
+                # Tasks selected by the scheduler to execute
+                scheduler_selected_tasks = scipy.asarray(active_task_id)
+
+                # Check if tasks returned are in available ones
+                active_task_id = [actual_task if actual_task in available_tasks_to_execute else -1 for actual_task in
+                                  active_task_id]
+
+                if not scipy.array_equal(scheduler_selected_tasks, scipy.asarray(active_task_id)):
+                    print("Warning: At least one of the frequencies selected on time", time, "is not available")
 
                 # Check if the processor frequencies returned are in available ones
                 if next_core_frequencies is not None and all(
@@ -204,30 +205,15 @@ class AbstractGlobalScheduler(AbstractScheduler):
             # 1 for allocation and 0 for no allocation
             w_alloc = (n * m) * [0]
 
+            # Simulate execution
             for j in range(m):
                 if active_task_id[j] != idle_task_id:
-                    # Task not ended yet
+                    # Task is not idle
                     tasks_set[
                         active_task_id[j]].pending_c -= global_specification.simulation_specification.dt * \
                                                         clock_relative_frequencies[j]
                     w_alloc[active_task_id[j] + j * n] = 1
                     m_exec_step[active_task_id[j] + j * n] += global_specification.simulation_specification.dt
-
-                    if round(tasks_set[active_task_id[j]].pending_c, 5) <= 0:
-                        if active_task_id[j] < len(periodic_tasks):
-                            # It only manage the end of periodic tasks
-                            # periodic_tasks[active_task_id[j]].instances += 1
-
-                            tasks_set[active_task_id[j]].pending_c = periodic_tasks[active_task_id[j]].c
-
-                            tasks_set[active_task_id[j]].next_arrival += periodic_tasks[active_task_id[j]].t
-                            tasks_set[active_task_id[j]].next_deadline += periodic_tasks[active_task_id[j]].t
-                        else:
-                            # Aperiodic tasks only have to be to be executed once so arrive time and deadline will be
-                            # higher than the hyperperiod
-
-                            tasks_set[active_task_id[j]].next_arrival += global_specification.tasks_specification.h
-                            tasks_set[active_task_id[j]].next_deadline += global_specification.tasks_specification.h
 
             m_exec_disc, board_temperature, cores_temperature, results_times = global_model_solver.run_step(
                 w_alloc, time, clock_relative_frequencies)
@@ -248,6 +234,24 @@ class AbstractGlobalScheduler(AbstractScheduler):
                 max_temperature_cores.append(cores_temperature)
 
                 temperature_map.append(board_temperature)
+
+            # Check if some deadline has arrived and update this task properties
+            n_periodic = len(global_specification.tasks_specification.periodic_tasks)
+            n_aperiodic = len(global_specification.tasks_specification.aperiodic_tasks)
+
+            for j in range(n_periodic):
+                if round(tasks_set[j].next_deadline / global_specification.simulation_specification.dt) == zeta_q:
+                    # It only manage the end of periodic tasks
+                    tasks_set[j].pending_c = periodic_tasks[j].c
+                    tasks_set[j].next_arrival += periodic_tasks[j].t
+                    tasks_set[j].next_deadline += periodic_tasks[j].t
+
+            for j in range(n_aperiodic):
+                if round(tasks_set[
+                             n_periodic + j].next_deadline / global_specification.simulation_specification.dt) == zeta_q:
+                    # It only manage the end of aperiodic tasks
+                    tasks_set[n_periodic + j].next_arrival += global_specification.tasks_specification.h
+                    tasks_set[n_periodic + j].next_deadline += global_specification.tasks_specification.h
 
         if len(temperature_map) > 0:
             temperature_map = scipy.concatenate(temperature_map, axis=1)

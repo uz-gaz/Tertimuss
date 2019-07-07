@@ -1,4 +1,3 @@
-import math
 from typing import Optional
 
 import scipy
@@ -322,22 +321,22 @@ def plot_task_execution_percentage(global_specification: GlobalSpecification, sc
 
     task_percentage_aperiodic = []
 
-    ci_p_dt = [math.ceil(i.c / global_specification.simulation_specification.dt) for i in
+    ci_p_dt = [int(round(i.c / global_specification.simulation_specification.dt)) for i in
                global_specification.tasks_specification.periodic_tasks]
 
-    di_p_dt = [math.floor(i.d / global_specification.simulation_specification.dt) for i in
+    di_p_dt = [int(round(i.d / global_specification.simulation_specification.dt)) for i in
                global_specification.tasks_specification.periodic_tasks]
 
-    ti_p_dt = [int(i.t / global_specification.simulation_specification.dt) for i in
+    ti_p_dt = [int(round(i.t / global_specification.simulation_specification.dt)) for i in
                global_specification.tasks_specification.periodic_tasks]
 
-    ci_a_dt = [math.ceil(i.c / global_specification.simulation_specification.dt) for i in
+    ci_a_dt = [int(round(i.c / global_specification.simulation_specification.dt)) for i in
                global_specification.tasks_specification.aperiodic_tasks]
 
-    ai_a_dt = [math.ceil(i.a / global_specification.simulation_specification.dt) for i in
+    ai_a_dt = [int(round(i.a / global_specification.simulation_specification.dt)) for i in
                global_specification.tasks_specification.aperiodic_tasks]
 
-    di_a_dt = [math.floor(i.d / global_specification.simulation_specification.dt) for i in
+    di_a_dt = [int(round(i.d / global_specification.simulation_specification.dt)) for i in
                global_specification.tasks_specification.aperiodic_tasks]
 
     i_tau_disc_accond = scipy.zeros((n_periodic + n_aperiodic, len(i_tau_disc[0])))
