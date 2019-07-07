@@ -38,6 +38,7 @@ class MyTestCase(unittest.TestCase):
             scheduler_result = pickle.load(f)
 
         plot_task_execution_percentage(global_specification, scheduler_result, "out/global_edf_a_thermal_frequency.png")
+        plot_task_execution_percentage(global_specification, scheduler_result, "out/global_edf_a_thermal_execution.png")
 
 
 if __name__ == '__main__':

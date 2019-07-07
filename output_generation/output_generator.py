@@ -1,3 +1,4 @@
+import math
 from typing import Optional
 
 import scipy
@@ -297,45 +298,41 @@ def plot_task_execution_percentage(global_specification: GlobalSpecification, sc
 
     i_tau_disc = scheduler_result.scheduler_assignation
     time_u = scheduler_result.time_scheduler
+
     n_periodic = len(global_specification.tasks_specification.periodic_tasks)
     n_aperiodic = len(global_specification.tasks_specification.aperiodic_tasks)
-    m = global_specification.cpu_specification.number_of_cores
-    f, axarr = plt.subplots((n_periodic + n_aperiodic), sharex=True, num="Task execution")
-    f.suptitle('Task execution')
-    utilization_by_task = scipy.zeros(((n_periodic + n_aperiodic), len(i_tau_disc[0])))
 
-    total_steps_number = int(
-        global_specification.tasks_specification.h / global_specification.simulation_specification.dt)
-    deadline_by_task = scipy.zeros(((n_periodic + n_aperiodic), total_steps_number))
-    arrives_by_task = scipy.zeros((n_aperiodic, total_steps_number))
-    deadlines_time = [i * global_specification.simulation_specification.dt for i in range(total_steps_number)]
+    hyperperiod = int(global_specification.tasks_specification.h / global_specification.simulation_specification.dt)
 
-    # Periodic tasks execution and deadlines
+    ai = [int(global_specification.tasks_specification.h / i.t) for i in
+          global_specification.tasks_specification.periodic_tasks]
+
+    task_percentage_periodic = [scipy.zeros(i) for i in ai]
+
+    ci_dt = [math.ceil(i.c / global_specification.simulation_specification.dt) for i in
+             global_specification.tasks_specification.periodic_tasks]
+
+    di_dt = [math.floor(i.d / global_specification.simulation_specification.dt) for i in
+             global_specification.tasks_specification.periodic_tasks]
+
+    ti_dt = [int(i.t / global_specification.simulation_specification.dt) for i in
+             global_specification.tasks_specification.periodic_tasks]
+
+    i_tau_disc_accond = scipy.zeros((n_periodic + n_aperiodic, len(i_tau_disc[0])))
+
+    for i in range(global_specification.cpu_specification.number_of_cores):
+        i_tau_disc_accond = i_tau_disc_accond + i_tau_disc[
+                                                i * (n_periodic + n_aperiodic): (i + 1) * (n_periodic + n_aperiodic), :]
+
     for i in range(n_periodic):
-        actual_deadline = int(
-            global_specification.tasks_specification.periodic_tasks[
-                i].t / global_specification.simulation_specification.dt)
-        for j in range(len(i_tau_disc[0])):
-            for k in range(m):
-                utilization_by_task[i, j] += i_tau_disc[(n_periodic + n_aperiodic) * k + i, j]
-        for j in range(total_steps_number):
-            if j % actual_deadline == 0:
-                deadline_by_task[i][j] = 1
+        period_ranges = range(0, hyperperiod, ti_dt[i])
+        task_percentage_periodic[i][:] = [sum(i_tau_disc_accond[i, j: j + di_dt[i]]) / ci_dt[i] for j in period_ranges]
 
-    # Aperiodic tasks execution and deadlines
-    for i in range(n_aperiodic):
-        deadline = int(
-            global_specification.tasks_specification.aperiodic_tasks[
-                i].d / global_specification.simulation_specification.dt)
-        arrive = int(
-            global_specification.tasks_specification.aperiodic_tasks[
-                i].a / global_specification.simulation_specification.dt)
-        for j in range(len(i_tau_disc[0])):
-            for k in range(m):
-                utilization_by_task[i + n_periodic, j] += i_tau_disc[(n_periodic + n_aperiodic) * k + n_periodic + i, j]
+    # TODO: Incluir aperiodicas, en las aperiodicas mostrar el porcentaje de ejecución fuera del período también para así
+    # detectar errores
 
-        deadline_by_task[n_periodic + i][deadline] = 1
-        arrives_by_task[i][arrive] = 1
+    f, axarr = plt.subplots((n_periodic), sharex=True, num="Task execution")
+    f.suptitle('Task execution')
 
     for j in range(n_periodic):
         axarr[j].set_title("Task " + str(j))
@@ -343,13 +340,6 @@ def plot_task_execution_percentage(global_specification: GlobalSpecification, sc
         axarr[j].plot(deadlines_time, deadline_by_task[j], label="Deadline", drawstyle='steps')
         axarr[j].legend(loc='best')
 
-    for j in range(n_aperiodic):
-        axarr[j + n_periodic].set_title("Aperiodic " + str(j))
-        axarr[j + n_periodic].plot(time_u, utilization_by_task[n_periodic + j], label="Execution", drawstyle='steps')
-        axarr[j + n_periodic].plot(deadlines_time, deadline_by_task[n_periodic + j], label="Deadline",
-                                   drawstyle='steps')
-        axarr[j + n_periodic].plot(deadlines_time, arrives_by_task[j], label="Arrive", drawstyle='steps')
-        axarr[j + n_periodic].legend(loc='best')
 
     if save_path is None:
         plt.show()
