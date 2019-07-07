@@ -51,9 +51,9 @@ class GlobalWodes(unittest.TestCase):
         scheduler_simulation = scheduler.simulate(global_specification, global_model, None)
 
         # draw_heat_matrix(global_specification, simulation_kernel, scheduler_simulation, "affinity_heat_matrix.mp4")
-        plot_cpu_utilization(global_specification, scheduler_simulation, "jdeds_cpu_utilization_thermal.png")
-        plot_task_execution(global_specification, scheduler_simulation, "jdeds_task_execution_thermal.png")
-        plot_cpu_temperature(global_specification, scheduler_simulation, "jdeds_cpu_temperature_thermal.png")
+        plot_cpu_utilization(global_specification, scheduler_simulation, "out/jdeds_cpu_utilization_thermal.png")
+        plot_task_execution(global_specification, scheduler_simulation, "out/jdeds_task_execution_thermal.png")
+        plot_cpu_temperature(global_specification, scheduler_simulation, "out/jdeds_cpu_temperature_thermal.png")
         plot_accumulated_execution_time(global_specification, scheduler_simulation, "jdeds_accumulated_thermal.png")
 
     def test_scheduler_no_thermal(self):
@@ -81,9 +81,9 @@ class GlobalWodes(unittest.TestCase):
 
         scheduler_simulation = scheduler.simulate(global_specification, global_model, None)
 
-        plot_cpu_utilization(global_specification, scheduler_simulation, "jdeds_cpu_utilization_no_thermal.png")
-        plot_task_execution(global_specification, scheduler_simulation, "jdeds_task_execution_no_thermal.png")
-        plot_accumulated_execution_time(global_specification, scheduler_simulation, "jdeds_accumulated_no_thermal.png")
+        plot_cpu_utilization(global_specification, scheduler_simulation, "out/jdeds_cpu_utilization_no_thermal.png")
+        plot_task_execution(global_specification, scheduler_simulation, "out/jdeds_task_execution_no_thermal.png")
+        plot_accumulated_execution_time(global_specification, scheduler_simulation, "out/jdeds_accumulated_no_thermal.png")
 
 
 if __name__ == '__main__':

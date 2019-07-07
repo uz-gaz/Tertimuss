@@ -41,11 +41,11 @@ class TestGlobalEdfScheduler(unittest.TestCase):
         scheduler_simulation = scheduler.simulate(global_specification, global_model, None)
 
         # draw_heat_matrix(global_specification, simulation_kernel, scheduler_simulation, "global_edf_a_thermal_heat_matrix.mp4")
-        plot_cpu_utilization(global_specification, scheduler_simulation, "global_edf_a_thermal_cpu_utilization.png")
-        plot_task_execution(global_specification, scheduler_simulation, "global_edf_a_thermal_task_execution.png")
-        plot_cpu_temperature(global_specification, scheduler_simulation, "global_edf_a_thermal_cpu_temperature.png")
+        plot_cpu_utilization(global_specification, scheduler_simulation, "out/global_edf_a_thermal_cpu_utilization.png")
+        plot_task_execution(global_specification, scheduler_simulation, "out/global_edf_a_thermal_task_execution.png")
+        plot_cpu_temperature(global_specification, scheduler_simulation, "out/global_edf_a_thermal_cpu_temperature.png")
         plot_accumulated_execution_time(global_specification, scheduler_simulation,
-                                        "global_edf_a_thermal_accumulated.png")
+                                        "out/global_edf_a_thermal_accumulated.png")
 
     def test_global_edf_a_var_frequency_thermal(self):
         tasks_specification: TasksSpecification = TasksSpecification([PeriodicTask(2, 4, 4, 6.4),
@@ -74,11 +74,11 @@ class TestGlobalEdfScheduler(unittest.TestCase):
         scheduler_simulation = scheduler.simulate(global_specification, global_model, None)
 
         # draw_heat_matrix(global_specification, simulation_kernel, scheduler_simulation, "global_edf_a_var_frequency_heat_matrix.mp4")
-        plot_cpu_utilization(global_specification, scheduler_simulation, "gedf_a_var_frequency_cpu_utilization.png")
-        plot_task_execution(global_specification, scheduler_simulation, "gedf_a_var_frequency_task_execution.png")
-        plot_cpu_temperature(global_specification, scheduler_simulation, "gedf_a_var_frequency_cpu_temperature.png")
+        plot_cpu_utilization(global_specification, scheduler_simulation, "out/gedf_a_var_frequency_cpu_utilization.png")
+        plot_task_execution(global_specification, scheduler_simulation, "out/gedf_a_var_frequency_task_execution.png")
+        plot_cpu_temperature(global_specification, scheduler_simulation, "out/gedf_a_var_frequency_cpu_temperature.png")
         plot_accumulated_execution_time(global_specification, scheduler_simulation,
-                                        "gedf_a_var_frequency_accumulated.png")
+                                        "out/gedf_a_var_frequency_accumulated.png")
 
     def test_global_edf_a_aperiodic_thermal(self):
         tasks_specification: TasksSpecification = TasksSpecification([PeriodicTask(2, 4, 4, 6.4),
@@ -108,11 +108,11 @@ class TestGlobalEdfScheduler(unittest.TestCase):
         scheduler_simulation = scheduler.simulate(global_specification, global_model, None)
 
         # draw_heat_matrix(global_specification, simulation_kernel, scheduler_simulation, "global_edf_a_aperiodic_thermal_heat_matrix.mp4")
-        plot_cpu_utilization(global_specification, scheduler_simulation, "gedf_a_aperiodic_thermal_cpu_utilization.png")
-        plot_task_execution(global_specification, scheduler_simulation, "gedf_a_aperiodic_thermal_task_execution.png")
-        plot_cpu_temperature(global_specification, scheduler_simulation, "gedf_a_aperiodic_thermal_cpu_temperature.png")
+        plot_cpu_utilization(global_specification, scheduler_simulation, "out/gedf_a_aperiodic_thermal_cpu_utilization.png")
+        plot_task_execution(global_specification, scheduler_simulation, "out/gedf_a_aperiodic_thermal_task_execution.png")
+        plot_cpu_temperature(global_specification, scheduler_simulation, "out/gedf_a_aperiodic_thermal_cpu_temperature.png")
         plot_accumulated_execution_time(global_specification, scheduler_simulation,
-                                        "gedf_a_aperiodic_thermal_accumulated.png")
+                                        "out/gedf_a_aperiodic_thermal_accumulated.png")
 
     def test_global_edf_a_no_thermal(self):
         tasks_specification: TasksSpecification = TasksSpecification([PeriodicTask(2, 4, 4, 6.4),
@@ -140,9 +140,9 @@ class TestGlobalEdfScheduler(unittest.TestCase):
 
         scheduler_simulation = scheduler.simulate(global_specification, global_model, None)
 
-        plot_cpu_utilization(global_specification, scheduler_simulation, "gedf_a_no_thermal_cpu_utilization.png")
-        plot_task_execution(global_specification, scheduler_simulation, "gedf_a_no_thermal_task_execution.png")
-        plot_accumulated_execution_time(global_specification, scheduler_simulation, "gedf_a_no_thermal_accumulated.png")
+        plot_cpu_utilization(global_specification, scheduler_simulation, "out/gedf_a_no_thermal_cpu_utilization.png")
+        plot_task_execution(global_specification, scheduler_simulation, "out/gedf_a_no_thermal_task_execution.png")
+        plot_accumulated_execution_time(global_specification, scheduler_simulation, "out/gedf_a_no_thermal_accumulated.png")
 
 
 if __name__ == '__main__':

@@ -42,11 +42,11 @@ class RtTcpnScheduler(unittest.TestCase):
         scheduler_simulation = scheduler.simulate(global_specification, global_model, None)
 
         # draw_heat_matrix(global_specification, simulation_kernel, scheduler_simulation, "global_thermal_aware_heat_matrix.mp4")
-        plot_cpu_utilization(global_specification, scheduler_simulation, "global_thermal_aware_cpu_utilization.png")
-        plot_task_execution(global_specification, scheduler_simulation, "global_thermal_aware_task_execution.png")
-        plot_cpu_temperature(global_specification, scheduler_simulation, "global_thermal_aware_cpu_temperature.png")
+        plot_cpu_utilization(global_specification, scheduler_simulation, "out/global_thermal_aware_cpu_utilization.png")
+        plot_task_execution(global_specification, scheduler_simulation, "out/global_thermal_aware_task_execution.png")
+        plot_cpu_temperature(global_specification, scheduler_simulation, "out/global_thermal_aware_cpu_temperature.png")
         plot_accumulated_execution_time(global_specification, scheduler_simulation,
-                                        "global_thermal_aware_accumulated.png")
+                                        "out/global_thermal_aware_accumulated.png")
 
     def test_global_thermal_aware_scheduler_no_thermal(self):
         tasks_specification: TasksSpecification = TasksSpecification([PeriodicTask(2, 4, 4, 6.4),
@@ -75,12 +75,12 @@ class RtTcpnScheduler(unittest.TestCase):
 
         # draw_heat_matrix(global_specification, simulation_kernel, scheduler_simulation, "global_thermal_aware_no_thermal_heat_matrix.mp4")
         plot_cpu_utilization(global_specification, scheduler_simulation,
-                             "global_thermal_aware_no_thermal_cpu_utilization.png")
+                             "out/global_thermal_aware_no_thermal_cpu_utilization.png")
         plot_task_execution(global_specification, scheduler_simulation,
-                            "global_thermal_aware_no_thermal_task_execution.png")
-        plot_cpu_temperature(global_specification, scheduler_simulation, "global_thermal_aware_cpu_temperature.png")
+                            "out/global_thermal_aware_no_thermal_task_execution.png")
+        plot_cpu_temperature(global_specification, scheduler_simulation, "out/global_thermal_aware_cpu_temperature.png")
         plot_accumulated_execution_time(global_specification, scheduler_simulation,
-                                        "global_thermal_aware_no_thermal_accumulated.png")
+                                        "out/global_thermal_aware_no_thermal_accumulated.png")
 
 
 if __name__ == '__main__':
