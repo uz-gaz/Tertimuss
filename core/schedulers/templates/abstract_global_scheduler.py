@@ -108,6 +108,9 @@ class AbstractGlobalScheduler(AbstractScheduler):
         # Time where each temperature step have been obtained
         time_temp = []
 
+        # Core frequencies in each step
+        core_frequencies = scipy.ndarray((m, simulation_time_steps))
+
         # Actual cores temperature in each step
         cores_temperature = scipy.full(m, global_specification.environment_specification.t_env) \
             if is_thermal_simulation else None
@@ -237,6 +240,8 @@ class AbstractGlobalScheduler(AbstractScheduler):
 
             time_step[zeta_q, 0] = time
 
+            core_frequencies[:, zeta_q] = clock_relative_frequencies
+
             time_temp.append(results_times)
 
             if is_thermal_simulation:
@@ -254,7 +259,7 @@ class AbstractGlobalScheduler(AbstractScheduler):
             max_temperature_cores = scipy.concatenate(max_temperature_cores, axis=1)
 
         return SchedulerResult(temperature_map, max_temperature_cores, time_step, time_temp, m_exec, m_exec_tcpn,
-                               i_tau_disc, global_specification.simulation_specification.dt)
+                               i_tau_disc, core_frequencies, global_specification.simulation_specification.dt)
 
     @abc.abstractmethod
     def offline_stage(self, global_specification: GlobalSpecification,
