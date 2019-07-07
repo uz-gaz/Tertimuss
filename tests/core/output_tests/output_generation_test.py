@@ -8,7 +8,7 @@ from core.problem_specification_models.GlobalSpecification import GlobalSpecific
 from core.problem_specification_models.SimulationSpecification import SimulationSpecification
 from core.problem_specification_models.TCPNModelSpecification import TCPNModelSpecification
 from core.problem_specification_models.TasksSpecification import TasksSpecification, PeriodicTask
-from output_generation.output_generator import plot_cpu_frequency, plot_task_completation
+from output_generation.output_generator import plot_cpu_frequency, plot_task_execution_percentage
 
 
 class MyTestCase(unittest.TestCase):
@@ -37,7 +37,7 @@ class MyTestCase(unittest.TestCase):
         with open('scheduler_simulation_result.pkl', 'rb') as f:
             scheduler_result = pickle.load(f)
 
-        plot_task_completation(global_specification, scheduler_result, "out/global_edf_a_thermal_frequency.png")
+        plot_task_execution_percentage(global_specification, scheduler_result, "out/global_edf_a_thermal_frequency.png")
 
 
 if __name__ == '__main__':

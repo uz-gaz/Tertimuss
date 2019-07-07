@@ -286,8 +286,8 @@ def plot_cpu_frequency(global_specification: GlobalSpecification, scheduler_resu
         plt.savefig(save_path)
 
 
-def plot_task_completation(global_specification: GlobalSpecification, scheduler_result: SchedulerResult,
-                           save_path: Optional[str] = None):
+def plot_task_execution_percentage(global_specification: GlobalSpecification, scheduler_result: SchedulerResult,
+                                   save_path: Optional[str] = None):
     """
     Plot task execution in each cpu
     :param global_specification: problem specification
