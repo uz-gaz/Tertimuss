@@ -31,6 +31,9 @@ class GlobalJDEDSScheduler(AbstractGlobalScheduler):
         self.__actual_interval_index = None
         self.__dt = None
         self.__f_star = None
+        self.__f_star_available = None
+        self.__x_possible = None
+        self.__aperiodic_arrive = None
 
         # Decimals precision
         self.__decimals_precision = None
@@ -240,7 +243,9 @@ class GlobalJDEDSScheduler(AbstractGlobalScheduler):
 
         # Available f for aperiodic
         self.__f_star_available = possible_f
-        self.x_possible = x_list
+        self.__x_possible = x_list
+
+        self.__aperiodic_arrive = False
 
         return self.__dt
 
@@ -257,8 +262,10 @@ class GlobalJDEDSScheduler(AbstractGlobalScheduler):
         :param aperiodic_task_ids: ids of the aperiodic tasks arrived
         :return: true if want to immediately call the scheduler (schedule_policy method), false otherwise
         """
-        # Nothing to do
-        return False
+
+        # TODO: Implement this function
+        self.__aperiodic_arrive = True
+        return True
 
     def __sp_interrupt(self, active_tasks: List[int], time: float) -> bool:
         """
@@ -280,9 +287,10 @@ class GlobalJDEDSScheduler(AbstractGlobalScheduler):
         new_quantum_start = round(time, self.__decimals_precision) in (self.__intervals_end + [0.0])
 
         # True if new aperiodic has arrived
-        # TODO:
+        aperiodic_arrive = self.__aperiodic_arrive
+        self.__aperiodic_arrive = False
 
-        return tasks_have_ended or tasks_laxity_zero or new_quantum_start
+        return tasks_have_ended or tasks_laxity_zero or new_quantum_start or aperiodic_arrive
 
     def __schedule_policy_imp(self, time: float, active_tasks: List[int]) -> List[int]:
         """
