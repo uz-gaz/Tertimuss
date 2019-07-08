@@ -285,6 +285,10 @@ class ThermalModel(object):
 
         post_gen = scipy.zeros((total_places, number_of_transitions))
 
+        # TODO: This will ensure that m_exec will remain constant
+        post_gen[p_board + p_micros + 1 + 1:p_board + p_micros + 1 + 1 + number_of_transitions, :] = scipy.identity(
+            number_of_transitions)  # Connection with p2 in paper
+
         # Get power consumption by task in cpu
         dynamic_power_consumption = cls._get_dynamic_power_consumption(cpu_specification, tasks_specification,
                                                                        cpu_specification.clock_relative_frequencies)

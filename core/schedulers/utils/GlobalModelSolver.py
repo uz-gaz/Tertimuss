@@ -63,7 +63,8 @@ class GlobalModelSolver(object):
                                                                                   global_model.post_thermal,
                                                                                   global_model.pi_thermal,
                                                                                   global_model.lambda_vector_thermal,
-                                                                                  self.__step / self.__fragmentation_of_step)
+                                                                                  self.__step / self.__fragmentation_of_step,
+                                                                                  self.__fragmentation_of_step)
 
             self.__mo_thermal = global_model.mo_thermal
             self.__p_board = global_model.p_board
@@ -128,24 +129,38 @@ class GlobalModelSolver(object):
 
                 self.__tcpn_simulator_thermal.set_post_and_lambda(post, lambda_vector)
 
-            for mo_actual in partial_results_proc:
-                m_busy = scipy.concatenate([mo_actual[self.__m_processor_start_index + i * (
-                        2 * self.__n + 1):self.__m_processor_start_index + i * (2 * self.__n + 1) + self.__n,
-                                            0].reshape(-1) for i in range(self.__m)])
+            m_exec = w_alloc
 
-                m_exec = m_busy * (self.__fragmentation_of_step / self.__step)  # FIXME: Review it
+            self.__mo_thermal[-self.__n * self.__m:, 0] = m_exec
+            self.__mo_thermal = self.__tcpn_simulator_thermal.simulate_multi_step(self.__mo_thermal)
+            # partial_results_thermal.append(self.__mo_thermal)
 
-                self.__mo_thermal[-self.__n * self.__m:, 0] = m_exec
-                self.__mo_thermal = self.__tcpn_simulator_thermal.simulate_step(self.__mo_thermal)
-                # partial_results_thermal.append(self.__mo_thermal)
+            board_temperature = self.__mo_thermal[0:self.__p_board + self.__p_one_micro * self.__m, 0]
 
-                board_temperature = self.__mo_thermal[0:self.__p_board + self.__p_one_micro * self.__m, 0]
+            cores_temperature = [
+                self.__mo_thermal[self.__p_board + i * self.__p_one_micro + int(self.__p_one_micro / 2), 0]
+                for i in range(self.__m)]  # Take the temperature in the center of the core
 
-                cores_temperature = [
-                    self.__mo_thermal[self.__p_board + i * self.__p_one_micro + int(self.__p_one_micro / 2), 0]
-                    for i in range(self.__m)]  # Take the temperature in the center of the core
+            cores_temperature = scipy.asarray(cores_temperature).reshape((-1, 1))
 
-                cores_temperature = scipy.asarray(cores_temperature).reshape((-1, 1))
+            # for mo_actual in partial_results_proc:
+            #     # m_busy = scipy.concatenate([mo_actual[self.__m_processor_start_index + i * (
+            #     #         2 * self.__n + 1):self.__m_processor_start_index + i * (2 * self.__n + 1) + self.__n,
+            #     #                             0].reshape(-1) for i in range(self.__m)])
+            #     #
+            #     # m_exec = m_busy * (self.__fragmentation_of_step / self.__step)  # FIXME: Review it
+            #
+            #     self.__mo_thermal[-self.__n * self.__m:, 0] = m_exec
+            #     self.__mo_thermal = self.__tcpn_simulator_thermal.simulate_step(self.__mo_thermal)
+            #     # partial_results_thermal.append(self.__mo_thermal)
+            #
+            #     board_temperature = self.__mo_thermal[0:self.__p_board + self.__p_one_micro * self.__m, 0]
+            #
+            #     cores_temperature = [
+            #         self.__mo_thermal[self.__p_board + i * self.__p_one_micro + int(self.__p_one_micro / 2), 0]
+            #         for i in range(self.__m)]  # Take the temperature in the center of the core
+            #
+            #     cores_temperature = scipy.asarray(cores_temperature).reshape((-1, 1))
 
             board_temperature = board_temperature.reshape((-1, 1))
 
