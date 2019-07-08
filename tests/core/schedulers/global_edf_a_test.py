@@ -28,7 +28,7 @@ class TestGlobalEdfScheduler(unittest.TestCase):
         simulation_specification: SimulationSpecification = SimulationSpecification(2, 0.01)
 
         tcpn_model_specification: TCPNModelSpecification = TCPNModelSpecification(
-            ThermalModelSelector.THERMAL_MODEL_ENERGY_BASED)
+            ThermalModelSelector.THERMAL_MODEL_FREQUENCY_BASED)
         scheduler = GlobalEDFAffinityScheduler()
 
         global_specification: GlobalSpecification = GlobalSpecification(tasks_specification, cpu_specification,
@@ -63,7 +63,7 @@ class TestGlobalEdfScheduler(unittest.TestCase):
         simulation_specification: SimulationSpecification = SimulationSpecification(2, 0.01)
 
         tcpn_model_specification: TCPNModelSpecification = TCPNModelSpecification(
-            ThermalModelSelector.THERMAL_MODEL_ENERGY_BASED)
+            ThermalModelSelector.THERMAL_MODEL_FREQUENCY_BASED)
 
         scheduler = GlobalEDFAffinityScheduler()
 
@@ -100,7 +100,7 @@ class TestGlobalEdfScheduler(unittest.TestCase):
         simulation_specification: SimulationSpecification = SimulationSpecification(2, 0.01)
 
         tcpn_model_specification: TCPNModelSpecification = TCPNModelSpecification(
-            ThermalModelSelector.THERMAL_MODEL_ENERGY_BASED)
+            ThermalModelSelector.THERMAL_MODEL_FREQUENCY_BASED)
 
         scheduler = GlobalEDFAffinityScheduler()
 
@@ -140,7 +140,7 @@ class TestGlobalEdfScheduler(unittest.TestCase):
         simulation_specification: SimulationSpecification = SimulationSpecification(2, 0.01)
 
         tcpn_model_specification: TCPNModelSpecification = TCPNModelSpecification(
-            ThermalModelSelector.THERMAL_MODEL_ENERGY_BASED)
+            ThermalModelSelector.THERMAL_MODEL_FREQUENCY_BASED)
 
         scheduler = GlobalEDFAffinityScheduler()
 

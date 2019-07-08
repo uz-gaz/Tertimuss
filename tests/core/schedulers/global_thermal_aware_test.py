@@ -28,7 +28,7 @@ class RtTcpnScheduler(unittest.TestCase):
         simulation_specification: SimulationSpecification = SimulationSpecification(2, 0.01)
 
         tcpn_model_specification: TCPNModelSpecification = TCPNModelSpecification(
-            ThermalModelSelector.THERMAL_MODEL_ENERGY_BASED)
+            ThermalModelSelector.THERMAL_MODEL_FREQUENCY_BASED)
 
         global_specification: GlobalSpecification = GlobalSpecification(tasks_specification, cpu_specification,
                                                                         environment_specification,
@@ -64,7 +64,7 @@ class RtTcpnScheduler(unittest.TestCase):
         simulation_specification: SimulationSpecification = SimulationSpecification(2, 0.01)
 
         tcpn_model_specification: TCPNModelSpecification = TCPNModelSpecification(
-            ThermalModelSelector.THERMAL_MODEL_ENERGY_BASED)
+            ThermalModelSelector.THERMAL_MODEL_FREQUENCY_BASED)
 
         global_specification: GlobalSpecification = GlobalSpecification(tasks_specification, cpu_specification,
                                                                         environment_specification,

@@ -37,7 +37,7 @@ class GlobalWodes(unittest.TestCase):
         simulation_specification: SimulationSpecification = SimulationSpecification(2, 0.01)
 
         tcpn_model_specification: TCPNModelSpecification = TCPNModelSpecification(
-            ThermalModelSelector.THERMAL_MODEL_ENERGY_BASED)
+            ThermalModelSelector.THERMAL_MODEL_FREQUENCY_BASED)
 
         scheduler = GlobalJDEDSScheduler()
 
