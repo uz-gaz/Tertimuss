@@ -4,12 +4,15 @@ import scipy
 import scipy.integrate
 
 from core.kernel_generator.global_model import GlobalModel
+from core.kernel_generator.thermal_model_energy import ThermalModelEnergy
+from core.kernel_generator.thermal_model_frequency import ThermalModelFrequencyAware
+from core.kernel_generator.thermal_model_selector import ThermalModelSelector
 from core.problem_specification_models.GlobalSpecification import GlobalSpecification
 from core.tcpn_simulator.TcpnSimulatorAccurateOptimizedTasks import TcpnSimulatorAccurateOptimizedTasks
 from core.tcpn_simulator.TcpnSimulatorAccurateOptimizedThermal import TcpnSimulatorAccurateOptimizedThermal
 
 
-class GlobalModelSolver(object):
+class GlobalModelSolverOld(object):
     def __init__(self, global_model: GlobalModel, global_specification: GlobalSpecification):
         """
 
@@ -23,14 +26,13 @@ class GlobalModelSolver(object):
         self.__step = global_specification.simulation_specification.dt
         self.enable_thermal_mode = global_model.enable_thermal_mode
 
-        self.__fragmentation_of_step_task = global_specification.simulation_specification.dt_fragmentation_proc_task
-        self.__fragmentation_of_step_thermal = global_specification.simulation_specification.dt_fragmentation_thermal
+        self.__fragmentation_of_step = global_specification.simulation_specification.dt_fragmentation
 
         self.__tcpn_simulator_proc = TcpnSimulatorAccurateOptimizedTasks(global_model.pre_proc_tau,
                                                                          global_model.post_proc_tau,
                                                                          global_model.pi_proc_tau,
                                                                          global_model.lambda_vector_proc_tau,
-                                                                         self.__step / self.__fragmentation_of_step_task)
+                                                                         self.__step / self.__fragmentation_of_step)
 
         self.__control_task_proc = scipy.ones(len(global_model.lambda_vector_proc_tau))
         self.__mo = global_model.mo_proc_tau
@@ -61,8 +63,8 @@ class GlobalModelSolver(object):
                                                                                   global_model.post_thermal,
                                                                                   global_model.pi_thermal,
                                                                                   global_model.lambda_vector_thermal,
-                                                                                  self.__step / self.__fragmentation_of_step_thermal,
-                                                                                  self.__fragmentation_of_step_thermal)
+                                                                                  self.__step / self.__fragmentation_of_step,
+                                                                                  self.__fragmentation_of_step)
 
             self.__mo_thermal = global_model.mo_thermal
             self.__p_board = global_model.p_board
@@ -102,7 +104,7 @@ class GlobalModelSolver(object):
             self.__tcpn_simulator_proc.set_control(new_control_processor)
 
         partial_results_proc = []
-        for _ in range(self.__fragmentation_of_step_task):
+        for _ in range(self.__fragmentation_of_step):
             self.__mo = self.__tcpn_simulator_proc.simulate_step(self.__mo)
             partial_results_proc.append(self.__mo)
 
@@ -127,17 +129,40 @@ class GlobalModelSolver(object):
 
                 self.__tcpn_simulator_thermal.set_post_and_lambda(post, lambda_vector)
 
-            self.__mo_thermal[-self.__n * self.__m:, 0] = w_alloc
+            m_exec = w_alloc
+
+            self.__mo_thermal[-self.__n * self.__m:, 0] = m_exec
             self.__mo_thermal = self.__tcpn_simulator_thermal.simulate_multi_step(self.__mo_thermal)
+            # partial_results_thermal.append(self.__mo_thermal)
 
             board_temperature = self.__mo_thermal[0:self.__p_board + self.__p_one_micro * self.__m, 0]
-            board_temperature = board_temperature.reshape((-1, 1))
 
             cores_temperature = [
                 self.__mo_thermal[self.__p_board + i * self.__p_one_micro + int(self.__p_one_micro / 2), 0]
                 for i in range(self.__m)]  # Take the temperature in the center of the core
 
             cores_temperature = scipy.asarray(cores_temperature).reshape((-1, 1))
+
+            # for mo_actual in partial_results_proc:
+            #     # m_busy = scipy.concatenate([mo_actual[self.__m_processor_start_index + i * (
+            #     #         2 * self.__n + 1):self.__m_processor_start_index + i * (2 * self.__n + 1) + self.__n,
+            #     #                             0].reshape(-1) for i in range(self.__m)])
+            #     #
+            #     # m_exec = m_busy * (self.__fragmentation_of_step / self.__step)  # FIXME: Review it
+            #
+            #     self.__mo_thermal[-self.__n * self.__m:, 0] = m_exec
+            #     self.__mo_thermal = self.__tcpn_simulator_thermal.simulate_step(self.__mo_thermal)
+            #     # partial_results_thermal.append(self.__mo_thermal)
+            #
+            #     board_temperature = self.__mo_thermal[0:self.__p_board + self.__p_one_micro * self.__m, 0]
+            #
+            #     cores_temperature = [
+            #         self.__mo_thermal[self.__p_board + i * self.__p_one_micro + int(self.__p_one_micro / 2), 0]
+            #         for i in range(self.__m)]  # Take the temperature in the center of the core
+            #
+            #     cores_temperature = scipy.asarray(cores_temperature).reshape((-1, 1))
+
+            board_temperature = board_temperature.reshape((-1, 1))
 
         # As the m_exec computed by the tcpn is relative to the cycles executed, we need to transform it to a time
         # measurement

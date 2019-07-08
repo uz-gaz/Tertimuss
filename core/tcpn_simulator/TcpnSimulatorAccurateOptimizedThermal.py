@@ -26,6 +26,7 @@ class TcpnSimulatorAccurateOptimizedThermal(object):
         self.__a_multi_step = scipy.linalg.fractional_matrix_power(self.__a + scipy.identity(len(self.__a)),
                                                                    multi_step_number) if multi_step_number \
                                                                                          is not None else None
+        self.__multi_step_number = multi_step_number
 
     def set_post_and_lambda(self, post: scipy.ndarray, lambda_vector: scipy.ndarray):
         """
@@ -34,6 +35,9 @@ class TcpnSimulatorAccurateOptimizedThermal(object):
         self.__c = post - self.__pre
         self.__lambda = lambda_vector
         self.__a = (self.__c * self.__lambda).dot(self.__pi) * self.__step
+        self.__a_multi_step = scipy.linalg.fractional_matrix_power(self.__a + scipy.identity(len(self.__a)),
+                                                                   self.__multi_step_number) if self.__a_multi_step \
+                                                                                                is not None else None
 
     def get_post(self):
         """

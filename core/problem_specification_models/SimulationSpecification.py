@@ -16,4 +16,5 @@ class SimulationSpecification(object):
         self.dt = dt
 
         # TODO: Put in the specification
-        self.dt_fragmentation = 10
+        self.dt_fragmentation_proc_task = 10
+        self.dt_fragmentation_thermal = 100
