@@ -1,14 +1,16 @@
+from typing import Optional
+
 import scipy
 import scipy.linalg
 
 
-class TcpnSimulatorAccurateOptimizedThermal(object):
+class TcpnSimulatorAccurateOptimizedThermalOld(object):
     """
     Time continuous petri net simulator optimized to simulate thermal
     """
 
     def __init__(self, pre: scipy.ndarray, post: scipy.ndarray, pi: scipy.ndarray,
-                 lambda_vector: scipy.ndarray, step: float, multi_step_number: int):
+                 lambda_vector: scipy.ndarray, step: float):
         """
         Define the Petri net
         :param pre: pre
@@ -20,12 +22,7 @@ class TcpnSimulatorAccurateOptimizedThermal(object):
         self.__pre = pre
         self.__lambda = lambda_vector
         self.__step = step
-
-        a = (self.__c * self.__lambda).dot(self.__pi) * self.__step
-        self.__a_multi_step = scipy.linalg.fractional_matrix_power(a + scipy.identity(len(a)),
-                                                                   multi_step_number) if multi_step_number \
-                                                                                         is not None else None
-        self.__multi_step_number = multi_step_number
+        self.__a = (self.__c * self.__lambda).dot(self.__pi) * self.__step
 
     def set_post_and_lambda(self, post: scipy.ndarray, lambda_vector: scipy.ndarray):
         """
@@ -33,9 +30,7 @@ class TcpnSimulatorAccurateOptimizedThermal(object):
         """
         self.__c = post - self.__pre
         self.__lambda = lambda_vector
-
-        a = (self.__c * self.__lambda).dot(self.__pi) * self.__step
-        self.__a_multi_step = scipy.linalg.fractional_matrix_power(a + scipy.identity(len(a)), self.__multi_step_number)
+        self.__a = (self.__c * self.__lambda).dot(self.__pi) * self.__step
 
     def get_post(self):
         """
@@ -51,11 +46,11 @@ class TcpnSimulatorAccurateOptimizedThermal(object):
         """
         return self.__lambda
 
-    def simulate_multi_step(self, mo: scipy.ndarray) -> scipy.ndarray:
+    def simulate_step(self, mo: scipy.ndarray) -> scipy.ndarray:
         """
-        Simulate multi_step_number steps
+        Simulate one step
 
         :param mo:  actual marking
         :return: next marking
         """
-        return self.__a_multi_step.dot(mo)
+        return self.__a.dot(mo) + mo
