@@ -25,6 +25,7 @@ class GlobalJDEDSScheduler(AbstractGlobalScheduler):
         self.__n = None
         self.__intervals_end = None
         self.__execution_by_intervals = None
+        self.__execution_by_intervals_all_freq = None
         self.__interval_cc_left = None
         self.__actual_interval_end = None
         self.__actual_interval_index = None
@@ -161,56 +162,69 @@ class GlobalJDEDSScheduler(AbstractGlobalScheduler):
         phi_min = global_specification.cpu_specification.clock_available_frequencies[0]
         phi_start = max(phi_min, sum([i.c / i.t for i in periodic_tasks]) / (self.__m * f_max))
 
-        f_star = next(
-            (x for x in global_specification.cpu_specification.clock_available_frequencies if x >= phi_start), f_max)
+        possible_f = [x for x in global_specification.cpu_specification.clock_available_frequencies if x >= phi_start]
+        if len(possible_f) == 0:
+            possible_f = [f_max]
+            raise Exception("Warning: Schedule is not feasible")
 
         # F star in HZ
-        f_star_hz = round(f_star * global_specification.cpu_specification.clock_base_frequency)
-
-        cc = list(map(lambda a: a.c / f_star, periodic_tasks))  # FIXME: Check this
-
-        cpu_utilization = sum(map(lambda a: a[0] / a[1].t, zip(cc, periodic_tasks)))
-
-        # Exit program if can schedule
-        if round(cpu_utilization, self.__decimals_precision) >= self.__m:
-            raise Exception("Error: Schedule is not feasible")
+        possible_f_hz = [round(f * global_specification.cpu_specification.clock_base_frequency) for f in possible_f]
 
         # Number of cycles
-        cci = list(
-            map(lambda a: int(a.c * global_specification.cpu_specification.clock_base_frequency), periodic_tasks))
 
-        tci = list(map(lambda a: int(a.t * f_star_hz), periodic_tasks))
+        cci = [int(a.c * global_specification.cpu_specification.clock_base_frequency) for a in periodic_tasks]
+
+        tci_list = [[int(a.t * i) for a in periodic_tasks] for i in possible_f_hz]
 
         # Add dummy task if needed
-        hyperperiod_hz = int(global_specification.tasks_specification.h * f_star_hz)
+        hyperperiod_hz_list = [int(global_specification.tasks_specification.h * i) for i in possible_f_hz]
 
-        a_i = [int(hyperperiod_hz / i) for i in tci]
+        a_i_list = [[int(tci_h[1] / i) for i in tci_h[0]] for tci_h in zip(tci_list, hyperperiod_hz_list)]
 
-        total_used_cycles = sum([i[0] * i[1] for i in zip(cci, a_i)])
+        total_used_cycles_list = [sum([i[0] * i[1] for i in zip(cci, a_i)]) for a_i in a_i_list]
 
-        if total_used_cycles < self.__m * hyperperiod_hz:
-            cci.append(int(self.__m * hyperperiod_hz - total_used_cycles))
-            tci.append(hyperperiod_hz)
+        dummy_task_ci_list = []
+        dummy_task_ti_list = []
 
-        # Linear programing problem
-        x, sd, _, _ = self.ilpp_dp(cci, tci, len(tci), self.__m)
+        for i in range(len(possible_f_hz)):
+            total_used_cycles = total_used_cycles_list[i]
+            if total_used_cycles < self.__m * hyperperiod_hz_list[i]:
+                dummy_task_ci_list.append(int(self.__m * hyperperiod_hz_list[i] - total_used_cycles))
+                dummy_task_ti_list.append(hyperperiod_hz_list[i])
+            else:
+                dummy_task_ci_list.append([])
+                dummy_task_ti_list.append([])
+
+        sd = None
+        x_list = []
+
+        for i in range(len(possible_f_hz)):
+            # Linear programing problem
+            x, sd, _, _ = self.ilpp_dp(cci + dummy_task_ci_list[i], tci_list[i] + dummy_task_ti_list[i],
+                                       len(tci_list[i] + dummy_task_ti_list[i]), self.__m)
+            x_list.append(x)
 
         # isd = isd / (f_star * global_specification.cpu_specification.clock_base_frequency)
-        sd = sd / f_star_hz
-        x = x / f_star_hz
+        sd_list = [sd / i for i in possible_f_hz]
+        x_list = [x_list[i] / possible_f_hz[i] for i in range(len(possible_f_hz))]
 
-        # Delete dummy task
-        if total_used_cycles < self.__m * hyperperiod_hz:
-            x = x[:-1, :]
+        for i in range(len(possible_f_hz)):
+            # Delete dummy task
+            if len(dummy_task_ci_list[i]) == 0:
+                x_list[i] = x_list[i][:-1, :]
+
+        for i in range(len(possible_f_hz)):
+            sd_list[i] = sd_list[1:]
 
         # All intervals
-        self.__intervals_end = [round(i, self.__decimals_precision) for i in sd[1:]]
+        self.__intervals_end = [round(i, self.__decimals_precision) for i in sd_list[0]]
 
         # All executions by intervals
-        self.__execution_by_intervals = x
+        self.__execution_by_intervals = x_list[0]
 
         # [(cc left in the interval, task id)]
-        self.__interval_cc_left = [(i[0], i[1].id) for i in zip((x[:, 0]).reshape(-1), periodic_tasks)]
+        self.__interval_cc_left = [(i[0], i[1].id) for i in
+                                   zip((self.__execution_by_intervals[0][:, 0]).reshape(-1), periodic_tasks)]
 
         # Time when the interval end
         self.__actual_interval_end = self.__intervals_end[0]
@@ -222,7 +236,11 @@ class GlobalJDEDSScheduler(AbstractGlobalScheduler):
         self.__dt = super().offline_stage(global_specification, periodic_tasks, aperiodic_tasks)
 
         # Processor frequencies
-        self.__f_star = f_star
+        self.__f_star = possible_f[0]
+
+        # Available f for aperiodic
+        self.__f_star_available = possible_f
+        self.x_possible = x_list
 
         return self.__dt
 

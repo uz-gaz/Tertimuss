@@ -80,6 +80,7 @@ class CpuSpecification(object):
         self.clock_base_frequency = clock_base_frequency
 
         self.clock_available_frequencies = clock_available_frequencies
+        self.clock_available_frequencies.sort()
 
         # TODO: This may be defined by the problem specification
         # Convection properties
