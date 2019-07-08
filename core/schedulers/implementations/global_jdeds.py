@@ -32,7 +32,7 @@ class GlobalJDEDSScheduler(AbstractGlobalScheduler):
         self.__f_star = None
 
         # Decimals precision
-        self.__decimals_precision = 5
+        self.__decimals_precision = None
 
     @staticmethod
     def ilpp_dp(ci: List[int], ti: List[int], n: int, m: int) -> [scipy.ndarray, scipy.ndarray,
@@ -154,6 +154,8 @@ class GlobalJDEDSScheduler(AbstractGlobalScheduler):
         self.__m = global_specification.cpu_specification.number_of_cores
         self.__n = len(global_specification.tasks_specification.periodic_tasks)
 
+        self.__decimals_precision = global_specification.simulation_specification.float_round
+
         # Calculate F start
         f_max = global_specification.cpu_specification.clock_available_frequencies[-1]
         phi_min = global_specification.cpu_specification.clock_available_frequencies[0]
@@ -247,13 +249,8 @@ class GlobalJDEDSScheduler(AbstractGlobalScheduler):
         :param time:
         :return: true if need to schedule
         """
-        # True if any task has arrived in this step
-        # new_task_arrive = any(
-        #    [round(i.next_arrival, self.__decimals_precision) == round(time, self.__decimals_precision)
-        #     for i in executable_tasks])
-
         # True if any task have ended in this step
-        tasks_have_ended = any([round(i[0], self.__decimals_precision) == 0 and i[1] in active_tasks
+        tasks_have_ended = any([round(i[0], self.__decimals_precision) <= 0 and i[1] in active_tasks
                                 for i in self.__interval_cc_left])
 
         # True if any task laxity is 0

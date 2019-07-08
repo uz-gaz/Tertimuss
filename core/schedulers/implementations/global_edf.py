@@ -2,7 +2,6 @@ from typing import List, Optional
 
 import scipy
 
-from core.kernel_generator.global_model import GlobalModel
 from core.problem_specification_models.GlobalSpecification import GlobalSpecification
 from core.schedulers.templates.abstract_global_scheduler import AbstractGlobalScheduler, GlobalSchedulerPeriodicTask, \
     GlobalSchedulerAperiodicTask, GlobalSchedulerTask

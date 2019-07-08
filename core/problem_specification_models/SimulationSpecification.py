@@ -12,9 +12,11 @@ class SimulationSpecification(object):
         :param step: Mesh step size (mm)
         :param dt:  Accuracy in seconds
         """
-        self.step = step
-        self.dt = dt
+        self.step: Optional[float] = step
+        self.dt: float = dt
 
         # TODO: Put in the specification
-        self.dt_fragmentation_proc_task = 10
-        self.dt_fragmentation_thermal = 100
+        self.dt_fragmentation_proc_task: int = 10
+        self.dt_fragmentation_thermal: int = 100
+
+        self.float_round: int = 5

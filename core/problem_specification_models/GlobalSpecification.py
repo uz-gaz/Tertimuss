@@ -24,8 +24,8 @@ class GlobalSpecification(object):
         :param simulation_specification: Simulation parameters specification
         :param tcpn_model_specification: Specification of some TCPN optinal parts
         """
-        self.tasks_specification = tasks_specification
-        self.cpu_specification = cpu_specification
-        self.environment_specification = environment_specification
-        self.simulation_specification = simulation_specification
-        self.tcpn_model_specification = tcpn_model_specification
+        self.tasks_specification: TasksSpecification = tasks_specification
+        self.cpu_specification: CpuSpecification = cpu_specification
+        self.environment_specification: EnvironmentSpecification = environment_specification
+        self.simulation_specification: SimulationSpecification = simulation_specification
+        self.tcpn_model_specification: TCPNModelSpecification = tcpn_model_specification

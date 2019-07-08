@@ -1,6 +1,7 @@
 import abc
 
 import scipy
+import math
 
 from core.kernel_generator.global_model import GlobalModel
 from core.problem_specification_models.GlobalSpecification import GlobalSpecification
@@ -61,6 +62,9 @@ class AbstractGlobalScheduler(AbstractScheduler):
         # True if simulation must save the temperature map
         is_thermal_simulation = global_model.enable_thermal_mode
 
+        # Round float to this decimal
+        float_round = global_specification.simulation_specification.float_round
+
         idle_task_id = -1
         m = global_specification.cpu_specification.number_of_cores
         n = len(global_specification.tasks_specification.aperiodic_tasks) + len(
@@ -84,8 +88,8 @@ class AbstractGlobalScheduler(AbstractScheduler):
         # point to the periodic_tasks and aperiodic_tasks elements
 
         # Number of steps in the simulation
-        simulation_time_steps = int(round(
-            global_specification.tasks_specification.h / global_specification.simulation_specification.dt))
+        simulation_time_steps = math.floor(round(
+            global_specification.tasks_specification.h / global_specification.simulation_specification.dt, float_round))
 
         # Allocation of each task in each simulation step
         i_tau_disc = scipy.zeros((n * m, simulation_time_steps))
@@ -119,8 +123,8 @@ class AbstractGlobalScheduler(AbstractScheduler):
         quantum = self.offline_stage(global_specification, periodic_tasks, aperiodic_tasks)
 
         # Number of steps in each quantum
-        simulation_quantum_steps = int(round(
-            quantum / global_specification.simulation_specification.dt))
+        simulation_quantum_steps = math.ceil(round(
+            quantum / global_specification.simulation_specification.dt, float_round))
         simulation_quantum_steps = 1 if simulation_quantum_steps == 0 else simulation_quantum_steps
 
         # Accumulated execution time in each step
@@ -140,7 +144,7 @@ class AbstractGlobalScheduler(AbstractScheduler):
         active_task_id = m * [-1]
 
         for zeta_q in range(simulation_time_steps):
-            print(zeta_q, "/", simulation_time_steps)
+            # print(zeta_q, "/", simulation_time_steps)
             # Update progress
             if progress_bar is not None:
                 progress_bar.update_progress(zeta_q / simulation_time_steps * 100)
@@ -149,10 +153,11 @@ class AbstractGlobalScheduler(AbstractScheduler):
             time = zeta_q * global_specification.simulation_specification.dt
 
             # Manage aperiodic tasks
-            if any([int(round(x.next_arrival / global_specification.simulation_specification.dt)) == zeta_q for x in
-                    aperiodic_tasks]):
-                periodic_arrives_list = [x.id for x in aperiodic_tasks if int(
-                    round(x.next_arrival / global_specification.simulation_specification.dt)) == zeta_q]
+            if any([math.ceil(
+                    round(x.next_arrival / global_specification.simulation_specification.dt, float_round)) == zeta_q for
+                    x in aperiodic_tasks]):
+                periodic_arrives_list = [x.id for x in aperiodic_tasks if math.ceil(
+                    round(x.next_arrival / global_specification.simulation_specification.dt, float_round)) == zeta_q]
                 need_scheduled = self.aperiodic_arrive(time, periodic_tasks, active_task_id, clock_relative_frequencies,
                                                        cores_temperature, periodic_arrives_list)
                 if need_scheduled:
@@ -163,10 +168,12 @@ class AbstractGlobalScheduler(AbstractScheduler):
             if quantum_q <= 0:
                 # Get executable tasks in this interval
                 executable_tasks = [actual_task for actual_task in tasks_set if
-                                    int(round(
-                                        actual_task.next_arrival / global_specification.simulation_specification.dt
-                                    )) <= zeta_q and int(round(
-                                        actual_task.pending_c / global_specification.simulation_specification.dt
+                                    math.ceil(round(
+                                        actual_task.next_arrival / global_specification.simulation_specification.dt,
+                                        float_round
+                                    )) <= zeta_q and math.ceil(round(
+                                        actual_task.pending_c / global_specification.simulation_specification.dt,
+                                        float_round
                                     )) > 0]
 
                 available_tasks_to_execute = [actual_task.id for actual_task in executable_tasks] + [-1]
@@ -184,7 +191,7 @@ class AbstractGlobalScheduler(AbstractScheduler):
                                   active_task_id]
 
                 if not scipy.array_equal(scheduler_selected_tasks, scipy.asarray(active_task_id)):
-                    print("Warning: At least one of the frequencies selected on time", time, "is not available")
+                    print("Warning: At least one task selected on time", time, "is not available")
 
                 # Check if the processor frequencies returned are in available ones
                 if next_core_frequencies is not None and all(
@@ -192,7 +199,8 @@ class AbstractGlobalScheduler(AbstractScheduler):
                          next_core_frequencies]):
                     print("Warning: At least one task selected on time", time, "to execute is not available ones")
 
-                quantum_q = int(round(next_quantum / global_specification.simulation_specification.dt)) - 1 \
+                quantum_q = math.ceil(
+                    round(next_quantum / global_specification.simulation_specification.dt, float_round)) - 1 \
                     if next_quantum is not None else simulation_quantum_steps - 1
                 quantum_q = 0 if quantum_q < 0 else quantum_q
 
@@ -241,18 +249,20 @@ class AbstractGlobalScheduler(AbstractScheduler):
             n_aperiodic = len(global_specification.tasks_specification.aperiodic_tasks)
 
             for j in range(n_periodic):
-                if round(tasks_set[j].next_deadline / global_specification.simulation_specification.dt) == zeta_q:
+                if math.ceil(round(tasks_set[j].next_deadline / global_specification.simulation_specification.dt,
+                                   float_round)) == zeta_q:
                     # It only manage the end of periodic tasks
                     tasks_set[j].pending_c = periodic_tasks[j].c
                     tasks_set[j].next_arrival += periodic_tasks[j].t
                     tasks_set[j].next_deadline += periodic_tasks[j].t
 
             for j in range(n_aperiodic):
-                if round(tasks_set[
-                             n_periodic + j].next_deadline / global_specification.simulation_specification.dt) == zeta_q:
+                if math.ceil(round(tasks_set[
+                                       n_periodic + j].next_deadline / global_specification.simulation_specification.dt,
+                                   float_round)) == zeta_q:
                     # It only manage the end of aperiodic tasks
                     tasks_set[n_periodic + j].next_arrival += global_specification.tasks_specification.h
-                    tasks_set[n_periodic + j].next_deadline += global_specification.tasks_specification.h
+                tasks_set[n_periodic + j].next_deadline += global_specification.tasks_specification.h
 
         if len(temperature_map) > 0:
             temperature_map = scipy.concatenate(temperature_map, axis=1)
