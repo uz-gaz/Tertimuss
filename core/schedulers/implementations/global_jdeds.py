@@ -31,9 +31,8 @@ class GlobalJDEDSScheduler(AbstractGlobalScheduler):
         self.__actual_interval_index = None
         self.__dt = None
         self.__f_star = None
-        self.__f_star_available = None
-        self.__x_possible = None
         self.__aperiodic_arrive = None
+        self.__possible_f = None
 
         # Decimals precision
         self.__decimals_precision = None
@@ -166,68 +165,50 @@ class GlobalJDEDSScheduler(AbstractGlobalScheduler):
         phi_start = max(phi_min, sum([i.c / i.t for i in periodic_tasks]) / (self.__m * f_max))
 
         possible_f = [x for x in global_specification.cpu_specification.clock_available_frequencies if x >= phi_start]
+
         if len(possible_f) == 0:
-            possible_f = [f_max]
-            raise Exception("Warning: Schedule is not feasible")
+            raise Exception("Error: Schedule is not feasible")
+
+        f_star = possible_f[0]
 
         # F star in HZ
-        possible_f_hz = [round(f * global_specification.cpu_specification.clock_base_frequency) for f in possible_f]
+        f_star_hz = round(f_star * global_specification.cpu_specification.clock_base_frequency)
 
         # Number of cycles
+        cci = list(
+            map(lambda a: int(a.c * global_specification.cpu_specification.clock_base_frequency), periodic_tasks))
 
-        cci = [int(a.c * global_specification.cpu_specification.clock_base_frequency) for a in periodic_tasks]
-
-        tci_list = [[int(a.t * i) for a in periodic_tasks] for i in possible_f_hz]
+        tci = list(map(lambda a: int(a.t * f_star_hz), periodic_tasks))
 
         # Add dummy task if needed
-        hyperperiod_hz_list = [int(global_specification.tasks_specification.h * i) for i in possible_f_hz]
+        hyperperiod_hz = int(global_specification.tasks_specification.h * f_star_hz)
 
-        a_i_list = [[int(tci_h[1] / i) for i in tci_h[0]] for tci_h in zip(tci_list, hyperperiod_hz_list)]
+        a_i = [int(hyperperiod_hz / i) for i in tci]
 
-        total_used_cycles_list = [sum([i[0] * i[1] for i in zip(cci, a_i)]) for a_i in a_i_list]
+        total_used_cycles = sum([i[0] * i[1] for i in zip(cci, a_i)])
 
-        dummy_task_ci_list = []
-        dummy_task_ti_list = []
+        if total_used_cycles < self.__m * hyperperiod_hz:
+            cci.append(int(self.__m * hyperperiod_hz - total_used_cycles))
+            tci.append(hyperperiod_hz)
 
-        for i in range(len(possible_f_hz)):
-            total_used_cycles = total_used_cycles_list[i]
-            if total_used_cycles < self.__m * hyperperiod_hz_list[i]:
-                dummy_task_ci_list.append(int(self.__m * hyperperiod_hz_list[i] - total_used_cycles))
-                dummy_task_ti_list.append(hyperperiod_hz_list[i])
-            else:
-                dummy_task_ci_list.append([])
-                dummy_task_ti_list.append([])
+        # Linear programing problem
+        x, sd, _, _ = self.ilpp_dp(cci, tci, len(tci), self.__m)
 
-        sd = None
-        x_list = []
+        sd = sd / f_star_hz
+        x = x / f_star_hz
 
-        for i in range(len(possible_f_hz)):
-            # Linear programing problem
-            x, sd, _, _ = self.ilpp_dp(cci + dummy_task_ci_list[i], tci_list[i] + dummy_task_ti_list[i],
-                                       len(tci_list[i] + dummy_task_ti_list[i]), self.__m)
-            x_list.append(x)
-
-        # isd = isd / (f_star * global_specification.cpu_specification.clock_base_frequency)
-        sd_list = [sd / i for i in possible_f_hz]
-        x_list = [x_list[i] / possible_f_hz[i] for i in range(len(possible_f_hz))]
-
-        for i in range(len(possible_f_hz)):
-            # Delete dummy task
-            if len(dummy_task_ci_list[i]) == 0:
-                x_list[i] = x_list[i][:-1, :]
-
-        for i in range(len(possible_f_hz)):
-            sd_list[i] = sd_list[1:]
+        # Delete dummy task
+        if total_used_cycles < self.__m * hyperperiod_hz:
+            x = x[:-1, :]
 
         # All intervals
-        self.__intervals_end = [round(i, self.__decimals_precision) for i in sd_list[0]]
+        self.__intervals_end = [round(i, self.__decimals_precision) for i in sd[1:]]
 
         # All executions by intervals
-        self.__execution_by_intervals = x_list[0]
+        self.__execution_by_intervals = x
 
         # [(cc left in the interval, task id)]
-        self.__interval_cc_left = [(i[0], i[1].id) for i in
-                                   zip((self.__execution_by_intervals[0][:, 0]).reshape(-1), periodic_tasks)]
+        self.__interval_cc_left = [(i[0], i[1].id) for i in zip((x[:, 0]).reshape(-1), periodic_tasks)]
 
         # Time when the interval end
         self.__actual_interval_end = self.__intervals_end[0]
@@ -239,13 +220,13 @@ class GlobalJDEDSScheduler(AbstractGlobalScheduler):
         self.__dt = super().offline_stage(global_specification, periodic_tasks, aperiodic_tasks)
 
         # Processor frequencies
-        self.__f_star = possible_f[0]
+        self.__f_star = f_star
 
-        # Available f for aperiodic
-        self.__f_star_available = possible_f
-        self.__x_possible = x_list
+        # Possible frequencies
+        self.__possible_f = possible_f
 
-        self.__aperiodic_arrive = False
+        # True if new aperiodic has arrive
+        self.__aperiodic_arrive = True
 
         return self.__dt
 
@@ -259,13 +240,68 @@ class GlobalJDEDSScheduler(AbstractGlobalScheduler):
         :param executable_tasks: actual tasks that can be executed ( c > 0 and arrive_time <= time)
         :param active_tasks: actual id of tasks assigned to cores (task with id -1 is the idle task)
         :param cores_max_temperature: temperature of each core
-        :param aperiodic_task_ids: ids of the aperiodic tasks arrived
+        :param aperiodic_task_ids: ids of the aperiodic tasks arrived in this step
         :return: true if want to immediately call the scheduler (schedule_policy method), false otherwise
         """
+        # x in base frequency time
+        x = self.__execution_by_intervals * self.__f_star
+        cc = self.__interval_cc_left * self.__f_star
 
-        # TODO: Implement this function
-        self.__aperiodic_arrive = True
-        return True
+        # Remaining time for aperiodic in the actual interval for each frequency
+        remaining_actual = [round(self.__actual_interval_end - time - sum(cc / i), self.__decimals_precision)
+                            for i in self.__possible_f]
+
+        # Remaining time for aperiodic in full intervals
+        number_of_full_intervals = 2  # TODO: Obtain
+
+        remaining_full_intervals = [[round(
+            self.__intervals_end[self.__actual_interval_index + i + 1] - self.__intervals_end[
+                self.__actual_interval_index + i] - sum(x[self.__actual_interval_index + i + 1] / self.__possible_f[j]),
+            self.__decimals_precision) for i in range(number_of_full_intervals)] for j in
+            self.__possible_f] if number_of_full_intervals > 0 else len(self.__possible_f) * [0]
+
+        # Remaining time for aperiodic in last interval
+        remaining_last_interval_to_deadline = 2  # TODO: Obtain
+
+        remaining_last_interval = [min(round(
+            self.__intervals_end[self.__actual_interval_index + number_of_full_intervals + 1] - self.__intervals_end[
+                self.__actual_interval_index + number_of_full_intervals] - sum(
+                x[self.__actual_interval_index + number_of_full_intervals + 1] / self.__possible_f[j]),
+            self.__decimals_precision), remaining_last_interval_to_deadline) for j in
+            self.__possible_f] if remaining_last_interval_to_deadline > 0 else len(self.__possible_f) * [0]
+
+        # Remaining time in each frequency
+        remaining = [(i[0] + sum(i[1]) + i[2], i[3]) for i in
+                     zip(remaining_actual, remaining_full_intervals, remaining_last_interval, range(self.__possible_f))]
+
+        c_aperiodic = 0  # TODO: Obtain
+
+        possible_f_index = [i[1] for i in remaining if i[0] >= c_aperiodic]
+
+        if len(possible_f_index) > 0:
+            self.__aperiodic_arrive = True
+            # Recreate x
+            f_stat = self.__possible_f[possible_f_index[0]]
+            self.__execution_by_intervals = self.__execution_by_intervals * f_stat
+
+            intervals_in_execution = 1 + number_of_full_intervals + (
+                1 if remaining_last_interval_to_deadline > 0 else 0)
+
+            times_to_execute = [remaining_actual[possible_f_index[0]]] + remaining_full_intervals[
+                possible_f_index[0]] + [remaining_last_interval[
+                                            possible_f_index[0]]] if remaining_last_interval_to_deadline > 0 else []
+
+            times_to_execute[-1] = times_to_execute[-1] - (sum(times_to_execute) - c_aperiodic)
+
+            new_x_row = scipy.zeros((1, len(self.__intervals_end)))
+            new_x_row[self.__actual_interval_index: self.__actual_interval_index +
+                                                    intervals_in_execution] = times_to_execute
+
+            self.__execution_by_intervals = scipy.concatenate([self.__execution_by_intervals, new_x_row], axis=0)
+        else:
+            print("Warning: The aperiodic task can not be executed")
+
+        return self.__aperiodic_arrive
 
     def __sp_interrupt(self, active_tasks: List[int], time: float) -> bool:
         """
