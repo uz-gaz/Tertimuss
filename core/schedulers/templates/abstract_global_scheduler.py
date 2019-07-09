@@ -156,10 +156,10 @@ class AbstractGlobalScheduler(AbstractScheduler):
             if any([math.ceil(
                     round(x.next_arrival / global_specification.simulation_specification.dt, float_round)) == zeta_q for
                     x in aperiodic_tasks]):
-                periodic_arrives_list = [x.id for x in aperiodic_tasks if math.ceil(
+                aperiodic_arrives_list = [x for x in aperiodic_tasks if math.ceil(
                     round(x.next_arrival / global_specification.simulation_specification.dt, float_round)) == zeta_q]
-                need_scheduled = self.aperiodic_arrive(time, periodic_tasks, active_task_id, clock_relative_frequencies,
-                                                       cores_temperature, periodic_arrives_list)
+                need_scheduled = self.aperiodic_arrive(time, aperiodic_arrives_list, clock_relative_frequencies,
+                                                       cores_temperature)
                 if need_scheduled:
                     # If scheduler need to be call
                     quantum_q = 0
@@ -194,10 +194,10 @@ class AbstractGlobalScheduler(AbstractScheduler):
                     print("Warning: At least one task selected on time", time, "is not available")
 
                 # Check if the processor frequencies returned are in available ones
-                if next_core_frequencies is not None and all(
-                        [x in global_specification.cpu_specification.clock_relative_frequencies for x in
+                if next_core_frequencies is not None and not all(
+                        [x in global_specification.cpu_specification.clock_available_frequencies for x in
                          next_core_frequencies]):
-                    print("Warning: At least one task selected on time", time, "to execute is not available ones")
+                    print("Warning: At least one frequency selected on time", time, "to execute is not available ones")
 
                 quantum_q = math.ceil(
                     round(next_quantum / global_specification.simulation_specification.dt, float_round)) - 1 \
@@ -262,7 +262,7 @@ class AbstractGlobalScheduler(AbstractScheduler):
                                    float_round)) == zeta_q:
                     # It only manage the end of aperiodic tasks
                     tasks_set[n_periodic + j].next_arrival += global_specification.tasks_specification.h
-                tasks_set[n_periodic + j].next_deadline += global_specification.tasks_specification.h
+                    tasks_set[n_periodic + j].next_deadline += global_specification.tasks_specification.h
 
         if len(temperature_map) > 0:
             temperature_map = scipy.concatenate(temperature_map, axis=1)
@@ -308,17 +308,14 @@ class AbstractGlobalScheduler(AbstractScheduler):
         pass
 
     @abc.abstractmethod
-    def aperiodic_arrive(self, time: float, executable_tasks: List[GlobalSchedulerTask], active_tasks: List[int],
-                         actual_cores_frequency: List[float], cores_max_temperature: Optional[scipy.ndarray],
-                         aperiodic_task_ids: List[int]) -> bool:
+    def aperiodic_arrive(self, time: float, aperiodic_tasks_arrived: List[GlobalSchedulerTask],
+                         actual_cores_frequency: List[float], cores_max_temperature: Optional[scipy.ndarray]) -> bool:
         """
         Method to implement with the actual on aperiodic arrive scheduler police
         :param actual_cores_frequency: Frequencies of cores
         :param time: actual simulation time passed
-        :param executable_tasks: actual tasks that can be executed ( c > 0 and arrive_time <= time)
-        :param active_tasks: actual id of tasks assigned to cores (task with id -1 is the idle task)
+        :param aperiodic_tasks_arrived: aperiodic tasks arrived in this step (arrive_time == time)
         :param cores_max_temperature: temperature of each core
-        :param aperiodic_task_ids: ids of the aperiodic tasks arrived
         :return: true if want to immediately call the scheduler (schedule_policy method), false otherwise
         """
         pass

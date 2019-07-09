@@ -29,9 +29,16 @@ class GlobalEDFScheduler(AbstractGlobalScheduler):
         self.__m = global_specification.cpu_specification.number_of_cores
         return super().offline_stage(global_specification, periodic_tasks, aperiodic_tasks)
 
-    def aperiodic_arrive(self, time: float, executable_tasks: List[GlobalSchedulerTask], active_tasks: List[int],
-                         actual_cores_frequency: List[float], cores_max_temperature: Optional[scipy.ndarray],
-                         aperiodic_task_ids: List[int]) -> bool:
+    def aperiodic_arrive(self, time: float, aperiodic_tasks_arrived: List[GlobalSchedulerTask],
+                         actual_cores_frequency: List[float], cores_max_temperature: Optional[scipy.ndarray]) -> bool:
+        """
+        Method to implement with the actual on aperiodic arrive scheduler police
+        :param actual_cores_frequency: Frequencies of cores
+        :param time: actual simulation time passed
+        :param aperiodic_tasks_arrived: aperiodic tasks arrived in this step (arrive_time == time)
+        :param cores_max_temperature: temperature of each core
+        :return: true if want to immediately call the scheduler (schedule_policy method), false otherwise
+        """
         # Nothing to do
         return False
 

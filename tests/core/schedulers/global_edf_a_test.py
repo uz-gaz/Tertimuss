@@ -87,7 +87,7 @@ class TestGlobalEdfScheduler(unittest.TestCase):
         # plot_cpu_utilization(global_specification, scheduler_simulation, "out/gedf_a_var_frequency_cpu_utilization.png")
         # plot_task_execution(global_specification, scheduler_simulation, "out/gedf_a_var_frequency_task_execution.png")
         plot_cpu_temperature(global_specification, scheduler_simulation,
-                             "out/gedf_a_var_frequency_cpu_temperature_v3_e.png")
+                             "out/gedf_a_var_frequency_cpu_temperature.png")
         # plot_accumulated_execution_time(global_specification, scheduler_simulation,
         #                                 "out/gedf_a_var_frequency_accumulated.png")
         # plot_cpu_frequency(global_specification, scheduler_simulation, "out/gedf_a_var_frequency_frequency.png")
