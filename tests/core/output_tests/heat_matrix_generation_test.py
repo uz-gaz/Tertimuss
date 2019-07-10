@@ -53,6 +53,13 @@ class HeatMatrixGeneration(unittest.TestCase):
         time_2 = time.time()
         print("Time taken creation of the model:", time_2 - time_1)
 
+        a = ((global_model.post_thermal - global_model.pre_thermal) * global_model.lambda_vector_thermal).dot(
+            global_model.pi_thermal)
+
+        print("Density of a:", scipy.count_nonzero(a) / (a.shape[0] * a.shape[1]))
+        del a
+
+        time_2 = time.time()
         # Creation of tcpn simulator instance
         tcpn_simulator = TcpnSimulatorAccurateOptimizedThermal(global_model.pre_thermal,
                                                                global_model.post_thermal,
@@ -66,7 +73,7 @@ class HeatMatrixGeneration(unittest.TestCase):
         print("Size of a multi step:", sys.getsizeof(a_multi_step) / (1024 ** 3), "GB")
         non_zeros_a = scipy.count_nonzero(a_multi_step)
         places_matrix_a = a_multi_step.shape[0] * a_multi_step.shape[1]
-        print("Density of a:", non_zeros_a / places_matrix_a)
+        print("Density of a multi step:", non_zeros_a / places_matrix_a)
         del a_multi_step
         time_3 = time.time()
         print("Time taken creation of the TCPN solver:", time_3 - time_2)
@@ -83,11 +90,12 @@ class HeatMatrixGeneration(unittest.TestCase):
         Size of pre and post (each one): 0.2749609798192978 GB
         Density of pre: 0.00036927621861152144
         Density of post: 0.00039095371897028406
-        Time taken creation of the model: 4.430338144302368
+        Time taken creation of the model: 4.081545352935791
+        Density of a: 0.0023072945416938487
         Size of a multi step: 0.054637178778648376 GB
-        Density of a: 0.9970468811705129
-        Time taken creation of the TCPN solver: 16.62180233001709
-        Time taken in 10 iterations: 0.08708691596984863
+        Density of a multi step: 0.9970468811705129
+        Time taken creation of the TCPN solver: 16.119224309921265
+        Time taken in 10 iterations: 0.08732342720031738
         """
 
 
