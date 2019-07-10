@@ -51,6 +51,13 @@ class TcpnSimulatorAccurateOptimizedThermal(object):
         """
         return self.__lambda
 
+    def get_a_multi_step(self):
+        """
+        Get a multi step (Only for debug purposes)
+        :return:
+        """
+        return self.__a_multi_step
+
     def simulate_multi_step(self, mo: scipy.ndarray) -> scipy.ndarray:
         """
         Simulate multi_step_number steps

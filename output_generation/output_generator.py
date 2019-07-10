@@ -3,7 +3,6 @@ from typing import Optional
 import scipy
 from matplotlib import animation
 
-from core.kernel_generator.global_model import GlobalModel
 from core.problem_specification_models.GlobalSpecification import GlobalSpecification
 from core.schedulers.templates.abstract_scheduler import SchedulerResult
 import matplotlib.pyplot as plt
@@ -47,8 +46,9 @@ def draw_heat_matrix(global_specification: GlobalSpecification, scheduler_result
     if save_path is None:
         plt.show()
     else:
-        # Set up formatting for the movie file
-        writer = animation.FFMpegWriter(fps=30, metadata=dict(artist='TCPN Framework'), bitrate=1800)
+        # writer = animation.FFMpegWriter(fps=30, metadata=dict(artist='TCPN Framework'), bitrate=1800)
+        # FFMpegFileWriter
+        writer = animation.FFMpegWriter(fps=30)
         anim.save(save_path, writer=writer)
 
 
