@@ -9,12 +9,11 @@ from core.schedulers.templates.abstract_scheduler import SchedulerResult
 import matplotlib.pyplot as plt
 
 
-def draw_heat_matrix(global_specification: GlobalSpecification, global_model: GlobalModel,
-                     scheduler_result: SchedulerResult, save_path: Optional[str] = None):
+def draw_heat_matrix(global_specification: GlobalSpecification, scheduler_result: SchedulerResult,
+                     save_path: Optional[str] = None):
     """
     Draw heat matrix or save the simulation in file if save_path is not null
     :param global_specification: problem specification
-    :param simulation_kernel: simulation kernel
     :param scheduler_result: result of scheduling
     :param save_path: path to save the simulation
     """
