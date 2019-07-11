@@ -54,7 +54,7 @@ class HeatMatrixGeneration(unittest.TestCase):
 
         environment_specification: EnvironmentSpecification = EnvironmentSpecification(0.001, 45, 110)
 
-        simulation_specification: SimulationSpecification = SimulationSpecification(2, 0.01)
+        simulation_specification: SimulationSpecification = SimulationSpecification(1, 0.01)
 
         tcpn_model_specification: TCPNModelSpecification = TCPNModelSpecification(
             ThermalModelSelector.THERMAL_MODEL_FREQUENCY_BASED)
@@ -85,7 +85,58 @@ class HeatMatrixGeneration(unittest.TestCase):
                Density of post: 0.00039095371897028406
                Time taken creation of the model: 4.081545352935791
         """
-        return global_model, 0.01, 10, 200
+        return global_model, 0.01, 100, 2000
+
+    def test_heat_matrix_execution_performance_ndarray_one_step(self):
+        """
+        Simulation of execution with ndarray (no sparse)
+        """
+        print("Simulation of execution with ndarray (no sparse)")
+
+        global_model, dt, dt_fragmentation, num_simulations = self.__specification_and_creation_of_the_model()
+
+        # TCPN simulator creation
+        time_start = time.time()
+
+        pi = global_model.pi_thermal
+        pre = global_model.pre_thermal
+        c = global_model.post_thermal - global_model.pre_thermal
+        lambda_vector = global_model.lambda_vector_thermal
+        mo = global_model.mo_thermal
+
+        a = (c * lambda_vector).dot(pi) * (dt / dt_fragmentation)
+
+        print("Time taken creation of the TCPN solver:", time.time() - time_start)
+
+        print("Density of a:", scipy.count_nonzero(a) / (a.shape[0] * a.shape[1]))
+        print("Size of a:", sys.getsizeof(a) / (1024 ** 3), "GB")
+        print("Size of pre:", sys.getsizeof(pre) / (1024 ** 3), "GB")
+        print("Size of c:", sys.getsizeof(c) / (1024 ** 3), "GB")
+        print("Size of lambda vector:", sys.getsizeof(lambda_vector) / (1024 ** 3), "GB")
+        print("Size of mo:", sys.getsizeof(mo) / (1024 ** 3), "GB")
+
+        del global_model
+
+        time_start = time.time()
+
+        # Simulation of steps
+        for _ in range(num_simulations):
+            for _ in range(dt_fragmentation):
+                mo = a.dot(mo)
+
+        print("Time taken simulating", num_simulations, "steps:", time.time() - time_start)
+
+        """
+        Simulation of execution with ndarray (no sparse)
+        Time taken creation of the TCPN solver: 6.639012813568115
+        Density of a: 0.0023072945416938487
+        Size of a: 0.054637178778648376 GB
+        Size of pre: 0.2749609798192978 GB
+        Size of c: 0.2749609798192978 GB
+        Size of lambda vector: 0.00010162591934204102 GB
+        Size of mo: 1.043081283569336e-07 GB
+        Time taken simulating 2000 steps: 1735.3220582008362
+        """
 
     def test_heat_matrix_execution_performance_ndarray(self):
         """
@@ -131,6 +182,20 @@ class HeatMatrixGeneration(unittest.TestCase):
             mo = a_multi_step.dot(mo)
 
         print("Time taken simulating", num_simulations, "steps:", time.time() - time_start)
+
+        """
+        Simulation of execution with ndarray (no sparse) and multi step
+        Time taken creation of the TCPN solver: 15.578176259994507
+        Density of a: 0.0023072945416938487
+        Density of a multi step: 0.9970468811705129
+        Size of a: 0.054637178778648376 GB
+        Size of a multi step: 0.054637178778648376 GB
+        Size of pre: 0.2749609798192978 GB
+        Size of c: 0.2749609798192978 GB
+        Size of lambda vector: 0.00010162591934204102 GB
+        Size of mo: 1.043081283569336e-07 GB
+        Time taken simulating 2000 steps: 17.19204545021057
+        """
 
     @classmethod
     def __heat_matrix_execution_performance_sparse_one_step(cls, sparse_matrix_type):
@@ -228,6 +293,29 @@ class HeatMatrixGeneration(unittest.TestCase):
         self.__heat_matrix_generation_and_execution_performance_sparse_multi_step(sparse_matrix_type)
         print("")
 
+        """
+        Simulation of execution with sparse csr_matrix
+        Simulation of execution with sparse and one step each iteration
+        Time taken creation of the TCPN solver: 1.939915418624878
+        Size of pre : 0.00016239657998085022 GB
+        Size of pi : 0.00020307675004005432 GB
+        Size of c : 0.0003212280571460724 GB
+        Size of a : 0.00019918754696846008 GB
+        Size of lambda_vector: 0.00010162591934204102 GB
+        Size of mo : 4.02890145778656e-05 GB
+        Time taken simulating 2000 steps: 71.71548199653625
+        
+        Simulation of execution with sparse and multi step
+        Time taken creation of the TCPN solver: 95.79970049858093
+        Size of pre : 0.00016239657998085022 GB
+        Size of pi : 0.00020307675004005432 GB
+        Size of c : 0.0003212280571460724 GB
+        Size of a_multi_step : 0.08172367885708809 GB
+        Size of lambda_vector: 0.00010162591934204102 GB
+        Size of mo : 4.02890145778656e-05 GB
+        Time taken simulating 2000 steps: 161.06178998947144
+        """
+
     def test_heat_matrix_execution_performance_sparse_bsr_matrix(self):
         """
         Simulation of execution with sparse bsr_matrix
@@ -240,6 +328,29 @@ class HeatMatrixGeneration(unittest.TestCase):
         print("")
         self.__heat_matrix_generation_and_execution_performance_sparse_multi_step(sparse_matrix_type)
         print("")
+
+        """
+        Simulation of execution with sparse bsr_matrix
+        Simulation of execution with sparse and one step each iteration
+        Time taken creation of the TCPN solver: 1.943782091140747
+        Size of pre : 0.00016239657998085022 GB
+        Size of pi : 0.00020307675004005432 GB
+        Size of c : 0.0003212280571460724 GB
+        Size of a : 0.00019918754696846008 GB
+        Size of lambda_vector: 0.00010162591934204102 GB
+        Size of mo : 4.02890145778656e-05 GB
+        Time taken simulating 2000 steps: 73.03531384468079
+        
+        Simulation of execution with sparse and multi step
+        Time taken creation of the TCPN solver: 95.99418210983276
+        Size of pre : 0.00016239657998085022 GB
+        Size of pi : 0.00020307675004005432 GB
+        Size of c : 0.0003212280571460724 GB
+        Size of a_multi_step : 0.08172367885708809 GB
+        Size of lambda_vector: 0.00010162591934204102 GB
+        Size of mo : 4.02890145778656e-05 GB
+        Time taken simulating 2000 steps: 213.35230422019958
+        """
 
     def test_heat_matrix_execution_performance_sparse_coo_matrix(self):
         """
@@ -254,6 +365,29 @@ class HeatMatrixGeneration(unittest.TestCase):
         self.__heat_matrix_generation_and_execution_performance_sparse_multi_step(sparse_matrix_type)
         print("")
 
+        """
+        Simulation of execution with sparse coo_matrix
+        Simulation of execution with sparse and one step each iteration
+        Time taken creation of the TCPN solver: 1.9422714710235596
+        Size of pre : 0.00020307302474975586 GB
+        Size of pi : 0.00020307302474975586 GB
+        Size of c : 0.00041484832763671875 GB
+        Size of a : 0.00019918754696846008 GB
+        Size of lambda_vector: 0.00010162591934204102 GB
+        Size of mo : 4.026293754577637e-05 GB
+        Time taken simulating 2000 steps: 71.44981169700623
+        
+        Simulation of execution with sparse and multi step
+        Time taken creation of the TCPN solver: 95.82761478424072
+        Size of pre : 0.00020307302474975586 GB
+        Size of pi : 0.00020307302474975586 GB
+        Size of c : 0.00041484832763671875 GB
+        Size of a_multi_step : 0.08172367885708809 GB
+        Size of lambda_vector: 0.00010162591934204102 GB
+        Size of mo : 4.026293754577637e-05 GB
+        Time taken simulating 2000 steps: 160.919025182724
+        """
+
     def test_heat_matrix_execution_performance_sparse_csc_matrix(self):
         """
         Simulation of execution with sparse csc_matrix
@@ -266,6 +400,29 @@ class HeatMatrixGeneration(unittest.TestCase):
         print("")
         self.__heat_matrix_generation_and_execution_performance_sparse_multi_step(sparse_matrix_type)
         print("")
+
+        """
+        Simulation of execution with sparse csc_matrix
+        Simulation of execution with sparse and one step each iteration
+        Time taken creation of the TCPN solver: 1.9407780170440674
+        Size of pre : 0.00016239657998085022 GB
+        Size of pi : 0.00020307675004005432 GB
+        Size of c : 0.0003212280571460724 GB
+        Size of a : 0.00019918754696846008 GB
+        Size of lambda_vector: 0.00010162591934204102 GB
+        Size of mo : 4.02890145778656e-05 GB
+        Time taken simulating 2000 steps: 71.53424167633057
+        
+        Simulation of execution with sparse and multi step
+        Time taken creation of the TCPN solver: 95.66145586967468
+        Size of pre : 0.00016239657998085022 GB
+        Size of pi : 0.00020307675004005432 GB
+        Size of c : 0.0003212280571460724 GB
+        Size of a_multi_step : 0.08172367885708809 GB
+        Size of lambda_vector: 0.00010162591934204102 GB
+        Size of mo : 4.02890145778656e-05 GB
+        Time taken simulating 2000 steps: 161.04035997390747
+        """
 
     def test_heat_matrix_execution_performance_sparse_dia_matrix(self):
         """
@@ -280,6 +437,29 @@ class HeatMatrixGeneration(unittest.TestCase):
         self.__heat_matrix_generation_and_execution_performance_sparse_multi_step(sparse_matrix_type)
         print("")
 
+        """
+        Simulation of execution with sparse dia_matrix
+        Simulation of execution with sparse and one step each iteration
+        Time taken creation of the TCPN solver: 1.9404592514038086
+        Size of pre : 0.00016239657998085022 GB
+        Size of pi : 0.00020307675004005432 GB
+        Size of c : 0.0003212280571460724 GB
+        Size of a : 0.00019918754696846008 GB
+        Size of lambda_vector: 0.00010162591934204102 GB
+        Size of mo : 4.02890145778656e-05 GB
+        Time taken simulating 2000 steps: 71.50228977203369
+        
+        Simulation of execution with sparse and multi step
+        Time taken creation of the TCPN solver: 95.71642279624939
+        Size of pre : 0.00016239657998085022 GB
+        Size of pi : 0.00020307675004005432 GB
+        Size of c : 0.0003212280571460724 GB
+        Size of a_multi_step : 0.08172367885708809 GB
+        Size of lambda_vector: 0.00010162591934204102 GB
+        Size of mo : 4.02890145778656e-05 GB
+        Time taken simulating 2000 steps: 160.96726632118225
+        """
+
     def test_heat_matrix_execution_performance_sparse_dok_matrix(self):
         """
         Simulation of execution with sparse csr_matrix
@@ -293,6 +473,29 @@ class HeatMatrixGeneration(unittest.TestCase):
         self.__heat_matrix_generation_and_execution_performance_sparse_multi_step(sparse_matrix_type)
         print("")
 
+        """
+        Simulation of execution with sparse dok_matrix
+        Simulation of execution with sparse and one step each iteration
+        Time taken creation of the TCPN solver: 1.939544439315796
+        Size of pre : 0.00016239657998085022 GB
+        Size of pi : 0.00020307675004005432 GB
+        Size of c : 0.0003212280571460724 GB
+        Size of a : 0.00019918754696846008 GB
+        Size of lambda_vector: 0.00010162591934204102 GB
+        Size of mo : 4.02890145778656e-05 GB
+        Time taken simulating 2000 steps: 71.58235740661621
+        
+        Simulation of execution with sparse and multi step
+        Time taken creation of the TCPN solver: 95.72665667533875
+        Size of pre : 0.00016239657998085022 GB
+        Size of pi : 0.00020307675004005432 GB
+        Size of c : 0.0003212280571460724 GB
+        Size of a_multi_step : 0.08172367885708809 GB
+        Size of lambda_vector: 0.00010162591934204102 GB
+        Size of mo : 4.02890145778656e-05 GB
+        Time taken simulating 2000 steps: 160.99669289588928
+        """
+
     def test_heat_matrix_execution_performance_sparse_lil_matrix(self):
         """
         Simulation of execution with sparse csr_matrix
@@ -305,6 +508,29 @@ class HeatMatrixGeneration(unittest.TestCase):
         print("")
         self.__heat_matrix_generation_and_execution_performance_sparse_multi_step(sparse_matrix_type)
         print("")
+
+        """
+        Simulation of execution with sparse lil_matrix
+        Simulation of execution with sparse and one step each iteration
+        Time taken creation of the TCPN solver: 1.941390037536621
+        Size of pre : 0.00016239657998085022 GB
+        Size of pi : 0.00020307675004005432 GB
+        Size of c : 0.0003212280571460724 GB
+        Size of a : 0.00019918754696846008 GB
+        Size of lambda_vector: 0.00010162591934204102 GB
+        Size of mo : 4.02890145778656e-05 GB
+        Time taken simulating 2000 steps: 71.56469798088074
+        
+        Simulation of execution with sparse and multi step
+        Time taken creation of the TCPN solver: 95.6835708618164
+        Size of pre : 0.00016239657998085022 GB
+        Size of pi : 0.00020307675004005432 GB
+        Size of c : 0.0003212280571460724 GB
+        Size of a_multi_step : 0.08172367885708809 GB
+        Size of lambda_vector: 0.00010162591934204102 GB
+        Size of mo : 4.02890145778656e-05 GB
+        Time taken simulating 2000 steps: 161.00649881362915
+        """
 
 
 if __name__ == '__main__':
