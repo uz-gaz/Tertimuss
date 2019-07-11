@@ -10,7 +10,7 @@ from core.problem_specification_models.TCPNModelSpecification import TCPNModelSp
 from core.problem_specification_models.TasksSpecification import TasksSpecification, PeriodicTask, AperiodicTask
 from core.schedulers.implementations.global_jdeds import GlobalJDEDSScheduler
 from output_generation.output_generator import plot_cpu_utilization, plot_task_execution, plot_cpu_temperature, \
-    plot_accumulated_execution_time, plot_cpu_frequency, plot_task_execution_percentage
+    plot_accumulated_execution_time, plot_cpu_frequency, plot_task_execution_percentage, draw_heat_matrix
 
 
 class GlobalWodes(unittest.TestCase):
@@ -50,7 +50,7 @@ class GlobalWodes(unittest.TestCase):
 
         scheduler_simulation = scheduler.simulate(global_specification, global_model, None)
 
-        # draw_heat_matrix(global_specification, simulation_kernel, scheduler_simulation, "affinity_heat_matrix.mp4")
+        draw_heat_matrix(global_specification, scheduler_simulation, "out/jdeds_heat_matrix.mp4")
         plot_cpu_utilization(global_specification, scheduler_simulation, "out/jdeds_cpu_utilization_thermal.png")
         plot_task_execution(global_specification, scheduler_simulation, "out/jdeds_task_execution_thermal.png")
         plot_cpu_temperature(global_specification, scheduler_simulation, "out/jdeds_cpu_temperature_thermal.png")
@@ -88,8 +88,8 @@ class GlobalWodes(unittest.TestCase):
 
         scheduler_simulation = scheduler.simulate(global_specification, global_model, None)
 
-        # draw_heat_matrix(global_specification, simulation_kernel, scheduler_simulation,
-        #                  "jdeds_aperiodic_heat_matrix.mp4")
+        draw_heat_matrix(global_specification, scheduler_simulation,
+                         "jdeds_aperiodic_heat_matrix.mp4")
         plot_cpu_utilization(global_specification, scheduler_simulation,
                              "out/jdeds_aperiodic_cpu_utilization_thermal.png")
         plot_task_execution(global_specification, scheduler_simulation,
