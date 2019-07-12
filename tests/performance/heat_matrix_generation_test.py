@@ -577,6 +577,18 @@ class HeatMatrixGeneration(unittest.TestCase):
 
         print("Time taken simulating", num_simulations, "steps:", time.time() - time_start)
 
+        """
+        Time taken creation of the TCPN solver: 11.625565767288208
+        Size of pre : 0.00016239657998085022 GB
+        Size of pi : 0.00020307675004005432 GB
+        Size of c : 0.0003212280571460724 GB
+        Size of a : 0.054637178778648376 GB
+        Size of a multi-step: 0.054637178778648376 GB
+        Size of lambda_vector: 0.00010162591934204102 GB
+        Size of mo : 1.043081283569336e-07 GB
+        Time taken simulating 2000 steps: 17.477917432785034
+        """
+
 
 if __name__ == '__main__':
     unittest.main()
