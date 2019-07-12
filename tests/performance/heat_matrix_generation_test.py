@@ -532,6 +532,51 @@ class HeatMatrixGeneration(unittest.TestCase):
         Time taken simulating 2000 steps: 161.00649881362915
         """
 
+    def test_heat_matrix_execution_performance_sparse_none_sparse_multi_step(self):
+        """
+        Simulation of execution with sparse and one step each iteration
+        """
+        print("Simulation of execution with sparse and none sparse mix")
+
+        global_model, dt, dt_fragmentation, num_simulations = self.__specification_and_creation_of_the_model()
+
+        sparse_matrix_type = scipy.sparse.csr_matrix
+
+        # TCPN simulator creation
+        time_start = time.time()
+
+        pi = sparse_matrix_type(global_model.pi_thermal)
+        pre = sparse_matrix_type(global_model.pre_thermal)
+        c = sparse_matrix_type(sparse_matrix_type(global_model.post_thermal) - pre)
+        lambda_vector = global_model.lambda_vector_thermal
+        mo = global_model.mo_thermal
+
+        a = (c.dot(scipy.sparse.diags(lambda_vector.reshape(-1)))).dot(pi) * (dt / dt_fragmentation)
+        a = a.toarray()
+
+        a_multi_step = scipy.linalg.fractional_matrix_power(a + scipy.identity(len(a)), dt_fragmentation)
+
+        print("Time taken creation of the TCPN solver:", time.time() - time_start)
+
+        print("Size of pre :", self.__size_of_sparse(pre) / (1024 ** 3), "GB")
+        print("Size of pi :", self.__size_of_sparse(pi) / (1024 ** 3), "GB")
+        print("Size of c :", self.__size_of_sparse(c) / (1024 ** 3), "GB")
+        print("Size of a :", sys.getsizeof(a) / (1024 ** 3), "GB")
+        print("Size of a multi-step:", sys.getsizeof(a_multi_step) / (1024 ** 3), "GB")
+        print("Size of lambda_vector:", sys.getsizeof(lambda_vector) / (1024 ** 3), "GB")
+        print("Size of mo :", sys.getsizeof(mo) / (1024 ** 3), "GB")
+
+        del global_model
+        del a
+
+        time_start = time.time()
+
+        # Simulation of steps
+        for _ in range(num_simulations):
+            mo = a_multi_step.dot(mo)
+
+        print("Time taken simulating", num_simulations, "steps:", time.time() - time_start)
+
 
 if __name__ == '__main__':
     unittest.main()
