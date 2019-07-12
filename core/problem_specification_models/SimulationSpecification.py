@@ -1,5 +1,7 @@
 from typing import Optional
 
+import scipy
+
 
 class SimulationSpecification(object):
     """
@@ -20,3 +22,5 @@ class SimulationSpecification(object):
         self.dt_fragmentation_thermal: int = 100
 
         self.float_round: int = 5
+
+        self.dtype = scipy.float64

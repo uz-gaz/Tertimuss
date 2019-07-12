@@ -2,7 +2,8 @@ import abc
 from typing import List
 
 import scipy
-from scipy.linalg import block_diag
+import scipy.sparse
+import scipy.linalg
 
 from core.problem_specification_models.CpuSpecification import CpuSpecification, MaterialCuboid, Origin
 from core.problem_specification_models.EnvironmentSpecification import EnvironmentSpecification
@@ -14,9 +15,10 @@ class ThermalModel(object):
 
     @staticmethod
     def simple_conductivity(material_cuboid: MaterialCuboid,
-                            simulation_specification: SimulationSpecification) -> [scipy.ndarray,
-                                                                                   scipy.ndarray,
-                                                                                   scipy.ndarray]:
+                            simulation_specification: SimulationSpecification) -> [
+        scipy.sparse.lil_matrix,
+        scipy.sparse.lil_matrix,
+        scipy.ndarray]:
         """
 
         :param material_cuboid: Board or CPU
@@ -55,11 +57,11 @@ class ThermalModel(object):
         #     7 8 9 [...]
         # That is the way to create the incidence matrix with the transitions who connects
         # 1-2 (both), 2-3 [...], 8-9 until the transition t=[(x*2)*(y-1)] + (x-1)*2
-        pre = scipy.zeros((p, t))
-        post = scipy.zeros((p, t))
+        pre = scipy.sparse.lil_matrix((p, t), dtype=simulation_specification.dtype)
+        post = scipy.sparse.lil_matrix((p, t), dtype=simulation_specification.dtype)
 
         # All lambdas are equals
-        lambda_vector = scipy.full(t, lambda_side)
+        lambda_vector = scipy.full(t, lambda_side, dtype=simulation_specification.dtype)
 
         for i in range(p - 1):
             j = i * 2
@@ -121,8 +123,10 @@ class ThermalModel(object):
 
     @staticmethod
     def add_interactions_layer(p_board: int, p_one_micro: int, cpu_specification: CpuSpecification,
-                               step: float) -> [scipy.ndarray, scipy.ndarray,
-                                                scipy.ndarray]:
+                               step: float, simulation_specification: SimulationSpecification) -> [
+        scipy.sparse.lil_matrix,
+        scipy.sparse.lil_matrix,
+        scipy.ndarray]:
         # Places and transitions for all CPUs
         p_micros = p_one_micro * cpu_specification.number_of_cores
 
@@ -159,27 +163,30 @@ class ThermalModel(object):
         lambda2_div_lambda1 = (cpu_specification.board_specification.z * rho_p1 * cp_p1) / (
                 cpu_specification.cpu_core_specification.z * rho_p2 * cp_p2)
 
-        pre_int = scipy.zeros((p_micros + p_board, 2 * p_micros))
-        post_int = scipy.zeros((p_micros + p_board, 2 * p_micros))
+        pre_int = scipy.sparse.lil_matrix((p_micros + p_board, 2 * p_micros), dtype=simulation_specification.dtype)
+        post_int = scipy.sparse.lil_matrix((p_micros + p_board, 2 * p_micros), dtype=simulation_specification.dtype)
 
-        lambda_vector_int = scipy.asarray(p_micros * [lambda1, lambda2])
+        lambda_vector_int = scipy.asarray(p_micros * [lambda1, lambda2], dtype=simulation_specification.dtype)
 
         for i in range(p_micros):
             j = i * 2
-            pre_int[rel_micro[i] - 1, j: j + 2] = [1, 0]
-            pre_int[i + p_board, j: j + 2] = [0, 1]
+            pre_int[rel_micro[i] - 1, j] = 1
+            pre_int[i + p_board, j + 1] = 1
 
-            post_int[rel_micro[i] - 1, j: j + 2] = [0, lambda1_div_lambda2]
-            post_int[i + p_board, j: j + 2] = [lambda2_div_lambda1, 0]
+            post_int[rel_micro[i] - 1, j + 1] = lambda1_div_lambda2
+            post_int[i + p_board, j] = lambda2_div_lambda1
 
         return pre_int, post_int, lambda_vector_int
 
     @staticmethod
     def add_convection(p_board: int, p_one_micro: int, cpu_specification: CpuSpecification,
-                       environment_specification: EnvironmentSpecification) -> [scipy.ndarray, scipy.ndarray,
-                                                                                scipy.ndarray,
-                                                                                scipy.ndarray, scipy.ndarray,
-                                                                                scipy.ndarray]:
+                       environment_specification: EnvironmentSpecification,
+                       simulation_specification: SimulationSpecification) -> [scipy.sparse.lil_matrix,
+                                                                              scipy.sparse.lil_matrix,
+                                                                              scipy.ndarray,
+                                                                              scipy.sparse.lil_matrix,
+                                                                              scipy.sparse.lil_matrix,
+                                                                              scipy.ndarray]:
         rho_p1 = cpu_specification.board_specification.p
         cp_p1 = cpu_specification.board_specification.c_p
 
@@ -196,24 +203,28 @@ class ThermalModel(object):
         total_places = p_micros + exposed_places
 
         # Transition t1 in the convection paper (temperature dissipation into the air)
-        pre_conv = scipy.concatenate(
-            [scipy.diag(scipy.ones(exposed_places)), scipy.zeros((p_micros, exposed_places))])
-        post_conv = scipy.zeros((total_places, exposed_places))
-        lambda_conv = scipy.full(exposed_places, lambda_convection)
+
+        pre_conv = scipy.sparse.vstack(
+            [scipy.sparse.identity(exposed_places, dtype=simulation_specification.dtype, format="lil"),
+             scipy.sparse.lil_matrix((p_micros, exposed_places), dtype=simulation_specification.dtype)])
+        post_conv = scipy.sparse.lil_matrix((total_places, exposed_places), dtype=simulation_specification.dtype)
+        lambda_conv = scipy.full(exposed_places, lambda_convection, dtype=simulation_specification.dtype)
 
         # Transition t2 and place p2 in the convection paper
-        pre_conv_air = scipy.zeros((total_places + 1, 1))
+        pre_conv_air = scipy.sparse.lil_matrix((total_places + 1, 1), dtype=simulation_specification.dtype)
         pre_conv_air[-1, 0] = 1
-        post_conv_air = scipy.zeros((total_places + 1, 1))
+        post_conv_air = scipy.sparse.lil_matrix((total_places + 1, 1), dtype=simulation_specification.dtype)
         post_conv_air[-1, 0] = 1
-        post_conv_air[0:exposed_places, 0] = scipy.ones(exposed_places)
-        lambda_conv_air = scipy.asarray([lambda_convection])
+        post_conv_air[:exposed_places, 0] = 1
+
+        lambda_conv_air = scipy.asarray([lambda_convection], dtype=simulation_specification.dtype)
 
         return pre_conv, post_conv, lambda_conv, pre_conv_air, post_conv_air, lambda_conv_air
 
     @staticmethod
-    def add_heat_by_leakage_power(p_board: int, p_one_micro: int, cpu_specification: CpuSpecification) \
-            -> [scipy.ndarray, scipy.ndarray, scipy.ndarray]:
+    def add_heat_by_leakage_power(p_board: int, p_one_micro: int, cpu_specification: CpuSpecification,
+                                  simulation_specification: SimulationSpecification) \
+            -> [scipy.sparse.lil_matrix, scipy.sparse.lil_matrix, scipy.ndarray]:
         # The generation is equal for each place in the same processor so lambdas are equal too
         lambda_coefficient_delta = cpu_specification.leakage_delta
         lambda_coefficient_alpha = cpu_specification.leakage_alpha
@@ -227,24 +238,27 @@ class ThermalModel(object):
         # Number of transitions m * ( t_1_delta_heat_generation ) + t_1_alpha_heat_generation
         number_of_transitions = p_micros + 1
 
-        pre_gen = scipy.zeros((total_places, number_of_transitions))
+        pre_gen = scipy.sparse.lil_matrix((total_places, number_of_transitions), dtype=simulation_specification.dtype)
 
-        pre_gen[p_board:p_board + p_micros, 0:p_micros] = scipy.identity(
-            p_micros)  # Connection between each P_temp and t_1_delta
+        pre_gen[p_board:p_board + p_micros, 0:p_micros] = scipy.sparse.identity(p_micros,
+                                                                                dtype=simulation_specification.dtype,
+                                                                                format="lil")  # Connection between each P_temp and t_1_delta
 
         pre_gen[-1, -1] = 1  # Connection between P_alpha and t_1_alpha
 
-        post_gen = scipy.zeros((total_places, number_of_transitions))
+        post_gen = scipy.sparse.lil_matrix((total_places, number_of_transitions), dtype=simulation_specification.dtype)
 
-        post_gen[p_board:p_board + p_micros, 0:p_micros] = 2 * scipy.identity(
-            p_micros)  # Connection between t_1_delta and each P_temp
+        post_gen[p_board:p_board + p_micros, 0:p_micros] = 2 * scipy.sparse.identity(p_micros,
+                                                                                     dtype=simulation_specification.dtype,
+                                                                                     format="lil")  # Connection between t_1_delta and each P_temp
 
         post_gen[-1, -1] = 1  # Connection between t_1_alpha and P_alpha
 
-        post_gen[p_board:p_board + p_micros, -1] = scipy.ones(p_micros)  # Connection between t_1_alpha and each P_temp
+        post_gen[p_board:p_board + p_micros, -1] = 1  # Connections between t_1_alpha and each P_temp
 
         lambda_gen = scipy.concatenate(
-            [scipy.full(p_micros, lambda_coefficient_delta), [lambda_coefficient_alpha]])
+            [scipy.full(p_micros, lambda_coefficient_delta, dtype=simulation_specification.dtype),
+             scipy.asarray([lambda_coefficient_alpha], dtype=simulation_specification.dtype)])
 
         return pre_gen, post_gen, lambda_gen
 
@@ -266,8 +280,9 @@ class ThermalModel(object):
 
     @classmethod
     def add_heat_by_dynamic_power(cls, p_board: int, p_one_micro: int, cpu_specification: CpuSpecification,
-                                  tasks_specification: TasksSpecification) \
-            -> [scipy.ndarray, scipy.ndarray, scipy.ndarray]:
+                                  tasks_specification: TasksSpecification,
+                                  simulation_specification: SimulationSpecification) \
+            -> [scipy.sparse.lil_matrix, scipy.sparse.lil_matrix, scipy.ndarray]:
         n = len(tasks_specification.periodic_tasks) + len(tasks_specification.aperiodic_tasks)
 
         # Places and transitions for all CPUs
@@ -279,32 +294,38 @@ class ThermalModel(object):
         # Number of transitions one for each t_exec
         number_of_transitions = cpu_specification.number_of_cores * n
 
-        pre_gen = scipy.zeros((total_places, number_of_transitions))
-        pre_gen[p_board + p_micros + 1 + 1:p_board + p_micros + 1 + 1 + number_of_transitions, :] = scipy.identity(
-            number_of_transitions)  # Connection with p2 in paper
+        pre_gen = scipy.sparse.lil_matrix((total_places, number_of_transitions), dtype=simulation_specification.dtype)
+        pre_gen[p_board + p_micros + 1 + 1:p_board + p_micros + 1 + 1 + number_of_transitions,
+        :] = scipy.sparse.identity(number_of_transitions, dtype=simulation_specification.dtype,
+                                   format="lil")  # Connection with p2 in paper
 
-        post_gen = scipy.zeros((total_places, number_of_transitions))
+        post_gen = scipy.sparse.lil_matrix((total_places, number_of_transitions), dtype=simulation_specification.dtype)
 
-        # TODO: This will ensure that m_exec will remain constant
-        post_gen[p_board + p_micros + 1 + 1:p_board + p_micros + 1 + 1 + number_of_transitions, :] = scipy.identity(
-            number_of_transitions)  # Connection with p2 in paper
+        # This will ensure that m_exec will remain constant
+        post_gen[p_board + p_micros + 1 + 1:p_board + p_micros + 1 + 1 + number_of_transitions,
+        :] = scipy.sparse.identity(number_of_transitions, dtype=simulation_specification.dtype,
+                                   format="lil")  # Connection with p2 in paper
 
         # Get power consumption by task in cpu
         dynamic_power_consumption = cls._get_dynamic_power_consumption(cpu_specification, tasks_specification,
                                                                        cpu_specification.clock_relative_frequencies)
 
         # Transitions from exec to core places
-        post_gen[p_board: p_board + p_micros, :] = block_diag(
-            *[scipy.repeat(i.reshape((1, -1)), p_one_micro, axis=0) for i in dynamic_power_consumption])
+        # TODO: Change to operate only with sparse matrixes
+        post_gen[p_board: p_board + p_micros, :] = scipy.sparse.lil_matrix(scipy.linalg.block_diag(
+            *[scipy.repeat(i.reshape((1, -1)), p_one_micro, axis=0) for i in dynamic_power_consumption]),
+            dtype=simulation_specification.dtype)
 
-        lambda_gen = scipy.concatenate([f * scipy.ones(n) for f in cpu_specification.clock_relative_frequencies])
+        lambda_gen = scipy.concatenate([scipy.full(n,f, dtype=simulation_specification.dtype) for f in
+                                        cpu_specification.clock_relative_frequencies])
 
         return pre_gen, post_gen, lambda_gen
 
     @classmethod
     def change_frequency(cls, frequency_vector: List[float], post: scipy.ndarray, lambda_vector: scipy.ndarray,
                          cpu_specification: CpuSpecification, tasks_specification: TasksSpecification, p_board: int,
-                         p_one_micro: int) -> [scipy.ndarray, scipy.ndarray, scipy.ndarray, scipy.ndarray]:
+                         p_one_micro: int, simulation_specification: SimulationSpecification) -> [
+        scipy.sparse.lil_matrix, scipy.ndarray]:
         """
         Return new models adapted to the new frequencies
         :param p_one_micro:
@@ -316,20 +337,22 @@ class ThermalModel(object):
         :param tasks_specification:
         :return:
         """
+        # TODO: Check if is necessary add the type
         # Get power consumption by task in cpu
         dynamic_power_consumption = cls._get_dynamic_power_consumption(cpu_specification, tasks_specification,
                                                                        frequency_vector)
 
         # Transitions from exec to core places
-        post_sustitution = block_diag(
-            *[scipy.repeat(i.reshape((1, -1)), p_one_micro, axis=0) for i in dynamic_power_consumption])
+        post_sustitution = scipy.sparse.lil_matrix(scipy.linalg.block_diag(
+            *[scipy.repeat(i.reshape((1, -1)), p_one_micro, axis=0) for i in dynamic_power_consumption]),
+            dtype=simulation_specification.dtype)
 
         n: int = len(tasks_specification.periodic_tasks) + len(tasks_specification.aperiodic_tasks)
 
         m = cpu_specification.number_of_cores
 
         lambda_sustitution = scipy.concatenate(
-            [f * scipy.ones(n) for f in frequency_vector])
+            [f * scipy.ones(n, dtype=simulation_specification.dtype) for f in frequency_vector])
 
         lambda_vector[-n * m:] = lambda_sustitution
 
@@ -357,11 +380,14 @@ class ThermalModel(object):
         t_one_micro = pre_micro_cond.shape[1]
 
         # Create pre, post and lambda from the system with board and number of CPUs
-        pre_cond = block_diag(*([pre_board_cond] + cpu_specification.number_of_cores * [pre_micro_cond]))
+
+        pre_cond = scipy.sparse.block_diag(([pre_board_cond] + [pre_micro_cond.copy() for _ in
+                                                                range(cpu_specification.number_of_cores)]))
         del pre_board_cond  # Recover memory space
         del pre_micro_cond  # Recover memory space
 
-        post_cond = block_diag(*([post_board_cond] + cpu_specification.number_of_cores * [post_micro_cond]))
+        post_cond = scipy.sparse.block_diag(([post_board_cond] + [post_micro_cond.copy() for _ in
+                                                                  range(cpu_specification.number_of_cores)]))
         del post_board_cond  # Recover memory space
         del post_micro_cond  # Recover memory space
 
@@ -373,55 +399,70 @@ class ThermalModel(object):
         # Add transitions between micro and board
         # Connections between micro places and board places
         pre_int, post_int, lambda_vector_int = self.add_interactions_layer(p_board, p_one_micro, cpu_specification,
-                                                                           simulation_specification.step)
+                                                                           simulation_specification.step,
+                                                                           simulation_specification)
 
         # Convection
         pre_conv, post_conv, lambda_vector_conv, pre_conv_air, post_conv_air, lambda_vector_conv_air = \
-            self.add_convection(p_board, p_one_micro, cpu_specification, environment_specification)
+            self.add_convection(p_board, p_one_micro, cpu_specification, environment_specification,
+                                simulation_specification)
 
         # Heat generation leakage
         pre_heat_leakage, post_heat_leakage, lambda_vector_heat_leakage = self.add_heat_by_leakage_power(p_board,
                                                                                                          p_one_micro,
-                                                                                                         cpu_specification)
+                                                                                                         cpu_specification,
+                                                                                                         simulation_specification)
 
         # Heat generation dynamic
         pre_heat_dynamic, post_heat_dynamic, lambda_vector_heat_dynamic = self.add_heat_by_dynamic_power(p_board,
                                                                                                          p_one_micro,
                                                                                                          cpu_specification,
-                                                                                                         tasks_specification)
+                                                                                                         tasks_specification,
+                                                                                                         simulation_specification)
 
         # Thermal model generation
-        zero_1 = scipy.zeros((1, t_board + t_one_micro * cpu_specification.number_of_cores +
-                              2 * p_one_micro * cpu_specification.number_of_cores + p_board))
+        zero_11 = scipy.sparse.lil_matrix((1, t_board + t_one_micro * cpu_specification.number_of_cores +
+                                           2 * p_one_micro * cpu_specification.number_of_cores + p_board),
+                                          dtype=simulation_specification.dtype)
+        zero_21 = scipy.sparse.lil_matrix((1, t_board + t_one_micro * cpu_specification.number_of_cores +
+                                           2 * p_one_micro * cpu_specification.number_of_cores + p_board),
+                                          dtype=simulation_specification.dtype)
 
-        zero_2 = scipy.zeros((1, t_board + t_one_micro *
-                              cpu_specification.number_of_cores + 2 * p_one_micro * cpu_specification.number_of_cores +
-                              p_board + 1))
+        zero_12 = scipy.sparse.lil_matrix((1, t_board + t_one_micro *
+                                           cpu_specification.number_of_cores + 2 * p_one_micro * cpu_specification.number_of_cores +
+                                           p_board + 1), dtype=simulation_specification.dtype)
+        zero_22 = scipy.sparse.lil_matrix((1, t_board + t_one_micro *
+                                           cpu_specification.number_of_cores + 2 * p_one_micro * cpu_specification.number_of_cores +
+                                           p_board + 1), dtype=simulation_specification.dtype)
 
         n = len(tasks_specification.periodic_tasks) + len(tasks_specification.aperiodic_tasks)
 
-        zero_3 = scipy.zeros((cpu_specification.number_of_cores * n, t_board +
-                              t_one_micro * cpu_specification.number_of_cores + 2 * p_one_micro *
-                              cpu_specification.number_of_cores + p_board + 1 + cpu_specification.number_of_cores *
-                              p_one_micro + 1))
+        zero_13 = scipy.sparse.lil_matrix((cpu_specification.number_of_cores * n, t_board +
+                                           t_one_micro * cpu_specification.number_of_cores + 2 * p_one_micro *
+                                           cpu_specification.number_of_cores + p_board + 1 + cpu_specification.number_of_cores *
+                                           p_one_micro + 1), dtype=simulation_specification.dtype)
+        zero_23 = scipy.sparse.lil_matrix((cpu_specification.number_of_cores * n, t_board +
+                                           t_one_micro * cpu_specification.number_of_cores + 2 * p_one_micro *
+                                           cpu_specification.number_of_cores + p_board + 1 + cpu_specification.number_of_cores *
+                                           p_one_micro + 1), dtype=simulation_specification.dtype)
 
         # Creation of pre matrix
-        pre = scipy.concatenate([pre_cond, pre_int, pre_conv], axis=1)
-        pre = scipy.concatenate([pre, zero_1], axis=0)
-        pre = scipy.concatenate([pre, pre_conv_air], axis=1)
-        pre = scipy.concatenate([pre, zero_2], axis=0)
-        pre = scipy.concatenate([pre, pre_heat_leakage], axis=1)
-        pre = scipy.concatenate([pre, zero_3], axis=0)
-        pre = scipy.concatenate([pre, pre_heat_dynamic], axis=1)
+        pre = scipy.sparse.hstack([pre_cond, pre_int, pre_conv])
+        pre = scipy.sparse.vstack([pre, zero_11])
+        pre = scipy.sparse.hstack([pre, pre_conv_air])
+        pre = scipy.sparse.vstack([pre, zero_12])
+        pre = scipy.sparse.hstack([pre, pre_heat_leakage])
+        pre = scipy.sparse.vstack([pre, zero_13])
+        pre = scipy.sparse.hstack([pre, pre_heat_dynamic])
 
         # Creation of post matrix
-        post = scipy.concatenate([post_cond, post_int, post_conv], axis=1)
-        post = scipy.concatenate([post, zero_1], axis=0)
-        post = scipy.concatenate([post, post_conv_air], axis=1)
-        post = scipy.concatenate([post, zero_2], axis=0)
-        post = scipy.concatenate([post, post_heat_leakage], axis=1)
-        post = scipy.concatenate([post, zero_3], axis=0)
-        post = scipy.concatenate([post, post_heat_dynamic], axis=1)
+        post = scipy.sparse.hstack([post_cond, post_int, post_conv])
+        post = scipy.sparse.vstack([post, zero_21])
+        post = scipy.sparse.hstack([post, post_conv_air])
+        post = scipy.sparse.vstack([post, zero_22])
+        post = scipy.sparse.hstack([post, post_heat_leakage])
+        post = scipy.sparse.vstack([post, zero_23])
+        post = scipy.sparse.hstack([post, post_heat_dynamic])
 
         # Creation of lambda matrix
         lambda_vector = scipy.concatenate([lambda_vector_cond, lambda_vector_int, lambda_vector_conv,
@@ -432,15 +473,16 @@ class ThermalModel(object):
         pi = pre.transpose().copy()
 
         # Creation of mo
-        mo = scipy.concatenate([scipy.full(p_board + p_one_micro * cpu_specification.number_of_cores + 1,
-                                           environment_specification.t_env),
-                                scipy.asarray([1]),
-                                scipy.zeros(cpu_specification.number_of_cores * n)
-                                ]).reshape((-1, 1))
+        mo = scipy.sparse.lil_matrix(
+            scipy.concatenate([scipy.full(p_board + p_one_micro * cpu_specification.number_of_cores + 1,
+                                          environment_specification.t_env),
+                               scipy.asarray([1]),
+                               scipy.zeros(cpu_specification.number_of_cores * n)
+                               ]).reshape((-1, 1)))
 
-        self.pre_sis = pre
-        self.post_sis = post
-        self.pi_sis = pi
+        self.pre_sis = pre.tocsr()
+        self.post_sis = post.tocsr()
+        self.pi_sis = pi.tocsr()
         self.lambda_vector_sis = lambda_vector
         self.mo_sis = mo
         self.p_board = p_board
