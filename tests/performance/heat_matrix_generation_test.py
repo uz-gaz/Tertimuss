@@ -54,7 +54,7 @@ class HeatMatrixGeneration(unittest.TestCase):
 
         environment_specification: EnvironmentSpecification = EnvironmentSpecification(0.001, 45, 110)
 
-        simulation_specification: SimulationSpecification = SimulationSpecification(1, 0.01)
+        simulation_specification: SimulationSpecification = SimulationSpecification(0.65, 0.01)
 
         tcpn_model_specification: TCPNModelSpecification = TCPNModelSpecification(
             ThermalModelSelector.THERMAL_MODEL_FREQUENCY_BASED)
@@ -69,14 +69,14 @@ class HeatMatrixGeneration(unittest.TestCase):
         global_model = GlobalModel(global_specification, True)
         time_2 = time.time()
 
-        # print("Size of pre and post (each one):", sys.getsizeof(global_model.pre_thermal) / (1024 ** 3), "GB")
-        # non_zeros_pre = scipy.count_nonzero(global_model.pre_thermal)
-        # non_zeros_post = scipy.count_nonzero(global_model.post_thermal)
-        # places_matrix_pre = global_model.pre_thermal.shape[0] * global_model.pre_thermal.shape[1]
-        #
-        # print("Density of pre:", non_zeros_pre / places_matrix_pre)
-        # print("Density of post:", non_zeros_post / places_matrix_pre)
-        # print("Time taken creation of the model:", time_2 - time_1)
+        print("Size of pre and post (each one):", sys.getsizeof(global_model.pre_thermal) / (1024 ** 3), "GB")
+        non_zeros_pre = scipy.count_nonzero(global_model.pre_thermal)
+        non_zeros_post = scipy.count_nonzero(global_model.post_thermal)
+        places_matrix_pre = global_model.pre_thermal.shape[0] * global_model.pre_thermal.shape[1]
+
+        print("Density of pre:", non_zeros_pre / places_matrix_pre)
+        print("Density of post:", non_zeros_post / places_matrix_pre)
+        print("Time taken creation of the model:", time_2 - time_1)
 
         """
                Problem with step = 1
@@ -85,7 +85,7 @@ class HeatMatrixGeneration(unittest.TestCase):
                Density of post: 0.00039095371897028406
                Time taken creation of the model: 4.081545352935791
         """
-        return global_model, 0.01, 100, 2000
+        return global_model, 0.01, 100, 200
 
     def test_heat_matrix_execution_performance_ndarray_one_step(self):
         """
@@ -551,6 +551,8 @@ class HeatMatrixGeneration(unittest.TestCase):
         lambda_vector = global_model.lambda_vector_thermal
         mo = global_model.mo_thermal
 
+        del global_model
+
         a = (c.dot(scipy.sparse.diags(lambda_vector.reshape(-1)))).dot(pi) * (dt / dt_fragmentation)
         a = a.toarray()
 
@@ -566,7 +568,6 @@ class HeatMatrixGeneration(unittest.TestCase):
         print("Size of lambda_vector:", sys.getsizeof(lambda_vector) / (1024 ** 3), "GB")
         print("Size of mo :", sys.getsizeof(mo) / (1024 ** 3), "GB")
 
-        del global_model
         del a
 
         time_start = time.time()
@@ -578,6 +579,7 @@ class HeatMatrixGeneration(unittest.TestCase):
         print("Time taken simulating", num_simulations, "steps:", time.time() - time_start)
 
         """
+        Step = 1
         Time taken creation of the TCPN solver: 11.625565767288208
         Size of pre : 0.00016239657998085022 GB
         Size of pi : 0.00020307675004005432 GB
@@ -587,6 +589,38 @@ class HeatMatrixGeneration(unittest.TestCase):
         Size of lambda_vector: 0.00010162591934204102 GB
         Size of mo : 1.043081283569336e-07 GB
         Time taken simulating 2000 steps: 17.477917432785034
+        
+        Step = 0.75
+        Simulation of execution with sparse and none sparse mix
+        Size of pre and post (each one): 0.880668006837368 GB
+        Density of pre: 0.00020682523267838676
+        Density of post: 0.00021826335247145662
+        Time taken creation of the model: 11.719517946243286
+        Time taken creation of the TCPN solver: 62.1321918964386
+        Size of pre : 0.00029123201966285706 GB
+        Size of pi : 0.0003642924129962921 GB
+        Size of c : 0.0005756020545959473 GB
+        Size of a : 0.174174003303051 GB
+        Size of a multi-step: 0.174174003303051 GB
+        Size of lambda_vector: 0.0001822337508201599 GB
+        Size of mo : 1.043081283569336e-07 GB
+        Time taken simulating 2000 steps: 52.81004190444946
+        
+        Step = 0.65 (With swap)
+        Simulation of execution with sparse and none sparse mix
+        Size of pre and post (each one): 1.5406246408820152 GB
+        Density of pre: 0.0001565680288085173
+        Density of post: 0.00016527296940636537
+        Time taken creation of the model: 49.70990824699402
+        Time taken creation of the TCPN solver: 150.49850702285767
+        Size of pre : 0.0003856159746646881 GB
+        Size of pi : 0.00048242881894111633 GB
+        Size of c : 0.0007623434066772461 GB
+        Size of a : 0.3039373680949211 GB
+        Size of a multi-step: 0.3039373680949211 GB
+        Size of lambda_vector: 0.00024130195379257202 GB
+        Size of mo : 1.043081283569336e-07 GB
+        Time taken simulating 2000 steps: 93.01911354064941
         """
 
 
