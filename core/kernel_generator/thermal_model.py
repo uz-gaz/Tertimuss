@@ -429,7 +429,7 @@ class ThermalModel(object):
                                            lambda_vector_heat_dynamic])
 
         # Creation of pi
-        pi = pre.transpose()
+        pi = pre.transpose().copy()
 
         # Creation of mo
         mo = scipy.concatenate([scipy.full(p_board + p_one_micro * cpu_specification.number_of_cores + 1,
