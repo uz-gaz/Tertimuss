@@ -57,7 +57,7 @@ class TestThermalModel(unittest.TestCase):
 
         environment_specification: EnvironmentSpecification = EnvironmentSpecification(0.001, 45, 110)
 
-        simulation_specification: SimulationSpecification = SimulationSpecification(1, 0.01)
+        simulation_specification: SimulationSpecification = SimulationSpecification(2, 0.01)
 
         tcpn_model_specification: TCPNModelSpecification = TCPNModelSpecification(
             ThermalModelSelector.THERMAL_MODEL_FREQUENCY_BASED)
@@ -69,18 +69,18 @@ class TestThermalModel(unittest.TestCase):
 
         global_model = GlobalModel(global_specification, True)
 
-        print("Creation time", time.time() - time_start)
+        # print("Creation time", time.time() - time_start)
 
-        # self.assertEqual(hashlib.md5(global_model.pre_thermal.toarray()).hexdigest(),
-        #                  "2484d50df6ba39d26b56c7b4f1ea0a42")
-        # self.assertEqual(hashlib.md5(global_model.post_thermal.toarray()).hexdigest(),
-        #                  "818291b431aa9a18e9355f20c1028cc5")
-        # self.assertEqual(hashlib.md5(global_model.lambda_vector_thermal).hexdigest(),
-        #                  "3029c16803a77e61d4478823ebf6366d")
-        # self.assertEqual(hashlib.md5(global_model.pi_thermal.toarray()).hexdigest(),
-        #                  "9302ccafd247d2b1be53618678717d0a")
-        # self.assertEqual(hashlib.md5(global_model.mo_thermal.toarray()).hexdigest(),
-        #                  "e85c93bf3266c1282bc7af64cd3aee2c")
+        self.assertEqual(hashlib.md5(global_model.pre_thermal.toarray()).hexdigest(),
+                         "2484d50df6ba39d26b56c7b4f1ea0a42")
+        self.assertEqual(hashlib.md5(global_model.post_thermal.toarray()).hexdigest(),
+                         "818291b431aa9a18e9355f20c1028cc5")
+        self.assertEqual(hashlib.md5(global_model.lambda_vector_thermal).hexdigest(),
+                         "3029c16803a77e61d4478823ebf6366d")
+        self.assertEqual(hashlib.md5(global_model.pi_thermal.toarray()).hexdigest(),
+                         "9302ccafd247d2b1be53618678717d0a")
+        self.assertEqual(hashlib.md5(global_model.mo_thermal.toarray()).hexdigest(),
+                         "e85c93bf3266c1282bc7af64cd3aee2c")
 
     def test_basic_thermal_model(self):
         tasks_specification: TasksSpecification = TasksSpecification([PeriodicTask(2, 4, 4, 6.4),
