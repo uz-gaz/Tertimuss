@@ -475,19 +475,18 @@ class ThermalModel(object):
         pi = pre.transpose().copy()
 
         # Creation of mo
-        mo = scipy.sparse.csr_matrix(
-            scipy.concatenate([scipy.full(p_board + p_one_micro * cpu_specification.number_of_cores + 1,
-                                          environment_specification.t_env),
-                               scipy.asarray([1]),
-                               scipy.zeros(cpu_specification.number_of_cores * n)
-                               ]).reshape((-1, 1)))
+        mo = scipy.concatenate([scipy.full(p_board + p_one_micro * cpu_specification.number_of_cores + 1,
+                                           environment_specification.t_env),
+                                scipy.asarray([1]),
+                                scipy.zeros(cpu_specification.number_of_cores * n)
+                                ]).reshape((-1, 1))
 
-        self.pre_sis = pre.tocsr()
-        self.post_sis = post.tocsr()
-        self.pi_sis = pi.tocsr()
+        self.pre_sis: scipy.sparse.csr_matrix = pre.tocsr()
+        self.post_sis: scipy.sparse.csr_matrix = post.tocsr()
+        self.pi_sis: scipy.sparse.csr_matrix = pi.tocsr()
         self.lambda_vector_sis = lambda_vector
-        self.mo_sis = mo
-        self.p_board = p_board
-        self.p_one_micro = p_one_micro
-        self.t_board = t_board
-        self.t_one_micro = t_one_micro
+        self.mo_sis: scipy.ndarray = mo
+        self.p_board: int = p_board
+        self.p_one_micro: int = p_one_micro
+        self.t_board: int = t_board
+        self.t_one_micro: int = t_one_micro

@@ -79,7 +79,7 @@ class TestThermalModel(unittest.TestCase):
                          "3029c16803a77e61d4478823ebf6366d")
         self.assertEqual(hashlib.md5(global_model.pi_thermal.toarray()).hexdigest(),
                          "9302ccafd247d2b1be53618678717d0a")
-        self.assertEqual(hashlib.md5(global_model.mo_thermal.toarray()).hexdigest(),
+        self.assertEqual(hashlib.md5(global_model.mo_thermal).hexdigest(),
                          "e85c93bf3266c1282bc7af64cd3aee2c")
 
     def test_basic_thermal_model(self):
