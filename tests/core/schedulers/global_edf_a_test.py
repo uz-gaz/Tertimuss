@@ -28,7 +28,7 @@ class TestGlobalEdfScheduler(unittest.TestCase):
 
         environment_specification: EnvironmentSpecification = EnvironmentSpecification(0.001, 45, 110)
 
-        simulation_specification: SimulationSpecification = SimulationSpecification(0.5, 0.01)
+        simulation_specification: SimulationSpecification = SimulationSpecification(2, 0.01)
 
         tcpn_model_specification: TCPNModelSpecification = TCPNModelSpecification(
             ThermalModelSelector.THERMAL_MODEL_FREQUENCY_BASED)
