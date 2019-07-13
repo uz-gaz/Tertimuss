@@ -28,7 +28,7 @@ class TestGlobalEdfScheduler(unittest.TestCase):
 
         environment_specification: EnvironmentSpecification = EnvironmentSpecification(0.001, 45, 110)
 
-        simulation_specification: SimulationSpecification = SimulationSpecification(1, 0.01)
+        simulation_specification: SimulationSpecification = SimulationSpecification(0.5, 0.01)
 
         tcpn_model_specification: TCPNModelSpecification = TCPNModelSpecification(
             ThermalModelSelector.THERMAL_MODEL_FREQUENCY_BASED)
@@ -48,7 +48,7 @@ class TestGlobalEdfScheduler(unittest.TestCase):
         time_1 = time.time()
 
         # Result base name
-        result_base_name = "global_edf_a_thermal_step_1"
+        result_base_name = "global_edf_a_thermal_step_05"
 
         # Save simulation out
         scipy.io.savemat("out/" + result_base_name + ".mat", {
@@ -84,14 +84,19 @@ class TestGlobalEdfScheduler(unittest.TestCase):
 
         """
         Step 2:
-        Time taken in simulation: 2.131178140640259
-        Time taken in matlab file save: 0.06027698516845703
-        Time taken in save output: 198.74352645874023
+        Time taken in simulation: 2.13 s
+        Time taken in matlab file save: 0.06 s
+        Time taken in save output: 198.74 s -> 3 min 19 S
         
         Step 1:
-        Time taken in simulation: 35.88808226585388
-        Time taken in matlab file save: 0.27549314498901367
-        Time taken in save output: 211.05764746665955
+        Time taken in simulation: 35.89 s
+        Time taken in matlab file save: 0.28 s
+        Time taken in save output: 211.06 s -> 3 min 31 s
+        
+        Steo 0.5:
+        Time taken in simulation: 1026.83 s -> 17 min 6s
+        Time taken in matlab file save: 1.34 s
+        Time taken in save output: 240.32 s -> 4 min
         """
 
     def test_global_edf_a_var_frequency_thermal(self):

@@ -144,7 +144,7 @@ class AbstractGlobalScheduler(AbstractScheduler):
         active_task_id = m * [-1]
 
         for zeta_q in range(simulation_time_steps):
-            # print(zeta_q, "/", simulation_time_steps)
+            print(zeta_q, "/", simulation_time_steps)
             # Update progress
             if progress_bar is not None:
                 progress_bar.update_progress(zeta_q / simulation_time_steps * 100)
