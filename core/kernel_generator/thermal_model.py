@@ -310,19 +310,13 @@ class ThermalModel(object):
         dynamic_power_consumption = cls._get_dynamic_power_consumption(cpu_specification, tasks_specification,
                                                                        cpu_specification.clock_relative_frequencies)
 
-        dynamic_power_consumption = scipy.sparse.lil_matrix(dynamic_power_consumption)
+        dynamic_power_consumption = scipy.sparse.csr_matrix(dynamic_power_consumption).tolil()
 
         # Transitions from exec to core places
-
-        # TODO: Change to operate only with sparse matrixes
 
         post_gen[p_board: p_board + p_micros, :] = scipy.sparse.block_diag([
             scipy.sparse.vstack(p_one_micro * [scipy.sparse.lil_matrix(dynamic_power_consumption[i, :])]) for i in
             range(dynamic_power_consumption.shape[0])])
-
-        # post_gen[p_board: p_board + p_micros, :] = scipy.sparse.lil_matrix(scipy.linalg.block_diag(
-        #     *[scipy.repeat(i.reshape((1, -1)), p_one_micro, axis=0) for i in dynamic_power_consumption]),
-        #     dtype=simulation_specification.dtype)
 
         lambda_gen = scipy.concatenate([scipy.full(n, f, dtype=simulation_specification.dtype) for f in
                                         cpu_specification.clock_relative_frequencies])
@@ -481,7 +475,7 @@ class ThermalModel(object):
         pi = pre.transpose().copy()
 
         # Creation of mo
-        mo = scipy.sparse.lil_matrix(
+        mo = scipy.sparse.csr_matrix(
             scipy.concatenate([scipy.full(p_board + p_one_micro * cpu_specification.number_of_cores + 1,
                                           environment_specification.t_env),
                                scipy.asarray([1]),
