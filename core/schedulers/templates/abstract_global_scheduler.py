@@ -63,7 +63,7 @@ class AbstractGlobalScheduler(AbstractScheduler):
         is_thermal_simulation = global_model.enable_thermal_mode
 
         # Round float to this decimal
-        float_round = global_specification.simulation_specification.float_round
+        float_round = global_specification.simulation_specification.float_decimals_precision
 
         idle_task_id = -1
         m = global_specification.cpu_specification.number_of_cores

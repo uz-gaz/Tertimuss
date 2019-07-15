@@ -62,7 +62,9 @@ class CpuSpecification(object):
 
     def __init__(self, board_specification: Optional[MaterialCuboid], cpu_core_specification: Optional[MaterialCuboid],
                  number_of_cores: int, clock_base_frequency: int, clock_frequencies_at_start: List[float],
-                 clock_available_frequencies: List[float], cpu_origins: Optional[List[Origin]] = None):
+                 clock_available_frequencies: List[float], cpu_origins: Optional[List[Origin]] = None,
+                 leakage_delta: float = 0.1, leakage_alpha: float = 0.001, dvfs_mult: float = 1.52,
+                 dvfs_const: float = 0.08):
         """
         CPU specification
         :param board_specification: Spec of board
@@ -84,13 +86,13 @@ class CpuSpecification(object):
 
         # TODO: This may be defined by the problem specification
         # Convection properties
-        self.leakage_delta = 0.1
-        self.leakage_alpha = 0.001
+        self.leakage_delta = leakage_delta
+        self.leakage_alpha = leakage_alpha
 
         # TODO: search an appropriate name for this variables
         # Heat generation properties
-        self.dvfs_mult = 1.52
-        self.dvfs_const = 0.08
+        self.dvfs_mult = dvfs_mult
+        self.dvfs_const = dvfs_const
 
         def generate_automatic_origins(x0: float, x1: float, y0: float, y1: float, mx: float, my: float,
                                        n: int) -> List[Origin]:
@@ -113,14 +115,6 @@ class CpuSpecification(object):
             self.cpu_origins = cpu_origins
 
         self.clock_relative_frequencies = clock_frequencies_at_start
-
-    '''
-        # Constructor for heterogeneous CPU cores  
-        def __init__(self, board: MaterialCuboid, cpu_cores: list):
-            self.board = board  # Spec of board
-            self.cpu_cores = cpu_cores  # Spec of heterogeneous CPU cores
-
-    '''
 
 
 def check_origins(cpu_origins: List[Origin], x_size_cpu: float, y_size_cpu: float, x_size_board: float,

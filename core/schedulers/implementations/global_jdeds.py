@@ -158,7 +158,7 @@ class GlobalJDEDSScheduler(AbstractGlobalScheduler):
         self.__m = global_specification.cpu_specification.number_of_cores
         self.__n = len(global_specification.tasks_specification.periodic_tasks)
 
-        self.__decimals_precision = global_specification.simulation_specification.float_round
+        self.__decimals_precision = global_specification.simulation_specification.float_decimals_precision
 
         # Calculate F start
         f_max = global_specification.cpu_specification.clock_available_frequencies[-1]

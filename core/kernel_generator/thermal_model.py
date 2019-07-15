@@ -55,11 +55,11 @@ class ThermalModel(object):
         #     7 8 9 [...]
         # That is the way to create the incidence matrix with the transitions who connects
         # 1-2 (both), 2-3 [...], 8-9 until the transition t=[(x*2)*(y-1)] + (x-1)*2
-        pre = scipy.sparse.lil_matrix((p, t), dtype=simulation_specification.dtype)
-        post = scipy.sparse.lil_matrix((p, t), dtype=simulation_specification.dtype)
+        pre = scipy.sparse.lil_matrix((p, t), dtype=simulation_specification.type_precision)
+        post = scipy.sparse.lil_matrix((p, t), dtype=simulation_specification.type_precision)
 
         # All lambdas are equals
-        lambda_vector = scipy.full(t, lambda_side, dtype=simulation_specification.dtype)
+        lambda_vector = scipy.full(t, lambda_side, dtype=simulation_specification.type_precision)
 
         for i in range(p - 1):
             j = i * 2
@@ -159,10 +159,10 @@ class ThermalModel(object):
         lambda2_div_lambda1 = (cpu_specification.board_specification.z * rho_p1 * cp_p1) / (
                 cpu_specification.cpu_core_specification.z * rho_p2 * cp_p2)
 
-        pre_int = scipy.sparse.lil_matrix((p_micros + p_board, 2 * p_micros), dtype=simulation_specification.dtype)
-        post_int = scipy.sparse.lil_matrix((p_micros + p_board, 2 * p_micros), dtype=simulation_specification.dtype)
+        pre_int = scipy.sparse.lil_matrix((p_micros + p_board, 2 * p_micros), dtype=simulation_specification.type_precision)
+        post_int = scipy.sparse.lil_matrix((p_micros + p_board, 2 * p_micros), dtype=simulation_specification.type_precision)
 
-        lambda_vector_int = scipy.asarray(p_micros * [lambda1, lambda2], dtype=simulation_specification.dtype)
+        lambda_vector_int = scipy.asarray(p_micros * [lambda1, lambda2], dtype=simulation_specification.type_precision)
 
         for i in range(p_micros):
             j = i * 2
@@ -201,19 +201,19 @@ class ThermalModel(object):
         # Transition t1 in the convection paper (temperature dissipation into the air)
 
         pre_conv = scipy.sparse.vstack(
-            [scipy.sparse.identity(exposed_places, dtype=simulation_specification.dtype, format="lil"),
-             scipy.sparse.lil_matrix((p_micros, exposed_places), dtype=simulation_specification.dtype)])
-        post_conv = scipy.sparse.lil_matrix((total_places, exposed_places), dtype=simulation_specification.dtype)
-        lambda_conv = scipy.full(exposed_places, lambda_convection, dtype=simulation_specification.dtype)
+            [scipy.sparse.identity(exposed_places, dtype=simulation_specification.type_precision, format="lil"),
+             scipy.sparse.lil_matrix((p_micros, exposed_places), dtype=simulation_specification.type_precision)])
+        post_conv = scipy.sparse.lil_matrix((total_places, exposed_places), dtype=simulation_specification.type_precision)
+        lambda_conv = scipy.full(exposed_places, lambda_convection, dtype=simulation_specification.type_precision)
 
         # Transition t2 and place p2 in the convection paper
-        pre_conv_air = scipy.sparse.lil_matrix((total_places + 1, 1), dtype=simulation_specification.dtype)
+        pre_conv_air = scipy.sparse.lil_matrix((total_places + 1, 1), dtype=simulation_specification.type_precision)
         pre_conv_air[-1, 0] = 1
-        post_conv_air = scipy.sparse.lil_matrix((total_places + 1, 1), dtype=simulation_specification.dtype)
+        post_conv_air = scipy.sparse.lil_matrix((total_places + 1, 1), dtype=simulation_specification.type_precision)
         post_conv_air[-1, 0] = 1
         post_conv_air[:exposed_places, 0] = 1
 
-        lambda_conv_air = scipy.asarray([lambda_convection], dtype=simulation_specification.dtype)
+        lambda_conv_air = scipy.asarray([lambda_convection], dtype=simulation_specification.type_precision)
 
         return pre_conv, post_conv, lambda_conv, pre_conv_air, post_conv_air, lambda_conv_air
 
@@ -234,27 +234,27 @@ class ThermalModel(object):
         # Number of transitions m * ( t_1_delta_heat_generation ) + t_1_alpha_heat_generation
         number_of_transitions = p_micros + 1
 
-        pre_gen = scipy.sparse.lil_matrix((total_places, number_of_transitions), dtype=simulation_specification.dtype)
+        pre_gen = scipy.sparse.lil_matrix((total_places, number_of_transitions), dtype=simulation_specification.type_precision)
 
         # Connection between each P_temp and t_1_delta
         pre_gen[p_board:p_board + p_micros, 0:p_micros] = \
-            scipy.sparse.identity(p_micros, dtype=simulation_specification.dtype, format="lil")
+            scipy.sparse.identity(p_micros, dtype=simulation_specification.type_precision, format="lil")
 
         pre_gen[-1, -1] = 1  # Connection between P_alpha and t_1_alpha
 
-        post_gen = scipy.sparse.lil_matrix((total_places, number_of_transitions), dtype=simulation_specification.dtype)
+        post_gen = scipy.sparse.lil_matrix((total_places, number_of_transitions), dtype=simulation_specification.type_precision)
 
         # Connection between t_1_delta and each P_temp
         post_gen[p_board:p_board + p_micros, 0:p_micros] = \
-            2 * scipy.sparse.identity(p_micros, dtype=simulation_specification.dtype, format="lil")
+            2 * scipy.sparse.identity(p_micros, dtype=simulation_specification.type_precision, format="lil")
 
         post_gen[-1, -1] = 1  # Connection between t_1_alpha and P_alpha
 
         post_gen[p_board:p_board + p_micros, -1] = 1  # Connections between t_1_alpha and each P_temp
 
         lambda_gen = scipy.concatenate(
-            [scipy.full(p_micros, lambda_coefficient_delta, dtype=simulation_specification.dtype),
-             scipy.asarray([lambda_coefficient_alpha], dtype=simulation_specification.dtype)])
+            [scipy.full(p_micros, lambda_coefficient_delta, dtype=simulation_specification.type_precision),
+             scipy.asarray([lambda_coefficient_alpha], dtype=simulation_specification.type_precision)])
 
         return pre_gen, post_gen, lambda_gen
 
@@ -290,16 +290,16 @@ class ThermalModel(object):
         # Number of transitions one for each t_exec
         number_of_transitions = cpu_specification.number_of_cores * n
 
-        pre_gen = scipy.sparse.lil_matrix((total_places, number_of_transitions), dtype=simulation_specification.dtype)
+        pre_gen = scipy.sparse.lil_matrix((total_places, number_of_transitions), dtype=simulation_specification.type_precision)
         # Connection with p2 in paper
         pre_gen[p_board + p_micros + 1 + 1:p_board + p_micros + 1 + 1 + number_of_transitions, :] = \
-            scipy.sparse.identity(number_of_transitions, dtype=simulation_specification.dtype, format="lil")
+            scipy.sparse.identity(number_of_transitions, dtype=simulation_specification.type_precision, format="lil")
 
-        post_gen = scipy.sparse.lil_matrix((total_places, number_of_transitions), dtype=simulation_specification.dtype)
+        post_gen = scipy.sparse.lil_matrix((total_places, number_of_transitions), dtype=simulation_specification.type_precision)
 
         # This will ensure that m_exec will remain constant
         post_gen[p_board + p_micros + 1 + 1:p_board + p_micros + 1 + 1 + number_of_transitions, :] = \
-            scipy.sparse.identity(number_of_transitions, dtype=simulation_specification.dtype, format="lil")
+            scipy.sparse.identity(number_of_transitions, dtype=simulation_specification.type_precision, format="lil")
 
         # Get power consumption by task in cpu
         dynamic_power_consumption = cls._get_dynamic_power_consumption(cpu_specification, tasks_specification,
@@ -313,7 +313,7 @@ class ThermalModel(object):
             scipy.sparse.vstack(p_one_micro * [scipy.sparse.lil_matrix(dynamic_power_consumption[i, :])]) for i in
             range(dynamic_power_consumption.shape[0])])
 
-        lambda_gen = scipy.concatenate([scipy.full(n, f, dtype=simulation_specification.dtype) for f in
+        lambda_gen = scipy.concatenate([scipy.full(n, f, dtype=simulation_specification.type_precision) for f in
                                         cpu_specification.clock_relative_frequencies])
 
         return pre_gen, post_gen, lambda_gen
@@ -351,7 +351,7 @@ class ThermalModel(object):
         m = cpu_specification.number_of_cores
 
         lambda_sustitution = scipy.concatenate(
-            [f * scipy.ones(n, dtype=simulation_specification.dtype) for f in frequency_vector])
+            [f * scipy.ones(n, dtype=simulation_specification.type_precision) for f in frequency_vector])
 
         lambda_vector[-n * m:] = lambda_sustitution
 
@@ -424,19 +424,19 @@ class ThermalModel(object):
         # Thermal model generation
         zero_11 = scipy.sparse.lil_matrix((1, t_board + t_one_micro * cpu_specification.number_of_cores +
                                            2 * p_one_micro * cpu_specification.number_of_cores + p_board),
-                                          dtype=simulation_specification.dtype)
+                                          dtype=simulation_specification.type_precision)
         zero_21 = scipy.sparse.lil_matrix((1, t_board + t_one_micro * cpu_specification.number_of_cores +
                                            2 * p_one_micro * cpu_specification.number_of_cores + p_board),
-                                          dtype=simulation_specification.dtype)
+                                          dtype=simulation_specification.type_precision)
 
         zero_12 = scipy.sparse.lil_matrix((1, t_board + t_one_micro *
                                            cpu_specification.number_of_cores + 2 * p_one_micro *
                                            cpu_specification.number_of_cores +
-                                           p_board + 1), dtype=simulation_specification.dtype)
+                                           p_board + 1), dtype=simulation_specification.type_precision)
         zero_22 = scipy.sparse.lil_matrix((1, t_board + t_one_micro *
                                            cpu_specification.number_of_cores + 2 * p_one_micro *
                                            cpu_specification.number_of_cores +
-                                           p_board + 1), dtype=simulation_specification.dtype)
+                                           p_board + 1), dtype=simulation_specification.type_precision)
 
         n = len(tasks_specification.periodic_tasks) + len(tasks_specification.aperiodic_tasks)
 
@@ -444,12 +444,12 @@ class ThermalModel(object):
                                            t_one_micro * cpu_specification.number_of_cores + 2 * p_one_micro *
                                            cpu_specification.number_of_cores + p_board + 1 +
                                            cpu_specification.number_of_cores *
-                                           p_one_micro + 1), dtype=simulation_specification.dtype)
+                                           p_one_micro + 1), dtype=simulation_specification.type_precision)
         zero_23 = scipy.sparse.lil_matrix((cpu_specification.number_of_cores * n, t_board +
                                            t_one_micro * cpu_specification.number_of_cores + 2 * p_one_micro *
                                            cpu_specification.number_of_cores + p_board + 1 +
                                            cpu_specification.number_of_cores *
-                                           p_one_micro + 1), dtype=simulation_specification.dtype)
+                                           p_one_micro + 1), dtype=simulation_specification.type_precision)
 
         # Creation of pre matrix
         pre = scipy.sparse.hstack([pre_cond, pre_int, pre_conv])

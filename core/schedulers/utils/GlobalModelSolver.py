@@ -23,7 +23,7 @@ class GlobalModelSolver(object):
         self.__step = global_specification.simulation_specification.dt
         self.enable_thermal_mode = global_model.enable_thermal_mode
 
-        self.__fragmentation_of_step_task = global_specification.simulation_specification.dt_fragmentation_proc_task
+        self.__fragmentation_of_step_task = global_specification.simulation_specification.dt_fragmentation_processor_task
         self.__fragmentation_of_step_thermal = global_specification.simulation_specification.dt_fragmentation_thermal
 
         self.__tcpn_simulator_proc = TcpnSimulatorAccurateOptimizedTasks(global_model.pre_proc_tau,
