@@ -48,7 +48,7 @@ class TestGlobalEdfScheduler(unittest.TestCase):
         time_1 = time.time()
 
         # Result base name
-        result_base_name = "global_edf_a_thermal_step_05"
+        result_base_name = "global_edf_a_thermal"
 
         # Save simulation out
         scipy.io.savemat("out/" + result_base_name + ".mat", {
@@ -67,7 +67,7 @@ class TestGlobalEdfScheduler(unittest.TestCase):
         time_1 = time.time()
 
         # Save plots
-        draw_heat_matrix(global_specification, scheduler_simulation, "out/" + result_base_name + "_heat_matrix.mp4")
+        # draw_heat_matrix(global_specification, scheduler_simulation, "out/" + result_base_name + "_heat_matrix.mp4")
         plot_cpu_utilization(global_specification, scheduler_simulation,
                              "out/" + result_base_name + "_cpu_utilization.png")
         plot_task_execution(global_specification, scheduler_simulation,
