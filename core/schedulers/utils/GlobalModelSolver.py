@@ -55,6 +55,7 @@ class GlobalModelSolver(object):
         # Model specification
         self.__cpu_specification = global_specification.cpu_specification
         self.__tasks_specification = global_specification.tasks_specification
+        self.__simulation_specification = global_specification.simulation_specification
 
         if global_model.enable_thermal_mode:
             self.__tcpn_simulator_thermal = TcpnSimulatorAccurateOptimizedThermal(global_model.pre_thermal,
@@ -123,7 +124,8 @@ class GlobalModelSolver(object):
                                                                                            self.__cpu_specification,
                                                                                            self.__tasks_specification,
                                                                                            self.__p_board,
-                                                                                           self.__p_one_micro)
+                                                                                           self.__p_one_micro,
+                                                                                           self.__simulation_specification)
 
                 self.__tcpn_simulator_thermal.set_post_and_lambda(post, lambda_vector)
 

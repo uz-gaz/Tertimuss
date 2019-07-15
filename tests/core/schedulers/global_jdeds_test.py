@@ -50,7 +50,7 @@ class GlobalWodes(unittest.TestCase):
 
         scheduler_simulation = scheduler.simulate(global_specification, global_model, None)
 
-        draw_heat_matrix(global_specification, scheduler_simulation, "out/jdeds_heat_matrix.mp4")
+        # draw_heat_matrix(global_specification, scheduler_simulation, "out/jdeds_heat_matrix.mp4")
         plot_cpu_utilization(global_specification, scheduler_simulation, "out/jdeds_cpu_utilization_thermal.png")
         plot_task_execution(global_specification, scheduler_simulation, "out/jdeds_task_execution_thermal.png")
         plot_cpu_temperature(global_specification, scheduler_simulation, "out/jdeds_cpu_temperature_thermal.png")
