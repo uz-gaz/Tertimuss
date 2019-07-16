@@ -94,8 +94,8 @@ class ThermalModel(object):
         x: int = round(cpu_spec.x / step)
         y: int = round(cpu_spec.y / step)
 
-        x_0: int = round(origin.x / step)
-        y_0: int = round(origin.y / step)
+        x_0: int = round(origin.x / step) + 1
+        y_0: int = round(origin.y / step) + 1
 
         x_1: int = x_0 + x
         y_1: int = y_0 + y

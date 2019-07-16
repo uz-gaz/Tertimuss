@@ -7,6 +7,7 @@
 - matplotlib 3.0.2 or higher and all its dependencies
 - jsonschema 3.0.1 or higher and all its dependencies
 - progress 1.5 or higher and all its dependencies
+- ffmpeg 4.1 or higher and all its dependencies from conda-forge
 
 
 ## Usage
