@@ -84,7 +84,7 @@ class CpuSpecification(object):
         self.clock_available_frequencies = clock_available_frequencies
         self.clock_available_frequencies.sort()
 
-        # TODO: This may be defined by the problem specification
+        # TODO: search an appropriate name for this variables
         # Convection properties
         self.leakage_delta = leakage_delta
         self.leakage_alpha = leakage_alpha
@@ -94,55 +94,59 @@ class CpuSpecification(object):
         self.dvfs_mult = dvfs_mult
         self.dvfs_const = dvfs_const
 
-        def generate_automatic_origins(x0: float, x1: float, y0: float, y1: float, mx: float, my: float,
-                                       n: int) -> List[Origin]:
-            # Distribute CPUs in a symmetrical way
-            if n == 1:
-                return [Origin(x0 + (x1 - x0 - mx) / 2, y0 + (y1 - y0 - my) / 2)]
-            else:
-                if (x1 - x0) >= (y1 - y0):
-                    return generate_automatic_origins(x0, x0 + (x1 - x0) / 2, y0, y1, mx, my, math.ceil(n / 2)) + \
-                           generate_automatic_origins(x0 + (x1 - x0) / 2, x1, y0, y1, mx, my, math.floor(n / 2))
-                else:
-                    return generate_automatic_origins(x0, x1, y0, y0 + (y1 - y0) / 2, mx, my, math.ceil(n / 2)) + \
-                           generate_automatic_origins(x0, x1, y0 + (y1 - y0) / 2, y1, mx, my, math.floor(n / 2))
-
         if cpu_origins is None and board_specification is not None:
-            self.cpu_origins = generate_automatic_origins(0, self.board_specification.x, 0, self.board_specification.y,
-                                                          self.cpu_core_specification.x, self.cpu_core_specification.y,
-                                                          self.number_of_cores)
+            self.cpu_origins = self.__generate_automatic_origins(0, self.board_specification.x, 0,
+                                                                 self.board_specification.y,
+                                                                 self.cpu_core_specification.x,
+                                                                 self.cpu_core_specification.y,
+                                                                 self.number_of_cores)
         else:
             self.cpu_origins = cpu_origins
 
         self.clock_relative_frequencies = clock_frequencies_at_start
 
+    @classmethod
+    def __generate_automatic_origins(cls, x0: float, x1: float, y0: float, y1: float, mx: float, my: float,
+                                     n: int) -> List[Origin]:
+        # Distribute CPUs in a symmetrical way
+        if n == 1:
+            return [Origin(x0 + (x1 - x0 - mx) / 2, y0 + (y1 - y0 - my) / 2)]
+        else:
+            if (x1 - x0) >= (y1 - y0):
+                return cls.__generate_automatic_origins(x0, x0 + (x1 - x0) / 2, y0, y1, mx, my, math.ceil(n / 2)) + \
+                       cls.__generate_automatic_origins(x0 + (x1 - x0) / 2, x1, y0, y1, mx, my, math.floor(n / 2))
+            else:
+                return cls.__generate_automatic_origins(x0, x1, y0, y0 + (y1 - y0) / 2, mx, my, math.ceil(n / 2)) + \
+                       cls.__generate_automatic_origins(x0, x1, y0 + (y1 - y0) / 2, y1, mx, my, math.floor(n / 2))
 
-def check_origins(cpu_origins: List[Origin], x_size_cpu: float, y_size_cpu: float, x_size_board: float,
-                  y_size_board: float) -> bool:
-    """
-    Return true if no core overlap
-    :param x_size_board: x size of board
-    :param y_size_cpu: y size of core
-    :param x_size_cpu: x size of core
-    :param y_size_board: y size of board
-    :param cpu_origins: cpu core origins list
-    :return: true if no core overlap with others and all are valid
-    """
-
-    def overlaps(cpu_1_origin: Origin, cpu_2_origin: Origin, x_size: float, y_size: float):
+    @staticmethod
+    def check_origins(cpu_origins: List[Origin], x_size_cpu: float, y_size_cpu: float, x_size_board: float,
+                      y_size_board: float) -> bool:
         """
-        Return true if cpu 1 and cpu 2 overlaps
-        Ref: https://www.geeksforgeeks.org/find-two-rectangles-overlap/
-
-        :param cpu_1_origin: cpu 1 origins
-        :param cpu_2_origin: cpu 2 origins
-        :param x_size: cpus x size
-        :param y_size: cpus y size
-        :return: true if overlaps false otherwise
+        Return true if no core overlap
+        :param x_size_board: x size of board
+        :param y_size_cpu: y size of core
+        :param x_size_cpu: x size of core
+        :param y_size_board: y size of board
+        :param cpu_origins: cpu core origins list
+        :return: true if no core overlap with others and all are valid
         """
-        return not ((cpu_1_origin.x > cpu_2_origin.x + x_size or cpu_2_origin.x > cpu_1_origin.x + x_size) or (
-                cpu_1_origin.y < cpu_2_origin.y + y_size or cpu_2_origin.y < cpu_1_origin.y))
 
-    return all(
-        map(lambda a: a.x + x_size_cpu <= x_size_board and a.y + y_size_cpu <= y_size_board, cpu_origins)) and not any(
-        map(lambda a: overlaps(a[0], a[1], x_size_cpu, y_size_cpu), itertools.combinations(cpu_origins, 2)))
+        def overlaps(cpu_1_origin: Origin, cpu_2_origin: Origin, x_size: float, y_size: float):
+            """
+            Return true if cpu 1 and cpu 2 overlaps
+            Ref: https://www.geeksforgeeks.org/find-two-rectangles-overlap/
+
+            :param cpu_1_origin: cpu 1 origins
+            :param cpu_2_origin: cpu 2 origins
+            :param x_size: cpus x size
+            :param y_size: cpus y size
+            :return: true if overlaps false otherwise
+            """
+            return not ((cpu_1_origin.x > cpu_2_origin.x + x_size or cpu_2_origin.x > cpu_1_origin.x + x_size) or (
+                    cpu_1_origin.y < cpu_2_origin.y + y_size or cpu_2_origin.y < cpu_1_origin.y))
+
+        return all(
+            map(lambda a: a.x + x_size_cpu <= x_size_board and a.y + y_size_cpu <= y_size_board,
+                cpu_origins)) and not any(
+            map(lambda a: overlaps(a[0], a[1], x_size_cpu, y_size_cpu), itertools.combinations(cpu_origins, 2)))

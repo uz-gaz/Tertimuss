@@ -67,18 +67,26 @@ class TestGlobalEdfScheduler(unittest.TestCase):
         time_1 = time.time()
 
         # Save plots
-        # draw_heat_matrix(global_specification, scheduler_simulation, "out/" + result_base_name + "_heat_matrix.mp4")
-        plot_cpu_utilization(global_specification, scheduler_simulation,
-                             "out/" + result_base_name + "_cpu_utilization.png")
-        plot_task_execution(global_specification, scheduler_simulation,
-                            "out/" + result_base_name + "_task_execution.png")
-        plot_cpu_temperature(global_specification, scheduler_simulation,
-                             "out/" + result_base_name + "_cpu_temperature_energy.png")
-        plot_accumulated_execution_time(global_specification, scheduler_simulation,
-                                        "out/" + result_base_name + "_accumulated.png")
-        plot_cpu_frequency(global_specification, scheduler_simulation, "out/" + result_base_name + "_frequency.png")
-        plot_task_execution_percentage(global_specification, scheduler_simulation,
-                                       "out/" + result_base_name + "_execution_percentage.png")
+        print("1")
+        draw_heat_matrix(global_specification, scheduler_simulation, True, True,
+                         "out/" + result_base_name + "_heat_matrix_t_t.mp4")
+        print("1")
+        draw_heat_matrix(global_specification, scheduler_simulation, True, False,
+                         "out/" + result_base_name + "_heat_matrix_t_f.mp4")
+        print("1")
+        draw_heat_matrix(global_specification, scheduler_simulation, False, True,
+                         "out/" + result_base_name + "_heat_matrix_f_t.mp4")
+        # plot_cpu_utilization(global_specification, scheduler_simulation,
+        #                      "out/" + result_base_name + "_cpu_utilization.png")
+        # plot_task_execution(global_specification, scheduler_simulation,
+        #                     "out/" + result_base_name + "_task_execution.png")
+        # plot_cpu_temperature(global_specification, scheduler_simulation,
+        #                      "out/" + result_base_name + "_cpu_temperature_energy.png")
+        # plot_accumulated_execution_time(global_specification, scheduler_simulation,
+        #                                 "out/" + result_base_name + "_accumulated.png")
+        # plot_cpu_frequency(global_specification, scheduler_simulation, "out/" + result_base_name + "_frequency.png")
+        # plot_task_execution_percentage(global_specification, scheduler_simulation,
+        #                                "out/" + result_base_name + "_execution_percentage.png")
 
         print("Time taken in save output:", time.time() - time_1)
 

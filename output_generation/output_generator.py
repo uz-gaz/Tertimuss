@@ -8,8 +8,8 @@ from core.schedulers.templates.abstract_scheduler import SchedulerResult
 import matplotlib.pyplot as plt
 
 
-def draw_heat_matrix(global_specification: GlobalSpecification, scheduler_result: SchedulerResult,
-                     save_path: Optional[str] = None):
+def draw_heat_matrix(global_specification: GlobalSpecification, scheduler_result: SchedulerResult, show_board: bool,
+                     show_cores: bool, save_path: Optional[str] = None):
     """
     Draw heat matrix or save the simulation in file if save_path is not null
     :param global_specification: problem specification
@@ -22,7 +22,7 @@ def draw_heat_matrix(global_specification: GlobalSpecification, scheduler_result
 
     heat_map = []
     for actual_temp in temp:
-        heat_map.append(__get_heat_matrix(actual_temp, global_specification))
+        heat_map.append(__get_heat_matrix(actual_temp, global_specification, show_board, show_cores))
 
     # Plot heat map
     min_temp = min(map(lambda x: scipy.amin(x), heat_map)) - 0.5
@@ -52,7 +52,8 @@ def draw_heat_matrix(global_specification: GlobalSpecification, scheduler_result
         anim.save(save_path, writer=writer)
 
 
-def __get_heat_matrix(temp, global_specification: GlobalSpecification) -> scipy.ndarray:
+def __get_heat_matrix(temp, global_specification: GlobalSpecification, show_board: bool, show_cores: bool) \
+        -> scipy.ndarray:
     mx = round(
         global_specification.cpu_specification.cpu_core_specification.x / global_specification.simulation_specification.step)
     my = round(
@@ -63,28 +64,25 @@ def __get_heat_matrix(temp, global_specification: GlobalSpecification) -> scipy.
     y = round(
         global_specification.cpu_specification.board_specification.y / global_specification.simulation_specification.step)
 
-    board_mat = scipy.zeros((x, y))
-    cpus_mat = scipy.zeros((mx * m, my))
+    board_mat = scipy.asarray([temp[y * i:y * (i + 1)] if i % 2 == 0 else scipy.flip(temp[y * i:y * (i + 1)]) for i in
+                               range(x)]) if show_board \
+        else scipy.full((x, y), global_specification.environment_specification.t_env)
 
-    for i in range(x):
-        if i % 2 == 0:
-            board_mat[i, :] = temp[y * i:y * (i + 1)]
-        else:
-            board_mat[i, :] = scipy.flip(temp[y * i:y * (i + 1)])
+    if show_cores:
+        cpus_mat = scipy.zeros((mx * m, my))
+        s = x * y
+        for i in range(mx * m):
+            cpus_mat[i, :] = temp[s + my * i:s + my * (i + 1)]
 
-    s = x * y
-    for i in range(mx * m):
-        cpus_mat[i, :] = temp[s + my * i:s + my * (i + 1)]
+        for j in range(global_specification.cpu_specification.number_of_cores):
+            i = global_specification.cpu_specification.cpu_origins[j]
+            x_0: int = round(i.x / global_specification.simulation_specification.step)
+            y_0: int = round(i.y / global_specification.simulation_specification.step)
 
-    for j in range(global_specification.cpu_specification.number_of_cores):
-        i = global_specification.cpu_specification.cpu_origins[j]
-        x_0: int = round(i.x / global_specification.simulation_specification.step)
-        y_0: int = round(i.y / global_specification.simulation_specification.step)
+            x_1: int = x_0 + mx
+            y_1: int = y_0 + my
 
-        x_1: int = x_0 + mx
-        y_1: int = y_0 + my
-
-        board_mat[y_0:y_1, x_0:x_1] = cpus_mat[mx * j:mx * (j + 1)]
+            board_mat[y_0:y_1, x_0:x_1] = cpus_mat[mx * j:mx * (j + 1)]
 
     return board_mat
 

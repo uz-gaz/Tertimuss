@@ -65,7 +65,7 @@ class TasksSpecification(object):
 
         # As lcm can only be calculated with integer arguments, the float number is multiplied by a big integer to
         # minimize the error in integer conversion
-        float_corrector = 2 ** 8
+        float_corrector = 2 ** 16
 
         self.h = scipy.lcm.reduce(
              list(map(lambda a: int(a.t * float_corrector), self.periodic_tasks))) / float_corrector  # Hyper period
