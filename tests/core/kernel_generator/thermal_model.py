@@ -1,19 +1,29 @@
 import hashlib
 import unittest
 
-from core.problem_specification.GlobalSpecification import GlobalSpecification
-from core.problem_specification.TCPNModelSpecification import TCPNModelSpecification
 from core.tcpn_model_generator.global_model import GlobalModel
+from core.tcpn_model_generator.processor_model import ProcessorModel
+from core.tcpn_model_generator.thermal_model_selector import ThermalModelSelector
 from core.problem_specification.CpuSpecification import CpuSpecification, MaterialCuboid
 from core.problem_specification.EnvironmentSpecification import EnvironmentSpecification
+from core.problem_specification.GlobalSpecification import GlobalSpecification
 from core.problem_specification.SimulationSpecification import SimulationSpecification
+from core.problem_specification.TCPNModelSpecification import TCPNModelSpecification
 from core.problem_specification.TasksSpecification import TasksSpecification, PeriodicTask
-from core.tcpn_model_generator.thermal_model_selector import ThermalModelSelector
 
 
-class TestGlobalModel(unittest.TestCase):
+class TestThermalModel(unittest.TestCase):
 
-    def test_global_model(self):
+    def test_thermal_model(self):
+        tasks_specification: TasksSpecification = TasksSpecification([PeriodicTask(2, 4, 4, 6.4),
+                                                                      PeriodicTask(3, 8, 8, 8),
+                                                                      PeriodicTask(3, 12, 12, 9.6)])
+        cpu_specification: CpuSpecification = CpuSpecification(MaterialCuboid(x=50, y=50, z=1, p=8933, c_p=385, k=400),
+                                                               MaterialCuboid(x=10, y=10, z=2, p=2330, c_p=712, k=148),
+                                                               2, 1000, [1, 1], [1, 0.85, 0.75])
+
+        processor_model: ProcessorModel = ProcessorModel(tasks_specification, cpu_specification)
+
         tasks_specification: TasksSpecification = TasksSpecification([PeriodicTask(2, 4, 4, 6.4),
                                                                       PeriodicTask(3, 8, 8, 8),
                                                                       PeriodicTask(3, 12, 12, 9.6)])
@@ -45,17 +55,6 @@ class TestGlobalModel(unittest.TestCase):
                          "ecd7739a36bedc39a1f834b0b63051c9")
         self.assertEqual(hashlib.md5(global_model.mo_thermal).hexdigest(),
                          "e85c93bf3266c1282bc7af64cd3aee2c")
-
-        self.assertEqual(hashlib.md5(global_model.pre_proc_tau).hexdigest(),
-                         "e1bf88798606df9575135167c0751adf")
-        self.assertEqual(hashlib.md5(global_model.post_proc_tau).hexdigest(),
-                         "d75f8eae2171abfac6def84980c1e2b2")
-        self.assertEqual(hashlib.md5(global_model.lambda_vector_proc_tau).hexdigest(),
-                         "2d5c9f26686cf54c34b49f01e63ce5ab")
-        self.assertEqual(hashlib.md5(global_model.pi_proc_tau.copy()).hexdigest(),
-                         "306e5af6d1b5d2084d4bc57f474589d7")
-        self.assertEqual(hashlib.md5(global_model.mo_proc_tau).hexdigest(),
-                         "6d597660e8475d61c926c93cc91cb4e1")
 
 
 if __name__ == '__main__':

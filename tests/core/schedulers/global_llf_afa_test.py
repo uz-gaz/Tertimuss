@@ -1,33 +1,20 @@
-import hashlib
 import unittest
 
-from core.schedulers.implementations.global_jdeds import GlobalJDEDSScheduler
+from core.schedulers.implementations.global_llf_afa import GlobalLeastLaxityFirstAFAScheduler
 from core.schedulers.templates.abstract_scheduler import AbstractScheduler
+
 from tests.core.schedulers.scheduler_abstract_test import SchedulerAbstractTest
 
 
-class GlobalWodes(SchedulerAbstractTest):
-    def test_lpp(self):
-        ci = [9, 9, 8]
-        ti = [10, 10, 40]
-        s, sd, _, _ = GlobalJDEDSScheduler.ilpp_dp(ci, ti, 3, 2)
-        self.assertEqual(hashlib.md5(s).hexdigest(), "f47db2f641bd29f0bf3498d66e3c3790")
-        self.assertEqual(hashlib.md5(sd).hexdigest(), "4328c1ee6f725e907c587b83207c58a7")
-
-    def test_lpp_2(self):
-        ci = [2000, 5000, 6000, 1800]
-        ti = [3400, 6800, 10200, 20400]
-        s, sd, _, _ = GlobalJDEDSScheduler.ilpp_dp(ci, ti, 4, 2)
-        self.assertEqual(hashlib.md5(s).hexdigest(), "b00512bd9e6bd7d8a556a764680f896f")
-        self.assertEqual(hashlib.md5(sd).hexdigest(), "c2063acec2becad2e60db08968f16fad")
+class TestGlobalLlfAfaScheduler(SchedulerAbstractTest):
 
     @staticmethod
     def get_global_variables() -> [AbstractScheduler, str]:
         # Scheduler
-        scheduler = GlobalJDEDSScheduler()
+        scheduler = GlobalLeastLaxityFirstAFAScheduler()
 
         # Result base name
-        scheduler_name = "global_jdeds"
+        scheduler_name = "global_llf_afa"
 
         return scheduler, scheduler_name
 

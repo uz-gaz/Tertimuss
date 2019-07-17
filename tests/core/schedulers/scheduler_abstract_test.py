@@ -109,6 +109,7 @@ class SchedulerAbstractTest(unittest.TestCase):
                                                                                             is_thermal,
                                                                                             with_aperiodics)
 
+        # TODO: Uncomment
         # draw_heat_matrix(global_specification, result, True, True, result_save_path + "_heat_matrix.mp4")
         plot_cpu_utilization(global_specification, result, result_save_path + "_cpu_utilization.png")
         plot_task_execution(global_specification, result, result_save_path + "_task_execution.png")
