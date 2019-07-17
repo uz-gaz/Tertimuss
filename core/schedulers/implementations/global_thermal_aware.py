@@ -82,7 +82,7 @@ class GlobalThermalAwareScheduler(AbstractGlobalScheduler):
                                                                                  simulation_specification)
 
         # Heat generation dynamic
-        pre_heat_dynamic, post_heat_dynamic, lambda_vector_heat_dynamic = tcpn_model_specification.thermal_model_selector.value.add_heat_by_dynamic_power(
+        pre_heat_dynamic, post_heat_dynamic, lambda_vector_heat_dynamic, _ = tcpn_model_specification.thermal_model_selector.value.add_heat_by_dynamic_power(
             p_board,
             p_one_micro,
             cpu_specification,

@@ -15,6 +15,8 @@ from plot_generator.output_generator import plot_cpu_utilization, plot_task_exec
     plot_energy_consumption
 import scipy.io
 
+from tests.core.schedulers.utils.scheduler_result_trasformer import save_scheduler_result, load_scheduler_result
+
 
 class TestGlobalEdfScheduler(unittest.TestCase):
 
@@ -44,64 +46,10 @@ class TestGlobalEdfScheduler(unittest.TestCase):
 
         scheduler_simulation = scheduler.simulate(global_specification, global_model, None)
 
-        print("Time taken in simulation:", time.time() - time_1)
-
-        time_1 = time.time()
-
         # Result base name
         result_base_name = "global_edf_a_thermal"
 
-        # Save simulation out
-        scipy.io.savemat("out/" + result_base_name + ".mat", {
-            'frequencies': scheduler_simulation.frequencies,
-            'scheduler_assignation': scheduler_simulation.scheduler_assignation,
-            'time_scheduler': scheduler_simulation.time_steps,
-            'temperature_map': scheduler_simulation.temperature_map,
-            'max_temperature_cores': scheduler_simulation.max_temperature_cores,
-            'execution_time_scheduler': scheduler_simulation.execution_time_scheduler
-        })
-
-        print("Time taken in matlab file save:", time.time() - time_1)
-
-        time_1 = time.time()
-
-        # Save plots
-        # draw_heat_matrix(global_specification, scheduler_simulation, True, True,
-        #                  "out/" + result_base_name + "_heat_matrix.mp4")
-
-        plot_cpu_utilization(global_specification, scheduler_simulation,
-                             "out/" + result_base_name + "_cpu_utilization.png")
-        plot_task_execution(global_specification, scheduler_simulation,
-                            "out/" + result_base_name + "_task_execution.png")
-        plot_cpu_temperature(global_specification, scheduler_simulation,
-                             "out/" + result_base_name + "_cpu_max_temperature.png")
-        plot_accumulated_execution_time(global_specification, scheduler_simulation,
-                                        "out/" + result_base_name + "_accumulated.png")
-        plot_cpu_frequency(global_specification, scheduler_simulation, "out/" + result_base_name + "_frequency.png")
-        plot_task_execution_percentage(global_specification, scheduler_simulation,
-                                       "out/" + result_base_name + "_execution_percentage.png")
-
-        plot_energy_consumption(global_specification, scheduler_simulation,
-                                "out/" + result_base_name + "_energy_consumption.png")
-
-        print("Time taken in save output:", time.time() - time_1)
-
-        """
-        Step 2:
-        Time taken in simulation: 2.13 s
-        Time taken in matlab file save: 0.06 s
-        Time taken in save output: 198.74 s -> 3 min 19 S
-        
-        Step 1:
-        Time taken in simulation: 35.89 s
-        Time taken in matlab file save: 0.28 s
-        Time taken in save output: 211.06 s -> 3 min 31 s
-        
-        Steo 0.5:
-        Time taken in simulation: 1026.83 s -> 17 min 6s
-        Time taken in matlab file save: 1.34 s
-        Time taken in save output: 240.32 s -> 4 min
-        """
+        load_scheduler_result(result_base_name)
 
     def test_global_edf_a_var_frequency_thermal(self):
         tasks_specification: TasksSpecification = TasksSpecification([PeriodicTask(2, 4, 4, 6.4),

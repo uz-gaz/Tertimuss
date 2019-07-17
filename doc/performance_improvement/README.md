@@ -42,3 +42,22 @@ This version is the actual version in development
 
 ## Improvements done
 - Deleting concatenations from loops because it force to copy big data regions to a continuous region of free space. In the test scenario, execution time was reduced from 49.20646619796753 seconds to 22.11475110054016 seconds.
+
+
+# Improvements with sparse matrixes (GLOBAL EDF)
+     """
+        Step 2:
+        Time taken in simulation: 2.13 s
+        Time taken in matlab file save: 0.06 s
+        Time taken in save output: 198.74 s -> 3 min 19 S
+        
+        Step 1:
+        Time taken in simulation: 35.89 s
+        Time taken in matlab file save: 0.28 s
+        Time taken in save output: 211.06 s -> 3 min 31 s
+        
+        Step 0.5:
+        Time taken in simulation: 1026.83 s -> 17 min 6s
+        Time taken in matlab file save: 1.34 s
+        Time taken in save output: 240.32 s -> 4 min
+        """

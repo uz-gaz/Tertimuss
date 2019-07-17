@@ -161,9 +161,11 @@ class GlobalModelSolver(object):
         self.__accumulated_m_exec += m_exec_change
 
         # Obtain energy consumption
-        energy_consumption = scipy.sum(
-            scipy.asarray(w_alloc).reshape(self.__m, self.__n) * self.__power_consumption,
-            axis=1)
+        energy_consumption = None
+        if self.enable_thermal_mode:
+            energy_consumption = scipy.sum(
+                scipy.asarray(w_alloc).reshape(self.__m, self.__n) * self.__power_consumption,
+                axis=1)
 
         return self.__accumulated_m_exec, board_temperature, cores_temperature, energy_consumption, scipy.asarray(
             [time + self.__step])
