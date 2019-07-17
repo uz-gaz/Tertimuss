@@ -193,8 +193,8 @@ def plot_task_execution(global_specification: GlobalSpecification, scheduler_res
                                    drawstyle='steps')
         axarr[j + n_periodic].plot(deadlines_time, arrives_by_task[j], label="Arrive", drawstyle='steps')
         axarr[j + n_periodic].legend(loc='best')
-        axarr[j].set_xlabel('time (s)')
-        axarr[j].axes.get_yaxis().set_visible(False)
+        axarr[j + n_periodic].set_xlabel('time (s)')
+        axarr[j + n_periodic].axes.get_yaxis().set_visible(False)
 
     f.tight_layout()
 
@@ -295,8 +295,8 @@ def plot_accumulated_execution_time(global_specification: GlobalSpecification, s
             axarr[i][j + n_periodic].plot(time_u, mexec[i * (n_periodic + n_aperiodic) + n_periodic + j])
             # axarr[i][j + n_periodic].plot(time_step, mexec_tcpn[i * (n_periodic + n_aperiodic) + n_periodic + j],
             #                               label="mexec tcpn")
-            axarr[i][j].set_ylabel('executed time (s)')
-            axarr[i][j].set_xlabel('system time (s)')
+            axarr[i][j + n_periodic].set_ylabel('executed time (s)')
+            axarr[i][j + n_periodic].set_xlabel('system time (s)')
 
     f.tight_layout()
 
@@ -402,20 +402,23 @@ def plot_task_execution_percentage(global_specification: GlobalSpecification, sc
         task_percentage_aperiodic.append([execution_aperiodic])
 
     f, axarr = plt.subplots(nrows=(n_periodic + n_aperiodic), num="Task execution")
-    f.suptitle('Task execution percentage in each period')
 
     for j in range(n_periodic):
-        axarr[j].set_title("Task " + str(j))
+        axarr[j].set_title(r'$\tau_' + str(j + 1) + '$ execution percentage in each period')
         a_dibujar = task_percentage_periodic[j]
         axarr[j].bar(list(range(len(a_dibujar))), a_dibujar,
                      align='center')
         axarr[j].set_xticklabels([])
+        axarr[j].set_ylabel('executed\n percentage')
+        axarr[j].set_xlabel('periods')
 
     for j in range(n_aperiodic):
-        axarr[n_periodic + j].set_title("Aperiodic  " + str(j))
+        axarr[n_periodic + j](r'$\tau_' + str(j + 1) + '^a$ execution percentage')
         axarr[n_periodic + j].bar([1], task_percentage_aperiodic[j],
                                   align='center')
         axarr[n_periodic + j].set_xticklabels([])
+        axarr[n_periodic + j].set_ylabel('executed\n percentage')
+        axarr[n_periodic + j].set_xlabel('periods')
 
     f.tight_layout()
 
