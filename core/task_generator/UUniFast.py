@@ -38,5 +38,5 @@ class UUniFast(TaskGeneratorAlgorithm):
 
         vector_u[-1] = sum_u
 
-        return [PeriodicTask(self.processor_frequency * vector_u[i] * t_i[i], t_i[i], e_i[i]) for i in
+        return [PeriodicTask(self.processor_frequency * vector_u[i] * t_i[i], t_i[i], e_i[i], None) for i in
                 range(self.number_of_tasks)]
