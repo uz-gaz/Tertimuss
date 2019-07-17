@@ -69,25 +69,20 @@ class TestGlobalEdfScheduler(unittest.TestCase):
         # draw_heat_matrix(global_specification, scheduler_simulation, True, True,
         #                  "out/" + result_base_name + "_heat_matrix.mp4")
 
-        # plot_cpu_utilization(global_specification, scheduler_simulation,
-        #                      "out/" + result_base_name + "_cpu_utilization.png")
-        # plot_task_execution(global_specification, scheduler_simulation,
-        #                     "out/" + result_base_name + "_task_execution.png")
-        # plot_cpu_temperature(global_specification, scheduler_simulation,
-        #                      "out/" + result_base_name + "_cpu_max_temperature.png")
-        # plot_accumulated_execution_time(global_specification, scheduler_simulation,
-        #                                 "out/" + result_base_name + "_accumulated.png")
-        # plot_cpu_frequency(global_specification, scheduler_simulation, "out/" + result_base_name + "_frequency.png")
-        # plot_task_execution_percentage(global_specification, scheduler_simulation,
-        #                                "out/" + result_base_name + "_execution_percentage.png")
-        #
-        # plot_energy_consumption(global_specification, scheduler_simulation, True,
-        #                         "out/" + result_base_name + "_energy_consumption.png")
-        #
-        # plot_energy_consumption(global_specification, scheduler_simulation, False,
-        #                         "out/" + result_base_name + "_energy_consumption_false.png")
+        plot_cpu_utilization(global_specification, scheduler_simulation,
+                             "out/" + result_base_name + "_cpu_utilization.png")
+        plot_task_execution(global_specification, scheduler_simulation,
+                            "out/" + result_base_name + "_task_execution.png")
+        plot_cpu_temperature(global_specification, scheduler_simulation,
+                             "out/" + result_base_name + "_cpu_max_temperature.png")
+        plot_accumulated_execution_time(global_specification, scheduler_simulation,
+                                        "out/" + result_base_name + "_accumulated.png")
+        plot_cpu_frequency(global_specification, scheduler_simulation, "out/" + result_base_name + "_frequency.png")
+        plot_task_execution_percentage(global_specification, scheduler_simulation,
+                                       "out/" + result_base_name + "_execution_percentage.png")
 
-        plot_task_execution_percentage(global_specification, scheduler_simulation)
+        plot_energy_consumption(global_specification, scheduler_simulation,
+                                "out/" + result_base_name + "_energy_consumption.png")
 
         print("Time taken in save output:", time.time() - time_1)
 
@@ -172,19 +167,27 @@ class TestGlobalEdfScheduler(unittest.TestCase):
 
         scheduler_simulation = scheduler.simulate(global_specification, global_model, None)
 
-        # draw_heat_matrix(global_specification, simulation_kernel, scheduler_simulation, "global_edf_a_aperiodic_thermal_heat_matrix.mp4")
+        # Result base name
+        result_base_name = "global_edf_a_thermal_aperiodics"
+
+        # Save plots
+        # draw_heat_matrix(global_specification, scheduler_simulation, True, True,
+        #                  "out/" + result_base_name + "_heat_matrix.mp4")
+
         plot_cpu_utilization(global_specification, scheduler_simulation,
-                             "out/gedf_a_aperiodic_thermal_cpu_utilization.png")
+                             "out/" + result_base_name + "_cpu_utilization.png")
         plot_task_execution(global_specification, scheduler_simulation,
-                            "out/gedf_a_aperiodic_thermal_task_execution.png")
+                            "out/" + result_base_name + "_task_execution.png")
         plot_cpu_temperature(global_specification, scheduler_simulation,
-                             "out/gedf_a_aperiodic_thermal_cpu_temperature.png")
+                             "out/" + result_base_name + "_cpu_max_temperature.png")
         plot_accumulated_execution_time(global_specification, scheduler_simulation,
-                                        "out/gedf_a_aperiodic_thermal_accumulated.png")
+                                        "out/" + result_base_name + "_accumulated.png")
+        plot_cpu_frequency(global_specification, scheduler_simulation, "out/" + result_base_name + "_frequency.png")
         plot_task_execution_percentage(global_specification, scheduler_simulation,
-                                       "out/gedf_a_aperiodic_thermal_frequency.png")
-        plot_task_execution_percentage(global_specification, scheduler_simulation,
-                                       "out/gedf_a_aperiodic_thermal_execution_percentage.png")
+                                       "out/" + result_base_name + "_execution_percentage.png")
+
+        plot_energy_consumption(global_specification, scheduler_simulation,
+                                "out/" + result_base_name + "_energy_consumption.png")
 
     def test_global_edf_a_no_thermal(self):
         tasks_specification: TasksSpecification = TasksSpecification([PeriodicTask(2, 4, 4, 6.4),

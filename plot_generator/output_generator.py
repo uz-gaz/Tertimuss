@@ -108,13 +108,14 @@ def plot_cpu_utilization(global_specification: GlobalSpecification, scheduler_re
         for j in range(n_periodic):
             axarr[i].plot(time_u, i_tau_disc[i * (n_periodic + n_aperiodic) + j], label=r'$\tau_' + str(j + 1) + '$',
                           drawstyle='steps')
-            axarr[i].set_ylabel('utilization')
             axarr[i].set_xlabel('time (s)')
+            axarr[i].axes.get_yaxis().set_visible(False)
 
         for j in range(n_aperiodic):
             axarr[i].plot(time_u, i_tau_disc[i * (n_periodic + n_aperiodic) + n_periodic + j],
                           label=r'$\tau_' + str(j + 1) + '^a$',
                           drawstyle='steps')
+            axarr[i].axes.get_yaxis().set_visible(False)
 
         axarr[i].legend(loc='best')
 
@@ -413,7 +414,7 @@ def plot_task_execution_percentage(global_specification: GlobalSpecification, sc
         axarr[j].set_xlabel('periods')
 
     for j in range(n_aperiodic):
-        axarr[n_periodic + j](r'$\tau_' + str(j + 1) + '^a$ execution percentage')
+        axarr[n_periodic + j].set_title(r'$\tau_' + str(j + 1) + '^a$ execution percentage')
         axarr[n_periodic + j].bar([1], task_percentage_aperiodic[j],
                                   align='center')
         axarr[n_periodic + j].set_xticklabels([])
