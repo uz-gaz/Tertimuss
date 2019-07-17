@@ -292,7 +292,7 @@ def plot_accumulated_execution_time(global_specification: GlobalSpecification, s
     for i in range(m):
         for j in range(n_aperiodic):
             axarr[i][j + n_periodic].set_title(r'$\tau_' + str(j + 1) + '^a$ execution \n on $CPU_' + str(i + 1) + '$')
-            axarr[i][j + n_periodic].plot(time_u, mexec[i * (n_periodic + n_aperiodic) + n_periodic + j], label="mexec")
+            axarr[i][j + n_periodic].plot(time_u, mexec[i * (n_periodic + n_aperiodic) + n_periodic + j])
             # axarr[i][j + n_periodic].plot(time_step, mexec_tcpn[i * (n_periodic + n_aperiodic) + n_periodic + j],
             #                               label="mexec tcpn")
             axarr[i][j].set_ylabel('executed time (s)')
@@ -320,13 +320,13 @@ def plot_cpu_frequency(global_specification: GlobalSpecification, scheduler_resu
     frequencies = scheduler_result.frequencies
     time_scheduler = scheduler_result.time_steps
     m = global_specification.cpu_specification.number_of_cores
-    f, axarr = plt.subplots(nrows=m, sharex=True, num="CPU relative frequency")
-    f.suptitle('CPU relative frequency')
+    f, axarr = plt.subplots(nrows=m, num="CPU relative frequency")
     for i in range(m):
-        axarr[i].set_title("CPU " + str(i))
+        axarr[i].set_title("$CPU_" + str(i + 1) + "$ relative frequency")
         axarr[i].set_ylim(-0.2, 1.2)
-        axarr[i].plot(time_scheduler, frequencies[i], label="Frequency", drawstyle='default')
-        axarr[i].legend(loc='best')
+        axarr[i].plot(time_scheduler, frequencies[i], drawstyle='default')
+        axarr[i].set_ylabel('relative frequency')
+        axarr[i].set_xlabel('time (s)')
 
     f.tight_layout()
 
