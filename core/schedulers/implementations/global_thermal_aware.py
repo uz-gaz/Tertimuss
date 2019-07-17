@@ -7,8 +7,8 @@ import scipy.sparse
 
 import scipy.optimize
 
-from core.problem_specification_models.GlobalSpecification import GlobalSpecification
-from core.problem_specification_models.TasksSpecification import TasksSpecification
+from core.problem_specification.GlobalSpecification import GlobalSpecification
+from core.problem_specification.TasksSpecification import TasksSpecification
 
 from core.schedulers.templates.abstract_global_scheduler import AbstractGlobalScheduler, GlobalSchedulerPeriodicTask, \
     GlobalSchedulerAperiodicTask, GlobalSchedulerTask

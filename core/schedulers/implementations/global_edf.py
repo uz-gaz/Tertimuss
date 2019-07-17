@@ -2,7 +2,7 @@ from typing import List, Optional
 
 import scipy
 
-from core.problem_specification_models.GlobalSpecification import GlobalSpecification
+from core.problem_specification.GlobalSpecification import GlobalSpecification
 from core.schedulers.templates.abstract_global_scheduler import AbstractGlobalScheduler, GlobalSchedulerPeriodicTask, \
     GlobalSchedulerAperiodicTask, GlobalSchedulerTask
 

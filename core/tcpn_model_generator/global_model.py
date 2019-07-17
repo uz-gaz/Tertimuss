@@ -1,9 +1,9 @@
 import scipy
 
-from core.kernel_generator.processor_model import ProcessorModel
-from core.kernel_generator.tasks_model import TasksModel
-from core.kernel_generator.thermal_model import ThermalModel
-from core.problem_specification_models.GlobalSpecification import GlobalSpecification
+from core.tcpn_model_generator.processor_model import ProcessorModel
+from core.tcpn_model_generator.tasks_model import TasksModel
+from core.tcpn_model_generator.thermal_model import ThermalModel
+from core.problem_specification.GlobalSpecification import GlobalSpecification
 
 
 class GlobalModel(object):

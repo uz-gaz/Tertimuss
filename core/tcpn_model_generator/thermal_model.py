@@ -5,10 +5,10 @@ import scipy
 import scipy.sparse
 import scipy.linalg
 
-from core.problem_specification_models.CpuSpecification import CpuSpecification, MaterialCuboid, Origin
-from core.problem_specification_models.EnvironmentSpecification import EnvironmentSpecification
-from core.problem_specification_models.SimulationSpecification import SimulationSpecification
-from core.problem_specification_models.TasksSpecification import TasksSpecification
+from core.problem_specification.CpuSpecification import CpuSpecification, MaterialCuboid, Origin
+from core.problem_specification.EnvironmentSpecification import EnvironmentSpecification
+from core.problem_specification.SimulationSpecification import SimulationSpecification
+from core.problem_specification.TasksSpecification import TasksSpecification
 
 
 class ThermalModel(object):

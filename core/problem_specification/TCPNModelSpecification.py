@@ -1,6 +1,6 @@
 from typing import Optional
 
-from core.kernel_generator.thermal_model_selector import ThermalModelSelector
+from core.tcpn_model_generator.thermal_model_selector import ThermalModelSelector
 
 
 class TCPNModelSpecification(object):

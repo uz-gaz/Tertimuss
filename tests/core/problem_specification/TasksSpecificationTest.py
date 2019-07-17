@@ -1,6 +1,6 @@
 import unittest
 
-from core.problem_specification_models.TasksSpecification import TasksSpecification, PeriodicTask, AperiodicTask
+from core.problem_specification.TasksSpecification import TasksSpecification, PeriodicTask, AperiodicTask
 
 
 class TaskSpecificationTests(unittest.TestCase):

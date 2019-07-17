@@ -4,20 +4,20 @@ import time
 from typing import Optional
 from jsonschema import validate, ValidationError
 
-from cli.progress_bar_cli import ProgressBarCli
-from core.kernel_generator.global_model import generate_global_model
-from core.kernel_generator.kernel import SimulationKernel
-from core.kernel_generator.processor_model import ProcessorModel, generate_processor_model
-from core.kernel_generator.tasks_model import TasksModel, generate_tasks_model
-from core.kernel_generator.thermal_model import ThermalModel, generate_thermal_model
-from core.problem_specification_models.CpuSpecification import CpuSpecification, MaterialCuboid, Origin, check_origins
-from core.problem_specification_models.EnvironmentSpecification import EnvironmentSpecification
-from core.problem_specification_models.GlobalSpecification import GlobalSpecification
-from core.problem_specification_models.SimulationSpecification import SimulationSpecification
-from core.problem_specification_models.TasksSpecification import TasksSpecification, PeriodicTask
+from ui.cli.progress_bar_cli import ProgressBarCli
+from core.tcpn_model_generator.global_model import generate_global_model
+from core.tcpn_model_generator.kernel import SimulationKernel
+from core.tcpn_model_generator.processor_model import ProcessorModel, generate_processor_model
+from core.tcpn_model_generator.tasks_model import TasksModel, generate_tasks_model
+from core.tcpn_model_generator.thermal_model import ThermalModel, generate_thermal_model
+from core.problem_specification.CpuSpecification import CpuSpecification, MaterialCuboid, Origin, check_origins
+from core.problem_specification.EnvironmentSpecification import EnvironmentSpecification
+from core.problem_specification.GlobalSpecification import GlobalSpecification
+from core.problem_specification.SimulationSpecification import SimulationSpecification
+from core.problem_specification.TasksSpecification import TasksSpecification, PeriodicTask
 from core.schedulers.scheduler_selector_by_name import select_scheduler
 from core.task_generator.task_generator_naming_selector import select_task_generator
-from output_generation.abstract_progress_bar import AbstractProgressBar
+from ui.common.abstract_progress_bar import AbstractProgressBar
 from output_generation.output_generator import draw_heat_matrix, plot_task_execution, plot_cpu_utilization, \
     plot_cpu_temperature, \
     plot_accumulated_execution_time

@@ -2,9 +2,9 @@ from typing import List
 
 import scipy
 
-from core.kernel_generator.thermal_model import ThermalModel
-from core.problem_specification_models.CpuSpecification import CpuSpecification
-from core.problem_specification_models.TasksSpecification import TasksSpecification, Task
+from core.tcpn_model_generator.thermal_model import ThermalModel
+from core.problem_specification.CpuSpecification import CpuSpecification
+from core.problem_specification.TasksSpecification import TasksSpecification, Task
 
 
 class ThermalModelEnergy(ThermalModel):

@@ -1,7 +1,7 @@
 import scipy
 
-from core.problem_specification_models.CpuSpecification import CpuSpecification
-from core.problem_specification_models.TasksSpecification import TasksSpecification
+from core.problem_specification.CpuSpecification import CpuSpecification
+from core.problem_specification.TasksSpecification import TasksSpecification
 
 
 class TasksModel(object):

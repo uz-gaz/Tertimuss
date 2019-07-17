@@ -1,10 +1,10 @@
 from typing import Optional
 
-from core.problem_specification_models.CpuSpecification import CpuSpecification
-from core.problem_specification_models.EnvironmentSpecification import EnvironmentSpecification
-from core.problem_specification_models.SimulationSpecification import SimulationSpecification
-from core.problem_specification_models.TCPNModelSpecification import TCPNModelSpecification
-from core.problem_specification_models.TasksSpecification import TasksSpecification
+from core.problem_specification.CpuSpecification import CpuSpecification
+from core.problem_specification.EnvironmentSpecification import EnvironmentSpecification
+from core.problem_specification.SimulationSpecification import SimulationSpecification
+from core.problem_specification.TCPNModelSpecification import TCPNModelSpecification
+from core.problem_specification.TasksSpecification import TasksSpecification
 
 
 class GlobalSpecification(object):

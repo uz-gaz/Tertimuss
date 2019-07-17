@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 
-from core.problem_specification_models.CpuSpecification import CpuSpecification, MaterialCuboid
+from core.problem_specification.CpuSpecification import CpuSpecification, MaterialCuboid
 
 
 def generate_automatic_origins_test(cpu_specification: CpuSpecification ):

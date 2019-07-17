@@ -5,14 +5,14 @@ import unittest
 import scipy
 import scipy.sparse
 
-from core.kernel_generator.global_model import GlobalModel
-from core.kernel_generator.thermal_model_selector import ThermalModelSelector
-from core.problem_specification_models.CpuSpecification import CpuSpecification, MaterialCuboid
-from core.problem_specification_models.EnvironmentSpecification import EnvironmentSpecification
-from core.problem_specification_models.GlobalSpecification import GlobalSpecification
-from core.problem_specification_models.SimulationSpecification import SimulationSpecification
-from core.problem_specification_models.TCPNModelSpecification import TCPNModelSpecification
-from core.problem_specification_models.TasksSpecification import TasksSpecification, PeriodicTask
+from core.tcpn_model_generator.global_model import GlobalModel
+from core.tcpn_model_generator.thermal_model_selector import ThermalModelSelector
+from core.problem_specification.CpuSpecification import CpuSpecification, MaterialCuboid
+from core.problem_specification.EnvironmentSpecification import EnvironmentSpecification
+from core.problem_specification.GlobalSpecification import GlobalSpecification
+from core.problem_specification.SimulationSpecification import SimulationSpecification
+from core.problem_specification.TCPNModelSpecification import TCPNModelSpecification
+from core.problem_specification.TasksSpecification import TasksSpecification, PeriodicTask
 
 
 class HeatMatrixGeneration(unittest.TestCase):

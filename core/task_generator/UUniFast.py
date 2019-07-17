@@ -1,7 +1,7 @@
 from random import randrange, uniform
 from typing import List
 
-from core.problem_specification_models.TasksSpecification import PeriodicTask
+from core.problem_specification.TasksSpecification import PeriodicTask
 from core.task_generator.TaskGeneratorAlgorithm import TaskGeneratorAlgorithm
 
 

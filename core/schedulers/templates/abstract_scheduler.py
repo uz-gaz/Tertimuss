@@ -3,9 +3,9 @@ from typing import Optional
 
 import scipy
 
-from core.kernel_generator.global_model import GlobalModel
-from core.problem_specification_models.GlobalSpecification import GlobalSpecification
-from output_generation.abstract_progress_bar import AbstractProgressBar
+from core.tcpn_model_generator.global_model import GlobalModel
+from core.problem_specification.GlobalSpecification import GlobalSpecification
+from ui.common.abstract_progress_bar import AbstractProgressBar
 
 
 class SchedulerResult(object):

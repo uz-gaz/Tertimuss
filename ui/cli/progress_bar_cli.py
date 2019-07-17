@@ -1,4 +1,4 @@
-from output_generation.abstract_progress_bar import AbstractProgressBar
+from ui.common.abstract_progress_bar import AbstractProgressBar
 from progress.bar import Bar
 
 

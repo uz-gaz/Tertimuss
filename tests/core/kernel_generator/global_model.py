@@ -1,14 +1,14 @@
 import hashlib
 import unittest
 
-from core.kernel_generator.global_model import GlobalModel, generate_global_model
-from core.kernel_generator.processor_model import ProcessorModel, generate_processor_model
-from core.kernel_generator.tasks_model import generate_tasks_model, TasksModel
-from core.kernel_generator.thermal_model import ThermalModel, generate_thermal_model
-from core.problem_specification_models.CpuSpecification import CpuSpecification, MaterialCuboid
-from core.problem_specification_models.EnvironmentSpecification import EnvironmentSpecification
-from core.problem_specification_models.SimulationSpecification import SimulationSpecification
-from core.problem_specification_models.TasksSpecification import TasksSpecification, PeriodicTask
+from core.tcpn_model_generator.global_model import GlobalModel, generate_global_model
+from core.tcpn_model_generator.processor_model import ProcessorModel, generate_processor_model
+from core.tcpn_model_generator.tasks_model import generate_tasks_model, TasksModel
+from core.tcpn_model_generator.thermal_model import ThermalModel, generate_thermal_model
+from core.problem_specification.CpuSpecification import CpuSpecification, MaterialCuboid
+from core.problem_specification.EnvironmentSpecification import EnvironmentSpecification
+from core.problem_specification.SimulationSpecification import SimulationSpecification
+from core.problem_specification.TasksSpecification import TasksSpecification, PeriodicTask
 
 
 class TestGlobalModel(unittest.TestCase):

@@ -1,11 +1,11 @@
 from typing import List
 
-import core.kernel_generator.thermal_model as thermal_model
+import core.tcpn_model_generator.thermal_model as thermal_model
 
 import scipy
 
-from core.problem_specification_models import CpuSpecification
-from core.problem_specification_models.TasksSpecification import TasksSpecification
+from core.problem_specification import CpuSpecification
+from core.problem_specification.TasksSpecification import TasksSpecification
 
 
 class ThermalModelFrequencyAware(thermal_model.ThermalModel):

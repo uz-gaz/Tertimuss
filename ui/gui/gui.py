@@ -6,16 +6,16 @@ from enum import Enum
 from multiprocessing import Process
 from typing import Optional, Callable, List
 
-from core.kernel_generator.global_model import generate_global_model
-from core.kernel_generator.kernel import SimulationKernel
-from core.kernel_generator.processor_model import ProcessorModel, generate_processor_model
-from core.kernel_generator.tasks_model import TasksModel, generate_tasks_model
-from core.kernel_generator.thermal_model import ThermalModel, generate_thermal_model
-from core.problem_specification_models.CpuSpecification import CpuSpecification, Origin, MaterialCuboid
-from core.problem_specification_models.EnvironmentSpecification import EnvironmentSpecification
-from core.problem_specification_models.GlobalSpecification import GlobalSpecification
-from core.problem_specification_models.SimulationSpecification import SimulationSpecification
-from core.problem_specification_models.TasksSpecification import TasksSpecification, PeriodicTask
+from core.tcpn_model_generator.global_model import generate_global_model
+from core.tcpn_model_generator.kernel import SimulationKernel
+from core.tcpn_model_generator.processor_model import ProcessorModel, generate_processor_model
+from core.tcpn_model_generator.tasks_model import TasksModel, generate_tasks_model
+from core.tcpn_model_generator.thermal_model import ThermalModel, generate_thermal_model
+from core.problem_specification.CpuSpecification import CpuSpecification, Origin, MaterialCuboid
+from core.problem_specification.EnvironmentSpecification import EnvironmentSpecification
+from core.problem_specification.GlobalSpecification import GlobalSpecification
+from core.problem_specification.SimulationSpecification import SimulationSpecification
+from core.problem_specification.TasksSpecification import TasksSpecification, PeriodicTask
 from core.schedulers.templates.abstract_scheduler import AbstractScheduler
 from core.schedulers.scheduler_selector_by_name import select_scheduler
 from core.task_generator.task_generator_naming_selector import select_task_generator

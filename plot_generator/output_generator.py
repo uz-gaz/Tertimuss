@@ -3,7 +3,7 @@ from typing import Optional
 import scipy
 from matplotlib import animation
 
-from core.problem_specification_models.GlobalSpecification import GlobalSpecification
+from core.problem_specification.GlobalSpecification import GlobalSpecification
 from core.schedulers.templates.abstract_scheduler import SchedulerResult
 import matplotlib.pyplot as plt
 
@@ -101,13 +101,15 @@ def plot_cpu_utilization(global_specification: GlobalSpecification, scheduler_re
     n_periodic = len(global_specification.tasks_specification.periodic_tasks)
     n_aperiodic = len(global_specification.tasks_specification.aperiodic_tasks)
     m = global_specification.cpu_specification.number_of_cores
-    f, axarr = plt.subplots(nrows=m, sharex=True, num="CPU utilization")
-    f.suptitle('CPU utilization')
+    f, axarr = plt.subplots(nrows=m, sharex=True)
+
     for i in range(m):
-        axarr[i].set_title("CPU " + str(i))
+        axarr[i].set_title("$CPU_" + str(i + 1) + "$ utilization")
         for j in range(n_periodic):
-            axarr[i].plot(time_u, i_tau_disc[i * (n_periodic + n_aperiodic) + j], label="Task " + str(j),
+            axarr[i].plot(time_u, i_tau_disc[i * (n_periodic + n_aperiodic) + j], label=r'$\tau_' + str(j + 1) + '$',
                           drawstyle='steps')
+            axarr[i].set_ylabel('utilization')
+            axarr[i].set_xlabel('time (s)')
 
         for j in range(n_aperiodic):
             axarr[i].plot(time_u, i_tau_disc[i * (n_periodic + n_aperiodic) + n_periodic + j],
@@ -115,6 +117,8 @@ def plot_cpu_utilization(global_specification: GlobalSpecification, scheduler_re
                           drawstyle='steps')
 
         axarr[i].legend(loc='best')
+
+    f.tight_layout()
 
     if save_path is None:
         plt.show()

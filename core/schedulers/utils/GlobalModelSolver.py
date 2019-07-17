@@ -3,8 +3,8 @@ from typing import List
 import scipy
 import scipy.integrate
 
-from core.kernel_generator.global_model import GlobalModel
-from core.problem_specification_models.GlobalSpecification import GlobalSpecification
+from core.tcpn_model_generator.global_model import GlobalModel
+from core.problem_specification.GlobalSpecification import GlobalSpecification
 from core.tcpn_simulator.TcpnSimulatorAccurateOptimizedTasks import TcpnSimulatorAccurateOptimizedTasks
 from core.tcpn_simulator.TcpnSimulatorAccurateOptimizedThermal import TcpnSimulatorAccurateOptimizedThermal
 

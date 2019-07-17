@@ -3,13 +3,13 @@ import abc
 import scipy
 import math
 
-from core.kernel_generator.global_model import GlobalModel
-from core.problem_specification_models.GlobalSpecification import GlobalSpecification
-from core.problem_specification_models.TasksSpecification import PeriodicTask, AperiodicTask
+from core.tcpn_model_generator.global_model import GlobalModel
+from core.problem_specification.GlobalSpecification import GlobalSpecification
+from core.problem_specification.TasksSpecification import PeriodicTask, AperiodicTask
 from core.schedulers.templates.abstract_scheduler import AbstractScheduler, SchedulerResult
 from typing import List, Optional
 from core.schedulers.utils.GlobalModelSolver import GlobalModelSolver
-from output_generation.abstract_progress_bar import AbstractProgressBar
+from ui.common.abstract_progress_bar import AbstractProgressBar
 
 
 class GlobalSchedulerTask(object):
