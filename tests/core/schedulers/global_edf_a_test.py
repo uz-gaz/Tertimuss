@@ -87,11 +87,10 @@ class TestGlobalEdfScheduler(unittest.TestCase):
         # plot_energy_consumption(global_specification, scheduler_simulation, False,
         #                         "out/" + result_base_name + "_energy_consumption_false.png")
 
-        plot_cpu_temperature(global_specification, scheduler_simulation)
         # plot_accumulated_execution_time(global_specification, scheduler_simulation)
         # plot_cpu_frequency(global_specification, scheduler_simulation)
         # plot_task_execution_percentage(global_specification, scheduler_simulation)
-        # plot_energy_consumption(global_specification, scheduler_simulation, True)
+        plot_energy_consumption(global_specification, scheduler_simulation)
         # plot_energy_consumption(global_specification, scheduler_simulation, False)
 
         print("Time taken in save output:", time.time() - time_1)

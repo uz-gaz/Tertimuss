@@ -236,28 +236,32 @@ def plot_cpu_temperature(global_specification: GlobalSpecification, scheduler_re
 
 
 def plot_energy_consumption(global_specification: GlobalSpecification, scheduler_result: SchedulerResult,
-                            show_total: bool, save_path: Optional[str] = None):
+                            save_path: Optional[str] = None):
     energy_consumption = scheduler_result.energy_consumption
     time_temp = scheduler_result.time_steps
     m = global_specification.cpu_specification.number_of_cores
-    n_panels = m + 1 if show_total else m
-    f, axarr = plt.subplots(nrows=n_panels, sharex=True, num="CPU energy consumption by dynamic power")
-    f.suptitle('CPU energy consumption')
-    for i in range(m):
-        axarr[i].set_title("CPU " + str(i))
-        axarr[i].plot(time_temp, energy_consumption[i], label="Energy", drawstyle='default')
-        axarr[i].legend(loc='best')
+    n_panels = m + 1
+    f, axarr = plt.subplots(nrows=n_panels, num="CPU energy consumption by dynamic power")
 
-    if show_total:
-        axarr[-1].set_title("Total")
-        axarr[-1].plot(time_temp, scipy.sum(energy_consumption, axis=0), label="Energy", drawstyle='default')
-        axarr[-1].legend(loc='best')
+    for i in range(m):
+        axarr[i].set_title("$CPU_" + str(i + 1) + "$ energy consumed by dynamic power")
+        axarr[i].plot(time_temp, energy_consumption[i], drawstyle='default')
+        axarr[i].set_ylabel('energy (Watt)')
+        axarr[i].set_xlabel('time (s)')
+
+    axarr[-1].set_title("Total energy consumed by dynamic power ")
+    axarr[-1].plot(time_temp, scipy.sum(energy_consumption, axis=0), drawstyle='default')
+    axarr[-1].set_ylabel('energy (Watt)')
+    axarr[-1].set_xlabel('time (s)')
+
+    f.tight_layout()
 
     if save_path is None:
         plt.show()
     else:
         plt.savefig(save_path)
-        plt.close(f)
+
+    plt.close(f)
 
 
 def plot_accumulated_execution_time(global_specification: GlobalSpecification, scheduler_result: SchedulerResult,
@@ -293,11 +297,14 @@ def plot_accumulated_execution_time(global_specification: GlobalSpecification, s
             #                               label="mexec tcpn")
             axarr[i][j + n_periodic].legend(loc='best')
 
+    f.tight_layout()
+
     if save_path is None:
         plt.show()
     else:
         plt.savefig(save_path)
-        plt.close(f)
+
+    plt.close(f)
 
 
 def plot_cpu_frequency(global_specification: GlobalSpecification, scheduler_result: SchedulerResult,
@@ -320,11 +327,14 @@ def plot_cpu_frequency(global_specification: GlobalSpecification, scheduler_resu
         axarr[i].plot(time_scheduler, frequencies[i], label="Frequency", drawstyle='default')
         axarr[i].legend(loc='best')
 
+    f.tight_layout()
+
     if save_path is None:
         plt.show()
     else:
         plt.savefig(save_path)
-        plt.close(f)
+
+    plt.close(f)
 
 
 def plot_task_execution_percentage(global_specification: GlobalSpecification, scheduler_result: SchedulerResult,
@@ -407,10 +417,10 @@ def plot_task_execution_percentage(global_specification: GlobalSpecification, sc
         axarr[n_periodic + j].set_xticklabels([])
 
     f.tight_layout()
-    # plt.subplots_adjust(top=0.90)
 
     if save_path is None:
         plt.show()
     else:
         plt.savefig(save_path)
-        plt.close(f)
+
+    plt.close(f)
