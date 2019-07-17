@@ -159,8 +159,10 @@ class ThermalModel(object):
         lambda2_div_lambda1 = (cpu_specification.board_specification.z * rho_p1 * cp_p1) / (
                 cpu_specification.cpu_core_specification.z * rho_p2 * cp_p2)
 
-        pre_int = scipy.sparse.lil_matrix((p_micros + p_board, 2 * p_micros), dtype=simulation_specification.type_precision)
-        post_int = scipy.sparse.lil_matrix((p_micros + p_board, 2 * p_micros), dtype=simulation_specification.type_precision)
+        pre_int = scipy.sparse.lil_matrix((p_micros + p_board, 2 * p_micros),
+                                          dtype=simulation_specification.type_precision)
+        post_int = scipy.sparse.lil_matrix((p_micros + p_board, 2 * p_micros),
+                                           dtype=simulation_specification.type_precision)
 
         lambda_vector_int = scipy.asarray(p_micros * [lambda1, lambda2], dtype=simulation_specification.type_precision)
 
@@ -203,7 +205,8 @@ class ThermalModel(object):
         pre_conv = scipy.sparse.vstack(
             [scipy.sparse.identity(exposed_places, dtype=simulation_specification.type_precision, format="lil"),
              scipy.sparse.lil_matrix((p_micros, exposed_places), dtype=simulation_specification.type_precision)])
-        post_conv = scipy.sparse.lil_matrix((total_places, exposed_places), dtype=simulation_specification.type_precision)
+        post_conv = scipy.sparse.lil_matrix((total_places, exposed_places),
+                                            dtype=simulation_specification.type_precision)
         lambda_conv = scipy.full(exposed_places, lambda_convection, dtype=simulation_specification.type_precision)
 
         # Transition t2 and place p2 in the convection paper
@@ -234,7 +237,8 @@ class ThermalModel(object):
         # Number of transitions m * ( t_1_delta_heat_generation ) + t_1_alpha_heat_generation
         number_of_transitions = p_micros + 1
 
-        pre_gen = scipy.sparse.lil_matrix((total_places, number_of_transitions), dtype=simulation_specification.type_precision)
+        pre_gen = scipy.sparse.lil_matrix((total_places, number_of_transitions),
+                                          dtype=simulation_specification.type_precision)
 
         # Connection between each P_temp and t_1_delta
         pre_gen[p_board:p_board + p_micros, 0:p_micros] = \
@@ -242,7 +246,8 @@ class ThermalModel(object):
 
         pre_gen[-1, -1] = 1  # Connection between P_alpha and t_1_alpha
 
-        post_gen = scipy.sparse.lil_matrix((total_places, number_of_transitions), dtype=simulation_specification.type_precision)
+        post_gen = scipy.sparse.lil_matrix((total_places, number_of_transitions),
+                                           dtype=simulation_specification.type_precision)
 
         # Connection between t_1_delta and each P_temp
         post_gen[p_board:p_board + p_micros, 0:p_micros] = \
@@ -278,7 +283,7 @@ class ThermalModel(object):
     def add_heat_by_dynamic_power(cls, p_board: int, p_one_micro: int, cpu_specification: CpuSpecification,
                                   tasks_specification: TasksSpecification,
                                   simulation_specification: SimulationSpecification) \
-            -> [scipy.sparse.lil_matrix, scipy.sparse.lil_matrix, scipy.ndarray]:
+            -> [scipy.sparse.lil_matrix, scipy.sparse.lil_matrix, scipy.ndarray, scipy.ndarray]:
         n = len(tasks_specification.periodic_tasks) + len(tasks_specification.aperiodic_tasks)
 
         # Places and transitions for all CPUs
@@ -290,20 +295,29 @@ class ThermalModel(object):
         # Number of transitions one for each t_exec
         number_of_transitions = cpu_specification.number_of_cores * n
 
-        pre_gen = scipy.sparse.lil_matrix((total_places, number_of_transitions), dtype=simulation_specification.type_precision)
+        pre_gen = scipy.sparse.lil_matrix((total_places, number_of_transitions),
+                                          dtype=simulation_specification.type_precision)
         # Connection with p2 in paper
         pre_gen[p_board + p_micros + 1 + 1:p_board + p_micros + 1 + 1 + number_of_transitions, :] = \
             scipy.sparse.identity(number_of_transitions, dtype=simulation_specification.type_precision, format="lil")
 
-        post_gen = scipy.sparse.lil_matrix((total_places, number_of_transitions), dtype=simulation_specification.type_precision)
+        post_gen = scipy.sparse.lil_matrix((total_places, number_of_transitions),
+                                           dtype=simulation_specification.type_precision)
 
         # This will ensure that m_exec will remain constant
         post_gen[p_board + p_micros + 1 + 1:p_board + p_micros + 1 + 1 + number_of_transitions, :] = \
             scipy.sparse.identity(number_of_transitions, dtype=simulation_specification.type_precision, format="lil")
 
         # Get power consumption by task in cpu
-        dynamic_power_consumption = cls._get_dynamic_power_consumption(cpu_specification, tasks_specification,
-                                                                       cpu_specification.clock_relative_frequencies)
+        power_consumption = cls._get_dynamic_power_consumption(cpu_specification, tasks_specification,
+                                                              cpu_specification.clock_relative_frequencies)
+
+        rho = cpu_specification.cpu_core_specification.p
+        cp = cpu_specification.cpu_core_specification.c_p
+        v_cpu = cpu_specification.cpu_core_specification.z * cpu_specification.cpu_core_specification.x * \
+                cpu_specification.cpu_core_specification.y / (1000 ** 3)
+
+        dynamic_power_consumption = power_consumption / (v_cpu * rho * cp)
 
         dynamic_power_consumption = scipy.sparse.csr_matrix(dynamic_power_consumption).tolil()
 
@@ -316,13 +330,13 @@ class ThermalModel(object):
         lambda_gen = scipy.concatenate([scipy.full(n, f, dtype=simulation_specification.type_precision) for f in
                                         cpu_specification.clock_relative_frequencies])
 
-        return pre_gen, post_gen, lambda_gen
+        return pre_gen, post_gen, lambda_gen, power_consumption
 
     @classmethod
     def change_frequency(cls, frequency_vector: List[float], post: scipy.ndarray, lambda_vector: scipy.ndarray,
                          cpu_specification: CpuSpecification, tasks_specification: TasksSpecification, p_board: int,
                          p_one_micro: int, simulation_specification: SimulationSpecification) \
-            -> [scipy.sparse.lil_matrix, scipy.ndarray]:
+            -> [scipy.sparse.lil_matrix, scipy.ndarray, scipy.ndarray]:
         """
         Return new models adapted to the new frequencies
         :param simulation_specification:
@@ -336,8 +350,15 @@ class ThermalModel(object):
         :return:
         """
         # Get power consumption by task in cpu
-        dynamic_power_consumption = cls._get_dynamic_power_consumption(cpu_specification, tasks_specification,
-                                                                       cpu_specification.clock_relative_frequencies)
+        power_consumption = cls._get_dynamic_power_consumption(cpu_specification, tasks_specification,
+                                                              cpu_specification.clock_relative_frequencies)
+
+        rho = cpu_specification.cpu_core_specification.p
+        cp = cpu_specification.cpu_core_specification.c_p
+        v_cpu = cpu_specification.cpu_core_specification.z * cpu_specification.cpu_core_specification.x * \
+                cpu_specification.cpu_core_specification.y / (1000 ** 3)
+
+        dynamic_power_consumption = power_consumption / (v_cpu * rho * cp)
 
         dynamic_power_consumption = scipy.sparse.csr_matrix(dynamic_power_consumption).tolil()
 
@@ -357,7 +378,7 @@ class ThermalModel(object):
 
         post[p_board: p_board + p_one_micro * m, -n * m:] = post_sustitution
 
-        return post, lambda_vector
+        return post, lambda_vector, power_consumption
 
     def __init__(self, tasks_specification: TasksSpecification, cpu_specification: CpuSpecification,
                  environment_specification: EnvironmentSpecification,
@@ -414,7 +435,7 @@ class ThermalModel(object):
                                            simulation_specification)
 
         # Heat generation dynamic
-        pre_heat_dynamic, post_heat_dynamic, lambda_vector_heat_dynamic = \
+        pre_heat_dynamic, post_heat_dynamic, lambda_vector_heat_dynamic, power_consumption = \
             self.add_heat_by_dynamic_power(p_board,
                                            p_one_micro,
                                            cpu_specification,
@@ -493,3 +514,4 @@ class ThermalModel(object):
         self.p_one_micro: int = p_one_micro
         self.t_board: int = t_board
         self.t_one_micro: int = t_one_micro
+        self.power_consumption: scipy.ndarray = power_consumption

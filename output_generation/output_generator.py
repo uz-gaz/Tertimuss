@@ -36,7 +36,7 @@ def draw_heat_matrix(global_specification: GlobalSpecification, scheduler_result
     cbar.ax.set_ylabel("Temperature ºC", rotation=-90, va="bottom")
 
     def animate(i):
-        ax.set_title("Time: " + '%.2f' % scheduler_result.time_tcpn[i] + " seconds", loc='left')
+        ax.set_title("Time: " + '%.2f' % scheduler_result.time_steps[i] + " seconds", loc='left')
         quad.set_array(heat_map[i].ravel())
         return quad
 
@@ -97,11 +97,11 @@ def plot_cpu_utilization(global_specification: GlobalSpecification, scheduler_re
     """
 
     i_tau_disc = scheduler_result.scheduler_assignation
-    time_u = scheduler_result.time_scheduler
+    time_u = scheduler_result.time_steps
     n_periodic = len(global_specification.tasks_specification.periodic_tasks)
     n_aperiodic = len(global_specification.tasks_specification.aperiodic_tasks)
     m = global_specification.cpu_specification.number_of_cores
-    f, axarr = plt.subplots(m, sharex=True, num="CPU utilization")
+    f, axarr = plt.subplots(nrows=m, sharex=True, num="CPU utilization")
     f.suptitle('CPU utilization')
     for i in range(m):
         axarr[i].set_title("CPU " + str(i))
@@ -133,11 +133,11 @@ def plot_task_execution(global_specification: GlobalSpecification, scheduler_res
     """
 
     i_tau_disc = scheduler_result.scheduler_assignation
-    time_u = scheduler_result.time_scheduler
+    time_u = scheduler_result.time_steps
     n_periodic = len(global_specification.tasks_specification.periodic_tasks)
     n_aperiodic = len(global_specification.tasks_specification.aperiodic_tasks)
     m = global_specification.cpu_specification.number_of_cores
-    f, axarr = plt.subplots((n_periodic + n_aperiodic), sharex=True, num="Task execution")
+    f, axarr = plt.subplots(nrows=(n_periodic + n_aperiodic), sharex=True, num="Task execution")
     f.suptitle('Task execution')
     utilization_by_task = scipy.zeros(((n_periodic + n_aperiodic), len(i_tau_disc[0])))
 
@@ -205,14 +205,39 @@ def plot_cpu_temperature(global_specification: GlobalSpecification, scheduler_re
     """
 
     temperature_disc = scheduler_result.max_temperature_cores
-    time_temp = scheduler_result.time_tcpn
+    time_temp = scheduler_result.time_steps
     m = global_specification.cpu_specification.number_of_cores
-    f, axarr = plt.subplots(m, sharex=True, num="CPU temperature")
+    f, axarr = plt.subplots(nrows=m, sharex=True, num="CPU temperature")
     f.suptitle('CPU temperature')
     for i in range(m):
         axarr[i].set_title("CPU " + str(i))
         axarr[i].plot(time_temp, temperature_disc[i], label="Temperature", drawstyle='default')
         axarr[i].legend(loc='best')
+
+    if save_path is None:
+        plt.show()
+    else:
+        plt.savefig(save_path)
+        plt.close(f)
+
+
+def plot_energy_consumption(global_specification: GlobalSpecification, scheduler_result: SchedulerResult,
+                            show_total: bool, save_path: Optional[str] = None):
+    energy_consumption = scheduler_result.energy_consumption
+    time_temp = scheduler_result.time_steps
+    m = global_specification.cpu_specification.number_of_cores
+    n_panels = m + 1 if show_total else m
+    f, axarr = plt.subplots(nrows=n_panels, sharex=True, num="CPU energy consumption by dynamic power")
+    f.suptitle('CPU energy consumption')
+    for i in range(m):
+        axarr[i].set_title("CPU " + str(i))
+        axarr[i].plot(time_temp, energy_consumption[i], label="Energy", drawstyle='default')
+        axarr[i].legend(loc='best')
+
+    if show_total:
+        axarr[-1].set_title("Total")
+        axarr[-1].plot(time_temp, scipy.sum(energy_consumption, axis=0), label="Energy", drawstyle='default')
+        axarr[-1].legend(loc='best')
 
     if save_path is None:
         plt.show()
@@ -231,27 +256,27 @@ def plot_accumulated_execution_time(global_specification: GlobalSpecification, s
     """
 
     mexec = scheduler_result.execution_time_scheduler
-    mexec_tcpn = scheduler_result.execution_time_tcpn
-    time_u = scheduler_result.time_scheduler
-    time_step = scheduler_result.time_tcpn
+    # mexec_tcpn = scheduler_result.execution_time_tcpn
+    time_u = scheduler_result.time_steps
+    # time_step = scheduler_result.time_tcpn
     n_periodic = len(global_specification.tasks_specification.periodic_tasks)
     n_aperiodic = len(global_specification.tasks_specification.aperiodic_tasks)
     m = global_specification.cpu_specification.number_of_cores
-    f, axarr = plt.subplots(m, (n_periodic + n_aperiodic), num="Execution time")
+    f, axarr = plt.subplots(nrows=m, ncols=(n_periodic + n_aperiodic), num="Execution time")
     f.suptitle('Execution time')
     for i in range(m):
         for j in range(n_periodic):
             axarr[i][j].set_title("CPU " + str(i) + " task " + str(j))
             axarr[i][j].plot(time_u, mexec[i * (n_periodic + n_aperiodic) + j], label="mexec")
-            axarr[i][j].plot(time_step, mexec_tcpn[i * (n_periodic + n_aperiodic) + j], label="mexec tcpn")
+            # axarr[i][j].plot(time_step, mexec_tcpn[i * (n_periodic + n_aperiodic) + j], label="mexec tcpn")
             axarr[i][j].legend(loc='best')
 
     for i in range(m):
         for j in range(n_aperiodic):
             axarr[i][j + n_periodic].set_title("CPU " + str(i) + " aperiodic " + str(j))
             axarr[i][j + n_periodic].plot(time_u, mexec[i * (n_periodic + n_aperiodic) + n_periodic + j], label="mexec")
-            axarr[i][j + n_periodic].plot(time_step, mexec_tcpn[i * (n_periodic + n_aperiodic) + n_periodic + j],
-                                          label="mexec tcpn")
+            # axarr[i][j + n_periodic].plot(time_step, mexec_tcpn[i * (n_periodic + n_aperiodic) + n_periodic + j],
+            #                               label="mexec tcpn")
             axarr[i][j + n_periodic].legend(loc='best')
 
     if save_path is None:
@@ -271,9 +296,9 @@ def plot_cpu_frequency(global_specification: GlobalSpecification, scheduler_resu
     """
 
     frequencies = scheduler_result.frequencies
-    time_scheduler = scheduler_result.time_scheduler
+    time_scheduler = scheduler_result.time_steps
     m = global_specification.cpu_specification.number_of_cores
-    f, axarr = plt.subplots(m, sharex=True, num="CPU relative frequency")
+    f, axarr = plt.subplots(nrows=m, sharex=True, num="CPU relative frequency")
     f.suptitle('CPU relative frequency')
     for i in range(m):
         axarr[i].set_title("CPU " + str(i))
@@ -351,7 +376,7 @@ def plot_task_execution_percentage(global_specification: GlobalSpecification, sc
         execution_aperiodic = sum(i_tau_disc_accond[n_periodic + i, ai_a_dt[i]: di_a_dt[i]]) / ci_a_dt[i]
         task_percentage_aperiodic.append([execution_aperiodic])
 
-    f, axarr = plt.subplots((n_periodic + n_aperiodic), num="Task execution")
+    f, axarr = plt.subplots(nrows=(n_periodic + n_aperiodic), num="Task execution")
     f.suptitle('Task execution percentage in each period')
 
     for j in range(n_periodic):

@@ -74,3 +74,4 @@ class GlobalModel(object):
             self.p_board = thermal_model.p_board
             self.t_one_micro = thermal_model.t_one_micro
             self.t_board = thermal_model.t_board
+            self.power_consumption = thermal_model.power_consumption

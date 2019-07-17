@@ -1,5 +1,3 @@
-
-
 from typing import List
 
 import scipy
@@ -27,14 +25,10 @@ class ThermalModelEnergy(ThermalModel):
         :param clock_relative_frequencies: Core frequencies
         :return: an array with shape (m , n). Each place contains the weight in the arcs t_exec_n -> cpu_m
         """
-        rho = cpu_specification.cpu_core_specification.p
-        cp = cpu_specification.cpu_core_specification.c_p
-        v_cpu = cpu_specification.cpu_core_specification.z * cpu_specification.cpu_core_specification.x * \
-                cpu_specification.cpu_core_specification.y / (1000 ** 3)
 
         tasks: List[Task] = tasks_specification.periodic_tasks + tasks_specification.aperiodic_tasks
 
-        consumption_by_task = [task.e / (v_cpu * rho * cp) for task in tasks]
+        consumption_by_task = [task.e for task in tasks]
 
         return scipy.repeat(scipy.asarray(consumption_by_task).reshape((1, -1)), cpu_specification.number_of_cores,
                             axis=0)

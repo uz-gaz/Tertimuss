@@ -69,8 +69,10 @@ class GlobalModelSolver(object):
             self.__p_board = global_model.p_board
             self.__p_one_micro = global_model.p_one_micro
             self.__control_thermal = scipy.asarray(global_specification.cpu_specification.clock_relative_frequencies)
+            self.__power_consumption = global_model.power_consumption
 
     def run_step(self, w_alloc: List[int], time: float, core_frequencies: List[float]) -> [scipy.ndarray,
+                                                                                           scipy.ndarray,
                                                                                            scipy.ndarray,
                                                                                            scipy.ndarray,
                                                                                            scipy.ndarray,
@@ -118,16 +120,18 @@ class GlobalModelSolver(object):
                 self.__control_thermal = new_control_thermal
 
                 # Obtain post and lambda for the new frequency
-                post, lambda_vector = self.__thermal_model_selected.value.change_frequency(core_frequencies,
-                                                                                           self.__tcpn_simulator_thermal.get_post(),
-                                                                                           self.__tcpn_simulator_thermal.get_lambda(),
-                                                                                           self.__cpu_specification,
-                                                                                           self.__tasks_specification,
-                                                                                           self.__p_board,
-                                                                                           self.__p_one_micro,
-                                                                                           self.__simulation_specification)
+                post, lambda_vector, power_consumption = \
+                    self.__thermal_model_selected.value.change_frequency(core_frequencies,
+                                                                         self.__tcpn_simulator_thermal.get_post(),
+                                                                         self.__tcpn_simulator_thermal.get_lambda(),
+                                                                         self.__cpu_specification,
+                                                                         self.__tasks_specification,
+                                                                         self.__p_board,
+                                                                         self.__p_one_micro,
+                                                                         self.__simulation_specification)
 
                 self.__tcpn_simulator_thermal.set_post_and_lambda(post, lambda_vector)
+                self.__power_consumption = power_consumption
 
             self.__mo_thermal[-self.__n * self.__m:, 0] = w_alloc
             self.__mo_thermal = self.__tcpn_simulator_thermal.simulate_multi_step(self.__mo_thermal)
@@ -156,7 +160,12 @@ class GlobalModelSolver(object):
 
         self.__accumulated_m_exec += m_exec_change
 
-        return self.__accumulated_m_exec, board_temperature, cores_temperature, scipy.asarray(
+        # Obtain energy consumption
+        energy_consumption = scipy.sum(
+            scipy.asarray(w_alloc).reshape(self.__m, self.__n) * self.__power_consumption,
+            axis=1)
+
+        return self.__accumulated_m_exec, board_temperature, cores_temperature, energy_consumption, scipy.asarray(
             [time + self.__step])
 
     def get_mo(self):

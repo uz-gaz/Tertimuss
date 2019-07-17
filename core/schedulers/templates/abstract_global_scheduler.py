@@ -92,32 +92,43 @@ class AbstractGlobalScheduler(AbstractScheduler):
             global_specification.tasks_specification.h / global_specification.simulation_specification.dt, float_round))
 
         # Allocation of each task in each simulation step
-        i_tau_disc = scipy.zeros((n * m, simulation_time_steps))
+        i_tau_disc = scipy.ndarray((n * m, simulation_time_steps))
 
         # Time of each simulation step
-        time_step = scipy.zeros((simulation_time_steps, 1))
+        time_step = scipy.zeros(simulation_time_steps)
 
         # Accumulated execution time
         m_exec = scipy.ndarray((n * m, simulation_time_steps))
 
-        # Accumulated execution time tcpn
-        m_exec_tcpn = scipy.ndarray((n * m, simulation_time_steps))
-
-        # Max temperature of cores in each step
-        max_temperature_cores = []
-
-        # Map with temperatures in each step
-        temperature_map = []
-
-        # Time where each temperature step have been obtained
-        time_temp = []
-
         # Core frequencies in each step
         core_frequencies = scipy.ndarray((m, simulation_time_steps))
 
+        # Max temperature of cores in each step
+        max_temperature_cores = None
+
+        # Map with temperatures in each step
+        temperature_map = None
+
         # Actual cores temperature in each step
-        cores_temperature = scipy.full(m, global_specification.environment_specification.t_env) \
-            if is_thermal_simulation else None
+        cores_temperature = None
+
+        # Actual cores energy consumption in each step
+        energy_consumption = None
+
+        if is_thermal_simulation:
+            # Max temperature of cores in each step
+            max_temperature_cores = scipy.ndarray((m, simulation_time_steps))
+
+            # Map with temperatures in each step
+            board_places = global_model.p_board
+            cpus_places = global_model.p_one_micro * m
+            temperature_map = scipy.ndarray((board_places + cpus_places, simulation_time_steps))
+
+            # Actual cores temperature in each step
+            cores_temperature = scipy.full(m, global_specification.environment_specification.t_env)
+
+            # Actual cores energy consumption in each step
+            energy_consumption = scipy.ndarray((m, simulation_time_steps))
 
         # Run offline stage
         quantum = self.offline_stage(global_specification, periodic_tasks, aperiodic_tasks)
@@ -158,7 +169,7 @@ class AbstractGlobalScheduler(AbstractScheduler):
                 aperiodic_arrives_list = [x for x in aperiodic_tasks if math.ceil(
                     round(x.next_arrival / global_specification.simulation_specification.dt, float_round)) == zeta_q]
                 need_scheduled = self.aperiodic_arrive(time, aperiodic_arrives_list, clock_relative_frequencies,
-                                                       cores_temperature)
+                                                       cores_temperature if is_thermal_simulation else None)
                 if need_scheduled:
                     # If scheduler need to be call
                     quantum_q = 0
@@ -181,7 +192,9 @@ class AbstractGlobalScheduler(AbstractScheduler):
                 active_task_id, next_quantum, next_core_frequencies = self.schedule_policy(time, executable_tasks,
                                                                                            active_task_id,
                                                                                            clock_relative_frequencies,
-                                                                                           cores_temperature)
+                                                                                           cores_temperature if
+                                                                                           is_thermal_simulation
+                                                                                           else None)
                 # Tasks selected by the scheduler to execute
                 scheduler_selected_tasks = scipy.asarray(active_task_id)
 
@@ -223,25 +236,21 @@ class AbstractGlobalScheduler(AbstractScheduler):
                     w_alloc[active_task_id[j] + j * n] = 1
                     m_exec_step[active_task_id[j] + j * n] += global_specification.simulation_specification.dt
 
-            m_exec_disc, board_temperature, cores_temperature, results_times = global_model_solver.run_step(
+            _, board_temperature, cores_temperature, energy_consumption_actual, _ = global_model_solver.run_step(
                 w_alloc, time, clock_relative_frequencies)
 
             i_tau_disc[:, zeta_q] = w_alloc
 
-            m_exec_tcpn[:, zeta_q] = m_exec_disc
-
             m_exec[:, zeta_q] = m_exec_step
 
-            time_step[zeta_q, 0] = time
+            time_step[zeta_q] = time
 
             core_frequencies[:, zeta_q] = clock_relative_frequencies
 
-            time_temp.append(results_times)
-
             if is_thermal_simulation:
-                max_temperature_cores.append(cores_temperature)
-
-                temperature_map.append(board_temperature)
+                max_temperature_cores[:, zeta_q] = cores_temperature.reshape(-1)
+                temperature_map[:, zeta_q] = board_temperature.reshape(-1)
+                energy_consumption[:, zeta_q] = energy_consumption_actual
 
             # Check if some deadline has arrived and update this task properties
             n_periodic = len(global_specification.tasks_specification.periodic_tasks)
@@ -263,17 +272,9 @@ class AbstractGlobalScheduler(AbstractScheduler):
                     tasks_set[n_periodic + j].next_arrival += global_specification.tasks_specification.h
                     tasks_set[n_periodic + j].next_deadline += global_specification.tasks_specification.h
 
-        if len(temperature_map) > 0:
-            temperature_map = scipy.concatenate(temperature_map, axis=1)
-
-        if len(time_temp) > 0:
-            time_temp = scipy.concatenate(time_temp)
-
-        if len(max_temperature_cores) > 0:
-            max_temperature_cores = scipy.concatenate(max_temperature_cores, axis=1)
-
-        return SchedulerResult(temperature_map, max_temperature_cores, time_step, time_temp, m_exec, m_exec_tcpn,
-                               i_tau_disc, core_frequencies, global_specification.simulation_specification.dt)
+        return SchedulerResult(temperature_map, max_temperature_cores, time_step,  m_exec,
+                               i_tau_disc, core_frequencies, energy_consumption,
+                               global_specification.simulation_specification.dt)
 
     @abc.abstractmethod
     def offline_stage(self, global_specification: GlobalSpecification,
