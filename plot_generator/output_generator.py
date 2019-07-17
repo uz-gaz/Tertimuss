@@ -113,7 +113,7 @@ def plot_cpu_utilization(global_specification: GlobalSpecification, scheduler_re
 
         for j in range(n_aperiodic):
             axarr[i].plot(time_u, i_tau_disc[i * (n_periodic + n_aperiodic) + n_periodic + j],
-                          label="Aperiodic " + str(j + 1),
+                          label=r'$\tau_' + str(j + 1) + '^a$',
                           drawstyle='steps')
 
         axarr[i].legend(loc='best')
@@ -187,7 +187,7 @@ def plot_task_execution(global_specification: GlobalSpecification, scheduler_res
         axarr[j].axes.get_yaxis().set_visible(False)
 
     for j in range(n_aperiodic):
-        axarr[j + n_periodic].set_title("Aperiodic " + str(j))
+        axarr[j + n_periodic].set_title(r'$\tau_' + str(j + 1) + '^a$ execution')
         axarr[j + n_periodic].plot(time_u, utilization_by_task[n_periodic + j], label="Execution", drawstyle='steps')
         axarr[j + n_periodic].plot(deadlines_time, deadline_by_task[n_periodic + j], label="Deadline",
                                    drawstyle='steps')
@@ -281,21 +281,22 @@ def plot_accumulated_execution_time(global_specification: GlobalSpecification, s
     n_aperiodic = len(global_specification.tasks_specification.aperiodic_tasks)
     m = global_specification.cpu_specification.number_of_cores
     f, axarr = plt.subplots(nrows=m, ncols=(n_periodic + n_aperiodic), num="Execution time")
-    f.suptitle('Execution time')
     for i in range(m):
         for j in range(n_periodic):
-            axarr[i][j].set_title("CPU " + str(i) + " task " + str(j))
-            axarr[i][j].plot(time_u, mexec[i * (n_periodic + n_aperiodic) + j], label="mexec")
+            axarr[i][j].set_title(r'$\tau_' + str(j + 1) + '$ execution \n on $CPU_' + str(i + 1) + '$')
+            axarr[i][j].plot(time_u, mexec[i * (n_periodic + n_aperiodic) + j])
             # axarr[i][j].plot(time_step, mexec_tcpn[i * (n_periodic + n_aperiodic) + j], label="mexec tcpn")
-            axarr[i][j].legend(loc='best')
+            axarr[i][j].set_ylabel('executed time (s)')
+            axarr[i][j].set_xlabel('system time (s)')
 
     for i in range(m):
         for j in range(n_aperiodic):
-            axarr[i][j + n_periodic].set_title("CPU " + str(i) + " aperiodic " + str(j))
+            axarr[i][j + n_periodic].set_title(r'$\tau_' + str(j + 1) + '^a$ execution \n on $CPU_' + str(i + 1) + '$')
             axarr[i][j + n_periodic].plot(time_u, mexec[i * (n_periodic + n_aperiodic) + n_periodic + j], label="mexec")
             # axarr[i][j + n_periodic].plot(time_step, mexec_tcpn[i * (n_periodic + n_aperiodic) + n_periodic + j],
             #                               label="mexec tcpn")
-            axarr[i][j + n_periodic].legend(loc='best')
+            axarr[i][j].set_ylabel('executed time (s)')
+            axarr[i][j].set_xlabel('system time (s)')
 
     f.tight_layout()
 
