@@ -101,7 +101,7 @@ def plot_cpu_utilization(global_specification: GlobalSpecification, scheduler_re
     n_periodic = len(global_specification.tasks_specification.periodic_tasks)
     n_aperiodic = len(global_specification.tasks_specification.aperiodic_tasks)
     m = global_specification.cpu_specification.number_of_cores
-    f, axarr = plt.subplots(nrows=m)
+    f, axarr = plt.subplots(nrows=m, num="CPU utilization")
 
     for i in range(m):
         axarr[i].set_title("$CPU_" + str(i + 1) + "$ utilization")
@@ -126,6 +126,7 @@ def plot_cpu_utilization(global_specification: GlobalSpecification, scheduler_re
         plt.savefig(save_path)
 
     plt.close(f)
+
 
 def plot_task_execution(global_specification: GlobalSpecification, scheduler_result: SchedulerResult,
                         save_path: Optional[str] = None):
@@ -217,18 +218,21 @@ def plot_cpu_temperature(global_specification: GlobalSpecification, scheduler_re
     temperature_disc = scheduler_result.max_temperature_cores
     time_temp = scheduler_result.time_steps
     m = global_specification.cpu_specification.number_of_cores
-    f, axarr = plt.subplots(nrows=m, sharex=True, num="CPU temperature")
-    f.suptitle('CPU temperature')
+    f, axarr = plt.subplots(nrows=m, num="CPU temperature")
     for i in range(m):
-        axarr[i].set_title("CPU " + str(i))
-        axarr[i].plot(time_temp, temperature_disc[i], label="Temperature", drawstyle='default')
-        axarr[i].legend(loc='best')
+        axarr[i].set_title("$CPU_" + str(i + 1) + "$ temperature")
+        axarr[i].plot(time_temp, temperature_disc[i], drawstyle='default')
+        axarr[i].set_ylabel('temperature (ºC)')
+        axarr[i].set_xlabel('time (s)')
+
+    f.tight_layout()
 
     if save_path is None:
         plt.show()
     else:
         plt.savefig(save_path)
-        plt.close(f)
+
+    plt.close(f)
 
 
 def plot_energy_consumption(global_specification: GlobalSpecification, scheduler_result: SchedulerResult,
