@@ -12,6 +12,8 @@ def draw_heat_matrix(global_specification: GlobalSpecification, scheduler_result
                      show_cores: bool, save_path: Optional[str] = None):
     """
     Draw heat matrix or save the simulation in file if save_path is not null
+    :param show_board: True if want to show the board
+    :param show_cores: True if want to show cores
     :param global_specification: problem specification
     :param scheduler_result: result of scheduling
     :param save_path: path to save the simulation
@@ -55,14 +57,18 @@ def draw_heat_matrix(global_specification: GlobalSpecification, scheduler_result
 def __get_heat_matrix(temp, global_specification: GlobalSpecification, show_board: bool, show_cores: bool) \
         -> scipy.ndarray:
     mx = round(
-        global_specification.cpu_specification.cpu_core_specification.x / global_specification.simulation_specification.step)
+        global_specification.cpu_specification.cpu_core_specification.x /
+        global_specification.simulation_specification.step)
     my = round(
-        global_specification.cpu_specification.cpu_core_specification.y / global_specification.simulation_specification.step)
+        global_specification.cpu_specification.cpu_core_specification.y /
+        global_specification.simulation_specification.step)
     m = global_specification.cpu_specification.number_of_cores
     x = round(
-        global_specification.cpu_specification.board_specification.x / global_specification.simulation_specification.step)
+        global_specification.cpu_specification.board_specification.x /
+        global_specification.simulation_specification.step)
     y = round(
-        global_specification.cpu_specification.board_specification.y / global_specification.simulation_specification.step)
+        global_specification.cpu_specification.board_specification.y /
+        global_specification.simulation_specification.step)
 
     board_mat = scipy.asarray([temp[y * i:y * (i + 1)] if i % 2 == 0 else scipy.flip(temp[y * i:y * (i + 1)]) for i in
                                range(x)]) if show_board \
@@ -406,12 +412,13 @@ def plot_task_execution_percentage(global_specification: GlobalSpecification, sc
 
     for j in range(n_periodic):
         axarr[j].set_title(r'$\tau_' + str(j + 1) + '$ execution percentage in each period')
-        a_dibujar = task_percentage_periodic[j]
-        axarr[j].bar(list(range(len(a_dibujar))), a_dibujar,
+        to_draw = task_percentage_periodic[j]
+        axarr[j].bar(list(range(len(to_draw))), to_draw,
                      align='center')
-        axarr[j].set_xticklabels([])
         axarr[j].set_ylabel('executed\n percentage')
-        axarr[j].set_xlabel('periods')
+        axarr[j].set_xlabel('periods / execution percentage')
+        axarr[j].set_xticks(list(range(len(to_draw))))
+        axarr[j].set_xticklabels([str(round(i * 100, 2)) + "%" for i in to_draw])
 
     for j in range(n_aperiodic):
         axarr[n_periodic + j].set_title(r'$\tau_' + str(j + 1) + '^a$ execution percentage')

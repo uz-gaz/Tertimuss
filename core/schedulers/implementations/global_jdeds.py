@@ -340,7 +340,7 @@ class GlobalJDEDSScheduler(AbstractGlobalScheduler):
         # True if any task laxity is 0
         executable_tasks_interval = [i for i in self.__interval_cc_left if round(i[0], self.__decimals_precision) > 0.0]
         tasks_laxity_zero = any([round(self.__actual_interval_end - time - i[0], self.__decimals_precision) <= 0
-                                 for i in executable_tasks_interval])
+                                 and i[1] not in active_tasks for i in executable_tasks_interval])
 
         # True if new quantum has started (True if any task has arrived in this step)
         new_quantum_start = round(time, self.__decimals_precision) in (self.__intervals_end + [0.0])
@@ -351,7 +351,8 @@ class GlobalJDEDSScheduler(AbstractGlobalScheduler):
 
         return tasks_have_ended or tasks_laxity_zero or new_quantum_start or aperiodic_arrive
 
-    def __schedule_policy_imp(self, time: float, active_tasks: List[int]) -> List[int]:
+    def __schedule_policy_imp(self, time: float, active_tasks: List[int], executable_tasks_proc: List[int]) \
+            -> List[int]:
         """
         Assign tasks to cores
         :param time: actual time
@@ -380,8 +381,9 @@ class GlobalJDEDSScheduler(AbstractGlobalScheduler):
         executable_tasks = [i[1] for i in executable_tasks]
 
         # Tasks with laxity zero, active tasks, rest of the tasks, idle tasks
-        tasks_to_execute = tasks_laxity_zero + active_tasks_to_execute + executable_tasks + self.__m * [-1]
-
+        tasks_to_execute = tasks_laxity_zero + active_tasks_to_execute + executable_tasks
+        tasks_to_execute = [i for i in tasks_to_execute if i in executable_tasks_proc]
+        tasks_to_execute = tasks_to_execute + self.__m * [-1]
         return tasks_to_execute[:self.__m]
 
     def schedule_policy(self, time: float, executable_tasks: List[GlobalSchedulerTask], active_tasks: List[int],
@@ -405,14 +407,15 @@ class GlobalJDEDSScheduler(AbstractGlobalScheduler):
         if new_quantum_start:
             self.__actual_interval_index += 1
             self.__actual_interval_end = self.__intervals_end[self.__actual_interval_index]
-            self.__interval_cc_left = [(i[0] / self.__intervals_frequencies[self.__actual_interval_index], i[1][1]) for
-                                       i in zip(self.__execution_by_intervals[:, self.__actual_interval_index],
-                                                self.__interval_cc_left)]
+            self.__interval_cc_left = [
+                ((i[0] / self.__intervals_frequencies[self.__actual_interval_index]), i[1][1]) for
+                i in zip(self.__execution_by_intervals[:, self.__actual_interval_index],
+                         self.__interval_cc_left)]
 
         # Obtain new tasks to execute
         tasks_to_execute = active_tasks
         if self.__sp_interrupt(active_tasks, time):
-            tasks_to_execute = self.__schedule_policy_imp(time, active_tasks)
+            tasks_to_execute = self.__schedule_policy_imp(time, active_tasks, [i.id for i in executable_tasks])
 
         # Update cc in tasks being executed
         self.__interval_cc_left = [(i[0] - self.__dt, i[1]) if i[1] in tasks_to_execute else i for i in
