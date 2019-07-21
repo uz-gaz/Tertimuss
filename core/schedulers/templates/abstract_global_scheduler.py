@@ -42,7 +42,7 @@ class GlobalSchedulerAperiodicTask(AperiodicTask, GlobalSchedulerTask):
         GlobalSchedulerTask.__init__(self, task_specification.d, task_specification.a, task_specification.c, task_id)
 
 
-class AbstractGlobalScheduler(AbstractScheduler):
+class AbstractGlobalScheduler(AbstractScheduler, metaclass=abc.ABCMeta):
     """
     Abstract implementation of global scheduler (Custom Scheduler in original work).
     Method schedule_police must be implemented
