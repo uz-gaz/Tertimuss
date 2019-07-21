@@ -1,9 +1,8 @@
 import unittest
 
-from core.schedulers.templates.abstract_scheduler import AbstractScheduler
+from main.core.schedulers.templates.abstract_scheduler.AbstractScheduler import AbstractScheduler
 
-from core.schedulers.implementations.global_edf_a import GlobalEDFAffinityScheduler
-
+from main.core.schedulers.implementations.G_EDF_A import GlobalEDFAffinityScheduler
 from tests.core.schedulers.scheduler_abstract_test import SchedulerAbstractTest
 
 

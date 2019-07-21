@@ -1,5 +1,5 @@
 {
-  "$schema": "../../ui/cli/input-schema/input-schema.json",
+  "$schema": "../../main/ui/cli/input-schema/input-schema.json",
   "$id": "scheduler.framework.TCPN.schema.example.origins",
   "title": "Example input specification",
   "description": "Input for Scheduler Framework TCPN v1.0",

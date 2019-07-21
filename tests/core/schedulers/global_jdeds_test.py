@@ -1,9 +1,9 @@
 import hashlib
 import unittest
 
-from core.schedulers.implementations.global_jdeds import GlobalJDEDSScheduler
-from core.schedulers.templates.abstract_scheduler import AbstractScheduler
-from tests.core.schedulers.scheduler_abstract_test import SchedulerAbstractTest
+from main.core.schedulers.implementations.JDEDS import GlobalJDEDSScheduler
+from main.core.schedulers.templates.abstract_scheduler.AbstractScheduler import AbstractScheduler
+from test.core.schedulers.scheduler_abstract_test import SchedulerAbstractTest
 
 
 class GlobalWodes(SchedulerAbstractTest):

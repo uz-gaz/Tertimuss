@@ -2,19 +2,26 @@ import hashlib
 import unittest
 import scipy.io
 
-from core.problem_specification.CpuSpecification import MaterialCuboid, CpuSpecification
-from core.problem_specification.EnvironmentSpecification import EnvironmentSpecification
-from core.problem_specification.GlobalSpecification import GlobalSpecification
-from core.problem_specification.SimulationSpecification import SimulationSpecification
-from core.problem_specification.TCPNModelSpecification import TCPNModelSpecification
-from core.problem_specification.TasksSpecification import TasksSpecification, PeriodicTask, AperiodicTask
-from core.schedulers.templates.abstract_global_scheduler import AbstractGlobalScheduler
-from core.schedulers.templates.abstract_scheduler import SchedulerResult
-from core.tcpn_model_generator.global_model import GlobalModel
-from core.tcpn_model_generator.thermal_model_selector import ThermalModelSelector
-from plot_generator.output_generator import plot_cpu_utilization, plot_task_execution, plot_cpu_temperature, \
-    plot_accumulated_execution_time, plot_task_execution_percentage, plot_cpu_frequency, draw_heat_matrix, \
-    plot_energy_consumption
+from main.core.problem_specification.cpu_specification.CpuSpecification import CpuSpecification
+from main.core.problem_specification.cpu_specification.MaterialCuboid import MaterialCuboid
+from main.core.problem_specification.environment_specification.EnvironmentSpecification import EnvironmentSpecification
+from main.core.problem_specification.GlobalSpecification import GlobalSpecification
+from main.core.problem_specification.simulation_specification.SimulationSpecification import SimulationSpecification
+from main.core.problem_specification.simulation_specification.TCPNModelSpecification import TCPNModelSpecification
+from main.core.problem_specification.tasks_specification.TasksSpecification import TasksSpecification
+from main.core.problem_specification.tasks_specification.AperiodicTask import AperiodicTask
+from main.core.problem_specification.tasks_specification.PeriodicTask import PeriodicTask
+from main.core.schedulers.templates.abstract_base_scheduler.AbstractBaseScheduler import AbstractBaseScheduler
+from main.core.schedulers.templates.abstract_scheduler.SchedulerResult import SchedulerResult
+from main.core.tcpn_model_generator.global_model import GlobalModel
+from main.core.tcpn_model_generator.thermal_model_selector import ThermalModelSelector
+from main.plot_generator.implementations.AccumulatedExecutionTimeDrawer import AccumulatedExecutionTimeDrawer
+from main.plot_generator.implementations.EnergyConsumptionDrawer import EnergyConsumptionDrawer
+from main.plot_generator.implementations.ExecutionPercentageDrawer import ExecutionPercentageDrawer
+from main.plot_generator.implementations.FrequencyDrawer import FrequencyDrawer
+from main.plot_generator.implementations.MaxCoreTemperatureDrawer import MaxCoreTemperatureDrawer
+from main.plot_generator.implementations.TaskExecutionDrawer import TaskExecutionDrawer
+from main.plot_generator.implementations.UtilizationDrawer import UtilizationDrawer
 
 
 class SchedulerAbstractTest(unittest.TestCase):
@@ -56,7 +63,7 @@ class SchedulerAbstractTest(unittest.TestCase):
             })
 
     @staticmethod
-    def create_problem_specification(scheduler: AbstractGlobalScheduler, is_thermal: bool,
+    def create_problem_specification(scheduler: AbstractBaseScheduler, is_thermal: bool,
                                      with_aperiodics: bool):
         tasks = [PeriodicTask(2, 4, 4, 6.4), PeriodicTask(5, 8, 8, 8), PeriodicTask(6, 12, 12, 9.6)]
 
@@ -85,12 +92,12 @@ class SchedulerAbstractTest(unittest.TestCase):
 
         return scheduler.simulate(global_specification, global_model, None), global_specification, global_model
 
-    def run_test_hash_based(self, scheduler: AbstractGlobalScheduler, is_thermal: bool,
+    def run_test_hash_based(self, scheduler: AbstractBaseScheduler, is_thermal: bool,
                             with_aperiodics: bool, scheduler_assignation_hash: str):
         result, _, _ = self.create_problem_specification(scheduler, is_thermal, with_aperiodics)
         self.assertEqual(hashlib.md5(result.scheduler_assignation).hexdigest(), scheduler_assignation_hash)
 
-    def run_test_matlab_result_based(self, scheduler: AbstractGlobalScheduler, is_thermal: bool,
+    def run_test_matlab_result_based(self, scheduler: AbstractBaseScheduler, is_thermal: bool,
                                      with_aperiodics: bool, result_save_path: str):
         result, _, _ = self.create_problem_specification(scheduler, is_thermal, with_aperiodics)
         result_correct = self.load_scheduler_result_from_matlab_format(result_save_path, is_thermal)
@@ -98,28 +105,31 @@ class SchedulerAbstractTest(unittest.TestCase):
         self.assertEqual(hashlib.md5(result.scheduler_assignation).hexdigest(),
                          hashlib.md5(result_correct.scheduler_assignation).hexdigest())
 
-    def save_matlab_result(self, scheduler: AbstractGlobalScheduler, is_thermal: bool,
+    def save_matlab_result(self, scheduler: AbstractBaseScheduler, is_thermal: bool,
                            with_aperiodics: bool, result_save_path: str):
         result, _, _ = self.create_problem_specification(scheduler, is_thermal, with_aperiodics)
         self.save_scheduler_result_in_matlab_format(result, result_save_path, is_thermal)
 
-    def save_plot_outputs_result(self, scheduler: AbstractGlobalScheduler, is_thermal: bool,
+    def save_plot_outputs_result(self, scheduler: AbstractBaseScheduler, is_thermal: bool,
                                  with_aperiodics: bool, result_save_path: str):
         result, global_specification, simulation_kernel = self.create_problem_specification(scheduler,
                                                                                             is_thermal,
                                                                                             with_aperiodics)
 
-        # TODO: Uncomment
-        # draw_heat_matrix(global_specification, result, True, True, result_save_path + "_heat_matrix.mp4")
-        plot_cpu_utilization(global_specification, result, result_save_path + "_cpu_utilization.png")
-        plot_task_execution(global_specification, result, result_save_path + "_task_execution.png")
+        UtilizationDrawer.plot(global_specification, result, {"save_path": result_save_path + "_cpu_utilization.png"})
+        TaskExecutionDrawer.plot(global_specification, result, {"save_path": result_save_path + "_task_execution.png"})
 
-        plot_accumulated_execution_time(global_specification, result,
-                                        result_save_path + "_accumulated_execution_time.png")
-        plot_cpu_frequency(global_specification, result, result_save_path + "_frequency.png")
-        plot_task_execution_percentage(global_specification, result,
-                                       result_save_path + "_execution_percentage.png")
+        AccumulatedExecutionTimeDrawer.plot(global_specification, result,
+                                            {"save_path": result_save_path + "_accumulated_execution_time.png"})
+
+        FrequencyDrawer.plot(global_specification, result, {"save_path": result_save_path + "_frequency.png"})
+        ExecutionPercentageDrawer.plot(global_specification, result,
+                                       {"save_path": result_save_path + "_execution_percentage.png"})
         if is_thermal:
-            plot_energy_consumption(global_specification, result,
-                                    result_save_path + "_energy_consumption.png")
-            plot_cpu_temperature(global_specification, result, result_save_path + "_cpu_temperature.png")
+            EnergyConsumptionDrawer.plot(global_specification, result,
+                                         {"save_path": result_save_path + "_energy_consumption.png"})
+            MaxCoreTemperatureDrawer.plot(global_specification, result,
+                                          {"save_path": result_save_path + "_cpu_temperature.png"})
+
+            # TODO: Uncomment
+            # draw_heat_matrix(global_specification, result, True, True, result_save_path + "_heat_matrix.mp4")

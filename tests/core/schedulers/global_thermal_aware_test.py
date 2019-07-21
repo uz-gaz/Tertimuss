@@ -1,8 +1,8 @@
 import unittest
 
-from core.schedulers.templates.abstract_scheduler import AbstractScheduler
-from core.schedulers.implementations.global_thermal_aware import GlobalThermalAwareScheduler
-from tests.core.schedulers.scheduler_abstract_test import SchedulerAbstractTest
+from main.core.schedulers.templates.abstract_scheduler.AbstractScheduler import AbstractScheduler
+from main.core.schedulers.implementations.OLDTFS import GlobalThermalAwareScheduler
+from test.core.schedulers.scheduler_abstract_test import SchedulerAbstractTest
 
 
 class RtTcpnScheduler(SchedulerAbstractTest):

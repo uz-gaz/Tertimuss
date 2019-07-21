@@ -1,6 +1,6 @@
 import unittest
 
-from core.task_generator.UUniFast import UUniFast
+from main.core.task_generator.implementations.UUniFast import UUniFast
 
 
 class UUnifastTest(unittest.TestCase):

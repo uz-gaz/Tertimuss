@@ -1,6 +1,9 @@
-from core.tcpn_model_generator.processor_model import ProcessorModel
-from core.problem_specification.CpuSpecification import CpuSpecification, MaterialCuboid
-from core.problem_specification.TasksSpecification import TasksSpecification, PeriodicTask, AperiodicTask
+from main.core.tcpn_model_generator.processor_model import ProcessorModel
+from main.core.problem_specification.cpu_specification.CpuSpecification import CpuSpecification
+from main.core.problem_specification.cpu_specification.MaterialCuboid import MaterialCuboid
+from main.core.problem_specification.tasks_specification.TasksSpecification import TasksSpecification
+from main.core.problem_specification.tasks_specification.AperiodicTask import AperiodicTask
+from main.core.problem_specification.tasks_specification.PeriodicTask import PeriodicTask
 import hashlib
 
 import unittest

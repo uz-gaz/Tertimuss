@@ -2,10 +2,9 @@ import unittest
 
 import scipy
 
-from core.tcpn_simulator.AbstractTcpnSimulator import AbstractTcpnSimulator
-from core.tcpn_simulator.TcpnSimulatorAccurate import TcpnSimulatorAccurate
-from core.tcpn_simulator.TcpnSimulatorAccurateOptimized import TcpnSimulatorAccurateOptimized
-from core.tcpn_simulator.TcpnSimulatorEuler import TcpnSimulatorEuler
+from main.core.tcpn_simulator.AbstractTcpnSimulator import AbstractTcpnSimulator
+from main.core.tcpn_simulator.TcpnSimulatorAccurate import TcpnSimulatorAccurate
+from main.core.tcpn_simulator.TcpnSimulatorAccurateOptimized import TcpnSimulatorAccurateOptimized
 
 
 class TestPetriNets(unittest.TestCase):

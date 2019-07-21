@@ -1,6 +1,6 @@
 import argparse
 
-from ui.gui.gui import gui_main
+from main.ui.gui.gui import gui_main
 
 if __name__ == "__main__":
     # Get scenario specification and pass it to the main

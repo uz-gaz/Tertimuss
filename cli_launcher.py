@@ -1,6 +1,6 @@
 import argparse
 
-from ui.cli.cli_main import cli_main
+from main.ui.cli.cli_main import cli_main
 
 if __name__ == "__main__":
     # Get scenario specification and pass it to the main
