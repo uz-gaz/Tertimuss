@@ -1,55 +1,32 @@
 import itertools
 import math
-from typing import Optional, List
+from typing import List
 
-from main.core.problem_specification.cpu_specification.MaterialCuboid import MaterialCuboid
+from main.core.problem_specification.cpu_specification.BoardSpecification import BoardSpecification
+from main.core.problem_specification.cpu_specification.CoreGroupSpecification import CoreGroupSpecification
 from main.core.problem_specification.cpu_specification.Origin import Origin
 
 
 class CpuSpecification(object):
 
-    def __init__(self, board_specification: Optional[MaterialCuboid], cpu_core_specification: Optional[MaterialCuboid],
-                 number_of_cores: int, clock_base_frequency: int, clock_frequencies_at_start: List[float],
-                 clock_available_frequencies: List[float], cpu_origins: Optional[List[Origin]] = None,
-                 leakage_delta: float = 0.1, leakage_alpha: float = 0.001, dynamic_alpha: float = 1.52,
-                 dynamic_beta: float = 0.08):
+    def __init__(self, board_specification: BoardSpecification, cores_specification: CoreGroupSpecification):
         """
         CPU specification
-        :param board_specification: Spec of board
-        :param cpu_core_specification: Spec of homogeneous CPU core
-        :param number_of_cores: Number of homogeneous CPU cores
-        :param clock_base_frequency: Clock base frequency in Hz
-        :param clock_frequencies_at_start: Frequency scale of homogeneous CPU cores relative to the base frequency
-        :param clock_available_frequencies: Available frequencies scale of homogeneous CPU cores relative to the base
-        frequency
-        range: [0,1]
+
+        :param board_specification: Specification of the board
+        :param cores_specification: Specification of the cores
         """
         self.board_specification = board_specification
-        self.cpu_core_specification = cpu_core_specification
-        self.number_of_cores = number_of_cores
-        self.clock_base_frequency = clock_base_frequency
+        self.cores_specification = cores_specification
 
-        self.clock_available_frequencies = clock_available_frequencies
-        self.clock_available_frequencies.sort()
-
-        # Convection properties
-        self.leakage_delta = leakage_delta
-        self.leakage_alpha = leakage_alpha
-
-        # Heat generation properties
-        self.dynamic_alpha = dynamic_alpha
-        self.dynamic_beta = dynamic_beta
-
-        if cpu_origins is None and board_specification is not None:
-            self.cpu_origins = self.__generate_automatic_origins(0, self.board_specification.x, 0,
-                                                                 self.board_specification.y,
-                                                                 self.cpu_core_specification.x,
-                                                                 self.cpu_core_specification.y,
-                                                                 self.number_of_cores)
-        else:
-            self.cpu_origins = cpu_origins
-
-        self.clock_relative_frequencies = clock_frequencies_at_start
+        if self.cores_specification.cores_origins is None and board_specification is not None:
+            # Generate automatic origins
+            self.cores_specification.cores_origins = \
+                self.__generate_automatic_origins(0, self.board_specification.physical_properties.x,
+                                                  0, self.board_specification.physical_properties.y,
+                                                  self.cores_specification.physical_properties.x,
+                                                  self.cores_specification.physical_properties.y,
+                                                  len(self.cores_specification.cores_frequencies))
 
     @classmethod
     def __generate_automatic_origins(cls, x0: float, x1: float, y0: float, y1: float, mx: float, my: float,
@@ -70,6 +47,7 @@ class CpuSpecification(object):
                       y_size_board: float) -> bool:
         """
         Return true if no core overlap
+
         :param x_size_board: x size of board
         :param y_size_cpu: y size of core
         :param x_size_cpu: x size of core

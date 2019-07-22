@@ -39,16 +39,9 @@ class AbstractBaseScheduler(AbstractScheduler, metaclass=abc.ABCMeta):
         float_round = global_specification.simulation_specification.float_decimals_precision
 
         idle_task_id = -1
-        m = global_specification.cpu_specification.number_of_cores
+        m = len(global_specification.cpu_specification.cores_specification.cores_frequencies)
         n = len(global_specification.tasks_specification.aperiodic_tasks) + len(
             global_specification.tasks_specification.periodic_tasks)
-        cpu_utilization = sum(map(lambda a: a.c / a.t, global_specification.tasks_specification.periodic_tasks)) + \
-                          sum(map(lambda a: a.c / (a.d - a.c),
-                                  global_specification.tasks_specification.aperiodic_tasks))
-
-        # Exit program if can't be scheduled
-        if cpu_utilization >= m:
-            raise Exception("Error: Schedule is not feasible")
 
         # Tasks sets
         periodic_tasks = [BaseSchedulerPeriodicTask(global_specification.tasks_specification.periodic_tasks[i], i)

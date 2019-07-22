@@ -8,9 +8,9 @@ class AperiodicTask(Task):
     Aperiodic task specification
     """
 
-    def __init__(self, c: float, a: float, d: float, e: Optional[float]):
+    def __init__(self, c: int, a: float, d: float, e: Optional[float]):
         """
-        :param c: Task worst case execution time in seconds at base frequency
+        :param c: Task worst case execution time in cycles
         :param a: Task arrive time, must be lower or equal than the hyperperiod
         :param d: Task deadline time, must be lower or equal than the hyperperiod
         :param e: Energy consumption

@@ -8,9 +8,9 @@ class PeriodicTask(Task):
     Periodic task specification
     """
 
-    def __init__(self, c: float, t: float, d: float, e: Optional[float]):
+    def __init__(self, c: int, t: float, d: float, e: Optional[float]):
         """
-        :param c: Task worst case execution time in seconds at base frequency
+        :param c: Task worst case execution time in cycles
         :param t: Task period in seconds
         :param d: Task deadline in seconds
         :param e: Energy consumption

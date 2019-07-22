@@ -1,13 +1,11 @@
 class Origin(object):
-    """
-    Origins of material cuboid
-    """
 
     def __init__(self, x: float, y: float):
         """
+        Origins of material cuboid
 
         :param x: X coordinate (mm)
         :param y: Y coordinate (mm)
         """
-        self.x = x
-        self.y = y
+        self.x: float = x
+        self.y: float = y

@@ -6,10 +6,10 @@ class Task(object):
     Task specification
     """
 
-    def __init__(self, c: float, e: Optional[float]):
+    def __init__(self, c: int, e: Optional[float]):
         """
-        :param c: Task worst case execution time in seconds at base frequency
+        :param c: Task worst case execution time in cycles
         :param e: Energy consumption
         """
-        self.c: float = c
+        self.c: int = c
         self.e: Optional[float] = e
