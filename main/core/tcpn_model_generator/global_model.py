@@ -11,14 +11,14 @@ class GlobalModel(object):
     Encapsulate all TCPN which represent the kernel of the simulation
     """
 
-    def __init__(self, global_specification: GlobalSpecification, enable_thermal_model: bool):
-        self.enable_thermal_mode = enable_thermal_model
+    def __init__(self, global_specification: GlobalSpecification):
+        self.enable_thermal_mode = global_specification.simulation_specification.simulate_thermal
 
         n_periodic = len(global_specification.tasks_specification.periodic_tasks)
 
         n_aperiodic = len(global_specification.tasks_specification.aperiodic_tasks)
 
-        m = global_specification.cpu_specification.number_of_cores
+        m = len(global_specification.cpu_specification.cores_specification.cores_frequencies)
 
         tasks_model: TasksModel = TasksModel(global_specification.tasks_specification,
                                              global_specification.cpu_specification)
@@ -58,7 +58,7 @@ class GlobalModel(object):
         self.pi_proc_tau = pi
         self.lambda_vector_proc_tau = lambda_vector
 
-        if enable_thermal_model:
+        if self.enable_thermal_mode:
             thermal_model: ThermalModel = global_specification.tcpn_model_specification.thermal_model_selector.value(
                 global_specification.tasks_specification,
                 global_specification.cpu_specification,

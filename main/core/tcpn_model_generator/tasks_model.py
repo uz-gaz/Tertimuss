@@ -12,8 +12,8 @@ class TasksModel(object):
     def __init__(self, tasks_specification: TasksSpecification, cpu_specification: CpuSpecification):
         n_periodic = len(tasks_specification.periodic_tasks)
         n_aperiodic = len(tasks_specification.aperiodic_tasks)
-        m = cpu_specification.number_of_cores
-
+        m = len(cpu_specification.cores_specification.cores_frequencies)
+        base_frequency = cpu_specification.cores_specification.available_frequencies[-1]
         # total of places of the TCPN ((p^w_i,p^cc_i) for each task)
         p = 2 * n_periodic + n_aperiodic
 
@@ -38,9 +38,9 @@ class TasksModel(object):
         pi[:n_periodic, :] = scipy.identity(n_periodic)  # Transition from p^w_i to t^w_i
         mo[: n_periodic, 0] = scipy.ones(n_periodic)  # Marking in p^w_i
         mo[n_periodic: 2 * n_periodic, 0] = scipy.asarray(
-            [task.c for task in tasks_specification.periodic_tasks])  # Marking in p^cc_i periodic
+            [task.c / base_frequency for task in tasks_specification.periodic_tasks])  # Marking in p^cc_i periodic
         mo[2 * n_periodic: 2 * n_periodic + n_aperiodic, 0] = scipy.asarray(
-            [task.c for task in tasks_specification.aperiodic_tasks])  # Marking in p^cc_i aperiodic
+            [task.c / base_frequency for task in tasks_specification.aperiodic_tasks])  # Marking in p^cc_i aperiodic
 
         # Task model union with processor model definition
         pre_alloc = scipy.zeros((p, t_alloc))

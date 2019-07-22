@@ -43,11 +43,15 @@ class AbstractBaseScheduler(AbstractScheduler, metaclass=abc.ABCMeta):
         n = len(global_specification.tasks_specification.aperiodic_tasks) + len(
             global_specification.tasks_specification.periodic_tasks)
 
+        # Clock base frequency
+        clock_base_frequency = global_specification.cpu_specification.cores_specification.cores_frequencies[-1]
+
         # Tasks sets
-        periodic_tasks = [BaseSchedulerPeriodicTask(global_specification.tasks_specification.periodic_tasks[i], i)
+        periodic_tasks = [BaseSchedulerPeriodicTask(global_specification.tasks_specification.periodic_tasks[i], i,
+                                                    clock_base_frequency)
                           for i in range(len(global_specification.tasks_specification.periodic_tasks))]
         aperiodic_tasks = [BaseSchedulerAperiodicTask(global_specification.tasks_specification.aperiodic_tasks[i],
-                                                      i + len(periodic_tasks))
+                                                      i + len(periodic_tasks), clock_base_frequency)
                            for i in range(len(global_specification.tasks_specification.aperiodic_tasks))]
 
         tasks_set: List[BaseSchedulerTask] = periodic_tasks + aperiodic_tasks  # The elements in this list will
@@ -115,7 +119,10 @@ class AbstractBaseScheduler(AbstractScheduler, metaclass=abc.ABCMeta):
         del global_model
 
         # Actual set clock frequencies
-        clock_relative_frequencies = global_specification.cpu_specification.clock_relative_frequencies
+        clock_relative_frequencies = [i / clock_base_frequency for i in
+                                      global_specification.cpu_specification.cores_specification.cores_frequencies]
+        clock_available_frequencies = [i / clock_base_frequency for i in
+                                       global_specification.cpu_specification.cores_specification.available_frequencies]
 
         # Active tasks
         active_task_id = m * [-1]
@@ -173,7 +180,7 @@ class AbstractBaseScheduler(AbstractScheduler, metaclass=abc.ABCMeta):
 
                 # Check if the processor frequencies returned are in available ones
                 if next_core_frequencies is not None and not all(
-                        [x in global_specification.cpu_specification.clock_available_frequencies for x in
+                        [x in clock_available_frequencies for x in
                          next_core_frequencies]):
                     print("Warning: At least one frequency selected on time", time, "to execute is not available ones")
 
@@ -183,7 +190,7 @@ class AbstractBaseScheduler(AbstractScheduler, metaclass=abc.ABCMeta):
                 quantum_q = 0 if quantum_q < 0 else quantum_q
 
                 clock_relative_frequencies = next_core_frequencies if next_core_frequencies is not None \
-                    else global_specification.cpu_specification.clock_relative_frequencies
+                    else clock_relative_frequencies
 
             else:
                 quantum_q = quantum_q - 1
@@ -226,7 +233,7 @@ class AbstractBaseScheduler(AbstractScheduler, metaclass=abc.ABCMeta):
                 if math.ceil(round(tasks_set[j].next_deadline / global_specification.simulation_specification.dt,
                                    float_round)) == zeta_q:
                     # It only manage the end of periodic tasks
-                    tasks_set[j].pending_c = periodic_tasks[j].c
+                    tasks_set[j].pending_c = periodic_tasks[j].c / clock_base_frequency
                     tasks_set[j].next_arrival += periodic_tasks[j].t
                     tasks_set[j].next_deadline += periodic_tasks[j].t
 
@@ -238,7 +245,7 @@ class AbstractBaseScheduler(AbstractScheduler, metaclass=abc.ABCMeta):
                     tasks_set[n_periodic + j].next_arrival += global_specification.tasks_specification.h
                     tasks_set[n_periodic + j].next_deadline += global_specification.tasks_specification.h
 
-        return SchedulerResult(temperature_map, max_temperature_cores, time_step,  m_exec,
+        return SchedulerResult(temperature_map, max_temperature_cores, time_step, m_exec,
                                i_tau_disc, core_frequencies, energy_consumption,
                                global_specification.simulation_specification.dt)
 

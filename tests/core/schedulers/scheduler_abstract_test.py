@@ -2,7 +2,10 @@ import hashlib
 import unittest
 import scipy.io
 
+from main.core.problem_specification.cpu_specification.BoardSpecification import BoardSpecification
+from main.core.problem_specification.cpu_specification.CoreGroupSpecification import CoreGroupSpecification
 from main.core.problem_specification.cpu_specification.CpuSpecification import CpuSpecification
+from main.core.problem_specification.cpu_specification.EnergyConsumptionProperties import EnergyConsumptionProperties
 from main.core.problem_specification.cpu_specification.MaterialCuboid import MaterialCuboid
 from main.core.problem_specification.environment_specification.EnvironmentSpecification import EnvironmentSpecification
 from main.core.problem_specification.GlobalSpecification import GlobalSpecification
@@ -65,30 +68,35 @@ class SchedulerAbstractTest(unittest.TestCase):
     @staticmethod
     def create_problem_specification(scheduler: AbstractBaseScheduler, is_thermal: bool,
                                      with_aperiodics: bool):
-        tasks = [PeriodicTask(2, 4, 4, 6.4), PeriodicTask(5, 8, 8, 8), PeriodicTask(6, 12, 12, 9.6)]
+        tasks = [PeriodicTask(2000, 4, 4, 6.4), PeriodicTask(5000, 8, 8, 8), PeriodicTask(6000, 12, 12, 9.6)]
 
         if with_aperiodics:
-            tasks.append(AperiodicTask(2, 10, 20, 6))
+            tasks.append(AperiodicTask(2000, 10, 20, 6))
 
         tasks_specification: TasksSpecification = TasksSpecification(tasks)
 
-        cpu_specification: CpuSpecification = CpuSpecification(MaterialCuboid(x=50, y=50, z=1, p=8933, c_p=385, k=400),
-                                                               MaterialCuboid(x=10, y=10, z=2, p=2330, c_p=712, k=148),
-                                                               2, 1000, [1, 1], [0.15, 0.4, 0.6, 0.85, 1])
+        core_specification = CoreGroupSpecification(MaterialCuboid(x=10, y=10, z=2, p=2330, c_p=712, k=148),
+                                                    EnergyConsumptionProperties(),
+                                                    [150, 400, 600, 850, 1000],
+                                                    [1000, 1000])
+
+        board_specification = BoardSpecification(MaterialCuboid(x=50, y=50, z=1, p=8933, c_p=385, k=400))
 
         environment_specification: EnvironmentSpecification = EnvironmentSpecification(0.001, 45, 110)
 
-        simulation_specification: SimulationSpecification = SimulationSpecification(2, 0.01)
+        simulation_specification: SimulationSpecification = SimulationSpecification(2, 0.01, is_thermal)
 
         tcpn_model_specification: TCPNModelSpecification = TCPNModelSpecification(
             ThermalModelSelector.THERMAL_MODEL_FREQUENCY_BASED)
 
-        global_specification: GlobalSpecification = GlobalSpecification(tasks_specification, cpu_specification,
+        global_specification: GlobalSpecification = GlobalSpecification(tasks_specification,
+                                                                        CpuSpecification(board_specification,
+                                                                                         core_specification),
                                                                         environment_specification,
                                                                         simulation_specification,
                                                                         tcpn_model_specification)
 
-        global_model = GlobalModel(global_specification, is_thermal)
+        global_model = GlobalModel(global_specification)
 
         return scheduler.simulate(global_specification, global_model, None), global_specification, global_model
 

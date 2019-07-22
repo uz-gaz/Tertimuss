@@ -138,9 +138,8 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
         x = res.x
 
         # Partitioning
-
         i = 0
-        s = scipy.zeros((n, number_of_interval - 1))  # FIXME: REVIEW
+        s = scipy.zeros((n, number_of_interval - 1))
         for k in range(number_of_interval - 1):
             s[0:n, k] = x[i:i + n]
             i = i + n
@@ -157,31 +156,30 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
         :param global_specification: Global specification
         :return: 1 - Scheduling quantum (default will be the step specified in problem creation)
         """
-        self.__m = global_specification.cpu_specification.number_of_cores
+        self.__m = len(global_specification.cpu_specification.cores_specification.cores_frequencies)
         self.__n = len(global_specification.tasks_specification.periodic_tasks)
 
         self.__decimals_precision = global_specification.simulation_specification.float_decimals_precision
 
+        clock_base_frequency_hz = global_specification.cpu_specification.cores_specification.available_frequencies[-1]
+        clock_available_frequencies_hz = [i for i in
+                                          global_specification.cpu_specification.cores_specification.available_frequencies]
+
         # Calculate F start
-        f_max = global_specification.cpu_specification.clock_available_frequencies[-1]
-        phi_min = global_specification.cpu_specification.clock_available_frequencies[0]
-        phi_start = max(phi_min, sum([i.c / i.t for i in periodic_tasks]) / (self.__m * f_max))
+        phi_min_hz = clock_available_frequencies_hz[0]
+        phi_start_hz = max(phi_min_hz, sum([i.c / i.t for i in periodic_tasks]) / self.__m)
 
-        possible_f = [x for x in global_specification.cpu_specification.clock_available_frequencies if x >= phi_start]
+        possible_f_hz = [x for x in clock_available_frequencies_hz if x >= phi_start_hz]
 
-        if len(possible_f) == 0:
+        if len(possible_f_hz) == 0:
             raise Exception("Error: Schedule is not feasible")
 
-        f_star = possible_f[0]
-
         # F star in HZ
-        f_star_hz = round(f_star * global_specification.cpu_specification.clock_base_frequency)
+        f_star_hz = possible_f_hz[0]
 
         # Number of cycles
-        cci = list(
-            map(lambda a: int(a.c * global_specification.cpu_specification.clock_base_frequency), periodic_tasks))
-
-        tci = list(map(lambda a: int(a.t * f_star_hz), periodic_tasks))
+        cci = [i.c for i in periodic_tasks]
+        tci = [i.t * f_star_hz for i in periodic_tasks]
 
         # Add dummy task if needed
         hyperperiod_hz = int(global_specification.tasks_specification.h * f_star_hz)
@@ -198,7 +196,7 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
         x, sd, _, _ = self.ilpp_dp(cci, tci, len(tci), self.__m)
 
         sd = sd / f_star_hz
-        x = x / global_specification.cpu_specification.clock_base_frequency
+        x = x / clock_base_frequency_hz
 
         # Delete dummy task
         if total_used_cycles < self.__m * hyperperiod_hz:
@@ -211,7 +209,7 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
         self.__execution_by_intervals = x
 
         # [(cc left in the interval, task id)]
-        self.__interval_cc_left = [(i[0] / f_star, i[1].id) for i in zip((x[:, 0]).reshape(-1), periodic_tasks)]
+        self.__interval_cc_left = [(i[0], i[1].id) for i in zip((x[:, 0]).reshape(-1), periodic_tasks)]
 
         # Time when the interval end
         self.__actual_interval_end = self.__intervals_end[0]
@@ -223,10 +221,10 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
         self.__dt = super().offline_stage(global_specification, periodic_tasks, aperiodic_tasks)
 
         # Processors frequencies in each step
-        self.__intervals_frequencies = len(self.__intervals_end) * [f_star]
+        self.__intervals_frequencies = len(self.__intervals_end) * [f_star_hz / clock_base_frequency_hz]
 
         # Possible frequencies
-        self.__possible_f = possible_f
+        self.__possible_f = [i / clock_base_frequency_hz for i in possible_f_hz]
 
         # True if new aperiodic has arrive
         self.__aperiodic_arrive = True

@@ -11,10 +11,10 @@ class ProcessorModel(object):
 
     def __init__(self, tasks_specification: TasksSpecification, cpu_specification: CpuSpecification):
         n = len(tasks_specification.periodic_tasks) + len(tasks_specification.aperiodic_tasks)
-        m = cpu_specification.number_of_cores
+        m = len(cpu_specification.cores_specification.cores_frequencies)
 
         # Transition rate (n)
-        eta = 1  # TODO: Revisar y comentar
+        eta = 1  # TODO: Review
 
         # Total of places of the TCPN processor module
         p = m * (2 * n + 1)  # m processors*(n busy places, n exec places, 1 idle place)

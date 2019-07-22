@@ -16,8 +16,8 @@ class CpuSpecification(object):
         :param board_specification: Specification of the board
         :param cores_specification: Specification of the cores
         """
-        self.board_specification = board_specification
-        self.cores_specification = cores_specification
+        self.board_specification: BoardSpecification = board_specification
+        self.cores_specification: CoreGroupSpecification = cores_specification
 
         if self.cores_specification.cores_origins is None and board_specification is not None:
             # Generate automatic origins

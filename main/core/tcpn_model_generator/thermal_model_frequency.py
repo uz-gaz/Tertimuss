@@ -30,7 +30,8 @@ class ThermalModelFrequencyAware(thermal_model.ThermalModel):
         n: int = len(tasks_specification.periodic_tasks) + len(tasks_specification.aperiodic_tasks)
 
         consumption_by_cpu = [
-            (cpu_specification.dynamic_alpha * (f ** 3) + cpu_specification.dynamic_beta) for f in
+            (cpu_specification.cores_specification.energy_consumption_properties.dynamic_alpha * (f ** 3) +
+             cpu_specification.cores_specification.energy_consumption_properties.dynamic_beta) for f in
             clock_relative_frequencies]
 
         return scipy.repeat(scipy.asarray(consumption_by_cpu).reshape((-1, 1)), n, axis=1)
