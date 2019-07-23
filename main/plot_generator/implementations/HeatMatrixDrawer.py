@@ -73,19 +73,21 @@ class HeatMatrixDrawer(AbstractResultDrawer):
     @staticmethod
     def __get_heat_matrix(temp, global_specification: GlobalSpecification, show_board: Optional[bool],
                           show_cores: Optional[bool]) -> scipy.ndarray:
+        m = len(global_specification.cpu_specification.cores_specification.cores_frequencies)
+
         mx = round(
-            global_specification.cpu_specification.cpu_core_specification.x /
-            global_specification.simulation_specification.step)
+            global_specification.cpu_specification.cores_specification.physical_properties.x /
+            global_specification.simulation_specification.mesh_step)
         my = round(
-            global_specification.cpu_specification.cpu_core_specification.y /
-            global_specification.simulation_specification.step)
-        m = global_specification.cpu_specification.number_of_cores
+            global_specification.cpu_specification.cores_specification.physical_properties.y /
+            global_specification.simulation_specification.mesh_step)
+        m = len(global_specification.cpu_specification.cores_specification.cores_frequencies)
         x = round(
-            global_specification.cpu_specification.board_specification.x /
-            global_specification.simulation_specification.step)
+            global_specification.cpu_specification.board_specification.physical_properties.x /
+            global_specification.simulation_specification.mesh_step)
         y = round(
-            global_specification.cpu_specification.board_specification.y /
-            global_specification.simulation_specification.step)
+            global_specification.cpu_specification.board_specification.physical_properties.y /
+            global_specification.simulation_specification.mesh_step)
 
         board_mat = scipy.asarray(
             [temp[y * i:y * (i + 1)] if i % 2 == 0 else scipy.flip(temp[y * i:y * (i + 1)]) for i in
@@ -98,10 +100,10 @@ class HeatMatrixDrawer(AbstractResultDrawer):
             for i in range(mx * m):
                 cpus_mat[i, :] = temp[s + my * i:s + my * (i + 1)]
 
-            for j in range(global_specification.cpu_specification.number_of_cores):
-                i = global_specification.cpu_specification.cpu_origins[j]
-                x_0: int = round(i.x / global_specification.simulation_specification.step)
-                y_0: int = round(i.y / global_specification.simulation_specification.step)
+            for j in range(m):
+                i = global_specification.cpu_specification.cores_specification.cores_origins[j]
+                x_0: int = round(i.x / global_specification.simulation_specification.mesh_step)
+                y_0: int = round(i.y / global_specification.simulation_specification.mesh_step)
 
                 x_1: int = x_0 + mx
                 y_1: int = y_0 + my

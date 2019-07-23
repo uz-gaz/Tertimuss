@@ -8,7 +8,7 @@ class SimulationSpecification(object):
     Specification of some parameters of the simulation
     """
 
-    def __init__(self, dt: float, mesh_step: float, simulate_thermal: bool, dt_fragmentation_processor_task: int = 16,
+    def __init__(self, mesh_step: float, dt: float, simulate_thermal: bool, dt_fragmentation_processor_task: int = 16,
                  dt_fragmentation_thermal: int = 128, float_decimals_precision: int = 5,
                  type_precision: SimulationPrecision = SimulationPrecision.HIGH_PRECISION):
         """

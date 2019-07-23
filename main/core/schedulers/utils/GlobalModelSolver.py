@@ -19,11 +19,12 @@ class GlobalModelSolver(object):
 
         self.__n = len(global_specification.tasks_specification.periodic_tasks) + \
                    len(global_specification.tasks_specification.aperiodic_tasks)
-        self.__m = global_specification.cpu_specification.number_of_cores
+        self.__m = len(global_specification.cpu_specification.cores_specification.cores_frequencies)
         self.__step = global_specification.simulation_specification.dt
         self.enable_thermal_mode = global_model.enable_thermal_mode
 
-        self.__fragmentation_of_step_task = global_specification.simulation_specification.dt_fragmentation_processor_task
+        self.__fragmentation_of_step_task = \
+            global_specification.simulation_specification.dt_fragmentation_processor_task
         self.__fragmentation_of_step_thermal = global_specification.simulation_specification.dt_fragmentation_thermal
 
         self.__tcpn_simulator_proc = TcpnSimulatorAccurateOptimizedTasks(global_model.pre_proc_tau,
@@ -34,7 +35,6 @@ class GlobalModelSolver(object):
 
         self.__control_task_proc = scipy.ones(len(global_model.lambda_vector_proc_tau))
         self.__mo = global_model.mo_proc_tau
-        self.__core_frequencies = global_specification.cpu_specification.clock_relative_frequencies
 
         # M exec of the previous step
         self.__last_tcpn_m_exec = scipy.zeros(self.__n * self.__m)
@@ -68,7 +68,12 @@ class GlobalModelSolver(object):
             self.__mo_thermal = global_model.mo_thermal
             self.__p_board = global_model.p_board
             self.__p_one_micro = global_model.p_one_micro
-            self.__control_thermal = scipy.asarray(global_specification.cpu_specification.clock_relative_frequencies)
+
+            base_frequency = global_specification.cpu_specification.cores_specification.available_frequencies[-1]
+            clock_relative_frequencies = [i / base_frequency for i in
+                                          global_specification.cpu_specification.cores_specification.available_frequencies]
+
+            self.__control_thermal = scipy.asarray(clock_relative_frequencies)
             self.__power_consumption = global_model.power_consumption
 
     def run_step(self, w_alloc: List[int], time: float, core_frequencies: List[float]) -> [scipy.ndarray,

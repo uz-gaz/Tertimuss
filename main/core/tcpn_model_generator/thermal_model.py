@@ -411,7 +411,7 @@ class ThermalModel(object):
 
         # Board and micros conductivity
         pre_board_cond, post_board_cond, lambda_board_cond = self.simple_conductivity(
-            cpu_specification.cores_specification.physical_properties,
+            cpu_specification.board_specification.physical_properties,
             simulation_specification)
 
         pre_micro_cond, post_micro_cond, lambda_micro_cond = self.simple_conductivity(

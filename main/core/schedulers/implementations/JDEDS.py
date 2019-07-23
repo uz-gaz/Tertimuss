@@ -167,7 +167,7 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
 
         # Calculate F start
         phi_min_hz = clock_available_frequencies_hz[0]
-        phi_start_hz = max(phi_min_hz, sum([i.c / i.t for i in periodic_tasks]) / self.__m)
+        phi_start_hz = max(float(phi_min_hz), sum([i.c / i.t for i in periodic_tasks]) / self.__m)
 
         possible_f_hz = [x for x in clock_available_frequencies_hz if x >= phi_start_hz]
 
@@ -179,7 +179,7 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
 
         # Number of cycles
         cci = [i.c for i in periodic_tasks]
-        tci = [i.t * f_star_hz for i in periodic_tasks]
+        tci = [int(i.t * f_star_hz) for i in periodic_tasks]
 
         # Add dummy task if needed
         hyperperiod_hz = int(global_specification.tasks_specification.h * f_star_hz)
@@ -209,7 +209,8 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
         self.__execution_by_intervals = x
 
         # [(cc left in the interval, task id)]
-        self.__interval_cc_left = [(i[0], i[1].id) for i in zip((x[:, 0]).reshape(-1), periodic_tasks)]
+        self.__interval_cc_left = [((i[0] * clock_base_frequency_hz) / f_star_hz, i[1].id) for i in
+                                   zip((x[:, 0]).reshape(-1), periodic_tasks)]
 
         # Time when the interval end
         self.__actual_interval_end = self.__intervals_end[0]
@@ -254,7 +255,7 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
             remaining_actual = [round(self.__m * (self.__actual_interval_end - time) - sum(cc / i),
                                       self.__decimals_precision) for i in self.__possible_f]
 
-            # Remaining time for aperiodic in full intervals
+            # Remaining time for aperiodic in full intervals between aperiodic start and its deadline
             number_of_full_intervals = len(
                 [i for i in self.__intervals_end[self.__actual_interval_index + 1:] if i <= actual_task.next_deadline])
 
@@ -318,9 +319,9 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
                 self.__interval_cc_left = self.__interval_cc_left + [
                     (self.__execution_by_intervals[-1, self.__actual_interval_index] / f_star, actual_task.id)]
 
-                self.__intervals_frequencies[
-                self.__actual_interval_index:self.__actual_interval_index + intervals_in_execution] = intervals_in_execution * [
-                    f_star]
+                self.__intervals_frequencies[self.__actual_interval_index:
+                                             self.__actual_interval_index + intervals_in_execution] = \
+                    intervals_in_execution * [f_star]
             else:
                 print("Warning: The aperiodic task can not be executed")
 

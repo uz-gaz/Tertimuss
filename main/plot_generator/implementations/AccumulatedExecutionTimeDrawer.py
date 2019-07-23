@@ -39,7 +39,7 @@ class AccumulatedExecutionTimeDrawer(AbstractResultDrawer):
         # time_step = scheduler_result.time_tcpn
         n_periodic = len(global_specification.tasks_specification.periodic_tasks)
         n_aperiodic = len(global_specification.tasks_specification.aperiodic_tasks)
-        m = global_specification.cpu_specification.number_of_cores
+        m = len(global_specification.cpu_specification.cores_specification.cores_frequencies)
         f, axarr = plt.subplots(nrows=m, ncols=(n_periodic + n_aperiodic), num="Execution time")
         for i in range(m):
             for j in range(n_periodic):

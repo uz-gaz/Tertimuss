@@ -27,7 +27,7 @@ class ExecutionPercentageDrawer(AbstractResultDrawer):
 
     @staticmethod
     def __plot_task_execution_percentage(global_specification: GlobalSpecification, scheduler_result: SchedulerResult,
-                                       save_path: Optional[str] = None):
+                                         save_path: Optional[str] = None):
         """
         Plot task execution in each cpu
         :param global_specification: problem specification
@@ -37,6 +37,8 @@ class ExecutionPercentageDrawer(AbstractResultDrawer):
 
         i_tau_disc = scheduler_result.scheduler_assignation
         frequencies = scheduler_result.frequencies
+
+        m = len(global_specification.cpu_specification.cores_specification.cores_frequencies)
 
         n_periodic = len(global_specification.tasks_specification.periodic_tasks)
         n_aperiodic = len(global_specification.tasks_specification.aperiodic_tasks)
@@ -56,7 +58,9 @@ class ExecutionPercentageDrawer(AbstractResultDrawer):
 
         task_percentage_aperiodic = []
 
-        ci_p_dt = [int(round(i.c / global_specification.simulation_specification.dt)) for i in
+        base_frequencie = global_specification.cpu_specification.cores_specification.available_frequencies[-1]
+
+        ci_p_dt = [int(round(i.c / (global_specification.simulation_specification.dt * base_frequencie))) for i in
                    global_specification.tasks_specification.periodic_tasks]
 
         di_p_dt = [int(round(i.d / global_specification.simulation_specification.dt)) for i in
@@ -65,7 +69,7 @@ class ExecutionPercentageDrawer(AbstractResultDrawer):
         ti_p_dt = [int(round(i.t / global_specification.simulation_specification.dt)) for i in
                    global_specification.tasks_specification.periodic_tasks]
 
-        ci_a_dt = [int(round(i.c / global_specification.simulation_specification.dt)) for i in
+        ci_a_dt = [int(round(i.c / (global_specification.simulation_specification.dt * base_frequencie))) for i in
                    global_specification.tasks_specification.aperiodic_tasks]
 
         ai_a_dt = [int(round(i.a / global_specification.simulation_specification.dt)) for i in
@@ -76,7 +80,7 @@ class ExecutionPercentageDrawer(AbstractResultDrawer):
 
         i_tau_disc_accond = scipy.zeros((n_periodic + n_aperiodic, len(i_tau_disc[0])))
 
-        for i in range(global_specification.cpu_specification.number_of_cores):
+        for i in range(m):
             i_tau_disc_accond = i_tau_disc_accond + i_tau_disc[
                                                     i * (n_periodic + n_aperiodic): (i + 1) * (
                                                             n_periodic + n_aperiodic), :]
@@ -104,11 +108,13 @@ class ExecutionPercentageDrawer(AbstractResultDrawer):
 
         for j in range(n_aperiodic):
             axarr[n_periodic + j].set_title(r'$\tau_' + str(j + 1) + '^a$ execution percentage')
-            axarr[n_periodic + j].bar([1], task_percentage_aperiodic[j],
+            to_draw = task_percentage_aperiodic[j]
+            axarr[n_periodic + j].bar(list(range(len(to_draw))), to_draw,
                                       align='center')
-            axarr[n_periodic + j].set_xticklabels([])
             axarr[n_periodic + j].set_ylabel('executed\n percentage')
-            axarr[n_periodic + j].set_xlabel('periods')
+            axarr[n_periodic + j].set_xlabel('periods / execution percentage')
+            axarr[n_periodic + j].set_xticks(list(range(len(to_draw))))
+            axarr[n_periodic + j].set_xticklabels([str(round(i * 100, 2)) + "%" for i in to_draw])
 
         f.tight_layout()
 
