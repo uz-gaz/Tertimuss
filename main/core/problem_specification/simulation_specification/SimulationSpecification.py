@@ -4,9 +4,6 @@ from main.core.problem_specification.simulation_specification.SimulationPrecisio
 
 
 class SimulationSpecification(object):
-    """
-    Specification of some parameters of the simulation
-    """
 
     def __init__(self, mesh_step: float, dt: float, simulate_thermal: bool, dt_fragmentation_processor_task: int = 16,
                  dt_fragmentation_thermal: int = 128, float_decimals_precision: int = 5,
