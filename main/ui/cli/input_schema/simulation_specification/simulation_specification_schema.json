@@ -19,29 +19,6 @@
       "description": "True if want to simulate the thermal model",
       "type": "boolean"
     },
-    "dt_fragmentation_processor_task": {
-      "description": "When simulate the processor model, dt will be fragmented in little parts to obtain a better result (Euler)",
-      "type": "integer",
-      "exclusiveMinimum": 0
-    },
-    "dt_fragmentation_thermal": {
-      "description": "When simulate the thermal model, dt will be fragmented in little parts to obtain a better result (Euler)",
-      "type": "integer",
-      "exclusiveMinimum": 0
-    },
-    "float_decimals_precision": {
-      "description": "Number of decimal precision to maintain while doing float comparisons",
-      "type": "integer",
-      "exclusiveMinimum": 0
-    },
-    "type_precision": {
-      "description": "Float type selected, higher precision implies more resources consumption and long simulation time",
-      "type": "string",
-      "enum": [
-        "HIGH_PRECISION",
-        "MIDDLE_PRECISION"
-      ]
-    },
     "thermal_model_selector": {
       "description": "Thermal model to use",
       "type": "string",
@@ -55,10 +32,6 @@
     "dt",
     "mesh_step",
     "simulate_thermal",
-    "dt_fragmentation_processor_task",
-    "dt_fragmentation_thermal",
-    "float_decimals_precision",
-    "type_precision",
     "thermal_model_selector"
   ],
   "additionalProperties": false

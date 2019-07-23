@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "periodic_task_schema.task_specification.scheduler.framework.tcpn.json",
+  "title": "Periodic task specification",
+  "description": "Periodic task specification",
+  "type": "object",
+  "properties": {
+    "c": {
+      "description": "Task worst case execution time in cycles",
+      "type": "integer",
+      "exclusiveMinimum": 0
+    },
+    "d": {
+      "description": "Task deadline in seconds",
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "e": {
+      "description": "Energy consumption",
+      "type": "number",
+      "exclusiveMinimum": 0
+    }
+  },
+  "required": [
+    "c",
+    "d",
+    "e"
+  ],
+  "additionalProperties": false
+}

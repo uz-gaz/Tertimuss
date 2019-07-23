@@ -8,12 +8,11 @@ from main.core.problem_specification.tasks_specification.Task import Task
 
 
 class TasksSpecification(object):
-    """
-    System tasks
-    """
 
     def __init__(self, tasks: List[Task]):
         """
+        System tasks
+
         :param tasks: List of tasks
         """
         self.periodic_tasks: List[PeriodicTask] = [task for task in tasks if type(task) is PeriodicTask]

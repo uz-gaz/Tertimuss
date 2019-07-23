@@ -8,15 +8,13 @@ from main.core.problem_specification.tasks_specification.TasksSpecification impo
 
 
 class GlobalSpecification(object):
-    """
-    Problem global specification
-    """
 
     def __init__(self, tasks_specification: TasksSpecification, cpu_specification: CpuSpecification,
                  environment_specification: Optional[EnvironmentSpecification],
                  simulation_specification: SimulationSpecification,
                  tcpn_model_specification: TCPNModelSpecification):
         """
+        Problem global specification
 
         :param tasks_specification: Tasks specification
         :param cpu_specification: Cpu cores and board specification
