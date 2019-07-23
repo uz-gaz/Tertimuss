@@ -33,6 +33,9 @@
     }
   },
   "required": [
-    "specification"
+    "cpu_specification",
+    "environment_specification",
+    "simulation_specification",
+    "tasks_specification"
   ]
 }

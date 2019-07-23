@@ -31,7 +31,7 @@ def cli_main(args):
 
     # Path of the input validate schema
     # Warning: In python paths are relative to the entry point script path
-    input_schema_path = "./ui/cli/input_schema/cpu_specification/input_schema.json"
+    input_schema_path = './main/ui/cli/input_schema/input-schema.json'
 
     # Read schema for validation
     if args.verbose:

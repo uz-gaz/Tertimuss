@@ -3,8 +3,6 @@ from typing import Optional
 from main.core.schedulers.templates.abstract_scheduler.AbstractScheduler import AbstractScheduler
 from main.core.schedulers.implementations.G_EDF_A import GlobalEDFAffinityScheduler
 from main.core.schedulers.implementations.G_EDF import GlobalEDFScheduler
-from core.schedulers.rt_tcpn_scheduler import RtTCPNScheduler
-from core.schedulers.rt_tcpn_thermal_aware_scheduler import RTTcpnThermalAwareScheduler
 
 
 def select_scheduler(name: str, with_thermal: bool) -> Optional[AbstractScheduler]:
