@@ -8,7 +8,7 @@ class EnergyConsumptionProperties(object):
 
         Static power = current temperature * 2 * leakage_delta + leakage_alpha
 
-        To understand leakage_alpha and leakage_delta
+        To understand leakage_alpha and leakage_delta see the papers
 
         :param leakage_alpha: leakage_alpha
         :param leakage_delta: leakage_delta

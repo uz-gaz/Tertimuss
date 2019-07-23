@@ -1,0 +1,14 @@
+{
+  "$schema": "../../main/ui/cli/input_schema/cpu_specification/board_specification_schema.json",
+  "$id": "scheduler.framework.TCPN.schema.example1",
+  "title": "Example input specification",
+  "description": "Input for Scheduler Framework TCPN v1.0",
+  "physical_properties": {
+    "x": 50,
+    "y": 50,
+    "z": 1,
+    "specificHeatCapacity": 8933,
+    "density": 385,
+    "thermalConductivity": 400
+  }
+}

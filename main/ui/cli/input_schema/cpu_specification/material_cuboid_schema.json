@@ -6,19 +6,43 @@
   "type": "object",
   "properties": {
     "x": {
-      "description": "X coordinate (mm)",
+      "description": "X coordinate size (mm)",
       "type": "number",
       "exclusiveMinimum": 0
     },
     "y": {
-      "description": "Y coordinate (mm)",
+      "description": "Y coordinate size (mm)",
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "z": {
+      "description": "Z coordinate size (mm)",
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "specificHeatCapacity": {
+      "description": "Specific heat capacities (J/Kg K)",
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "density": {
+      "description": "Density (Kg/cm^3)",
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "thermalConductivity": {
+      "description": "Thermal conductivity (W/m ºC)",
       "type": "number",
       "exclusiveMinimum": 0
     }
   },
   "required": [
     "x",
-    "y"
+    "y",
+    "z",
+    "specificHeatCapacity",
+    "density",
+    "thermalConductivity"
   ],
   "additionalProperties": false
 }

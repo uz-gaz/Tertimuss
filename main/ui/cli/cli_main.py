@@ -5,12 +5,11 @@ from typing import Optional
 from jsonschema import validate, ValidationError
 
 from main.ui.cli.progress_bar_cli import ProgressBarCli
-from core.tcpn_model_generator.global_model import generate_global_model
-from core.tcpn_model_generator.kernel import SimulationKernel
-from main.core.tcpn_model_generator.processor_model import ProcessorModel, generate_processor_model
-from main.core.tcpn_model_generator.tasks_model import TasksModel, generate_tasks_model
-from main.core.tcpn_model_generator.thermal_model import ThermalModel, generate_thermal_model
-from main.core.problem_specification.cpu_specification.CpuSpecification import CpuSpecification, check_origins
+
+from main.core.tcpn_model_generator.processor_model import ProcessorModel
+from main.core.tcpn_model_generator.tasks_model import TasksModel
+from main.core.tcpn_model_generator.thermal_model import ThermalModel
+from main.core.problem_specification.cpu_specification.CpuSpecification import CpuSpecification
 from main.core.problem_specification.cpu_specification.Origin import Origin
 from main.core.problem_specification.cpu_specification.MaterialCuboid import MaterialCuboid
 from main.core.problem_specification.environment_specification.EnvironmentSpecification import EnvironmentSpecification
@@ -21,12 +20,56 @@ from main.core.problem_specification.tasks_specification.PeriodicTask import Per
 from main.ui.common.scheduler_selector_by_name import select_scheduler
 from main.ui.common.task_generator_naming_selector import select_task_generator
 from main.ui.common.abstract_progress_bar import AbstractProgressBar
-from output_generation.output_generator import draw_heat_matrix, plot_task_execution, plot_cpu_utilization, \
-    plot_cpu_temperature, \
-    plot_accumulated_execution_time
 
 
 def cli_main(args):
+    # Progress bar
+    if args.verbose:
+        progress_bar: Optional[AbstractProgressBar] = ProgressBarCli()
+    else:
+        progress_bar: Optional[AbstractProgressBar] = None
+
+    # Path of the input validate schema
+    # Warning: In python paths are relative to the entry point script path
+    input_schema_path = "./ui/cli/input_schema/cpu_specification/input_schema.json"
+
+    # Read schema for validation
+    if args.verbose:
+        progress_bar.update("Data loading", 0)
+
+    try:
+        with open(input_schema_path, "r") as read_file:
+            try:
+                input_schema = json.load(read_file)
+            except ValueError:
+                print("Error: Wrong schema file syntax")
+                return 1
+    except IOError:
+        print("Error: Can't read the schema", input_schema_path)
+        return 1
+
+        # Read input file
+    try:
+        with open(args.file, "r") as read_file:
+            try:
+                scenario_description = json.load(read_file)
+            except ValueError:
+                print("Error: Wrong input file syntax")
+                return 1
+    except IOError:
+        print("Error: Can't read the file", args.file)
+        return 1
+
+        # Validate the input
+    try:
+        validate(scenario_description, input_schema)
+    except ValidationError as ve:
+        print("Error: Wrong fields validation in", '/'.join(map(lambda x: str(x), ve.absolute_path)), "with message",
+              ve.message)
+        return 1
+
+
+def cli_main_old(args):
     # Progress bar
     if args.verbose:
         progress_bar: Optional[AbstractProgressBar] = ProgressBarCli()
