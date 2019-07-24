@@ -10,13 +10,13 @@
       "type": "number",
       "exclusiveMinimum": 0
     },
-    "t_env": {
+    "environment_temperature": {
       "description": "Environment temperature (ºC)",
       "type": "number",
       "exclusiveMinimum": -273
     },
-    "t_max": {
-      "description": "Maximum temperature (ºC)",
+    "maximum_temperature": {
+      "description": "Maximum allowed temperature (ºC)",
       "type": "number",
       "exclusiveMinimum": -273
     }

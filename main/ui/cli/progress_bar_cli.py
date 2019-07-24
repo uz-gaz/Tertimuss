@@ -1,4 +1,4 @@
-from main.ui.common.abstract_progress_bar import AbstractProgressBar
+from main.ui.common.AbstractProgressBar import AbstractProgressBar
 from progress.bar import Bar
 
 

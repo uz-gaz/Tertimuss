@@ -20,8 +20,8 @@ from main.core.problem_specification.simulation_specification.SimulationSpecific
 from main.core.problem_specification.tasks_specification.TasksSpecification import TasksSpecification
 from main.core.problem_specification.tasks_specification.PeriodicTask import PeriodicTask
 from main.core.schedulers.templates.abstract_scheduler.AbstractScheduler import AbstractScheduler
-from main.ui.common.scheduler_selector_by_name import select_scheduler
-from main.ui.common.task_generator_naming_selector import select_task_generator
+from main.ui.common.SchedulerSelector import select_scheduler
+from main.ui.common.TaskGeneratorSelector import select_task_generator
 
 from output_generation.output_generator import plot_cpu_utilization, plot_task_execution, \
     plot_accumulated_execution_time, plot_cpu_temperature, draw_heat_matrix

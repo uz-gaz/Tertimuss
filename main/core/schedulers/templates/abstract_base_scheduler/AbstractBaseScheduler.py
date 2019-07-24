@@ -12,7 +12,7 @@ from main.core.schedulers.templates.abstract_scheduler.AbstractScheduler import 
 from main.core.schedulers.templates.abstract_scheduler.SchedulerResult import SchedulerResult
 from typing import List, Optional
 from main.core.schedulers.utils.GlobalModelSolver import GlobalModelSolver
-from main.ui.common.abstract_progress_bar import AbstractProgressBar
+from main.ui.common.AbstractProgressBar import AbstractProgressBar
 
 
 class AbstractBaseScheduler(AbstractScheduler, metaclass=abc.ABCMeta):

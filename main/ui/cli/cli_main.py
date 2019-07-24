@@ -17,9 +17,9 @@ from main.core.problem_specification.GlobalSpecification import GlobalSpecificat
 from main.core.problem_specification.simulation_specification.SimulationSpecification import SimulationSpecification
 from main.core.problem_specification.tasks_specification.TasksSpecification import TasksSpecification
 from main.core.problem_specification.tasks_specification.PeriodicTask import PeriodicTask
-from main.ui.common.scheduler_selector_by_name import select_scheduler
-from main.ui.common.task_generator_naming_selector import select_task_generator
-from main.ui.common.abstract_progress_bar import AbstractProgressBar
+from main.ui.common.SchedulerSelector import select_scheduler
+from main.ui.common.TaskGeneratorSelector import select_task_generator
+from main.ui.common.AbstractProgressBar import AbstractProgressBar
 
 
 def cli_main(args):

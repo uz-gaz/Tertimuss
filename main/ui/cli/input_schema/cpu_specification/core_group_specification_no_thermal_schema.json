@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "core_group_specification_no_thermal.cpu_specification.scheduler.framework.tcpn.json",
+  "title": "Group of cores with the same characteristics specification schema",
+  "description": "Group of cores with the same characteristics specification",
+  "type": "object",
+  "properties": {
+    "available_frequencies": {
+      "description": "Cores available frequencies in Hz",
+      "type": "array",
+      "items": {
+        "type": "integer"
+      }
+    },
+    "cores_frequencies": {
+      "description": "Cores set frequencies in Hz",
+      "type": "array",
+      "items": {
+        "type": "integer"
+      }
+    }
+  },
+  "required": [
+    "available_frequencies",
+    "cores_frequencies"
+  ],
+  "additionalProperties": false
+}

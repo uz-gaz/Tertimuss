@@ -1,5 +1,5 @@
 from random import randrange, uniform
-from typing import List
+from typing import List, Dict
 
 from main.core.problem_specification.tasks_specification.PeriodicTask import PeriodicTask
 from main.core.task_generator.template.AbstractTaskGeneratorAlgorithm import AbstractTaskGeneratorAlgorithm
@@ -7,13 +7,13 @@ from main.core.task_generator.template.AbstractTaskGeneratorAlgorithm import Abs
 
 class UUniFast(AbstractTaskGeneratorAlgorithm):
 
-    def __init__(self, number_of_tasks: int, utilization: float, period_interval: tuple, processor_frequency: float):
+    def __init__(self):
         self.number_of_tasks = number_of_tasks
         self.utilization = utilization
         self.period_interval = period_interval
         self.processor_frequency = processor_frequency
 
-    def generate(self) -> List[PeriodicTask]:
+    def generate(self, options: Dict[str, str]) -> List[PeriodicTask]:
         # random number in interval[a, b]
         # TODO: Obtain as parameter
         a = 6

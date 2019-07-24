@@ -1,33 +1,33 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "aperiodic_task_schema.task_specification.scheduler.framework.tcpn.json",
-  "title": "Aperiodic task specification",
-  "description": "Aperiodic task specification",
+  "$id": "periodic_task_energy_schema.task_specification.scheduler.framework.tcpn.json",
+  "title": "Periodic task specification",
+  "description": "Periodic task specification",
   "type": "object",
   "properties": {
     "type": {
-      "const": "Aperiodic"
+      "const": "Periodic"
     },
     "worst_case_execution_time": {
       "description": "Task worst case execution time in cycles",
       "type": "integer",
       "exclusiveMinimum": 0
     },
-    "arrive": {
-      "description": "Task arrive time, must be lower or equal than the hyperperiod",
+    "period": {
+      "description": "Task deadline in seconds",
       "type": "number",
       "exclusiveMinimum": 0
     },
-    "deadline": {
-      "description": "Task deadline time, must be lower or equal than the hyperperiod",
+    "energy_consumption": {
+      "description": "Energy consumption",
       "type": "number",
       "exclusiveMinimum": 0
     }
   },
   "required": [
     "worst_case_execution_time",
-    "arrive",
-    "deadline"
+    "period",
+    "energy_consumption"
   ],
   "additionalProperties": false
 }

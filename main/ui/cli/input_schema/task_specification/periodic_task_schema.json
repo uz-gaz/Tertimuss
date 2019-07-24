@@ -5,26 +5,23 @@
   "description": "Periodic task specification",
   "type": "object",
   "properties": {
-    "c": {
+    "type": {
+      "const": "Periodic"
+    },
+    "worst_case_execution_time": {
       "description": "Task worst case execution time in cycles",
       "type": "integer",
       "exclusiveMinimum": 0
     },
-    "d": {
+    "period": {
       "description": "Task deadline in seconds",
-      "type": "number",
-      "exclusiveMinimum": 0
-    },
-    "e": {
-      "description": "Energy consumption",
       "type": "number",
       "exclusiveMinimum": 0
     }
   },
   "required": [
-    "c",
-    "d",
-    "e"
+    "worst_case_execution_time",
+    "period"
   ],
   "additionalProperties": false
 }

@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "aperiodic_task_schema.task_specification.scheduler.framework.tcpn.json",
+  "$id": "aperiodic_task_energy_schema.task_specification.scheduler.framework.tcpn.json",
   "title": "Aperiodic task specification",
   "description": "Aperiodic task specification",
   "type": "object",
@@ -22,12 +22,18 @@
       "description": "Task deadline time, must be lower or equal than the hyperperiod",
       "type": "number",
       "exclusiveMinimum": 0
+    },
+    "energy_consumption": {
+      "description": "Energy consumption",
+      "type": "number",
+      "exclusiveMinimum": 0
     }
   },
   "required": [
     "worst_case_execution_time",
     "arrive",
-    "deadline"
+    "deadline",
+    "energy_consumption"
   ],
   "additionalProperties": false
 }
