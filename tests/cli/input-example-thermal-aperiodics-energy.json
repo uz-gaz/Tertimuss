@@ -1,6 +1,6 @@
 {
   "$schema": "../../main/ui/cli/input_schema/input-schema.json",
-  "$id": "scheduler.framework.TCPN.schema.example1",
+  "$id": "input-example-thermal-aperiodics-energy.scheduler.framework.TCPN.schema.example1",
   "title": "Example input specification",
   "description": "Input for Scheduler Framework TCPN v1.0",
   "simulate_thermal": true,
