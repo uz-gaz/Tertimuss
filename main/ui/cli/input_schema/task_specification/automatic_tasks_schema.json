@@ -5,46 +5,49 @@
   "description": "Automatic tasks specification",
   "type": "object",
   "properties": {
-    "numberOfTasks": {
+    "number_of_tasks": {
       "description": "Number of tasks",
       "type": "integer",
       "exclusiveMinimum": 0
     },
-    "utilizationOfTheTaskSet": {
+    "utilization_of_the_task_set": {
       "description": "Number of tasks",
       "type": "number",
       "exclusiveMinimum": 0
     },
-    "intervalForPeriods": {
+    "interval_for_periods": {
       "description": "Periods intervals",
       "type": "object",
       "properties": {
-        "min": {
+        "min_period": {
           "description": "Min period",
           "type": "integer",
           "exclusiveMinimum": 0
         },
-        "max": {
+        "max_period": {
           "description": "Max period",
           "type": "integer",
           "exclusiveMinimum": 0
         }
       },
       "required": [
-        "min",
-        "max"
+        "min_period",
+        "max_period"
       ],
       "additionalProperties": false
     },
     "name": {
       "description": "Task generation algorithm name",
-      "type": "string"
+      "type": "string",
+      "enum": [
+        "UUnifast"
+      ]
     }
   },
   "required": [
-    "numberOfTasks",
-    "utilizationOfTheTaskSet",
-    "intervalForPeriods",
+    "number_of_tasks",
+    "utilization_of_the_task_set",
+    "interval_for_periods",
     "name"
   ],
   "additionalProperties": false

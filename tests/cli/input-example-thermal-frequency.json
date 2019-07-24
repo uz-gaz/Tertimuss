@@ -3,9 +3,10 @@
   "$id": "input-example-thermal-aperiodics-energy.scheduler.framework.TCPN.schema.example1",
   "title": "Example input specification",
   "description": "Input for Scheduler Framework TCPN v1.0",
-  "simulate_thermal": false,
+  "simulate_thermal": true,
   "tasks_specification": {
     "task_generation_system": "Manual",
+    "task_consumption_model": "Frequency based",
     "tasks": [
       {
         "type": "Periodic",
@@ -21,18 +22,35 @@
         "type": "Periodic",
         "worst_case_execution_time": 6000,
         "period": 12
-      },
-      {
-        "type": "Aperiodic",
-        "worst_case_execution_time": 2000,
-        "arrive": 10,
-        "deadline": 20
       }
     ]
   },
   "cpu_specification": {
-
+    "board_specification": {
+      "physical_properties": {
+        "x": 50,
+        "y": 50,
+        "z": 1,
+        "density": 8933,
+        "specific_heat_capacity": 385,
+        "thermal_conductivity": 400
+      }
+    },
     "cores_specification": {
+      "physical_properties": {
+        "x": 10,
+        "y": 10,
+        "z": 2,
+        "density": 2330,
+        "specific_heat_capacity": 712,
+        "thermal_conductivity": 148
+      },
+      "energy_consumption_properties": {
+        "leakage_alpha": 0.001,
+        "leakage_delta": 0.1,
+        "dynamic_alpha": 1.52,
+        "dynamic_beta": 0.08
+      },
       "available_frequencies": [
         150,
         400,
@@ -43,7 +61,8 @@
       "cores_frequencies": [
         1000,
         1000
-      ]
+      ],
+      "cores_origins": "Automatic"
     }
   },
   "environment_specification": {
@@ -55,13 +74,15 @@
     "output_path": "./out/",
     "output_naming": "example_thermal_aperiodics-energy",
     "selected_output": [
-      "Accumulated execution time"
+      "Accumulated execution time",
+      "Energy consumption"
     ]
   },
   "scheduler_specification": {
     "name": "G-EDF"
   },
   "simulation_specification": {
+    "mesh_step": 2,
     "dt": 0.01
   }
 }
