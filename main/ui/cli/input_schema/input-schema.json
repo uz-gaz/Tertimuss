@@ -16,7 +16,7 @@
   "if": {
     "properties": {
       "simulate_thermal": {
-        "const": "True"
+        "const": true
       }
     }
   },

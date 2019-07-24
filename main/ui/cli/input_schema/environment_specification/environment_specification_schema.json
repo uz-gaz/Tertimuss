@@ -5,7 +5,7 @@
   "description": "Specification of the environment",
   "type": "object",
   "properties": {
-    "h": {
+    "convection_factor": {
       "description": "Convection factor (W/mm^2 ºC)",
       "type": "number",
       "exclusiveMinimum": 0
@@ -22,9 +22,9 @@
     }
   },
   "required": [
-    "h",
-    "t_env",
-    "t_max"
+    "convection_factor",
+    "environment_temperature",
+    "maximum_temperature"
   ],
   "additionalProperties": false
 }

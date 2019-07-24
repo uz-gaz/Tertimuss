@@ -27,10 +27,17 @@
     },
     "cores_origins": {
       "description": "Cores origins locations",
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/origin"
-      }
+      "oneOf": [
+        {
+          "const": "Automatic"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/origin"
+          }
+        }
+      ]
     }
   },
   "required": [

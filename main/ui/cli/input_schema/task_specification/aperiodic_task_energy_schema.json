@@ -30,6 +30,7 @@
     }
   },
   "required": [
+    "type",
     "worst_case_execution_time",
     "arrive",
     "deadline",

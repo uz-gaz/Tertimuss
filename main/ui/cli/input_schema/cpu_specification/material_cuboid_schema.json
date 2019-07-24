@@ -20,7 +20,7 @@
       "type": "number",
       "exclusiveMinimum": 0
     },
-    "specificHeatCapacity": {
+    "specific_heat_capacity": {
       "description": "Specific heat capacities (J/Kg K)",
       "type": "number",
       "exclusiveMinimum": 0
@@ -30,7 +30,7 @@
       "type": "number",
       "exclusiveMinimum": 0
     },
-    "thermalConductivity": {
+    "thermal_conductivity": {
       "description": "Thermal conductivity (W/m ºC)",
       "type": "number",
       "exclusiveMinimum": 0
@@ -40,9 +40,9 @@
     "x",
     "y",
     "z",
-    "specificHeatCapacity",
+    "specific_heat_capacity",
     "density",
-    "thermalConductivity"
+    "thermal_conductivity"
   ],
   "additionalProperties": false
 }
