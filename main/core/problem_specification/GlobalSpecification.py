@@ -1,5 +1,3 @@
-from typing import Optional
-
 from main.core.problem_specification.cpu_specification.CpuSpecification import CpuSpecification
 from main.core.problem_specification.environment_specification.EnvironmentSpecification import EnvironmentSpecification
 from main.core.problem_specification.simulation_specification.SimulationSpecification import SimulationSpecification
@@ -10,7 +8,7 @@ from main.core.problem_specification.tasks_specification.TasksSpecification impo
 class GlobalSpecification(object):
 
     def __init__(self, tasks_specification: TasksSpecification, cpu_specification: CpuSpecification,
-                 environment_specification: Optional[EnvironmentSpecification],
+                 environment_specification: EnvironmentSpecification,
                  simulation_specification: SimulationSpecification,
                  tcpn_model_specification: TCPNModelSpecification):
         """
