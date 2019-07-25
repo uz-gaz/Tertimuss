@@ -46,11 +46,6 @@
       ]
     }
   },
-  "environment_specification": {
-    "environment_temperature": 45,
-    "maximum_temperature": 110,
-    "convection_factor": 0.001
-  },
   "output_specification": {
     "output_path": "./out/",
     "output_naming": "example_thermal_aperiodics-energy",

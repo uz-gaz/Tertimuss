@@ -19,7 +19,9 @@ from main.core.problem_specification.tasks_specification.PeriodicTask import Per
 from main.core.problem_specification.tasks_specification.Task import Task
 from main.core.problem_specification.tasks_specification.TasksSpecification import TasksSpecification
 from main.core.schedulers.templates.abstract_scheduler.AbstractScheduler import AbstractScheduler
+from main.core.tcpn_model_generator.thermal_model_selector import ThermalModelSelector
 from main.plot_generator.templates.AbstractResultDrawer import AbstractResultDrawer
+from main.ui.common.TCPNThermalModelSelector import TCPNThermalModelSelector
 from main.ui.common.TaskGeneratorSelector import TaskGeneratorSelector
 
 
@@ -228,7 +230,21 @@ class JSONGlobalModelParser(object):
 
         :param input_json: Json specification
         """
-        pass
+        # Made a copy of the json spec
+        input_json = input_json.copy()
+
+        environment_specification = input_json["environment_specification"]
+        simulate_thermal = input_json["simulate_thermal"]
+
+        if simulate_thermal:
+            environment_specification = EnvironmentSpecification(environment_specification["convection_factor"],
+                                                                 environment_specification["environment_temperature"],
+                                                                 environment_specification["maximum_temperature"])
+        else:
+            # This values won't be used during the simulation
+            environment_specification = EnvironmentSpecification(0.001, 45, 110)
+
+        return environment_specification, input_json
 
     @staticmethod
     def __obtain_simulation_specification(input_json: Dict) -> [SimulationSpecification, Dict]:
@@ -237,7 +253,23 @@ class JSONGlobalModelParser(object):
 
         :param input_json: Json specification
         """
-        pass
+        # Made a copy of the json spec
+        input_json = input_json.copy()
+
+        simulation_specification = input_json["simulation_specification"]
+        simulate_thermal = input_json["simulate_thermal"]
+
+        if simulate_thermal:
+            simulation_specification = SimulationSpecification(simulation_specification["mesh_step"],
+                                                               simulation_specification["dt"],
+                                                               simulate_thermal)
+        else:
+            # This values won't be used during the simulation
+            simulation_specification = SimulationSpecification(2,
+                                                               simulation_specification["dt"],
+                                                               simulate_thermal)
+
+        return simulation_specification, input_json
 
     @staticmethod
     def __obtain_tcpn_model_specification(input_json: Dict) -> [TCPNModelSpecification, Dict]:
@@ -246,7 +278,21 @@ class JSONGlobalModelParser(object):
 
         :param input_json: Json specification
         """
-        pass
+
+        # Made a copy of the json spec
+        input_json = input_json.copy()
+
+        simulate_thermal = input_json["simulate_thermal"]
+
+        if simulate_thermal:
+            tasks_specification = input_json["tasks_specification"]
+            tcpn_model_specification = tasks_specification["task_consumption_model"]
+            tcpn_model_specification = TCPNModelSpecification(
+                TCPNThermalModelSelector.select_tcpn_model(tcpn_model_specification))
+        else:
+            tcpn_model_specification = TCPNModelSpecification(ThermalModelSelector.THERMAL_MODEL_FREQUENCY_BASED)
+
+        return tcpn_model_specification
 
     @staticmethod
     def __obtain_scheduler_specification(input_json: Dict) -> [AbstractScheduler, Dict]:
