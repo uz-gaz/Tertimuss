@@ -1,5 +1,3 @@
-from main.core.task_generator.template.AbstractTaskGeneratorAlgorithm import AbstractTaskGeneratorAlgorithm
-from main.core.task_generator.implementations.UUniFast import UUniFast
 from main.core.tcpn_model_generator.thermal_model_selector import ThermalModelSelector
 
 

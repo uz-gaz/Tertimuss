@@ -14,7 +14,7 @@
       },
       {
         "type": "Periodic",
-        "worst_case_execution_time": 50000,
+        "worst_case_execution_time": 5000,
         "period": 8
       },
       {

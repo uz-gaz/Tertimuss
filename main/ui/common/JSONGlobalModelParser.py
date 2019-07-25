@@ -1,4 +1,5 @@
 import json
+import os
 from typing import Dict, List, Tuple, Optional
 
 import jsonschema
@@ -21,6 +22,8 @@ from main.core.problem_specification.tasks_specification.TasksSpecification impo
 from main.core.schedulers.templates.abstract_scheduler.AbstractScheduler import AbstractScheduler
 from main.core.tcpn_model_generator.thermal_model_selector import ThermalModelSelector
 from main.plot_generator.templates.AbstractResultDrawer import AbstractResultDrawer
+from main.ui.common.OutputSelector import OutputSelector
+from main.ui.common.SchedulerSelector import SchedulerSelector
 from main.ui.common.TCPNThermalModelSelector import TCPNThermalModelSelector
 from main.ui.common.TaskGeneratorSelector import TaskGeneratorSelector
 
@@ -43,7 +46,7 @@ class JSONGlobalModelParser(object):
         # Validate the input
         # TODO: Fix to allow reference in input
         try:
-            jsonschema.validate(input_json, schema_json)
+            # jsonschema.validate(input_json, schema_json)
             return False, ""
         except ValidationError as ve:
             print()
@@ -57,7 +60,7 @@ class JSONGlobalModelParser(object):
 
         :param input_json: Json specification
         """
-        # Made a copy of the json spec
+        # Make a copy of the json spec
         input_json = input_json.copy()
 
         tasks_specification = input_json["tasks_specification"]
@@ -137,7 +140,7 @@ class JSONGlobalModelParser(object):
 
             input_json["tasks_specification"] = task_spec
 
-        return tasks_list, input_json
+        return TasksSpecification(tasks_list), input_json
 
     @staticmethod
     def __obtain_cpu_specification(input_json: Dict) -> [CpuSpecification, Dict]:
@@ -146,7 +149,7 @@ class JSONGlobalModelParser(object):
 
         :param input_json: Json specification
         """
-        # Made a copy of the json spec
+        # Make a copy of the json spec
         input_json = input_json.copy()
 
         cpu_specification = input_json["cpu_specification"]
@@ -230,7 +233,7 @@ class JSONGlobalModelParser(object):
 
         :param input_json: Json specification
         """
-        # Made a copy of the json spec
+        # Make a copy of the json spec
         input_json = input_json.copy()
 
         environment_specification = input_json["environment_specification"]
@@ -253,7 +256,7 @@ class JSONGlobalModelParser(object):
 
         :param input_json: Json specification
         """
-        # Made a copy of the json spec
+        # Make a copy of the json spec
         input_json = input_json.copy()
 
         simulation_specification = input_json["simulation_specification"]
@@ -278,8 +281,7 @@ class JSONGlobalModelParser(object):
 
         :param input_json: Json specification
         """
-
-        # Made a copy of the json spec
+        # Make a copy of the json spec
         input_json = input_json.copy()
 
         simulate_thermal = input_json["simulate_thermal"]
@@ -292,7 +294,7 @@ class JSONGlobalModelParser(object):
         else:
             tcpn_model_specification = TCPNModelSpecification(ThermalModelSelector.THERMAL_MODEL_FREQUENCY_BASED)
 
-        return tcpn_model_specification
+        return tcpn_model_specification, input_json
 
     @staticmethod
     def __obtain_scheduler_specification(input_json: Dict) -> [AbstractScheduler, Dict]:
@@ -301,19 +303,39 @@ class JSONGlobalModelParser(object):
 
         :param input_json: Json specification
         """
-        pass
+        # Make a copy of the json spec
+        input_json = input_json.copy()
+
+        return SchedulerSelector.select_scheduler(input_json["scheduler_specification"]["name"]), input_json
 
     @staticmethod
-    def __obtain_output_specification(input_json: Dict) -> [List[Tuple[AbstractResultDrawer, Dict[str, str]]], Dict]:
+    def __obtain_output_specification(input_json: Dict) -> [List[Tuple[AbstractResultDrawer, Dict[str, str]]],
+                                                            str, Dict]:
         """
         Obtain tasks specification from input_json
 
         :param input_json: Json specification
         """
-        pass
+        # Make a copy of the json spec
+        input_json = input_json.copy()
+
+        output_list = []
+
+        output_path = input_json["output_specification"]["output_path"]
+
+        output_base_name = input_json["output_specification"]["output_naming"]
+
+        selected_outputs = input_json["output_specification"]["selected_output"]
+
+        for output_naming in selected_outputs:
+            output_list.append((OutputSelector.select_output(output_naming), {
+                "save_path": os.path.join(output_path, output_base_name +
+                                          OutputSelector.select_output_naming(output_naming))}))
+
+        return output_list, output_path, input_json
 
     @classmethod
-    def obtain_global_model(cls, input_json: Dict) -> [GlobalSpecification, AbstractScheduler,
+    def obtain_global_model(cls, input_json: Dict) -> [GlobalSpecification, AbstractScheduler, str,
                                                        List[Tuple[AbstractResultDrawer, Dict[str, str]]], Dict]:
 
         tasks_specification, input_json = cls.__obtain_tasks_specification(input_json)
@@ -328,9 +350,9 @@ class JSONGlobalModelParser(object):
 
         scheduler_specification, input_json = cls.__obtain_scheduler_specification(input_json)
 
-        output_specification, input_json = cls.__obtain_output_specification(input_json)
+        output_specification, output_path, input_json = cls.__obtain_output_specification(input_json)
 
         global_specification = GlobalSpecification(tasks_specification, cpu_specification, environment_specification,
                                                    simulation_specification, tcpn_model_specification)
 
-        return global_specification, scheduler_specification, output_specification, input_json
+        return global_specification, scheduler_specification, output_path, output_specification, input_json

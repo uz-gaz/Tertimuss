@@ -29,3 +29,23 @@ class OutputSelector(object):
         }
 
         return output_definition.get(name)
+
+    @staticmethod
+    def select_output_naming(name: str) -> str:
+        """
+        Select output by name
+        :param name: Name of the output
+        :return:
+        """
+        output_definition = {
+            "Accumulated execution time": "_accumulated_execution_time.png",
+            "Energy consumption": "_energy_consumption.png",
+            "Execution percentage": "_execution_percentage.png",
+            "Frequency": "_frequency.png",
+            "CPU heat evolution": "_heat_matrix.mp4",
+            "Cores maximum temperature": "_cpu_temperature.png",
+            "Task execution": "_task_execution.png",
+            "Processor utilization": "_cpu_utilization.png"
+        }
+
+        return output_definition.get(name)

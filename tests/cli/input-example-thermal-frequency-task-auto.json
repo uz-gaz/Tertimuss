@@ -64,7 +64,7 @@
   },
   "output_specification": {
     "output_path": "./out/",
-    "output_naming": "example_thermal_aperiodics-energy",
+    "output_naming": "example_thermal_frequency_task_auto",
     "selected_output": [
       "Accumulated execution time",
       "Energy consumption"

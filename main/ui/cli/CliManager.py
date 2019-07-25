@@ -1,3 +1,4 @@
+import os
 from typing import Optional
 
 from main.core.tcpn_model_generator.global_model import GlobalModel
@@ -25,25 +26,36 @@ class CliManager(object):
             progress_bar.update("Data loading", 0)
 
         # Read schema
-        input_schema = JSONGlobalModelParser.read_input(input_schema_path)
+        error, message, schema_object = JSONGlobalModelParser.read_input(input_schema_path)
+
+        if error:
+            print(message)
+            return 1
 
         # Read input
-        scenario_description = JSONGlobalModelParser.read_input(args.file)
+        error, message, input_object = JSONGlobalModelParser.read_input(args.file)
 
-        # Validate the input
-        error_validation, message_validation = JSONGlobalModelParser.validate_input(input_schema, scenario_description)
+        if error:
+            print(message)
+            return 1
+
+        # Validate schema
+        error, message = JSONGlobalModelParser.validate_input(input_object, schema_object)
+
+        if error:
+            print(message)
+            return 1
 
         if args.verbose:
             progress_bar.update_progress(100)
             progress_bar.update("Creating global model", 0)
 
-        if error_validation:
-            print(message_validation)
-            return 1
-
         # Get model and scheduler
-        global_specification, scheduler, output_list, scenario_description_completed = \
-            JSONGlobalModelParser.obtain_global_model(scenario_description)
+        global_specification, scheduler, output_path, output_list, scenario_description_completed = \
+            JSONGlobalModelParser.obtain_global_model(input_object)
+
+        # Create output directory if not exist
+        os.makedirs(output_path, exist_ok=True)
 
         # Create global model
         try:

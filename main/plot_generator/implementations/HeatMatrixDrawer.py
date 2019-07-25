@@ -23,8 +23,9 @@ class HeatMatrixDrawer(AbstractResultDrawer):
         Available options:
         save_path: path to save the simulation
         """
-        cls.__draw_heat_matrix(global_specification, scheduler_result, options.get("show_board"),
-                               options.get("show_cores"), options.get("save_path"))
+        # cls.__draw_heat_matrix(global_specification, scheduler_result, options.get("show_board"),
+        #                        options.get("show_cores"), options.get("save_path"))
+        cls.__draw_heat_matrix(global_specification, scheduler_result, True, True, options.get("save_path"))
 
     @classmethod
     def __draw_heat_matrix(cls, global_specification: GlobalSpecification, scheduler_result: SchedulerResult,
