@@ -9,9 +9,13 @@ from main.core.problem_specification.cpu_specification.CpuSpecification import C
 from main.core.problem_specification.environment_specification.EnvironmentSpecification import EnvironmentSpecification
 from main.core.problem_specification.simulation_specification.SimulationSpecification import SimulationSpecification
 from main.core.problem_specification.simulation_specification.TCPNModelSpecification import TCPNModelSpecification
+from main.core.problem_specification.tasks_specification.AperiodicTask import AperiodicTask
+from main.core.problem_specification.tasks_specification.PeriodicTask import PeriodicTask
+from main.core.problem_specification.tasks_specification.Task import Task
 from main.core.problem_specification.tasks_specification.TasksSpecification import TasksSpecification
 from main.core.schedulers.templates.abstract_scheduler.AbstractScheduler import AbstractScheduler
 from main.plot_generator.templates.AbstractResultDrawer import AbstractResultDrawer
+from main.ui.common.TaskGeneratorSelector import TaskGeneratorSelector
 
 
 class JSONGlobalModelParser(object):
@@ -45,27 +49,57 @@ class JSONGlobalModelParser(object):
         task_generation_system = tasks_specification["task_generation_system"]
         task_consumption_model = tasks_specification["task_consumption_model"]
 
+        # List of tasks to return
+        tasks_list: List[Task] = []
+
         if task_generation_system == "Manual":
+            # Manual task generation
             tasks = tasks_specification["tasks"]
-            for i in tasks:
-                type_of_task = tasks["type"]
-                worst_case_execution_time = int(tasks["worst_case_execution_time"])
+            for task in tasks:
+                type_of_task = task["type"]
+                worst_case_execution_time = task["worst_case_execution_time"]
 
                 if task_consumption_model == "Energy based":
                     # Energy based task
-                    energy_consumption = float(tasks["energy_consumption"])
+                    energy_consumption = task["energy_consumption"]
                 else:
                     # Frequency based tasks
                     energy_consumption = None
 
                 if type_of_task == "Periodic":
                     # Periodic task
-                    period = float(tasks["period"])
+                    period = task["period"]
+                    new_task = PeriodicTask(worst_case_execution_time, period, period, energy_consumption)
                 else:
                     # Aperiodic task
-                    arrive = float(tasks["arrive"])
-                    deadline = float(tasks["deadline"])
-        pass
+                    arrive = task["arrive"]
+                    deadline = task["deadline"]
+                    new_task = AperiodicTask(worst_case_execution_time, arrive, deadline, energy_consumption)
+
+                tasks_list.append(new_task)
+        else:
+            # Automatic task generation
+            automatic_generation = tasks_specification["automatic_generation"]
+
+            available_core_frequencies = input_json["cpu_specification"]["cores_specification"]["available_frequencies"]
+
+            available_core_frequencies.sort()
+
+            options = {
+                "number_of_tasks": automatic_generation["number_of_tasks"],
+                "utilization": automatic_generation["utilization_of_the_task_set"],
+                "min_period_interval": automatic_generation["interval_for_periods"]["min_period"],
+                "max_period_interval": automatic_generation["interval_for_periods"]["max_period"],
+                "processor_frequency": available_core_frequencies[-1]
+            }
+
+            name = automatic_generation["name"]
+
+            task_generator = TaskGeneratorSelector.select_task_generator(name)
+
+            tasks_list = task_generator.generate(options)
+
+        return tasks_list, input_json.copy()
 
     @staticmethod
     def __obtain_cpu_specification(input_json: Dict) -> [CpuSpecification, Dict]:

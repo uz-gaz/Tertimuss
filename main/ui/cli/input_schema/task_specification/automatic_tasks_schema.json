@@ -40,7 +40,7 @@
       "description": "Task generation algorithm name",
       "type": "string",
       "enum": [
-        "UUnifast"
+        "UUniFast"
       ]
     }
   },
