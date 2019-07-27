@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Dialog</class>
- <widget class="QDialog" name="Dialog">
+ <class>DialogAddTask</class>
+ <widget class="QDialog" name="DialogAddTask">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -135,7 +135,7 @@
   <connection>
    <sender>pushButton_add</sender>
    <signal>clicked()</signal>
-   <receiver>Dialog</receiver>
+   <receiver>DialogAddTask</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">

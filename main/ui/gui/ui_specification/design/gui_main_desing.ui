@@ -20,7 +20,7 @@
       <property name="currentIndex">
        <number>0</number>
       </property>
-      <widget class="QWidget" name="tab_4">
+      <widget class="QWidget" name="tab_simulation">
        <attribute name="title">
         <string>Simulation</string>
        </attribute>
@@ -236,7 +236,7 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="tab">
+      <widget class="QWidget" name="tab_tasks">
        <attribute name="title">
         <string>Tasks</string>
        </attribute>
@@ -284,7 +284,7 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="tab_3">
+      <widget class="QWidget" name="tab_cpu">
        <attribute name="title">
         <string>CPU</string>
        </attribute>
@@ -294,7 +294,7 @@
           <property name="currentIndex">
            <number>0</number>
           </property>
-          <widget class="QWidget" name="tab_7">
+          <widget class="QWidget" name="tab_cpu_cores">
            <attribute name="title">
             <string>Cores</string>
            </attribute>
@@ -304,7 +304,7 @@
               <property name="currentIndex">
                <number>0</number>
               </property>
-              <widget class="QWidget" name="General">
+              <widget class="QWidget" name="tab_cpu_cores_general">
                <attribute name="title">
                 <string>General</string>
                </attribute>
@@ -438,7 +438,7 @@
                 </item>
                </layout>
               </widget>
-              <widget class="QWidget" name="tab_10">
+              <widget class="QWidget" name="tab_cpu_cores_physical">
                <attribute name="title">
                 <string>Physical</string>
                </attribute>
@@ -625,7 +625,7 @@
                 </item>
                </layout>
               </widget>
-              <widget class="QWidget" name="tab_11">
+              <widget class="QWidget" name="tab_cpu_cores_origins">
                <attribute name="title">
                 <string>Origins</string>
                </attribute>
@@ -666,7 +666,7 @@
                 </item>
                </layout>
               </widget>
-              <widget class="QWidget" name="tab_9">
+              <widget class="QWidget" name="tab_cpu_cores_energy">
                <attribute name="title">
                 <string>Energy consumption</string>
                </attribute>
@@ -797,14 +797,14 @@
             </item>
            </layout>
           </widget>
-          <widget class="QWidget" name="tab_8">
+          <widget class="QWidget" name="tab_board">
            <attribute name="title">
             <string>Board</string>
            </attribute>
            <layout class="QVBoxLayout" name="verticalLayout_6">
             <item>
              <widget class="QTabWidget" name="tabWidget_4">
-              <widget class="QWidget" name="tab_12">
+              <widget class="QWidget" name="tab_cpu_board_physical">
                <attribute name="title">
                 <string>Physical</string>
                </attribute>
@@ -999,7 +999,7 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="tab_2">
+      <widget class="QWidget" name="tab_environment">
        <attribute name="title">
         <string>Environment</string>
        </attribute>
@@ -1096,7 +1096,7 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="tab_5">
+      <widget class="QWidget" name="tab_scheduler">
        <attribute name="title">
         <string>Scheduler</string>
        </attribute>
@@ -1144,7 +1144,7 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="tab_6">
+      <widget class="QWidget" name="tab_output">
        <attribute name="title">
         <string>Output</string>
        </attribute>
@@ -1154,7 +1154,7 @@
           <property name="currentIndex">
            <number>0</number>
           </property>
-          <widget class="QWidget" name="tab_13">
+          <widget class="QWidget" name="tab_output_general">
            <attribute name="title">
             <string>General</string>
            </attribute>
@@ -1232,7 +1232,7 @@
             </item>
            </layout>
           </widget>
-          <widget class="QWidget" name="tab_14">
+          <widget class="QWidget" name="tab_output_selected">
            <attribute name="title">
             <string>Selected</string>
            </attribute>
