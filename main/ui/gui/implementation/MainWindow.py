@@ -12,24 +12,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         QtWidgets.QMainWindow.__init__(self, *args, **kwargs)
         self.setupUi(self)
 
-        # Control thermal enabled/disabled
-        self.checkBox_simulation_thermal.toggled.connect(
-            lambda x: self.doubleSpinBox_simulation_mesh_step.setEnabled(x))
-        self.checkBox_simulation_thermal.toggled.connect(lambda x: self.comboBox_simulation_energy_model.setEnabled(x))
-        self.checkBox_simulation_thermal.toggled.connect(lambda x: self.tab_environment.setEnabled(x))
-        self.checkBox_simulation_thermal.toggled.connect(lambda x: self.tab_board.setEnabled(x))
-        self.checkBox_simulation_thermal.toggled.connect(lambda x: self.tab_cpu_cores_physical.setEnabled(x))
-        self.checkBox_simulation_thermal.toggled.connect(lambda x: self.tab_cpu_cores_origins.setEnabled(x))
-        self.checkBox_simulation_thermal.toggled.connect(lambda x: self.tab_cpu_cores_energy.setEnabled(x))
-        self.checkBox_simulation_thermal.toggled.connect(
-            lambda x: self.checkBox_cpu_cores_automatic_origins.setEnabled(x))
-        # TODO: Disable in add task the energy form
-        # TODO: Disable some outputs
-
-        # Control automatic origins enabled/disabled
-        self.checkBox_cpu_cores_automatic_origins.toggled.connect(
-            lambda x: self.tab_cpu_cores_origins.setEnabled(not x))
-
         # Energy generation model
         _translate = QtCore.QCoreApplication.translate
         tcpn_model_names = TCPNThermalModelSelector.get_tcpn_model_names()
@@ -45,17 +27,35 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.comboBox_scheduler_select.addItem("")
             self.comboBox_scheduler_select.setItemText(i, _translate("MainWindow", scheduler_names[i]))
 
-        # TODO: Open browser to search JSON
-
-        # TODO: Open browser to search output
-
     def simulate_thermal_state_changed(self, state: bool):
-        print("simulate_thermal_state_changed")
+        # Control thermal enabled/disabled
+        self.doubleSpinBox_simulation_mesh_step.setEnabled(state)
+        self.comboBox_simulation_energy_model.setEnabled(state)
+        self.tab_environment.setEnabled(state)
+        self.tab_board.setEnabled(state)
+        self.tab_cpu_cores_physical.setEnabled(state)
+        self.tab_cpu_cores_origins.setEnabled(state)
+        self.tab_cpu_cores_energy.setEnabled(state)
+        self.checkBox_cpu_cores_automatic_origins.setEnabled(state)
+        # TODO: Disable in add task the energy form
+        # TODO: Disable some outputs
 
     def load_json(self):
-        print("load_json")
+        options = QFileDialog.Options()
+        file_name, _ = QFileDialog.getOpenFileName(self, "Load specification", "", "JSON (*.json)",
+                                                   options=options)
+        if file_name:
+            self.__load_json_input(file_name)
+
+    def __load_json_input(self, path: str):
+        # TODO: Load json input
+        # TODO: Validate fields
+        # TODO: Put fields in inputs
+        pass
 
     def start_simulation(self):
+        # TODO: Save as JSON
+        # TODO: Use the JSON in the same way as CLI
         print("start_simulation")
 
     def add_task(self):
@@ -74,9 +74,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         print("add_selected_frequency")
 
     def generate_automatic_origins_changed(self, state: bool):
-        print("generate_automatic_origins_changed")
+        # Control automatic origins enabled/disabled
+        self.tab_cpu_cores_origins.setEnabled(not state)
 
     def change_output_path(self):
+        # TODO: Open browser to search output
         print("change_output_path")
 
     def add_output(self):
