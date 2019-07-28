@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'design\gui_main_desing.ui'
+# Form implementation generated from reading ui file 'design/gui_main_desing.ui'
 #
 # Created by: PyQt5 UI code generator 5.9.2
 #
@@ -43,6 +43,7 @@ class Ui_MainWindow(object):
         self.checkBox_simulation_save = QtWidgets.QCheckBox(self.tab_simulation)
         self.checkBox_simulation_save.setLayoutDirection(QtCore.Qt.RightToLeft)
         self.checkBox_simulation_save.setText("")
+        self.checkBox_simulation_save.setChecked(True)
         self.checkBox_simulation_save.setObjectName("checkBox_simulation_save")
         self.horizontalLayout_9.addWidget(self.checkBox_simulation_save)
         self.verticalLayout_3.addLayout(self.horizontalLayout_9)
@@ -56,6 +57,7 @@ class Ui_MainWindow(object):
         self.checkBox_simulation_thermal = QtWidgets.QCheckBox(self.tab_simulation)
         self.checkBox_simulation_thermal.setLayoutDirection(QtCore.Qt.RightToLeft)
         self.checkBox_simulation_thermal.setText("")
+        self.checkBox_simulation_thermal.setChecked(True)
         self.checkBox_simulation_thermal.setObjectName("checkBox_simulation_thermal")
         self.horizontalLayout_3.addWidget(self.checkBox_simulation_thermal)
         self.verticalLayout_3.addLayout(self.horizontalLayout_3)
@@ -68,8 +70,6 @@ class Ui_MainWindow(object):
         self.horizontalLayout_4.addItem(spacerItem3)
         self.comboBox_simulation_energy_model = QtWidgets.QComboBox(self.tab_simulation)
         self.comboBox_simulation_energy_model.setObjectName("comboBox_simulation_energy_model")
-        self.comboBox_simulation_energy_model.addItem("")
-        self.comboBox_simulation_energy_model.addItem("")
         self.horizontalLayout_4.addWidget(self.comboBox_simulation_energy_model)
         self.verticalLayout_3.addLayout(self.horizontalLayout_4)
         self.horizontalLayout_5 = QtWidgets.QHBoxLayout()
@@ -143,6 +143,7 @@ class Ui_MainWindow(object):
         self.checkBox_cpu_cores_automatic_origins = QtWidgets.QCheckBox(self.tab_cpu_cores_general)
         self.checkBox_cpu_cores_automatic_origins.setLayoutDirection(QtCore.Qt.RightToLeft)
         self.checkBox_cpu_cores_automatic_origins.setText("")
+        self.checkBox_cpu_cores_automatic_origins.setChecked(True)
         self.checkBox_cpu_cores_automatic_origins.setObjectName("checkBox_cpu_cores_automatic_origins")
         self.horizontalLayout_28.addWidget(self.checkBox_cpu_cores_automatic_origins)
         self.verticalLayout_13.addLayout(self.horizontalLayout_28)
@@ -260,6 +261,7 @@ class Ui_MainWindow(object):
         self.verticalLayout_5.addLayout(self.horizontalLayout_15)
         self.tabWidget_3.addTab(self.tab_cpu_cores_physical, "")
         self.tab_cpu_cores_origins = QtWidgets.QWidget()
+        self.tab_cpu_cores_origins.setEnabled(False)
         self.tab_cpu_cores_origins.setObjectName("tab_cpu_cores_origins")
         self.verticalLayout_9 = QtWidgets.QVBoxLayout(self.tab_cpu_cores_origins)
         self.verticalLayout_9.setObjectName("verticalLayout_9")
@@ -461,8 +463,6 @@ class Ui_MainWindow(object):
         self.horizontalLayout_35.addItem(spacerItem30)
         self.comboBox_scheduler_select = QtWidgets.QComboBox(self.tab_scheduler)
         self.comboBox_scheduler_select.setObjectName("comboBox_scheduler_select")
-        self.comboBox_scheduler_select.addItem("")
-        self.comboBox_scheduler_select.addItem("")
         self.horizontalLayout_35.addWidget(self.comboBox_scheduler_select)
         self.verticalLayout_15.addLayout(self.horizontalLayout_35)
         self.tabWidget.addTab(self.tab_scheduler, "")
@@ -571,6 +571,22 @@ class Ui_MainWindow(object):
         self.tabWidget_2.setCurrentIndex(0)
         self.tabWidget_3.setCurrentIndex(0)
         self.tabWidget_5.setCurrentIndex(0)
+        self.checkBox_simulation_save.toggled['bool'].connect(MainWindow.simulate_thermal_state_changed)
+        self.pushButton_simulation_load.clicked.connect(MainWindow.load_json)
+        self.pushButton_start_simualtion.clicked.connect(MainWindow.start_simulation)
+        self.pushButton_tasks_add.clicked.connect(MainWindow.add_task)
+        self.pushButton_tasks_automatic.clicked.connect(MainWindow.generate_automatic_tasks)
+        self.pushButton_tasks_delete.clicked.connect(self.columnView_tasks_list.clearSelection)
+        self.pushButton_cpu_cores_origins_add.clicked.connect(MainWindow.add_origin)
+        self.pushButton_cpu_cores_origins_delete.clicked.connect(self.columnView_cpu_cores_origins_list.clearSelection)
+        self.pushButton_cpu_cores_avaliable_frequencies_delete.clicked.connect(self.columnView__cpu_cores_avaliable_frequencies.clearSelection)
+        self.pushButton_cpu_cores_selected_frequencies_delete.clicked.connect(self.columnView_cpu_cores_selected_frequencies.clearSelection)
+        self.pushButton_cpu_cores_avaliable_frequencies_add.clicked.connect(MainWindow.add_available_frequency)
+        self.pushButton_cpu_cores_selected_frequencies_add.clicked.connect(MainWindow.add_selected_frequency)
+        self.checkBox_cpu_cores_automatic_origins.toggled['bool'].connect(MainWindow.generate_automatic_origins_changed)
+        self.pushButton_output_change_path.clicked.connect(MainWindow.change_output_path)
+        self.pushButton_output_selected_delete.clicked.connect(self.columnView_output_selected_drawers.clearSelection)
+        self.pushButton_output_selected_add.toggled['bool'].connect(MainWindow.add_output)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -581,8 +597,6 @@ class Ui_MainWindow(object):
         self.label_12.setText(_translate("MainWindow", "Save as specification as JSON"))
         self.label_2.setText(_translate("MainWindow", "Simulate thermal"))
         self.label.setText(_translate("MainWindow", "Energy generation model"))
-        self.comboBox_simulation_energy_model.setItemText(0, _translate("MainWindow", "Energy model"))
-        self.comboBox_simulation_energy_model.setItemText(1, _translate("MainWindow", "Frequency model"))
         self.label_4.setText(_translate("MainWindow", "Mesh step size (mm)"))
         self.label_3.setText(_translate("MainWindow", "Accuracy (s)"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_simulation), _translate("MainWindow", "Simulation"))
@@ -628,8 +642,6 @@ class Ui_MainWindow(object):
         self.label_26.setText(_translate("MainWindow", "Convection factor ( W / mm^2 º C )"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_environment), _translate("MainWindow", "Environment"))
         self.label_27.setText(_translate("MainWindow", "Scheduler"))
-        self.comboBox_scheduler_select.setItemText(0, _translate("MainWindow", "Energy model"))
-        self.comboBox_scheduler_select.setItemText(1, _translate("MainWindow", "Frequency model"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_scheduler), _translate("MainWindow", "Scheduler"))
         self.label_29.setText(_translate("MainWindow", "Output path"))
         self.label_output_path.setText(_translate("MainWindow", "./out/"))

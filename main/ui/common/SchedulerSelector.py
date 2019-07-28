@@ -1,3 +1,5 @@
+from typing import List
+
 from main.core.schedulers.implementations.G_EDF_AFA import GlobalEDFAffinityFrequencyAwareScheduler
 from main.core.schedulers.implementations.G_LLF_AFA import GlobalLeastLaxityFirstAFAScheduler
 from main.core.schedulers.implementations.JDEDS import GlobalJDEDSScheduler
@@ -24,3 +26,7 @@ class SchedulerSelector(object):
             "OLDTFS": GlobalThermalAwareScheduler()
         }
         return schedulers_definition.get(name)
+
+    @staticmethod
+    def get_scheduler_names() -> List[str]:
+        return ["G-EDF", "G-EDF-A", "G-EDF-AFA", "G-LLF-AFA", "JDEDS", "OLDTFS"]

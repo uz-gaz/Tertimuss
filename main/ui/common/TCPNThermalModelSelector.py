@@ -1,3 +1,5 @@
+from typing import List
+
 from main.core.tcpn_model_generator.thermal_model_selector import ThermalModelSelector
 
 
@@ -9,3 +11,7 @@ class TCPNThermalModelSelector(object):
             "Frequency based": ThermalModelSelector.THERMAL_MODEL_FREQUENCY_BASED
         }
         return tcpn_model_definition.get(name)
+
+    @staticmethod
+    def get_tcpn_model_names() -> List[str]:
+        return ["Energy based", "Frequency based"]
