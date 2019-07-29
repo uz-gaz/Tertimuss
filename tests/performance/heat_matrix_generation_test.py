@@ -87,7 +87,7 @@ class HeatMatrixGeneration(unittest.TestCase):
                Density of post: 0.00039095371897028406
                Time taken creation of the model: 4.081545352935791
         """
-        return global_model, 0.01, 100, 200
+        return global_model, 0.01, 100, 2000
 
     def test_heat_matrix_execution_performance_ndarray_one_step(self):
         """

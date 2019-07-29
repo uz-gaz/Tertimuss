@@ -1,5 +1,7 @@
 from PyQt5.QtWidgets import QFileDialog
 
+from main.core.problem_specification.GlobalSpecification import GlobalSpecification
+from main.ui.common.JSONGlobalModelParser import JSONGlobalModelParser
 from main.ui.common.SchedulerSelector import SchedulerSelector
 from main.ui.common.TCPNThermalModelSelector import TCPNThermalModelSelector
 from main.ui.gui.ui_specification.implementation.gui_main_desing import *
@@ -48,10 +50,36 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.__load_json_input(file_name)
 
     def __load_json_input(self, path: str):
-        # TODO: Load json input
-        # TODO: Validate fields
+        # Path of the input validate schema
+        # Warning: In python paths are relative to the entry point script path
+        input_schema_path = './main/ui/cli/input_schema/input-schema.json'
+
+        # Read schema
+        error, message, schema_object = JSONGlobalModelParser.read_input(input_schema_path)
+
+        if error:
+            self.label_status.setText(message)
+
+        # Read input
+        error, message, input_object = JSONGlobalModelParser.read_input(path)
+
+        if error:
+            self.label_status.setText(message)
+
+        # Validate schema
+        error, message = JSONGlobalModelParser.validate_input(input_object, schema_object)
+
+        if error:
+            self.label_status.setText(message)
+
+        # Fill fields
+        global_specification, _, _ = JSONGlobalModelParser.obtain_global_model(input_object)
+        global_specification: GlobalSpecification = global_specification
+        if global_specification.simulation_specification.simulate_thermal:
+            self.checkBox_simulation_thermal.clicked(True)
+        else:
+            self.checkBox_simulation_thermal.clicked(False)
         # TODO: Put fields in inputs
-        pass
 
     def start_simulation(self):
         # TODO: Save as JSON
@@ -93,10 +121,3 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def get_data(self):
         pass
-
-
-if __name__ == "__main__":
-    app = QtWidgets.QApplication(sys.argv)
-    ui = MainWindow()
-    ui.show()
-    sys.exit(app.exec_())
