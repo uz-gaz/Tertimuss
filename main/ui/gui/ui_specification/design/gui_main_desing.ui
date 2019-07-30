@@ -1306,14 +1306,14 @@
  <resources/>
  <connections>
   <connection>
-   <sender>checkBox_simulation_save</sender>
+   <sender>checkBox_simulation_thermal</sender>
    <signal>toggled(bool)</signal>
    <receiver>MainWindow</receiver>
    <slot>simulate_thermal_state_changed(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>627</x>
-     <y>165</y>
+     <x>628</x>
+     <y>240</y>
     </hint>
     <hint type="destinationlabel">
      <x>651</x>

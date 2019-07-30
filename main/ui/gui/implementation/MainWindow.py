@@ -30,6 +30,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.comboBox_scheduler_select.setItemText(i, _translate("MainWindow", scheduler_names[i]))
 
     def simulate_thermal_state_changed(self, state: bool):
+        print("State changed")
         # Control thermal enabled/disabled
         self.doubleSpinBox_simulation_mesh_step.setEnabled(state)
         self.comboBox_simulation_energy_model.setEnabled(state)
@@ -73,12 +74,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.label_status.setText(message)
 
         # Fill fields
-        global_specification, _, _ = JSONGlobalModelParser.obtain_global_model(input_object)
+        global_specification, _, _,_,_ = JSONGlobalModelParser.obtain_global_model(input_object)
         global_specification: GlobalSpecification = global_specification
         if global_specification.simulation_specification.simulate_thermal:
-            self.checkBox_simulation_thermal.clicked(True)
+            self.checkBox_simulation_thermal.setChecked(True)
         else:
-            self.checkBox_simulation_thermal.clicked(False)
+            self.checkBox_simulation_thermal.setChecked(False)
         # TODO: Put fields in inputs
 
     def start_simulation(self):

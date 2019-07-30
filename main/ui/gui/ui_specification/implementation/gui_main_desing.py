@@ -571,7 +571,7 @@ class Ui_MainWindow(object):
         self.tabWidget_2.setCurrentIndex(0)
         self.tabWidget_3.setCurrentIndex(0)
         self.tabWidget_5.setCurrentIndex(0)
-        self.checkBox_simulation_save.toggled['bool'].connect(MainWindow.simulate_thermal_state_changed)
+        self.checkBox_simulation_thermal.toggled['bool'].connect(MainWindow.simulate_thermal_state_changed)
         self.pushButton_simulation_load.clicked.connect(MainWindow.load_json)
         self.pushButton_start_simualtion.clicked.connect(MainWindow.start_simulation)
         self.pushButton_tasks_add.clicked.connect(MainWindow.add_task)
