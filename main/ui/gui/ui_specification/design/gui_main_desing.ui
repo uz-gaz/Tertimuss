@@ -195,7 +195,14 @@
            </spacer>
           </item>
           <item>
-           <widget class="QDoubleSpinBox" name="doubleSpinBox_simulation_mesh_step"/>
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_simulation_mesh_step">
+            <property name="decimals">
+             <number>5</number>
+            </property>
+            <property name="maximum">
+             <double>99999.999989999996615</double>
+            </property>
+           </widget>
           </item>
          </layout>
         </item>
@@ -225,7 +232,14 @@
            </spacer>
           </item>
           <item>
-           <widget class="QDoubleSpinBox" name="doubleSpinBox_simulation_accuracy"/>
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_simulation_accuracy">
+            <property name="decimals">
+             <number>5</number>
+            </property>
+            <property name="maximum">
+             <double>99999.999989999996615</double>
+            </property>
+           </widget>
           </item>
          </layout>
         </item>
@@ -529,7 +543,14 @@
                    </spacer>
                   </item>
                   <item>
-                   <widget class="QDoubleSpinBox" name="doubleSpinBox_cpu_cores_physical_x"/>
+                   <widget class="QDoubleSpinBox" name="doubleSpinBox_cpu_cores_physical_x">
+                    <property name="decimals">
+                     <number>5</number>
+                    </property>
+                    <property name="maximum">
+                     <double>99999.999989999996615</double>
+                    </property>
+                   </widget>
                   </item>
                  </layout>
                 </item>
@@ -559,7 +580,14 @@
                    </spacer>
                   </item>
                   <item>
-                   <widget class="QDoubleSpinBox" name="doubleSpinBox_cpu_cores_physical_y"/>
+                   <widget class="QDoubleSpinBox" name="doubleSpinBox_cpu_cores_physical_y">
+                    <property name="decimals">
+                     <number>5</number>
+                    </property>
+                    <property name="maximum">
+                     <double>99999.999989999996615</double>
+                    </property>
+                   </widget>
                   </item>
                  </layout>
                 </item>
@@ -589,7 +617,14 @@
                    </spacer>
                   </item>
                   <item>
-                   <widget class="QDoubleSpinBox" name="doubleSpinBox_cpu_cores_physical_z"/>
+                   <widget class="QDoubleSpinBox" name="doubleSpinBox_cpu_cores_physical_z">
+                    <property name="decimals">
+                     <number>5</number>
+                    </property>
+                    <property name="maximum">
+                     <double>99999.999989999996615</double>
+                    </property>
+                   </widget>
                   </item>
                  </layout>
                 </item>
@@ -619,7 +654,14 @@
                    </spacer>
                   </item>
                   <item>
-                   <widget class="QDoubleSpinBox" name="doubleSpinBox_cpu_cores_physical_p"/>
+                   <widget class="QDoubleSpinBox" name="doubleSpinBox_cpu_cores_physical_p">
+                    <property name="decimals">
+                     <number>5</number>
+                    </property>
+                    <property name="maximum">
+                     <double>99999.999989999996615</double>
+                    </property>
+                   </widget>
                   </item>
                  </layout>
                 </item>
@@ -649,7 +691,14 @@
                    </spacer>
                   </item>
                   <item>
-                   <widget class="QDoubleSpinBox" name="doubleSpinBox_cpu_cores_physical_c_p"/>
+                   <widget class="QDoubleSpinBox" name="doubleSpinBox_cpu_cores_physical_c_p">
+                    <property name="decimals">
+                     <number>5</number>
+                    </property>
+                    <property name="maximum">
+                     <double>99999.999989999996615</double>
+                    </property>
+                   </widget>
                   </item>
                  </layout>
                 </item>
@@ -679,7 +728,14 @@
                    </spacer>
                   </item>
                   <item>
-                   <widget class="QDoubleSpinBox" name="doubleSpinBox_cpu_cores_physical_k"/>
+                   <widget class="QDoubleSpinBox" name="doubleSpinBox_cpu_cores_physical_k">
+                    <property name="decimals">
+                     <number>5</number>
+                    </property>
+                    <property name="maximum">
+                     <double>99999.999989999996615</double>
+                    </property>
+                   </widget>
                   </item>
                  </layout>
                 </item>
@@ -777,7 +833,17 @@
                    </spacer>
                   </item>
                   <item>
-                   <widget class="QDoubleSpinBox" name="doubleSpinBox_cpu_cores_energy_leakage_alpha"/>
+                   <widget class="QDoubleSpinBox" name="doubleSpinBox_cpu_cores_energy_leakage_alpha">
+                    <property name="decimals">
+                     <number>5</number>
+                    </property>
+                    <property name="minimum">
+                     <double>-99999.999989999996615</double>
+                    </property>
+                    <property name="maximum">
+                     <double>99999.999989999996615</double>
+                    </property>
+                   </widget>
                   </item>
                  </layout>
                 </item>
@@ -807,7 +873,17 @@
                    </spacer>
                   </item>
                   <item>
-                   <widget class="QDoubleSpinBox" name="doubleSpinBox_cpu_cores_energy_leakage_delta"/>
+                   <widget class="QDoubleSpinBox" name="doubleSpinBox_cpu_cores_energy_leakage_delta">
+                    <property name="decimals">
+                     <number>5</number>
+                    </property>
+                    <property name="minimum">
+                     <double>-99999.999989999996615</double>
+                    </property>
+                    <property name="maximum">
+                     <double>99999.999989999996615</double>
+                    </property>
+                   </widget>
                   </item>
                  </layout>
                 </item>
@@ -837,7 +913,17 @@
                    </spacer>
                   </item>
                   <item>
-                   <widget class="QDoubleSpinBox" name="doubleSpinBox_cpu_cores_energy_dynamic_alpha"/>
+                   <widget class="QDoubleSpinBox" name="doubleSpinBox_cpu_cores_energy_dynamic_alpha">
+                    <property name="decimals">
+                     <number>5</number>
+                    </property>
+                    <property name="minimum">
+                     <double>-99999.999989999996615</double>
+                    </property>
+                    <property name="maximum">
+                     <double>99999.999989999996615</double>
+                    </property>
+                   </widget>
                   </item>
                  </layout>
                 </item>
@@ -867,7 +953,17 @@
                    </spacer>
                   </item>
                   <item>
-                   <widget class="QDoubleSpinBox" name="doubleSpinBox_cpu_cores_energy_dynamic_beta"/>
+                   <widget class="QDoubleSpinBox" name="doubleSpinBox_cpu_cores_energy_dynamic_beta">
+                    <property name="decimals">
+                     <number>5</number>
+                    </property>
+                    <property name="minimum">
+                     <double>-99999.999989999996615</double>
+                    </property>
+                    <property name="maximum">
+                     <double>99999.999989999996615</double>
+                    </property>
+                   </widget>
                   </item>
                  </layout>
                 </item>
@@ -915,7 +1011,14 @@
                    </spacer>
                   </item>
                   <item>
-                   <widget class="QDoubleSpinBox" name="doubleSpinBox_cpu_board_physical_x"/>
+                   <widget class="QDoubleSpinBox" name="doubleSpinBox_cpu_board_physical_x">
+                    <property name="decimals">
+                     <number>5</number>
+                    </property>
+                    <property name="maximum">
+                     <double>99999.999989999996615</double>
+                    </property>
+                   </widget>
                   </item>
                  </layout>
                 </item>
@@ -945,7 +1048,14 @@
                    </spacer>
                   </item>
                   <item>
-                   <widget class="QDoubleSpinBox" name="doubleSpinBox_cpu_board_physical_y"/>
+                   <widget class="QDoubleSpinBox" name="doubleSpinBox_cpu_board_physical_y">
+                    <property name="decimals">
+                     <number>5</number>
+                    </property>
+                    <property name="maximum">
+                     <double>99999.999989999996615</double>
+                    </property>
+                   </widget>
                   </item>
                  </layout>
                 </item>
@@ -975,7 +1085,14 @@
                    </spacer>
                   </item>
                   <item>
-                   <widget class="QDoubleSpinBox" name="doubleSpinBox_cpu_board_physical_z"/>
+                   <widget class="QDoubleSpinBox" name="doubleSpinBox_cpu_board_physical_z">
+                    <property name="decimals">
+                     <number>5</number>
+                    </property>
+                    <property name="maximum">
+                     <double>99999.999989999996615</double>
+                    </property>
+                   </widget>
                   </item>
                  </layout>
                 </item>
@@ -1005,7 +1122,14 @@
                    </spacer>
                   </item>
                   <item>
-                   <widget class="QDoubleSpinBox" name="doubleSpinBox_cpu_board_physical_p"/>
+                   <widget class="QDoubleSpinBox" name="doubleSpinBox_cpu_board_physical_p">
+                    <property name="decimals">
+                     <number>5</number>
+                    </property>
+                    <property name="maximum">
+                     <double>99999.999989999996615</double>
+                    </property>
+                   </widget>
                   </item>
                  </layout>
                 </item>
@@ -1035,7 +1159,14 @@
                    </spacer>
                   </item>
                   <item>
-                   <widget class="QDoubleSpinBox" name="doubleSpinBox_cpu_board_physical_c_p"/>
+                   <widget class="QDoubleSpinBox" name="doubleSpinBox_cpu_board_physical_c_p">
+                    <property name="decimals">
+                     <number>5</number>
+                    </property>
+                    <property name="maximum">
+                     <double>99999.999989999996615</double>
+                    </property>
+                   </widget>
                   </item>
                  </layout>
                 </item>
@@ -1065,7 +1196,14 @@
                    </spacer>
                   </item>
                   <item>
-                   <widget class="QDoubleSpinBox" name="doubleSpinBox_cpu_board_physical_k"/>
+                   <widget class="QDoubleSpinBox" name="doubleSpinBox_cpu_board_physical_k">
+                    <property name="decimals">
+                     <number>5</number>
+                    </property>
+                    <property name="maximum">
+                     <double>99999.999989999996615</double>
+                    </property>
+                   </widget>
                   </item>
                  </layout>
                 </item>
@@ -1110,7 +1248,14 @@
            </spacer>
           </item>
           <item>
-           <widget class="QDoubleSpinBox" name="doubleSpinBox_environment_env_temperature"/>
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_environment_env_temperature">
+            <property name="decimals">
+             <number>5</number>
+            </property>
+            <property name="maximum">
+             <double>99999.999989999996615</double>
+            </property>
+           </widget>
           </item>
          </layout>
         </item>
@@ -1140,7 +1285,14 @@
            </spacer>
           </item>
           <item>
-           <widget class="QDoubleSpinBox" name="doubleSpinBox_environment_max_temperature"/>
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_environment_max_temperature">
+            <property name="decimals">
+             <number>5</number>
+            </property>
+            <property name="maximum">
+             <double>99999.999989999996615</double>
+            </property>
+           </widget>
           </item>
          </layout>
         </item>
@@ -1170,7 +1322,14 @@
            </spacer>
           </item>
           <item>
-           <widget class="QDoubleSpinBox" name="doubleSpinBox_environment_convection_factor"/>
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_environment_convection_factor">
+            <property name="decimals">
+             <number>5</number>
+            </property>
+            <property name="maximum">
+             <double>99999.999989999996615</double>
+            </property>
+           </widget>
           </item>
          </layout>
         </item>

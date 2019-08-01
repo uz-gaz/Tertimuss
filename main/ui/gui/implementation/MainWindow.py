@@ -51,8 +51,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.__load_json_input(file_name)
 
     def __load_json_input(self, path: str):
-        # TODO: Put fields in inputs
-
         # Path of the input validate schema
         # Warning: In python paths are relative to the entry point script path
         input_schema_path = './main/ui/cli/input_schema/input-schema.json'
@@ -76,8 +74,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.label_status.setText(message)
 
         # Fill fields
-        # global_specification, _, _, _, _ = JSONGlobalModelParser.obtain_global_model(input_object)
-        # global_specification: GlobalSpecification = global_specification
         if input_object["simulate_thermal"]:
             # Fill simulation tab fields
             self.checkBox_simulation_thermal.setChecked(True)
@@ -107,19 +103,19 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 self.__add_new_row_to_table_widget(self.tableWidget_tasks_list, new_row)
 
         # Fill CPU tab fields
+        # Fill core tab fields
+        for i in input_object["cpu_specification"]["cores_specification"]["available_frequencies"]:
+            self.__add_new_row_to_table_widget(self.tableWidget_cpu_cores_avaliable_frequencies, [i])
+
+        for i in input_object["cpu_specification"]["cores_specification"]["cores_frequencies"]:
+            self.__add_new_row_to_table_widget(self.tableWidget_cpu_cores_selected_frequencies, [i])
+
         if input_object["simulate_thermal"]:
-            # Fill core tab fields
             automatic_origins = input_object["cpu_specification"]["cores_specification"]["cores_origins"] == "Automatic"
             self.checkBox_cpu_cores_automatic_origins.setChecked(automatic_origins)
             if not automatic_origins:
                 for i in input_object["cpu_specification"]["cores_specification"]["cores_origins"]:
                     self.__add_new_row_to_table_widget(self.tableWidget_cpu_cores_origins_list, [i["x"], i["y"]])
-
-            for i in input_object["cpu_specification"]["cores_specification"]["available_frequencies"]:
-                self.__add_new_row_to_table_widget(self.tableWidget_cpu_cores_avaliable_frequencies, [i])
-
-            for i in input_object["cpu_specification"]["cores_specification"]["cores_frequencies"]:
-                self.__add_new_row_to_table_widget(self.tableWidget_cpu_cores_selected_frequencies, [i])
 
             # Fill energy tab
             self.doubleSpinBox_cpu_cores_energy_dynamic_alpha.setValue(
@@ -178,6 +174,27 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
             self.doubleSpinBox_cpu_board_physical_k.setValue(
                 input_object["cpu_specification"]["board_specification"]["physical_properties"]["thermal_conductivity"])
+
+        # Fill environment tab fields
+        if input_object["simulate_thermal"]:
+            self.doubleSpinBox_environment_env_temperature.setValue(
+                input_object["environment_specification"]["environment_temperature"])
+            self.doubleSpinBox_environment_max_temperature.setValue(
+                input_object["environment_specification"]["maximum_temperature"])
+            self.doubleSpinBox_environment_convection_factor.setValue(
+                input_object["environment_specification"]["convection_factor"])
+
+        # Fill scheduler tab fields
+        scheduler_names = SchedulerSelector.get_scheduler_names()
+
+        self.comboBox_scheduler_select.setCurrentIndex(
+            scheduler_names.index(input_object["scheduler_specification"]["name"]))
+
+        # Fill output tab fields
+        self.label_output_path.setText(input_object["output_specification"]["output_path"])
+        self.lineEdit_output_base_naming.setText(input_object["output_specification"]["output_naming"])
+        for i in input_object["output_specification"]["selected_output"]:
+            self.__add_new_row_to_table_widget(self.tableWidget_output_selected_drawers, [i])
 
     @staticmethod
     def __add_new_row_to_table_widget(table_widget: QtWidgets.QTableWidget, new_row: list):
