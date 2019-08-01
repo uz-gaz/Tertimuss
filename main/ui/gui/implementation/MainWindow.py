@@ -1,12 +1,9 @@
 from PyQt5.QtWidgets import QFileDialog
 
-from main.core.problem_specification.GlobalSpecification import GlobalSpecification
 from main.ui.common.JSONGlobalModelParser import JSONGlobalModelParser
 from main.ui.common.SchedulerSelector import SchedulerSelector
 from main.ui.common.TCPNThermalModelSelector import TCPNThermalModelSelector
 from main.ui.gui.ui_specification.implementation.gui_main_desing import *
-
-import sys
 
 
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
@@ -100,26 +97,113 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Fill tasks tab fields
         if input_object["tasks_specification"]["task_generation_system"] == "Manual":
             tasks = input_object["tasks_specification"]["tasks"]
-            for i in range(tasks):
-                worst_case_execution_time = tasks[i]["worst_case_execution_time"]
-                if input_object["simulate_thermal"] and input_object["tasks_specification"]["task_consumption_model"] \
-                        == "Energy based":
-                    energy_consumption = i["energy_consumption"]
+            for i in range(len(tasks)):
+                new_row = [tasks[i]["type"],
+                           tasks[i]["worst_case_execution_time"],
+                           tasks[i].get("arrive"),
+                           tasks[i].get("period") if tasks[i]["type"] == "Periodic" else tasks[i].get("deadline"),
+                           tasks[i].get("energy_consumption")
+                           ]
+                self.__add_new_row_to_table_widget(self.tableWidget_tasks_list, new_row)
 
-                type_of_task = i["type"]
-                if type_of_task == "Periodic":
-                    period = i["period"]
-                    # self.tableView_tasks_list.
-                    # item = self.tableWidget_tasks_list.item(0, 0)
-                    # item.setText(_translate("MainWindow", "Periodic"))
-                    # item = self.tableWidget_tasks_list.item(0, 1)
-                    # item.setText(_translate("MainWindow", "12"))
-                    # item = self.tableWidget_tasks_list.item(0, 3)
-                    # item.setText(_translate("MainWindow", "12"))
-                else:
-                    arrive = i["arrive"]
-                    deadline = i["deadline"]
+        # Fill CPU tab fields
+        if input_object["simulate_thermal"]:
+            # Fill core tab fields
+            automatic_origins = input_object["cpu_specification"]["cores_specification"]["cores_origins"] == "Automatic"
+            self.checkBox_cpu_cores_automatic_origins.setChecked(automatic_origins)
+            if not automatic_origins:
+                for i in input_object["cpu_specification"]["cores_specification"]["cores_origins"]:
+                    self.__add_new_row_to_table_widget(self.tableWidget_cpu_cores_origins_list, [i["x"], i["y"]])
 
+            for i in input_object["cpu_specification"]["cores_specification"]["available_frequencies"]:
+                self.__add_new_row_to_table_widget(self.tableWidget_cpu_cores_avaliable_frequencies, [i])
+
+            for i in input_object["cpu_specification"]["cores_specification"]["cores_frequencies"]:
+                self.__add_new_row_to_table_widget(self.tableWidget_cpu_cores_selected_frequencies, [i])
+
+            # Fill energy tab
+            self.doubleSpinBox_cpu_cores_energy_dynamic_alpha.setValue(
+                input_object["cpu_specification"]["cores_specification"]["energy_consumption_properties"][
+                    "dynamic_alpha"])
+
+            self.doubleSpinBox_cpu_cores_energy_dynamic_beta.setValue(
+                input_object["cpu_specification"]["cores_specification"]["energy_consumption_properties"][
+                    "dynamic_beta"])
+
+            self.doubleSpinBox_cpu_cores_energy_leakage_alpha.setValue(
+                input_object["cpu_specification"]["cores_specification"]["energy_consumption_properties"][
+                    "leakage_alpha"])
+
+            self.doubleSpinBox_cpu_cores_energy_leakage_delta.setValue(
+                input_object["cpu_specification"]["cores_specification"]["energy_consumption_properties"][
+                    "leakage_delta"])
+
+            # Fill physical tab
+            self.doubleSpinBox_cpu_cores_physical_x.setValue(
+                input_object["cpu_specification"]["cores_specification"]["physical_properties"]["x"])
+
+            self.doubleSpinBox_cpu_cores_physical_y.setValue(
+                input_object["cpu_specification"]["cores_specification"]["physical_properties"]["y"])
+
+            self.doubleSpinBox_cpu_cores_physical_z.setValue(
+                input_object["cpu_specification"]["cores_specification"]["physical_properties"]["z"])
+
+            self.doubleSpinBox_cpu_cores_physical_p.setValue(
+                input_object["cpu_specification"]["cores_specification"]["physical_properties"]["density"])
+
+            self.doubleSpinBox_cpu_cores_physical_c_p.setValue(
+                input_object["cpu_specification"]["cores_specification"]["physical_properties"][
+                    "specific_heat_capacity"])
+
+            self.doubleSpinBox_cpu_cores_physical_k.setValue(
+                input_object["cpu_specification"]["cores_specification"]["physical_properties"]["thermal_conductivity"])
+
+            # Fill board tab fields
+            # Fill physical tab
+            self.doubleSpinBox_cpu_board_physical_x.setValue(
+                input_object["cpu_specification"]["board_specification"]["physical_properties"]["x"])
+
+            self.doubleSpinBox_cpu_board_physical_y.setValue(
+                input_object["cpu_specification"]["board_specification"]["physical_properties"]["y"])
+
+            self.doubleSpinBox_cpu_board_physical_z.setValue(
+                input_object["cpu_specification"]["board_specification"]["physical_properties"]["z"])
+
+            self.doubleSpinBox_cpu_board_physical_p.setValue(
+                input_object["cpu_specification"]["board_specification"]["physical_properties"]["density"])
+
+            self.doubleSpinBox_cpu_board_physical_c_p.setValue(
+                input_object["cpu_specification"]["board_specification"]["physical_properties"][
+                    "specific_heat_capacity"])
+
+            self.doubleSpinBox_cpu_board_physical_k.setValue(
+                input_object["cpu_specification"]["board_specification"]["physical_properties"]["thermal_conductivity"])
+
+    @staticmethod
+    def __add_new_row_to_table_widget(table_widget: QtWidgets.QTableWidget, new_row: list):
+        """
+        Add row to table widget
+        :param table_widget: Table widget where add the row
+        :param new_row: New row with Nones in empty columns
+        """
+        actual_size = table_widget.rowCount()
+        table_widget.setRowCount(actual_size + 1)
+
+        for i in range(len(new_row)):
+            if new_row[i] is not None:
+                item = QtWidgets.QTableWidgetItem()
+                item.setText(str(new_row[i]))
+                table_widget.setItem(actual_size, i, item)
+
+    @staticmethod
+    def __delete_selected_row_from_table_widget(table_widget: QtWidgets.QTableWidget):
+        """
+        Delete the selected row from the table widget
+        :param table_widget: Table widget where add the row
+        """
+        current_selected_row = table_widget.currentRow()
+        if current_selected_row != -1:
+            table_widget.removeRow(current_selected_row)
 
     def start_simulation(self):
         # TODO: Save as JSON
@@ -127,19 +211,44 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         print("start_simulation")
 
     def add_task(self):
+        # TODO
         print("add_task")
+        self.__add_new_row_to_table_widget(self.tableWidget_tasks_list, [12, None, 12, None, 12])
+
+    def delete_task(self):
+        self.__delete_selected_row_from_table_widget(self.tableWidget_tasks_list)
 
     def generate_automatic_tasks(self):
+        # TODO
         print("generate_automatic_tasks")
 
     def add_origin(self):
+        # TODO
         print("add_origin")
 
+    def delete_origin(self):
+        self.__delete_selected_row_from_table_widget(self.tableWidget_cpu_cores_origins_list)
+
     def add_available_frequency(self):
+        # TODO
         print("add_available_frequency")
 
+    def delete_available_frequency(self):
+        self.__delete_selected_row_from_table_widget(self.tableWidget_cpu_cores_avaliable_frequencies)
+
     def add_selected_frequency(self):
+        # TODO
         print("add_selected_frequency")
+
+    def delete_selected_frequency(self):
+        self.__delete_selected_row_from_table_widget(self.tableWidget_cpu_cores_selected_frequencies)
+
+    def add_output(self):
+        # TODO
+        print("add_output")
+
+    def delete_output(self):
+        self.__delete_selected_row_from_table_widget(self.tableWidget_output_selected_drawers)
 
     def generate_automatic_origins_changed(self, state: bool):
         # Control automatic origins enabled/disabled
@@ -149,15 +258,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # TODO: Open browser to search output
         print("change_output_path")
 
-    def add_output(self):
-        print("add_output")
-
-    def __load_json_clicked(self):
-        options = QFileDialog.Options()
-        file_name, _ = QFileDialog.getOpenFileName(self, "QFileDialog.getOpenFileName()", "", "All Files (*)",
-                                                   options=options)
-        if file_name:
-            print(file_name)
-
     def get_data(self):
+        # TODO
         pass

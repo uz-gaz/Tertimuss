@@ -238,14 +238,18 @@
        <layout class="QVBoxLayout" name="verticalLayout">
         <item>
          <widget class="QTableWidget" name="tableWidget_tasks_list">
+          <property name="tabKeyNavigation">
+           <bool>true</bool>
+          </property>
+          <property name="selectionMode">
+           <enum>QAbstractItemView::SingleSelection</enum>
+          </property>
+          <property name="selectionBehavior">
+           <enum>QAbstractItemView::SelectRows</enum>
+          </property>
           <attribute name="horizontalHeaderCascadingSectionResizes">
            <bool>false</bool>
           </attribute>
-          <row>
-           <property name="text">
-            <string>1</string>
-           </property>
-          </row>
           <column>
            <property name="text">
             <string>Type</string>
@@ -271,21 +275,6 @@
             <string>Energy</string>
            </property>
           </column>
-          <item row="0" column="0">
-           <property name="text">
-            <string>Periodic</string>
-           </property>
-          </item>
-          <item row="0" column="1">
-           <property name="text">
-            <string>12</string>
-           </property>
-          </item>
-          <item row="0" column="3">
-           <property name="text">
-            <string>12</string>
-           </property>
-          </item>
          </widget>
         </item>
         <item>
@@ -402,7 +391,19 @@
                     </property>
                     <layout class="QVBoxLayout" name="verticalLayout_10">
                      <item>
-                      <widget class="QTableView" name="tableView_cpu_cores_avaliable_frequencies"/>
+                      <widget class="QTableWidget" name="tableWidget_cpu_cores_avaliable_frequencies">
+                       <property name="selectionMode">
+                        <enum>QAbstractItemView::SingleSelection</enum>
+                       </property>
+                       <property name="selectionBehavior">
+                        <enum>QAbstractItemView::SelectRows</enum>
+                       </property>
+                       <column>
+                        <property name="text">
+                         <string>Frequency (Hz)</string>
+                        </property>
+                       </column>
+                      </widget>
                      </item>
                      <item>
                       <layout class="QHBoxLayout" name="horizontalLayout_27">
@@ -445,7 +446,19 @@
                     </property>
                     <layout class="QVBoxLayout" name="verticalLayout_11">
                      <item>
-                      <widget class="QTableView" name="tableView_cpu_cores_selected_frequencies"/>
+                      <widget class="QTableWidget" name="tableWidget_cpu_cores_selected_frequencies">
+                       <property name="selectionMode">
+                        <enum>QAbstractItemView::SingleSelection</enum>
+                       </property>
+                       <property name="selectionBehavior">
+                        <enum>QAbstractItemView::SelectRows</enum>
+                       </property>
+                       <column>
+                        <property name="text">
+                         <string>Frequency (Hz)</string>
+                        </property>
+                       </column>
+                      </widget>
                      </item>
                      <item>
                       <layout class="QHBoxLayout" name="horizontalLayout_29">
@@ -681,7 +694,24 @@
                </attribute>
                <layout class="QVBoxLayout" name="verticalLayout_9">
                 <item>
-                 <widget class="QTableView" name="tableView_cpu_cores_origins_list"/>
+                 <widget class="QTableWidget" name="tableWidget_cpu_cores_origins_list">
+                  <property name="selectionMode">
+                   <enum>QAbstractItemView::SingleSelection</enum>
+                  </property>
+                  <property name="selectionBehavior">
+                   <enum>QAbstractItemView::SelectRows</enum>
+                  </property>
+                  <column>
+                   <property name="text">
+                    <string>X (mm)</string>
+                   </property>
+                  </column>
+                  <column>
+                   <property name="text">
+                    <string>Y (mm)</string>
+                   </property>
+                  </column>
+                 </widget>
                 </item>
                 <item>
                  <layout class="QHBoxLayout" name="horizontalLayout_26">
@@ -1277,7 +1307,19 @@
            </attribute>
            <layout class="QVBoxLayout" name="verticalLayout_18">
             <item>
-             <widget class="QTableView" name="tableView_output_selected_drawers"/>
+             <widget class="QTableWidget" name="tableWidget_output_selected_drawers">
+              <property name="selectionMode">
+               <enum>QAbstractItemView::SingleSelection</enum>
+              </property>
+              <property name="selectionBehavior">
+               <enum>QAbstractItemView::SelectRows</enum>
+              </property>
+              <column>
+               <property name="text">
+                <string>Name</string>
+               </property>
+              </column>
+             </widget>
             </item>
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_36">
@@ -1441,8 +1483,8 @@
    <slot>add_origin()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>141</x>
-     <y>155</y>
+     <x>526</x>
+     <y>493</y>
     </hint>
     <hint type="destinationlabel">
      <x>310</x>
@@ -1521,12 +1563,92 @@
    <slot>add_output()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>130</x>
-     <y>119</y>
+     <x>537</x>
+     <y>504</y>
     </hint>
     <hint type="destinationlabel">
      <x>523</x>
      <y>547</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton_output_selected_delete</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>delete_output()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>600</x>
+     <y>493</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>654</x>
+     <y>491</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton_cpu_cores_origins_delete</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>delete_origin()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>573</x>
+     <y>483</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>652</x>
+     <y>482</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton_cpu_cores_selected_frequencies_delete</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>delete_selected_frequency()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>546</x>
+     <y>466</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>651</x>
+     <y>460</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton_cpu_cores_avaliable_frequencies_delete</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>delete_available_frequency()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>279</x>
+     <y>469</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>652</x>
+     <y>328</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton_tasks_delete</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>delete_task()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>594</x>
+     <y>507</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>650</x>
+     <y>439</y>
     </hint>
    </hints>
   </connection>
@@ -1543,5 +1665,10 @@
   <slot>change_output_path()</slot>
   <slot>add_available_frequency()</slot>
   <slot>add_selected_frequency()</slot>
+  <slot>delete_task()</slot>
+  <slot>delete_available_frequency()</slot>
+  <slot>delete_selected_frequency()</slot>
+  <slot>delete_origin()</slot>
+  <slot>delete_output()</slot>
  </slots>
 </ui>
