@@ -1,3 +1,4 @@
+from main.ui.common.TaskGeneratorSelector import TaskGeneratorSelector
 from main.ui.gui.ui_specification.implementation.gui_automatic_task_generator import *
 
 
@@ -5,6 +6,13 @@ class AddAutomaticTaskDialog(QtWidgets.QDialog, Ui_Dialog):
     def __init__(self, *args, **kwargs):
         QtWidgets.QDialog.__init__(self, *args, **kwargs)
         self.setupUi(self)
+
+        task_generators_names = TaskGeneratorSelector.get_task_generators_names()
+
+        for i in range(len(task_generators_names)):
+            self.comboBox_algorithm_name.addItem("")
+            self.comboBox_algorithm_name.setItemText(i, task_generators_names[i])
+
         self.__return_value = None
 
     def add_clicked(self):

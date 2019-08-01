@@ -1,5 +1,10 @@
-from PyQt5.QtWidgets import QFileDialog, QDialog
+import json
+import os
+import threading
 
+from PyQt5.QtWidgets import QFileDialog
+
+from main.core.tcpn_model_generator.global_model import GlobalModel
 from main.ui.common.JSONGlobalModelParser import JSONGlobalModelParser
 from main.ui.common.SchedulerSelector import SchedulerSelector
 from main.ui.common.TCPNThermalModelSelector import TCPNThermalModelSelector
@@ -9,7 +14,6 @@ from main.ui.gui.implementation.AddFrequencyDialog import AddFrequencyDialog
 from main.ui.gui.implementation.AddOriginDialog import AddOriginDialog
 from main.ui.gui.implementation.AddOutputDialog import AddOutputDialog
 from main.ui.gui.implementation.AddTaskDialog import AddTaskDialog
-from main.ui.gui.ui_specification.implementation.gui_add_task_design import Ui_DialogAddTask
 from main.ui.gui.ui_specification.implementation.gui_main_desing import *
 
 
@@ -105,6 +109,28 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                            tasks[i].get("energy_consumption")
                            ]
                 self.__add_new_row_to_table_widget(self.tableWidget_tasks_list, new_row)
+        else:
+            period_start = input_object["tasks_specification"]["automatic_generation"]["interval_for_periods"][
+                "min_period"]
+            period_end = input_object["tasks_specification"]["automatic_generation"]["interval_for_periods"][
+                "max_period"]
+            number_of_tasks = input_object["tasks_specification"]["automatic_generation"]["number_of_tasks"]
+            utilization = input_object["tasks_specification"]["automatic_generation"]["utilization_of_the_task_set"]
+            generator_algorithm = TaskGeneratorSelector.select_task_generator(
+                input_object["tasks_specification"]["automatic_generation"]["name"])
+
+            tasks = generator_algorithm.generate({
+                "number_of_tasks": number_of_tasks,
+                "utilization": utilization,
+                "min_period_interval": period_start,
+                "max_period_interval": period_end,
+                "processor_frequency": 1
+            })
+
+            for task in tasks:
+                self.__add_new_row_to_table_widget(self.tableWidget_tasks_list,
+                                                   ["Periodic", task.c, None, task.d,
+                                                    task.e if self.checkBox_simulation_thermal.isChecked() else None])
 
         # Fill CPU tab fields
         # Fill core tab fields
@@ -239,9 +265,212 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         return any([i == value_to_search for i in item_list])
 
     def start_simulation(self):
-        # TODO: Save as JSON
-        # TODO: Use the JSON in the same way as CLI
-        print("start_simulation")
+        """
+        Start simulation button action
+        """
+        thermal_simulation = self.checkBox_simulation_thermal.isChecked()
+
+        task_consumption_model = self.comboBox_simulation_energy_model.currentText()
+
+        tasks_as_json = [{
+                             "type": "Periodic",
+                             "worst_case_execution_time": int(self.tableWidget_tasks_list.item(i, 1).text()),
+                             "period": float(self.tableWidget_tasks_list.item(i, 3).text()),
+                             "energy_consumption": float(self.tableWidget_tasks_list.item(i, 4).text())
+                         } if self.tableWidget_tasks_list.item(i, 0).text() == "Periodic" else
+                         {
+                             "type": "Aperiodic",
+                             "worst_case_execution_time": int(self.tableWidget_tasks_list.item(i, 1).text()),
+                             "arrive": float(self.tableWidget_tasks_list.item(i, 2).text()),
+                             "deadline": float(self.tableWidget_tasks_list.item(i, 3).text()),
+                             "energy_consumption": float(self.tableWidget_tasks_list.item(i, 4).text())
+                         } for i in range(self.tableWidget_tasks_list.rowCount())] if thermal_simulation and task_consumption_model == "Energy based" else [{
+                             "type": "Periodic",
+                             "worst_case_execution_time": int(self.tableWidget_tasks_list.item(i, 1).text()),
+                             "period": float(self.tableWidget_tasks_list.item(i, 3).text())
+                         } if self.tableWidget_tasks_list.item(i, 0).text() == "Periodic" else
+                         {
+                             "type": "Aperiodic",
+                             "worst_case_execution_time": int(self.tableWidget_tasks_list.item(i, 1).text()),
+                             "arrive": float(self.tableWidget_tasks_list.item(i, 2).text()),
+                             "deadline": float(self.tableWidget_tasks_list.item(i, 3).text())
+                         } for i in range(self.tableWidget_tasks_list.rowCount())]
+
+        available_frequencies = [int(self.tableWidget_cpu_cores_available_frequencies.item(i, 0).text()) for i in
+                                 range(self.tableWidget_cpu_cores_available_frequencies.rowCount())]
+
+        cores_frequencies = [int(self.tableWidget_cpu_cores_selected_frequencies.item(i, 0).text()) for i in
+                             range(self.tableWidget_cpu_cores_selected_frequencies.rowCount())]
+
+        cores_origins = [{"x": float(self.tableWidget_cpu_cores_origins_list.item(i, 0).text()),
+                          "y": float(self.tableWidget_cpu_cores_origins_list.item(i, 1).text())} for i in
+                         range(self.tableWidget_cpu_cores_origins_list.rowCount())] \
+            if not self.checkBox_cpu_cores_automatic_origins.isChecked() else "Automatic"
+
+        selected_output = [self.tableWidget_output_selected_drawers.item(i, 0).text() for i in
+                           range(self.tableWidget_output_selected_drawers.rowCount())]
+
+        data_as_json = {
+            "simulate_thermal": True,
+            "tasks_specification": {
+                "task_generation_system": "Manual",
+                "task_consumption_model": task_consumption_model,
+                "tasks": tasks_as_json
+            },
+            "cpu_specification": {
+                "board_specification": {
+                    "physical_properties": {
+                        "x": self.doubleSpinBox_cpu_board_physical_x.value(),
+                        "y": self.doubleSpinBox_cpu_board_physical_y.value(),
+                        "z": self.doubleSpinBox_cpu_board_physical_z.value(),
+                        "density": self.doubleSpinBox_cpu_board_physical_p.value(),
+                        "specific_heat_capacity": self.doubleSpinBox_cpu_board_physical_c_p.value(),
+                        "thermal_conductivity": self.doubleSpinBox_cpu_board_physical_k.value()
+                    }
+                },
+                "cores_specification": {
+                    "physical_properties": {
+                        "x": self.doubleSpinBox_cpu_cores_physical_x.value(),
+                        "y": self.doubleSpinBox_cpu_cores_physical_y.value(),
+                        "z": self.doubleSpinBox_cpu_cores_physical_z.value(),
+                        "density": self.doubleSpinBox_cpu_cores_physical_p.value(),
+                        "specific_heat_capacity": self.doubleSpinBox_cpu_cores_physical_c_p.value(),
+                        "thermal_conductivity": self.doubleSpinBox_cpu_cores_physical_k.value()
+                    },
+                    "energy_consumption_properties": {
+                        "leakage_alpha": self.doubleSpinBox_cpu_cores_energy_leakage_alpha.value(),
+                        "leakage_delta": self.doubleSpinBox_cpu_cores_energy_leakage_delta.value(),
+                        "dynamic_alpha": self.doubleSpinBox_cpu_cores_energy_dynamic_alpha.value(),
+                        "dynamic_beta": self.doubleSpinBox_cpu_cores_energy_dynamic_beta.value()
+                    },
+                    "available_frequencies": available_frequencies,
+                    "cores_frequencies": cores_frequencies,
+                    "cores_origins": cores_origins
+                }
+            },
+            "environment_specification": {
+                "environment_temperature": self.doubleSpinBox_environment_env_temperature.value(),
+                "maximum_temperature": self.doubleSpinBox_environment_max_temperature.value(),
+                "convection_factor": self.doubleSpinBox_environment_convection_factor.value()
+            },
+            "output_specification": {
+                "output_path": self.label_output_path.text(),
+                "output_naming": self.lineEdit_output_base_naming.text(),
+                "selected_output": selected_output
+            },
+            "scheduler_specification": {
+                "name": self.comboBox_scheduler_select.currentText()
+            },
+            "simulation_specification": {
+                "mesh_step": self.doubleSpinBox_simulation_mesh_step.value(),
+                "dt": self.doubleSpinBox_simulation_accuracy.value()
+            }
+        } if thermal_simulation else \
+            {
+                "simulate_thermal": False,
+                "tasks_specification": {
+                    "task_generation_system": "Manual",
+                    "tasks": tasks_as_json
+                },
+                "cpu_specification": {
+                    "cores_specification": {
+                        "available_frequencies": available_frequencies,
+                        "cores_frequencies": cores_frequencies
+                    }
+                },
+                "output_specification": {
+                    "output_path": self.label_output_path.text(),
+                    "output_naming": self.lineEdit_output_base_naming.text(),
+                    "selected_output": selected_output
+                },
+                "scheduler_specification": {
+                    "name": self.comboBox_scheduler_select.currentText()
+                },
+                "simulation_specification": {
+                    "dt": self.doubleSpinBox_simulation_accuracy.value()
+                }
+            }
+
+        # Execute simulation
+        simulation_thread = threading.Thread(target=(lambda: self.__execute_simulation(data_as_json)))
+        simulation_thread.start()
+
+    def __execute_simulation(self, input_object):
+        """
+        Execute simulation from JSON
+        :param input_object:
+        """
+        # Get tabs status
+        enable_tab_simulation = self.tab_simulation.isEnabled()
+        enable_tab_tasks = self.tab_tasks.isEnabled()
+        enable_tab_environment = self.tab_environment.isEnabled()
+        enable_tab_cpu = self.tab_cpu.isEnabled()
+        enable_tab_scheduler = self.tab_scheduler.isEnabled()
+        enable_tab_output = self.tab_output.isEnabled()
+
+        # Disable all tabs
+        self.tab_simulation.setEnabled(False)
+        self.tab_tasks.setEnabled(False)
+        self.tab_environment.setEnabled(False)
+        self.tab_cpu.setEnabled(False)
+        self.tab_scheduler.setEnabled(False)
+        self.tab_output.setEnabled(False)
+
+        # Status Busy
+        self.label_status.setText("Busy")
+
+        # Path of the input validate schema
+        # Warning: In python paths are relative to the entry point script path
+        input_schema_path = './main/ui/cli/input_schema/input-schema.json'
+
+        # Read schema
+        error, message, schema_object = JSONGlobalModelParser.read_input(input_schema_path)
+
+        if not error:
+            # Validate schema
+            error, message = JSONGlobalModelParser.validate_input(input_object, schema_object)
+        else:
+            self.label_status.setText(message)
+
+        if not error:
+            # Get model and scheduler
+            global_specification, scheduler, output_path, output_list, scenario_description_completed = \
+                JSONGlobalModelParser.obtain_global_model(input_object)
+
+            # Create output directory if not exist
+            os.makedirs(output_path, exist_ok=True)
+
+            # Create global model
+            try:
+                global_model = GlobalModel(global_specification)
+                scheduler_result = scheduler.simulate(global_specification, global_model, None)
+
+                # Plot scheduler result
+                for i in output_list:
+                    output_drawer, options = i
+                    output_drawer.plot(global_specification, scheduler_result, options)
+
+                # Save JSON if needed
+                if self.checkBox_simulation_save.isChecked():
+                    output_path = input_object["output_specification"]["output_path"]
+                    output_naming = input_object["output_specification"]["output_naming"] + "_specification.json"
+                    with open(os.path.join(output_path, output_naming), 'w') as f:
+                        json.dump(input_object, f)
+
+                self.label_status.setText("Status")
+
+            except Exception :
+                self.label_status.setText("Error while solving the problem")
+        else:
+            self.label_status.setText(message)
+
+        # Enable all tabs
+        self.tab_simulation.setEnabled(enable_tab_simulation)
+        self.tab_tasks.setEnabled(enable_tab_tasks)
+        self.tab_environment.setEnabled(enable_tab_environment)
+        self.tab_cpu.setEnabled(enable_tab_cpu)
+        self.tab_scheduler.setEnabled(enable_tab_scheduler)
+        self.tab_output.setEnabled(enable_tab_output)
 
     def add_task(self):
         is_thermal_enabled = self.checkBox_simulation_thermal.isChecked()
@@ -276,7 +505,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             })
 
             for task in tasks:
-                self.__add_new_row_to_table_widget(self.tableWidget_tasks_list, [task.c, None, task.d, task.e])
+                self.__add_new_row_to_table_widget(self.tableWidget_tasks_list,
+                                                   ["Periodic", task.c, None, task.d,
+                                                    task.e if self.checkBox_simulation_thermal.isChecked() else None])
 
     def add_origin(self):
         dialog_ui = AddOriginDialog(self)
@@ -327,11 +558,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.tab_cpu_cores_origins.setEnabled(not state)
 
     def change_output_path(self):
-        options = QFileDialog.Options()
-
         file_name = QFileDialog.getExistingDirectory(self, "Output path")
 
-        print(file_name)
-
-        # TODO: Open browser to search output
-        print("change_output_path")
+        if file_name is not None:
+            self.label_output_path.setText(file_name)
