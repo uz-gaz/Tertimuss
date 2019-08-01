@@ -29,6 +29,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.comboBox_scheduler_select.addItem("")
             self.comboBox_scheduler_select.setItemText(i, _translate("MainWindow", scheduler_names[i]))
 
+        # TODO: Delete
+        self.__load_json_input("tests/cli/input-example-thermal-aperiodics-energy.json")
+
     def simulate_thermal_state_changed(self, state: bool):
         print("State changed")
         # Control thermal enabled/disabled
@@ -51,6 +54,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.__load_json_input(file_name)
 
     def __load_json_input(self, path: str):
+        # TODO: Put fields in inputs
+
         # Path of the input validate schema
         # Warning: In python paths are relative to the entry point script path
         input_schema_path = './main/ui/cli/input_schema/input-schema.json'
@@ -74,13 +79,47 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.label_status.setText(message)
 
         # Fill fields
-        global_specification, _, _,_,_ = JSONGlobalModelParser.obtain_global_model(input_object)
-        global_specification: GlobalSpecification = global_specification
-        if global_specification.simulation_specification.simulate_thermal:
+        # global_specification, _, _, _, _ = JSONGlobalModelParser.obtain_global_model(input_object)
+        # global_specification: GlobalSpecification = global_specification
+        if input_object["simulate_thermal"]:
+            # Fill simulation tab fields
             self.checkBox_simulation_thermal.setChecked(True)
+
+            tcpn_model_names = TCPNThermalModelSelector.get_tcpn_model_names()
+
+            self.comboBox_simulation_energy_model.setCurrentIndex(
+                tcpn_model_names.index(input_object["tasks_specification"]["task_consumption_model"]))
+
+            self.doubleSpinBox_simulation_mesh_step.setValue(input_object["simulation_specification"]["mesh_step"])
+
+            self.doubleSpinBox_simulation_accuracy.setValue(input_object["simulation_specification"]["dt"])
+
         else:
             self.checkBox_simulation_thermal.setChecked(False)
-        # TODO: Put fields in inputs
+
+        # Fill tasks tab fields
+        if input_object["tasks_specification"]["task_generation_system"] == "Manual":
+            tasks = input_object["tasks_specification"]["tasks"]
+            for i in range(tasks):
+                worst_case_execution_time = tasks[i]["worst_case_execution_time"]
+                if input_object["simulate_thermal"] and input_object["tasks_specification"]["task_consumption_model"] \
+                        == "Energy based":
+                    energy_consumption = i["energy_consumption"]
+
+                type_of_task = i["type"]
+                if type_of_task == "Periodic":
+                    period = i["period"]
+                    # self.tableView_tasks_list.
+                    # item = self.tableWidget_tasks_list.item(0, 0)
+                    # item.setText(_translate("MainWindow", "Periodic"))
+                    # item = self.tableWidget_tasks_list.item(0, 1)
+                    # item.setText(_translate("MainWindow", "12"))
+                    # item = self.tableWidget_tasks_list.item(0, 3)
+                    # item.setText(_translate("MainWindow", "12"))
+                else:
+                    arrive = i["arrive"]
+                    deadline = i["deadline"]
+
 
     def start_simulation(self):
         # TODO: Save as JSON
