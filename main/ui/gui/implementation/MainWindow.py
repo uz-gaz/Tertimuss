@@ -1,8 +1,13 @@
-from PyQt5.QtWidgets import QFileDialog
+from PyQt5.QtWidgets import QFileDialog, QDialog
 
 from main.ui.common.JSONGlobalModelParser import JSONGlobalModelParser
 from main.ui.common.SchedulerSelector import SchedulerSelector
 from main.ui.common.TCPNThermalModelSelector import TCPNThermalModelSelector
+from main.ui.gui.implementation.AddFrequencyDialog import AddFrequencyDialog
+from main.ui.gui.implementation.AddOriginDialog import AddOriginDialog
+from main.ui.gui.implementation.AddOutputDialog import AddOutputDialog
+from main.ui.gui.implementation.AddTaskDialog import AddTaskDialog
+from main.ui.gui.ui_specification.implementation.gui_add_task_design import Ui_DialogAddTask
 from main.ui.gui.ui_specification.implementation.gui_main_desing import *
 
 
@@ -10,21 +15,21 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self, *args, **kwargs):
         QtWidgets.QMainWindow.__init__(self, *args, **kwargs)
         self.setupUi(self)
+        self.setWindowTitle("TCPN simulator")
 
         # Energy generation model
-        _translate = QtCore.QCoreApplication.translate
         tcpn_model_names = TCPNThermalModelSelector.get_tcpn_model_names()
 
         for i in range(len(tcpn_model_names)):
             self.comboBox_simulation_energy_model.addItem("")
-            self.comboBox_simulation_energy_model.setItemText(i, _translate("MainWindow", tcpn_model_names[i]))
+            self.comboBox_simulation_energy_model.setItemText(i, tcpn_model_names[i])
 
         # Available schedulers
         scheduler_names = SchedulerSelector.get_scheduler_names()
 
         for i in range(len(scheduler_names)):
             self.comboBox_scheduler_select.addItem("")
-            self.comboBox_scheduler_select.setItemText(i, _translate("MainWindow", scheduler_names[i]))
+            self.comboBox_scheduler_select.setItemText(i, scheduler_names[i])
 
         # TODO: Delete
         self.__load_json_input("tests/cli/input-example-thermal-aperiodics-energy.json")
@@ -40,8 +45,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.tab_cpu_cores_origins.setEnabled(state)
         self.tab_cpu_cores_energy.setEnabled(state)
         self.checkBox_cpu_cores_automatic_origins.setEnabled(state)
-        # TODO: Disable in add task the energy form
-        # TODO: Disable some outputs
 
     def load_json(self):
         options = QFileDialog.Options()
@@ -105,7 +108,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Fill CPU tab fields
         # Fill core tab fields
         for i in input_object["cpu_specification"]["cores_specification"]["available_frequencies"]:
-            self.__add_new_row_to_table_widget(self.tableWidget_cpu_cores_avaliable_frequencies, [i])
+            self.__add_new_row_to_table_widget(self.tableWidget_cpu_cores_available_frequencies, [i])
 
         for i in input_object["cpu_specification"]["cores_specification"]["cores_frequencies"]:
             self.__add_new_row_to_table_widget(self.tableWidget_cpu_cores_selected_frequencies, [i])
@@ -222,15 +225,31 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         if current_selected_row != -1:
             table_widget.removeRow(current_selected_row)
 
+    @staticmethod
+    def __check_duplicated_row_from_table_widget(table_widget: QtWidgets.QTableWidget, value_to_search: str) -> bool:
+        """
+        Check if the value value_to_search is in the table table_widget
+        :param table_widget: Table widget where add the row
+        """
+        item_list = []
+        for i in range(table_widget.rowCount()):
+            item = table_widget.item(i, 0)
+            item_list.append(item.text())
+        return any([i == value_to_search for i in item_list])
+
     def start_simulation(self):
         # TODO: Save as JSON
         # TODO: Use the JSON in the same way as CLI
         print("start_simulation")
 
     def add_task(self):
-        # TODO
-        print("add_task")
-        self.__add_new_row_to_table_widget(self.tableWidget_tasks_list, [12, None, 12, None, 12])
+        is_thermal_enabled = self.checkBox_simulation_thermal.isChecked()
+        is_energy_enabled = self.comboBox_simulation_energy_model.currentText() == "Energy based"
+        dialog_ui = AddTaskDialog(is_thermal_enabled, is_energy_enabled, self)
+        dialog_ui.exec()
+        return_value = dialog_ui.get_return_value()
+        if return_value is not None:
+            self.__add_new_row_to_table_widget(self.tableWidget_tasks_list, return_value)
 
     def delete_task(self):
         self.__delete_selected_row_from_table_widget(self.tableWidget_tasks_list)
@@ -240,29 +259,45 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         print("generate_automatic_tasks")
 
     def add_origin(self):
-        # TODO
-        print("add_origin")
+        dialog_ui = AddOriginDialog(self)
+        dialog_ui.exec()
+        return_value = dialog_ui.get_return_value()
+        if return_value is not None:
+            self.__add_new_row_to_table_widget(self.tableWidget_cpu_cores_origins_list, return_value)
 
     def delete_origin(self):
         self.__delete_selected_row_from_table_widget(self.tableWidget_cpu_cores_origins_list)
 
     def add_available_frequency(self):
-        # TODO
-        print("add_available_frequency")
+        dialog_ui = AddFrequencyDialog(self)
+        dialog_ui.exec()
+        return_value = dialog_ui.get_return_value()
+        if return_value is not None and not self.__check_duplicated_row_from_table_widget(
+                self.tableWidget_cpu_cores_available_frequencies, str(return_value[0])):
+            self.__add_new_row_to_table_widget(self.tableWidget_cpu_cores_available_frequencies, return_value)
 
     def delete_available_frequency(self):
-        self.__delete_selected_row_from_table_widget(self.tableWidget_cpu_cores_avaliable_frequencies)
+        self.__delete_selected_row_from_table_widget(self.tableWidget_cpu_cores_available_frequencies)
 
     def add_selected_frequency(self):
-        # TODO
-        print("add_selected_frequency")
+        dialog_ui = AddFrequencyDialog(self)
+        dialog_ui.exec()
+        return_value = dialog_ui.get_return_value()
+        if return_value is not None:
+            self.__add_new_row_to_table_widget(self.tableWidget_cpu_cores_selected_frequencies, return_value)
 
     def delete_selected_frequency(self):
         self.__delete_selected_row_from_table_widget(self.tableWidget_cpu_cores_selected_frequencies)
 
     def add_output(self):
-        # TODO
-        print("add_output")
+        is_thermal_enabled = self.checkBox_simulation_thermal.isChecked()
+        dialog_ui = AddOutputDialog(is_thermal_enabled, self)
+        dialog_ui.exec()
+        return_value = dialog_ui.get_return_value()
+        if return_value is not None and not self.__check_duplicated_row_from_table_widget(
+                self.tableWidget_output_selected_drawers, str(return_value[0])):
+            self.__add_new_row_to_table_widget(self.tableWidget_output_selected_drawers, return_value)
+            self.tableWidget_output_selected_drawers.sortItems(0)
 
     def delete_output(self):
         self.__delete_selected_row_from_table_widget(self.tableWidget_output_selected_drawers)
@@ -274,7 +309,3 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def change_output_path(self):
         # TODO: Open browser to search output
         print("change_output_path")
-
-    def get_data(self):
-        # TODO
-        pass

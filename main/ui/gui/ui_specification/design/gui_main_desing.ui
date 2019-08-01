@@ -401,11 +401,11 @@
                   <item>
                    <widget class="QGroupBox" name="groupBox">
                     <property name="title">
-                     <string>Avaliable frequencies</string>
+                     <string>Available frequencies</string>
                     </property>
                     <layout class="QVBoxLayout" name="verticalLayout_10">
                      <item>
-                      <widget class="QTableWidget" name="tableWidget_cpu_cores_avaliable_frequencies">
+                      <widget class="QTableWidget" name="tableWidget_cpu_cores_available_frequencies">
                        <property name="selectionMode">
                         <enum>QAbstractItemView::SingleSelection</enum>
                        </property>
@@ -435,14 +435,14 @@
                         </spacer>
                        </item>
                        <item>
-                        <widget class="QPushButton" name="pushButton_cpu_cores_avaliable_frequencies_add">
+                        <widget class="QPushButton" name="pushButton_cpu_cores_available_frequencies_add">
                          <property name="text">
                           <string>Add</string>
                          </property>
                         </widget>
                        </item>
                        <item>
-                        <widget class="QPushButton" name="pushButton_cpu_cores_avaliable_frequencies_delete">
+                        <widget class="QPushButton" name="pushButton_cpu_cores_available_frequencies_delete">
                          <property name="text">
                           <string>Delete</string>
                          </property>
@@ -1610,8 +1610,8 @@
    <slot>add_task()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>508</x>
-     <y>510</y>
+     <x>119</x>
+     <y>83</y>
     </hint>
     <hint type="destinationlabel">
      <x>497</x>
@@ -1626,8 +1626,8 @@
    <slot>generate_automatic_tasks()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>347</x>
-     <y>502</y>
+     <x>119</x>
+     <y>83</y>
     </hint>
     <hint type="destinationlabel">
      <x>306</x>
@@ -1642,8 +1642,8 @@
    <slot>add_origin()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>526</x>
-     <y>493</y>
+     <x>137</x>
+     <y>101</y>
     </hint>
     <hint type="destinationlabel">
      <x>310</x>
@@ -1652,14 +1652,14 @@
    </hints>
   </connection>
   <connection>
-   <sender>pushButton_cpu_cores_avaliable_frequencies_add</sender>
+   <sender>pushButton_cpu_cores_available_frequencies_add</sender>
    <signal>clicked()</signal>
    <receiver>MainWindow</receiver>
    <slot>add_available_frequency()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>203</x>
-     <y>471</y>
+     <x>137</x>
+     <y>101</y>
     </hint>
     <hint type="destinationlabel">
      <x>153</x>
@@ -1674,8 +1674,8 @@
    <slot>add_selected_frequency()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>460</x>
-     <y>472</y>
+     <x>137</x>
+     <y>101</y>
     </hint>
     <hint type="destinationlabel">
      <x>323</x>
@@ -1690,8 +1690,8 @@
    <slot>generate_automatic_origins_changed(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>604</x>
-     <y>128</y>
+     <x>137</x>
+     <y>92</y>
     </hint>
     <hint type="destinationlabel">
      <x>351</x>
@@ -1717,7 +1717,7 @@
   </connection>
   <connection>
    <sender>pushButton_output_selected_add</sender>
-   <signal>toggled(bool)</signal>
+   <signal>clicked()</signal>
    <receiver>MainWindow</receiver>
    <slot>add_output()</slot>
    <hints>
@@ -1738,8 +1738,8 @@
    <slot>delete_output()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>600</x>
-     <y>493</y>
+     <x>623</x>
+     <y>504</y>
     </hint>
     <hint type="destinationlabel">
      <x>654</x>
@@ -1754,8 +1754,8 @@
    <slot>delete_origin()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>573</x>
-     <y>483</y>
+     <x>137</x>
+     <y>101</y>
     </hint>
     <hint type="destinationlabel">
      <x>652</x>
@@ -1770,8 +1770,8 @@
    <slot>delete_selected_frequency()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>546</x>
-     <y>466</y>
+     <x>137</x>
+     <y>101</y>
     </hint>
     <hint type="destinationlabel">
      <x>651</x>
@@ -1780,14 +1780,14 @@
    </hints>
   </connection>
   <connection>
-   <sender>pushButton_cpu_cores_avaliable_frequencies_delete</sender>
+   <sender>pushButton_cpu_cores_available_frequencies_delete</sender>
    <signal>clicked()</signal>
    <receiver>MainWindow</receiver>
    <slot>delete_available_frequency()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>279</x>
-     <y>469</y>
+     <x>137</x>
+     <y>101</y>
     </hint>
     <hint type="destinationlabel">
      <x>652</x>
@@ -1802,8 +1802,8 @@
    <slot>delete_task()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>594</x>
-     <y>507</y>
+     <x>119</x>
+     <y>83</y>
     </hint>
     <hint type="destinationlabel">
      <x>650</x>

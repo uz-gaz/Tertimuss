@@ -40,7 +40,14 @@
       </spacer>
      </item>
      <item>
-      <widget class="QDoubleSpinBox" name="doubleSpinBox_x"/>
+      <widget class="QDoubleSpinBox" name="doubleSpinBox_x">
+       <property name="decimals">
+        <number>5</number>
+       </property>
+       <property name="maximum">
+        <double>99999.999989999996615</double>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>
@@ -70,7 +77,14 @@
       </spacer>
      </item>
      <item>
-      <widget class="QDoubleSpinBox" name="doubleSpinBox_y"/>
+      <widget class="QDoubleSpinBox" name="doubleSpinBox_y">
+       <property name="decimals">
+        <number>5</number>
+       </property>
+       <property name="maximum">
+        <double>99999.999989999996615</double>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>
@@ -101,5 +115,41 @@
   </layout>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>pushButton_add</sender>
+   <signal>clicked()</signal>
+   <receiver>DialogAddOrigin</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>374</x>
+     <y>110</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>395</x>
+     <y>84</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton_add</sender>
+   <signal>clicked()</signal>
+   <receiver>DialogAddOrigin</receiver>
+   <slot>add_clicked()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>342</x>
+     <y>110</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>286</x>
+     <y>107</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>add_clicked()</slot>
+ </slots>
 </ui>

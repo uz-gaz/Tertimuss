@@ -1,3 +1,5 @@
+from typing import List
+
 from main.plot_generator.implementations.AccumulatedExecutionTimeDrawer import AccumulatedExecutionTimeDrawer
 from main.plot_generator.implementations.EnergyConsumptionDrawer import EnergyConsumptionDrawer
 from main.plot_generator.implementations.ExecutionPercentageDrawer import ExecutionPercentageDrawer
@@ -49,3 +51,13 @@ class OutputSelector(object):
         }
 
         return output_definition.get(name)
+
+    @staticmethod
+    def get_output_names_thermal() -> List[str]:
+        return ["Accumulated execution time", "Energy consumption", "Execution percentage", "Frequency",
+                "CPU heat evolution", "Cores maximum temperature", "Task execution", "Processor utilization"]
+
+    @staticmethod
+    def get_output_names_no_thermal() -> List[str]:
+        return ["Accumulated execution time", "Execution percentage", "Frequency", "Task execution",
+                "Processor utilization"]

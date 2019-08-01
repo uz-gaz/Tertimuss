@@ -34,7 +34,7 @@
         <string>Frequency (Hz)</string>
        </property>
        <property name="buddy">
-        <cstring>doubleSpinBox_frequency</cstring>
+        <cstring>spinBox_frequency</cstring>
        </property>
       </widget>
      </item>
@@ -52,7 +52,14 @@
       </spacer>
      </item>
      <item>
-      <widget class="QDoubleSpinBox" name="doubleSpinBox_frequency"/>
+      <widget class="QSpinBox" name="spinBox_frequency">
+       <property name="maximum">
+        <number>99999</number>
+       </property>
+       <property name="singleStep">
+        <number>100</number>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>
@@ -83,5 +90,41 @@
   </layout>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>pushButton_add</sender>
+   <signal>clicked()</signal>
+   <receiver>DialogAddFrequency</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>524</x>
+     <y>94</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>432</x>
+     <y>76</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton_add</sender>
+   <signal>clicked()</signal>
+   <receiver>DialogAddFrequency</receiver>
+   <slot>add_clicked()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>569</x>
+     <y>86</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>602</x>
+     <y>70</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>add_clicked()</slot>
+ </slots>
 </ui>

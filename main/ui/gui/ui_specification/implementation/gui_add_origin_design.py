@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'design\gui_add_origin_design.ui'
+# Form implementation generated from reading ui file 'design/gui_add_origin_design.ui'
 #
 # Created by: PyQt5 UI code generator 5.9.2
 #
@@ -22,6 +22,8 @@ class Ui_DialogAddOrigin(object):
         spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout.addItem(spacerItem)
         self.doubleSpinBox_x = QtWidgets.QDoubleSpinBox(DialogAddOrigin)
+        self.doubleSpinBox_x.setDecimals(5)
+        self.doubleSpinBox_x.setMaximum(99999.99999)
         self.doubleSpinBox_x.setObjectName("doubleSpinBox_x")
         self.horizontalLayout.addWidget(self.doubleSpinBox_x)
         self.verticalLayout.addLayout(self.horizontalLayout)
@@ -33,6 +35,8 @@ class Ui_DialogAddOrigin(object):
         spacerItem1 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout_2.addItem(spacerItem1)
         self.doubleSpinBox_y = QtWidgets.QDoubleSpinBox(DialogAddOrigin)
+        self.doubleSpinBox_y.setDecimals(5)
+        self.doubleSpinBox_y.setMaximum(99999.99999)
         self.doubleSpinBox_y.setObjectName("doubleSpinBox_y")
         self.horizontalLayout_2.addWidget(self.doubleSpinBox_y)
         self.verticalLayout.addLayout(self.horizontalLayout_2)
@@ -48,6 +52,8 @@ class Ui_DialogAddOrigin(object):
         self.label_2.setBuddy(self.doubleSpinBox_y)
 
         self.retranslateUi(DialogAddOrigin)
+        self.pushButton_add.clicked.connect(DialogAddOrigin.accept)
+        self.pushButton_add.clicked.connect(DialogAddOrigin.add_clicked)
         QtCore.QMetaObject.connectSlotsByName(DialogAddOrigin)
 
     def retranslateUi(self, DialogAddOrigin):

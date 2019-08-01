@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'design\gui_add_frequency_design.ui'
+# Form implementation generated from reading ui file 'design/gui_add_frequency_design.ui'
 #
 # Created by: PyQt5 UI code generator 5.9.2
 #
@@ -25,9 +25,11 @@ class Ui_DialogAddFrequency(object):
         self.horizontalLayout.addWidget(self.label)
         spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout.addItem(spacerItem)
-        self.doubleSpinBox_frequency = QtWidgets.QDoubleSpinBox(DialogAddFrequency)
-        self.doubleSpinBox_frequency.setObjectName("doubleSpinBox_frequency")
-        self.horizontalLayout.addWidget(self.doubleSpinBox_frequency)
+        self.spinBox_frequency = QtWidgets.QSpinBox(DialogAddFrequency)
+        self.spinBox_frequency.setMaximum(99999)
+        self.spinBox_frequency.setSingleStep(100)
+        self.spinBox_frequency.setObjectName("spinBox_frequency")
+        self.horizontalLayout.addWidget(self.spinBox_frequency)
         self.verticalLayout.addLayout(self.horizontalLayout)
         self.horizontalLayout_4 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_4.setObjectName("horizontalLayout_4")
@@ -37,9 +39,11 @@ class Ui_DialogAddFrequency(object):
         self.pushButton_add.setObjectName("pushButton_add")
         self.horizontalLayout_4.addWidget(self.pushButton_add)
         self.verticalLayout.addLayout(self.horizontalLayout_4)
-        self.label.setBuddy(self.doubleSpinBox_frequency)
+        self.label.setBuddy(self.spinBox_frequency)
 
         self.retranslateUi(DialogAddFrequency)
+        self.pushButton_add.clicked.connect(DialogAddFrequency.accept)
+        self.pushButton_add.clicked.connect(DialogAddFrequency.add_clicked)
         QtCore.QMetaObject.connectSlotsByName(DialogAddFrequency)
 
     def retranslateUi(self, DialogAddFrequency):

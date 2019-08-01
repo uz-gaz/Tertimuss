@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'design\gui_output_desing.ui'
+# Form implementation generated from reading ui file 'design/gui_output_desing.ui'
 #
 # Created by: PyQt5 UI code generator 5.9.2
 #
@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_DialogAddOutput(object):
     def setupUi(self, DialogAddOutput):
         DialogAddOutput.setObjectName("DialogAddOutput")
-        DialogAddOutput.resize(359, 90)
+        DialogAddOutput.resize(600, 90)
         self.verticalLayout = QtWidgets.QVBoxLayout(DialogAddOutput)
         self.verticalLayout.setObjectName("verticalLayout")
         self.horizontalLayout_35 = QtWidgets.QHBoxLayout()
@@ -36,6 +36,8 @@ class Ui_DialogAddOutput(object):
         self.label_27.setBuddy(self.comboBox_output)
 
         self.retranslateUi(DialogAddOutput)
+        self.pushButton_add.clicked.connect(DialogAddOutput.accept)
+        self.pushButton_add.clicked.connect(DialogAddOutput.add_clicked)
         QtCore.QMetaObject.connectSlotsByName(DialogAddOutput)
 
     def retranslateUi(self, DialogAddOutput):
