@@ -3,6 +3,8 @@ from PyQt5.QtWidgets import QFileDialog, QDialog
 from main.ui.common.JSONGlobalModelParser import JSONGlobalModelParser
 from main.ui.common.SchedulerSelector import SchedulerSelector
 from main.ui.common.TCPNThermalModelSelector import TCPNThermalModelSelector
+from main.ui.common.TaskGeneratorSelector import TaskGeneratorSelector
+from main.ui.gui.implementation.AddAutomaticTaskDialog import AddAutomaticTaskDialog
 from main.ui.gui.implementation.AddFrequencyDialog import AddFrequencyDialog
 from main.ui.gui.implementation.AddOriginDialog import AddOriginDialog
 from main.ui.gui.implementation.AddOutputDialog import AddOutputDialog
@@ -15,7 +17,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self, *args, **kwargs):
         QtWidgets.QMainWindow.__init__(self, *args, **kwargs)
         self.setupUi(self)
-        self.setWindowTitle("TCPN simulator")
 
         # Energy generation model
         tcpn_model_names = TCPNThermalModelSelector.get_tcpn_model_names()
@@ -255,8 +256,27 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.__delete_selected_row_from_table_widget(self.tableWidget_tasks_list)
 
     def generate_automatic_tasks(self):
-        # TODO
-        print("generate_automatic_tasks")
+        dialog_ui = AddAutomaticTaskDialog(self)
+        dialog_ui.exec()
+        return_value = dialog_ui.get_return_value()
+        if return_value is not None and return_value[0] < return_value[1]:
+            period_start = return_value[0]
+            period_end = return_value[1]
+            number_of_tasks = return_value[2]
+            utilization = return_value[3]
+            algorithm_name = return_value[4]
+            generator_algorithm = TaskGeneratorSelector.select_task_generator(algorithm_name)
+
+            tasks = generator_algorithm.generate({
+                "number_of_tasks": number_of_tasks,
+                "utilization": utilization,
+                "min_period_interval": period_start,
+                "max_period_interval": period_end,
+                "processor_frequency": 1
+            })
+
+            for task in tasks:
+                self.__add_new_row_to_table_widget(self.tableWidget_tasks_list, [task.c, None, task.d, task.e])
 
     def add_origin(self):
         dialog_ui = AddOriginDialog(self)
@@ -307,5 +327,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.tab_cpu_cores_origins.setEnabled(not state)
 
     def change_output_path(self):
+        options = QFileDialog.Options()
+
+        file_name = QFileDialog.getExistingDirectory(self, "Output path")
+
+        print(file_name)
+
         # TODO: Open browser to search output
         print("change_output_path")

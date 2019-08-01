@@ -5,8 +5,6 @@ class AddOriginDialog(QtWidgets.QDialog, Ui_DialogAddOrigin):
     def __init__(self, *args, **kwargs):
         QtWidgets.QDialog.__init__(self, *args, **kwargs)
         self.setupUi(self)
-        self.setWindowTitle("Add origin")
-
         self.__return_value = None
 
     def add_clicked(self):

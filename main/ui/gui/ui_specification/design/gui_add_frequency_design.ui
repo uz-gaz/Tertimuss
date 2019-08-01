@@ -12,12 +12,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>605</width>
-    <height>128</height>
+    <width>359</width>
+    <height>101</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Add frequency</string>
   </property>
   <property name="sizeGripEnabled">
    <bool>false</bool>
