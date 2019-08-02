@@ -36,9 +36,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.comboBox_scheduler_select.addItem("")
             self.comboBox_scheduler_select.setItemText(i, scheduler_names[i])
 
-        # TODO: Delete
-        self.__load_json_input("tests/cli/input-example-thermal-aperiodics-energy.json")
-
     def simulate_thermal_state_changed(self, state: bool):
         print("State changed")
         # Control thermal enabled/disabled
@@ -284,17 +281,19 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                              "arrive": float(self.tableWidget_tasks_list.item(i, 2).text()),
                              "deadline": float(self.tableWidget_tasks_list.item(i, 3).text()),
                              "energy_consumption": float(self.tableWidget_tasks_list.item(i, 4).text())
-                         } for i in range(self.tableWidget_tasks_list.rowCount())] if thermal_simulation and task_consumption_model == "Energy based" else [{
-                             "type": "Periodic",
-                             "worst_case_execution_time": int(self.tableWidget_tasks_list.item(i, 1).text()),
-                             "period": float(self.tableWidget_tasks_list.item(i, 3).text())
-                         } if self.tableWidget_tasks_list.item(i, 0).text() == "Periodic" else
-                         {
-                             "type": "Aperiodic",
-                             "worst_case_execution_time": int(self.tableWidget_tasks_list.item(i, 1).text()),
-                             "arrive": float(self.tableWidget_tasks_list.item(i, 2).text()),
-                             "deadline": float(self.tableWidget_tasks_list.item(i, 3).text())
-                         } for i in range(self.tableWidget_tasks_list.rowCount())]
+                         } for i in range(
+            self.tableWidget_tasks_list.rowCount())] if thermal_simulation and task_consumption_model == "Energy based" \
+            else [{
+                      "type": "Periodic",
+                      "worst_case_execution_time": int(self.tableWidget_tasks_list.item(i, 1).text()),
+                      "period": float(self.tableWidget_tasks_list.item(i, 3).text())
+                  } if self.tableWidget_tasks_list.item(i, 0).text() == "Periodic" else
+                  {
+                      "type": "Aperiodic",
+                      "worst_case_execution_time": int(self.tableWidget_tasks_list.item(i, 1).text()),
+                      "arrive": float(self.tableWidget_tasks_list.item(i, 2).text()),
+                      "deadline": float(self.tableWidget_tasks_list.item(i, 3).text())
+                  } for i in range(self.tableWidget_tasks_list.rowCount())]
 
         available_frequencies = [int(self.tableWidget_cpu_cores_available_frequencies.item(i, 0).text()) for i in
                                  range(self.tableWidget_cpu_cores_available_frequencies.rowCount())]
@@ -417,7 +416,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.tab_output.setEnabled(False)
 
         # Status Busy
-        self.label_status.setText("Busy")
+        self.label_status.setText("Status: Processing data")
 
         # Path of the input validate schema
         # Warning: In python paths are relative to the entry point script path
@@ -442,8 +441,16 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
             # Create global model
             try:
+
+                self.label_status.setText("Status: Creating simulation")
+
                 global_model = GlobalModel(global_specification)
+
+                self.label_status.setText("Status: Running simulation")
+
                 scheduler_result = scheduler.simulate(global_specification, global_model, None)
+
+                self.label_status.setText("Status: Saving output")
 
                 # Plot scheduler result
                 for i in output_list:
@@ -455,11 +462,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                     output_path = input_object["output_specification"]["output_path"]
                     output_naming = input_object["output_specification"]["output_naming"] + "_specification.json"
                     with open(os.path.join(output_path, output_naming), 'w') as f:
-                        json.dump(input_object, f)
+                        json.dump(input_object, f, indent=4)
 
-                self.label_status.setText("Status")
+                self.label_status.setText("Status: Simulation finished")
 
-            except Exception :
+            except Exception:
                 self.label_status.setText("Error while solving the problem")
         else:
             self.label_status.setText(message)
