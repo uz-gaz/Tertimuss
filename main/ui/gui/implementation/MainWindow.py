@@ -19,6 +19,9 @@ from main.ui.gui.ui_specification.implementation.gui_main_desing import *
 
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self, *args, **kwargs):
+        """
+        Main GUI window
+        """
         QtWidgets.QMainWindow.__init__(self, *args, **kwargs)
         self.setupUi(self)
 
@@ -37,7 +40,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.comboBox_scheduler_select.setItemText(i, scheduler_names[i])
 
     def simulate_thermal_state_changed(self, state: bool):
-        print("State changed")
+        """
+        Simulate thermal checkbox's state change listener
+        :param state: True if checked, False if not
+        """
         # Control thermal enabled/disabled
         self.doubleSpinBox_simulation_mesh_step.setEnabled(state)
         self.comboBox_simulation_energy_model.setEnabled(state)
@@ -49,6 +55,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.checkBox_cpu_cores_automatic_origins.setEnabled(state)
 
     def load_json(self):
+        """
+        Load JSON button's click listener
+        """
         options = QFileDialog.Options()
         file_name, _ = QFileDialog.getOpenFileName(self, "Load specification", "", "JSON (*.json)",
                                                    options=options)
@@ -56,6 +65,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.__load_json_input(file_name)
 
     def __load_json_input(self, path: str):
+        """
+        Load JSON object from path and if is valid fill all fields
+        :param path: Path where JSON object is stored
+        """
         # Path of the input validate schema
         # Warning: In python paths are relative to the entry point script path
         input_schema_path = './main/ui/cli/input_schema/input-schema.json'
@@ -64,19 +77,19 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         error, message, schema_object = JSONGlobalModelParser.read_input(input_schema_path)
 
         if error:
-            self.label_status.setText(message)
+            self.label_status.setText("Status:" + message)
 
         # Read input
         error, message, input_object = JSONGlobalModelParser.read_input(path)
 
         if error:
-            self.label_status.setText(message)
+            self.label_status.setText("Status:" + message)
 
         # Validate schema
         error, message = JSONGlobalModelParser.validate_input(input_object, schema_object)
 
         if error:
-            self.label_status.setText(message)
+            self.label_status.setText("Status:" + message)
 
         # Fill fields
         if input_object["simulate_thermal"]:
@@ -263,7 +276,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def start_simulation(self):
         """
-        Start simulation button action
+        Start simulation button's click listener
         """
         thermal_simulation = self.checkBox_simulation_thermal.isChecked()
 
@@ -397,7 +410,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def __execute_simulation(self, input_object):
         """
         Execute simulation from JSON
-        :param input_object:
+        :param input_object: Simulation which will be executed
         """
         # Get tabs status
         enable_tab_simulation = self.tab_simulation.isEnabled()
@@ -429,7 +442,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             # Validate schema
             error, message = JSONGlobalModelParser.validate_input(input_object, schema_object)
         else:
-            self.label_status.setText(message)
+            self.label_status.setText("Status:" + message)
 
         if not error:
             # Get model and scheduler
@@ -469,7 +482,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             except Exception:
                 self.label_status.setText("Error while solving the problem")
         else:
-            self.label_status.setText(message)
+            self.label_status.setText("Status:" +  message)
 
         # Enable all tabs
         self.tab_simulation.setEnabled(enable_tab_simulation)
@@ -480,6 +493,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.tab_output.setEnabled(enable_tab_output)
 
     def add_task(self):
+        """
+        Add task button's click listener
+        """
         is_thermal_enabled = self.checkBox_simulation_thermal.isChecked()
         is_energy_enabled = self.comboBox_simulation_energy_model.currentText() == "Energy based"
         dialog_ui = AddTaskDialog(is_thermal_enabled, is_energy_enabled, self)
@@ -489,9 +505,15 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.__add_new_row_to_table_widget(self.tableWidget_tasks_list, return_value)
 
     def delete_task(self):
+        """
+        Delete task button's click listener
+        """
         self.__delete_selected_row_from_table_widget(self.tableWidget_tasks_list)
 
     def generate_automatic_tasks(self):
+        """
+        Generate automatic tasks button's click listener
+        """
         dialog_ui = AddAutomaticTaskDialog(self)
         dialog_ui.exec()
         return_value = dialog_ui.get_return_value()
@@ -517,6 +539,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                                                     task.e if self.checkBox_simulation_thermal.isChecked() else None])
 
     def add_origin(self):
+        """
+        Add origin button's click listener
+        """
         dialog_ui = AddOriginDialog(self)
         dialog_ui.exec()
         return_value = dialog_ui.get_return_value()
@@ -524,9 +549,15 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.__add_new_row_to_table_widget(self.tableWidget_cpu_cores_origins_list, return_value)
 
     def delete_origin(self):
+        """
+        Delete origin button's click listener
+        """
         self.__delete_selected_row_from_table_widget(self.tableWidget_cpu_cores_origins_list)
 
     def add_available_frequency(self):
+        """
+        Add available frequency button's click listener
+        """
         dialog_ui = AddFrequencyDialog(self)
         dialog_ui.exec()
         return_value = dialog_ui.get_return_value()
@@ -535,9 +566,15 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.__add_new_row_to_table_widget(self.tableWidget_cpu_cores_available_frequencies, return_value)
 
     def delete_available_frequency(self):
+        """
+        Delete available frequency button's click listener
+        """
         self.__delete_selected_row_from_table_widget(self.tableWidget_cpu_cores_available_frequencies)
 
     def add_selected_frequency(self):
+        """
+        Add selected frequency button's click listener
+        """
         dialog_ui = AddFrequencyDialog(self)
         dialog_ui.exec()
         return_value = dialog_ui.get_return_value()
@@ -545,9 +582,15 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.__add_new_row_to_table_widget(self.tableWidget_cpu_cores_selected_frequencies, return_value)
 
     def delete_selected_frequency(self):
+        """
+        Delete selected frequency button's click listener
+        """
         self.__delete_selected_row_from_table_widget(self.tableWidget_cpu_cores_selected_frequencies)
 
     def add_output(self):
+        """
+        Add output button's click listener
+        """
         is_thermal_enabled = self.checkBox_simulation_thermal.isChecked()
         dialog_ui = AddOutputDialog(is_thermal_enabled, self)
         dialog_ui.exec()
@@ -558,13 +601,23 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.tableWidget_output_selected_drawers.sortItems(0)
 
     def delete_output(self):
+        """
+        Delete output button's click listener
+        """
         self.__delete_selected_row_from_table_widget(self.tableWidget_output_selected_drawers)
 
     def generate_automatic_origins_changed(self, state: bool):
+        """
+        Generate automatic origins checkbox's state change listener
+        :param state: True if checked, False if not
+        """
         # Control automatic origins enabled/disabled
         self.tab_cpu_cores_origins.setEnabled(not state)
 
     def change_output_path(self):
+        """
+        Change output path button's click listener
+        """
         file_name = QFileDialog.getExistingDirectory(self, "Output path")
 
         if file_name is not None:

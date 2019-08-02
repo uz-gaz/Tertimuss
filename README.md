@@ -8,6 +8,8 @@
 - jsonschema 3.0.1 or higher and all its dependencies
 - progress 1.5 or higher and all its dependencies
 - ffmpeg 4.1 or higher and all its dependencies from conda-forge
+- pyqt 5.9.2 or higher and all its dependencies
+- qt 5.9.2 or higher and all its dependencies (This package is necessary only if you want to modify the GUI)
 
 
 ## Usage
