@@ -4,7 +4,7 @@ import threading
 
 from PyQt5.QtWidgets import QFileDialog
 
-from main.core.tcpn_model_generator.global_model import GlobalModel
+from main.core.tcpn_model_generator.GlobalModel import GlobalModel
 from main.ui.common.JSONGlobalModelParser import JSONGlobalModelParser
 from main.ui.common.SchedulerSelector import SchedulerSelector
 from main.ui.common.TCPNThermalModelSelector import TCPNThermalModelSelector

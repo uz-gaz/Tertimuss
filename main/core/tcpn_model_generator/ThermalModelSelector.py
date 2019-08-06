@@ -1,7 +1,7 @@
 from enum import Enum
 
-from main.core.tcpn_model_generator.thermal_model_energy import ThermalModelEnergy
-from main.core.tcpn_model_generator.thermal_model_frequency import ThermalModelFrequencyAware
+from main.core.tcpn_model_generator.ThermalModelEnergy import ThermalModelEnergy
+from main.core.tcpn_model_generator.ThermalModelFrequency import ThermalModelFrequencyAware
 
 
 class ThermalModelSelector(Enum):

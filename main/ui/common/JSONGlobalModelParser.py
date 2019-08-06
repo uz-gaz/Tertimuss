@@ -20,7 +20,7 @@ from main.core.problem_specification.tasks_specification.PeriodicTask import Per
 from main.core.problem_specification.tasks_specification.Task import Task
 from main.core.problem_specification.tasks_specification.TasksSpecification import TasksSpecification
 from main.core.schedulers.templates.abstract_scheduler.AbstractScheduler import AbstractScheduler
-from main.core.tcpn_model_generator.thermal_model_selector import ThermalModelSelector
+from main.core.tcpn_model_generator.ThermalModelSelector import ThermalModelSelector
 from main.plot_generator.templates.AbstractResultDrawer import AbstractResultDrawer
 from main.ui.common.OutputSelector import OutputSelector
 from main.ui.common.SchedulerSelector import SchedulerSelector

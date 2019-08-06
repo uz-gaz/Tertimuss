@@ -6,7 +6,7 @@ import math
 from main.core.schedulers.templates.abstract_base_scheduler.BaseSchedulerAperiodicTask import BaseSchedulerAperiodicTask
 from main.core.schedulers.templates.abstract_base_scheduler.BaseSchedulerPeriodicTask import BaseSchedulerPeriodicTask
 from main.core.schedulers.templates.abstract_base_scheduler.BaseSchedulerTask import BaseSchedulerTask
-from main.core.tcpn_model_generator.global_model import GlobalModel
+from main.core.tcpn_model_generator.GlobalModel import GlobalModel
 from main.core.problem_specification.GlobalSpecification import GlobalSpecification
 from main.core.schedulers.templates.abstract_scheduler.AbstractScheduler import AbstractScheduler
 from main.core.schedulers.templates.abstract_scheduler.SchedulerResult import SchedulerResult

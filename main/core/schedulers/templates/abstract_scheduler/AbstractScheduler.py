@@ -2,7 +2,7 @@ import abc
 from typing import Optional
 
 from main.core.schedulers.templates.abstract_scheduler.SchedulerResult import SchedulerResult
-from main.core.tcpn_model_generator.global_model import GlobalModel
+from main.core.tcpn_model_generator.GlobalModel import GlobalModel
 from main.core.problem_specification.GlobalSpecification import GlobalSpecification
 from main.ui.common.AbstractProgressBar import AbstractProgressBar
 

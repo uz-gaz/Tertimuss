@@ -1,4 +1,4 @@
-from main.core.tcpn_model_generator.thermal_model_selector import ThermalModelSelector
+from main.core.tcpn_model_generator.ThermalModelSelector import ThermalModelSelector
 
 
 class TCPNModelSpecification(object):

@@ -3,14 +3,14 @@ import unittest
 
 from main.core.problem_specification.GlobalSpecification import GlobalSpecification
 from main.core.problem_specification.simulation_specification.TCPNModelSpecification import TCPNModelSpecification
-from main.core.tcpn_model_generator.global_model import GlobalModel
+from main.core.tcpn_model_generator.GlobalModel import GlobalModel
 from main.core.problem_specification.cpu_specification.CpuSpecification import CpuSpecification
 from main.core.problem_specification.cpu_specification.MaterialCuboid import MaterialCuboid
 from main.core.problem_specification.environment_specification.EnvironmentSpecification import EnvironmentSpecification
 from main.core.problem_specification.simulation_specification.SimulationSpecification import SimulationSpecification
 from main.core.problem_specification.tasks_specification.TasksSpecification import TasksSpecification
 from main.core.problem_specification.tasks_specification.PeriodicTask import PeriodicTask
-from main.core.tcpn_model_generator.thermal_model_selector import ThermalModelSelector
+from main.core.tcpn_model_generator.ThermalModelSelector import ThermalModelSelector
 
 
 class TestGlobalModel(unittest.TestCase):

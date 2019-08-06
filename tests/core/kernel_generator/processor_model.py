@@ -1,4 +1,4 @@
-from main.core.tcpn_model_generator.processor_model import ProcessorModel
+from main.core.tcpn_model_generator.ProcessorModel import ProcessorModel
 from main.core.problem_specification.cpu_specification.CpuSpecification import CpuSpecification
 from main.core.problem_specification.cpu_specification.MaterialCuboid import MaterialCuboid
 from main.core.problem_specification.tasks_specification.TasksSpecification import TasksSpecification

@@ -1,8 +1,8 @@
 import scipy
 
-from main.core.tcpn_model_generator.processor_model import ProcessorModel
-from main.core.tcpn_model_generator.tasks_model import TasksModel
-from main.core.tcpn_model_generator.thermal_model import ThermalModel
+from main.core.tcpn_model_generator.ProcessorModel import ProcessorModel
+from main.core.tcpn_model_generator.TasksModel import TasksModel
+from main.core.tcpn_model_generator.ThermalModel import ThermalModel
 from main.core.problem_specification.GlobalSpecification import GlobalSpecification
 
 

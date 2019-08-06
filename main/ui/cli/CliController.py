@@ -1,14 +1,14 @@
 import os
 from typing import Optional
 
-from main.core.tcpn_model_generator.global_model import GlobalModel
+from main.core.tcpn_model_generator.GlobalModel import GlobalModel
 from main.ui.cli.ProgressBarCli import ProgressBarCli
 
 from main.ui.common.AbstractProgressBar import AbstractProgressBar
 from main.ui.common.JSONGlobalModelParser import JSONGlobalModelParser
 
 
-class CliManager(object):
+class CliController(object):
     @classmethod
     def cli_main(cls, args):
         # Progress bar

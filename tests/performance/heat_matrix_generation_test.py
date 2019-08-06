@@ -5,8 +5,8 @@ import unittest
 import scipy
 import scipy.sparse
 
-from main.core.tcpn_model_generator.global_model import GlobalModel
-from main.core.tcpn_model_generator.thermal_model_selector import ThermalModelSelector
+from main.core.tcpn_model_generator.GlobalModel import GlobalModel
+from main.core.tcpn_model_generator.ThermalModelSelector import ThermalModelSelector
 from main.core.problem_specification.cpu_specification.CpuSpecification import CpuSpecification
 from main.core.problem_specification.cpu_specification.MaterialCuboid import MaterialCuboid
 from main.core.problem_specification.environment_specification.EnvironmentSpecification import EnvironmentSpecification

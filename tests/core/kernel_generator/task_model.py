@@ -7,7 +7,7 @@ import hashlib
 
 import unittest
 
-from main.core.tcpn_model_generator.tasks_model import TasksModel
+from main.core.tcpn_model_generator.TasksModel import TasksModel
 
 
 class TestTaskModel(unittest.TestCase):
