@@ -70,6 +70,9 @@ class AbstractBaseScheduler(AbstractScheduler, metaclass=abc.ABCMeta):
         # Accumulated execution time
         m_exec = scipy.ndarray((n * m, simulation_time_steps))
 
+        # Accumulated execution time tcpn
+        m_exec_tcpn = scipy.ndarray((n * m, simulation_time_steps))
+
         # Core frequencies in each step
         core_frequencies = scipy.ndarray((m, simulation_time_steps))
 
@@ -209,12 +212,14 @@ class AbstractBaseScheduler(AbstractScheduler, metaclass=abc.ABCMeta):
                     w_alloc[active_task_id[j] + j * n] = 1
                     m_exec_step[active_task_id[j] + j * n] += global_specification.simulation_specification.dt
 
-            _, board_temperature, cores_temperature, energy_consumption_actual, _ = global_model_solver.run_step(
-                w_alloc, time, clock_relative_frequencies)
+            m_exec_step_tcpn, board_temperature, cores_temperature, energy_consumption_actual = \
+                global_model_solver.run_step(w_alloc, clock_relative_frequencies)
 
             i_tau_disc[:, zeta_q] = w_alloc
 
             m_exec[:, zeta_q] = m_exec_step
+
+            m_exec_tcpn[:, zeta_q] = m_exec_step_tcpn
 
             time_step[zeta_q] = time
 
@@ -245,9 +250,8 @@ class AbstractBaseScheduler(AbstractScheduler, metaclass=abc.ABCMeta):
                     tasks_set[n_periodic + j].next_arrival += global_specification.tasks_specification.h
                     tasks_set[n_periodic + j].next_deadline += global_specification.tasks_specification.h
 
-        return SchedulerResult(temperature_map, max_temperature_cores, time_step, m_exec,
-                               i_tau_disc, core_frequencies, energy_consumption,
-                               global_specification.simulation_specification.dt)
+        return SchedulerResult(temperature_map, max_temperature_cores, time_step, m_exec, m_exec_tcpn, i_tau_disc,
+                               core_frequencies, energy_consumption, global_specification.simulation_specification.dt)
 
     @abc.abstractmethod
     def offline_stage(self, global_specification: GlobalSpecification,

@@ -2,7 +2,7 @@ from typing import Optional
 
 import scipy
 
-from main.core.tcpn_simulator.AbstractTcpnSimulator import AbstractTcpnSimulator
+from main.core.tcpn_simulator.template.AbstractTcpnSimulator import AbstractTcpnSimulator
 
 
 class TcpnSimulatorAccurate(AbstractTcpnSimulator):

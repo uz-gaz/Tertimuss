@@ -5,6 +5,7 @@ class SchedulerResult(object):
     def __init__(self, temperature_map: scipy.ndarray, max_temperature_cores: scipy.ndarray,
                  time_steps: scipy.ndarray,
                  execution_time_scheduler: scipy.ndarray,
+                 execution_time_tcpn: scipy.ndarray,
                  scheduler_assignation: scipy.ndarray,
                  frequencies: scipy.ndarray,
                  energy_consumption: scipy.ndarray,
@@ -20,4 +21,4 @@ class SchedulerResult(object):
         self.quantum = quantum
 
         # This was used only for debug purposes
-        # self.execution_time_tcpn = execution_time_tcpn
+        self.execution_time_tcpn = execution_time_tcpn

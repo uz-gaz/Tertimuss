@@ -5,7 +5,7 @@ import scipy.integrate
 
 from main.core.tcpn_model_generator.GlobalModel import GlobalModel
 from main.core.problem_specification.GlobalSpecification import GlobalSpecification
-from main.core.tcpn_simulator.TcpnSimulatorAccurateOptimizedTasks import TcpnSimulatorAccurateOptimizedTasks
+from main.core.tcpn_simulator.implementation.TcpnSimulatorAccurateOptimizedTasks import TcpnSimulatorAccurateOptimizedTasks
 from main.core.tcpn_simulator.TcpnSimulatorAccurateOptimizedThermalOld import TcpnSimulatorAccurateOptimizedThermalOld
 
 

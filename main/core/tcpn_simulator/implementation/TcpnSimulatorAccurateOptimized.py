@@ -1,11 +1,11 @@
 import scipy
 
-from main.core.tcpn_simulator.AbstractTcpnSimulator import AbstractTcpnSimulator
+from main.core.tcpn_simulator.template.AbstractTcpnSimulator import AbstractTcpnSimulator
 
 
-class TcpnSimulatorEuler(AbstractTcpnSimulator):
+class TcpnSimulatorAccurateOptimized(AbstractTcpnSimulator):
     """
-    Time continuous petri net simulator based on the euler method
+    Time continuous petri net simulator optimized for the scenario where pi is variable
     WARNING: This is only an example not used in the simulator but it may be useful if the petri net model for the
     simulation change
     """
@@ -21,9 +21,9 @@ class TcpnSimulatorEuler(AbstractTcpnSimulator):
         self.__post = post
         self.__lambda_vector = lambda_vector
         self.__control = scipy.ones(len(lambda_vector))
-        self.__pi = None
         self.__c = self.__post - self.__pre
         self.__step = step
+        self.__recalculate_pre_inv()
         self.__calculate_constant_values()
 
     def set_pre(self, pre: scipy.ndarray):
@@ -33,7 +33,7 @@ class TcpnSimulatorEuler(AbstractTcpnSimulator):
         """
         self.__pre = pre
         self.__c = self.__post - self.__pre
-        self.__calculate_constant_values()
+        self.__recalculate_pre_inv()
 
     def set_post(self, post: scipy.ndarray):
         """
@@ -42,7 +42,6 @@ class TcpnSimulatorEuler(AbstractTcpnSimulator):
         """
         self.__post = post
         self.__c = self.__post - self.__pre
-        self.__calculate_constant_values()
 
     def set_lambda(self, lambda_vector: scipy.ndarray):
         """
@@ -62,63 +61,31 @@ class TcpnSimulatorEuler(AbstractTcpnSimulator):
 
     def set_pi(self, pi: scipy.ndarray):
         """
-        Set the PI
-        :param pi: pi
-        """
-        self.__pi = pi
-        self.__calculate_constant_values()
+         Set the PI
+         :param pi: pi
+         """
+        pass
 
     def set_step(self, step: float):
         """
-        Set the step of the simulation
-        :param step: step
-        """
+         Set the step of the simulation
+         :param step: step
+         """
         self.__step = step
         self.__calculate_constant_values()
 
-    def calculate_and_set_pi(self, mo: scipy.ndarray):
+    def __recalculate_pre_inv(self):
         """
-        Calculate the Pi for the actual marking and set it
-        :param mo: mo
+        Recalculate pre inv constant value
         """
-        self.__pi = self.__calculate_pi(mo)
-        self.__calculate_constant_values()
-
-    def __calculate_pi(self, mo: scipy.ndarray):
-        """
-        Calculate pi
-        :param mo: actual marking
-        :return: pi
-        """
-        pre_transpose = self.__pre.transpose()
-        pi = scipy.zeros(pre_transpose.shape)
-
-        for i in range(len(pre_transpose)):
-            places = pre_transpose[i]
-            max_index = -1
-            max_global = 0
-            for j in range(len(places)):
-                if places[j] != 0:
-                    if mo[j] != 0:
-                        max_interior = places[j] / mo[j]
-                        if max_global < max_interior:
-                            max_global = max_interior
-                            max_index = j
-                    else:
-                        max_index = -1
-                        break
-            if max_index != -1:
-                pi[i][max_index] = 1 / places[max_index]
-
-        return pi
+        self.__pre_inv = scipy.vectorize(lambda x: scipy.nan if x == 0 else 1 / x)(self.__pre)
 
     def __calculate_constant_values(self):
         """
         Calculate all constant values during the simulation
         """
-        self.__static_control_matrix = self.__c * self.__lambda_vector * self.__control * self.__step
-        if self.__pi is not None:
-            self.__static_control_matrix = self.__static_control_matrix.dot(self.__pi)
+        # Max number of activations for each transition (limited by the actual control, the lambda and the step)
+        self.__limitation_lambda = self.__lambda_vector * self.__control * self.__step
 
     def simulate_step(self, mo: scipy.ndarray) -> scipy.ndarray:
         """
@@ -127,7 +94,15 @@ class TcpnSimulatorEuler(AbstractTcpnSimulator):
         :param mo:  actual marking
         :return: next marking
         """
-        if self.__pi is not None:
-            return self.__static_control_matrix.dot(mo) + mo
-        else:
-            return self.__static_control_matrix.dot(self.__calculate_pi(mo)).dot(mo) + mo
+
+        # Max number of activations for each transition (limited by the actual marking
+        limitation_marking = scipy.nanmin(self.__pre_inv * mo, axis=0)
+
+        # It is only necessary if there are transitions without inputs (not the case)
+        # limitation_marking = scipy.vectorize(lambda x: 0 if x == scipy.nan else x)(limitation_marking)
+
+        # Number of activations for each transition
+        flow = scipy.minimum(self.__limitation_lambda, limitation_marking).reshape((-1, 1))
+
+        # Return the next marking
+        return self.__c.dot(flow) + mo

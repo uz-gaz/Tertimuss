@@ -15,9 +15,10 @@ from main.core.problem_specification.tasks_specification.PeriodicTask import Per
 from main.core.problem_specification.tasks_specification.TasksSpecification import TasksSpecification
 from main.core.tcpn_model_generator.GlobalModel import GlobalModel
 from main.core.tcpn_model_generator.ThermalModelSelector import ThermalModelSelector
-from main.core.tcpn_simulator.AbstractTcpnSimulator import AbstractTcpnSimulator
-from main.core.tcpn_simulator.TcpnSimulatorAccurate import TcpnSimulatorAccurate
-from main.core.tcpn_simulator.TcpnSimulatorAccurateOptimized import TcpnSimulatorAccurateOptimized
+from main.core.tcpn_simulator.implementation.TcpnSimulatorEulerVariableStep import TcpnSimulatorEulerVariableStep
+from main.core.tcpn_simulator.template.AbstractTcpnSimulator import AbstractTcpnSimulator
+from main.core.tcpn_simulator.implementation.TcpnSimulatorAccurate import TcpnSimulatorAccurate
+from main.core.tcpn_simulator.implementation.TcpnSimulatorAccurateOptimized import TcpnSimulatorAccurateOptimized
 
 
 class TestPetriNets(unittest.TestCase):
@@ -186,24 +187,26 @@ class TestPetriNets(unittest.TestCase):
 
         pi = global_model.pi_proc_tau
 
-        tcpn_simulator: AbstractTcpnSimulator = TcpnSimulatorAccurate(pre, post, pi, lambda_vector, 0.01)
+        tcpn_simulator: AbstractTcpnSimulator = TcpnSimulatorEulerVariableStep(pre, post, pi, lambda_vector, 10, 0.01)
 
-        control = [
-            [1, 0, 0, 1, 0, 0],
-            [1, 0, 0, 1, 0, 0],
-            [1, 0, 0, 1, 0, 0],
-            [1, 0, 0, 1, 0, 0],
-            [0, 1, 0, 0, 0, 1],
-            [0, 1, 0, 0, 0, 1],
-            [0, 1, 0, 0, 0, 1],
-            [0, 1, 0, 0, 0, 1]
-        ]
+        # control = [
+        #     [1, 0, 0, 1, 0, 0],
+        #     [1, 0, 0, 1, 0, 0],
+        #     [1, 0, 0, 1, 0, 0],
+        #     [1, 0, 0, 1, 0, 0],
+        #     [0, 1, 0, 0, 0, 1],
+        #     [0, 1, 0, 0, 0, 1],
+        #     [0, 1, 0, 0, 0, 1],
+        #     [0, 1, 0, 0, 0, 1]
+        # ]
+
+        control = 100 * [[1, 0, 0, 0, 0, 0]]
 
         mo_tcpn = []
 
         control_task_proc = scipy.ones(len(global_model.lambda_vector_proc_tau))
-        m = 2
-        n = 3
+        m = len(core_specification.cores_frequencies)
+        n = len(tasks_specification.periodic_tasks)
 
         for w_alloc in control:
             # Create new control vector
