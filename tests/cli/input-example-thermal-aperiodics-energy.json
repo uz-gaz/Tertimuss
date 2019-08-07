@@ -85,7 +85,10 @@
     "output_naming": "example_thermal_aperiodics_energy",
     "selected_output": [
       "Accumulated execution time",
-      "Energy consumption"
+      "Energy consumption",
+      "Execution percentage",
+      "Task execution",
+      "Cores maximum temperature"
     ]
   },
   "scheduler_specification": {
