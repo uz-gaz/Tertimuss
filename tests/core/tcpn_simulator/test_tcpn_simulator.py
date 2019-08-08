@@ -224,6 +224,81 @@ class TestPetriNets(unittest.TestCase):
         result = scipy.concatenate(mo_tcpn, axis=1)
         my_breakpoint = 1
 
+    def test_petri_net_task_processor_one_cpu_one_task(self):
+        tasks = [PeriodicTask(2000, 4, 4, 6.4)]
+
+        tasks_specification: TasksSpecification = TasksSpecification(tasks)
+
+        core_specification = CoreGroupSpecification(MaterialCuboid(x=10, y=10, z=2, p=2330, c_p=712, k=148),
+                                                    EnergyConsumptionProperties(),
+                                                    [150, 400, 600, 850, 1000],
+                                                    [1000])
+
+        board_specification = BoardSpecification(MaterialCuboid(x=50, y=50, z=1, p=8933, c_p=385, k=400))
+
+        environment_specification: EnvironmentSpecification = EnvironmentSpecification(0.001, 45, 110)
+
+        simulation_specification: SimulationSpecification = SimulationSpecification(2, 0.01, False)
+
+        tcpn_model_specification: TCPNModelSpecification = TCPNModelSpecification(
+            ThermalModelSelector.THERMAL_MODEL_FREQUENCY_BASED)
+
+        global_specification: GlobalSpecification = GlobalSpecification(tasks_specification,
+                                                                        CpuSpecification(board_specification,
+                                                                                         core_specification),
+                                                                        environment_specification,
+                                                                        simulation_specification,
+                                                                        tcpn_model_specification)
+
+        global_model = GlobalModel(global_specification)
+
+        pre = global_model.pre_proc_tau
+
+        post = global_model.post_proc_tau
+
+        lambda_vector = global_model.lambda_vector_proc_tau
+
+        mo = global_model.mo_proc_tau
+
+        pi = global_model.pi_proc_tau
+
+        tcpn_simulator: AbstractTcpnSimulator = TcpnSimulatorEulerVariableStep(pre, post, pi, lambda_vector, 10, 0.01)
+
+        # control = [
+        #     [1, 0, 0, 1, 0, 0],
+        #     [1, 0, 0, 1, 0, 0],
+        #     [1, 0, 0, 1, 0, 0],
+        #     [1, 0, 0, 1, 0, 0],
+        #     [0, 1, 0, 0, 0, 1],
+        #     [0, 1, 0, 0, 0, 1],
+        #     [0, 1, 0, 0, 0, 1],
+        #     [0, 1, 0, 0, 0, 1]
+        # ]
+
+        control = 100 * [[1]]
+
+        mo_tcpn = []
+
+        control_task_proc = scipy.ones(len(global_model.lambda_vector_proc_tau))
+        m = len(core_specification.cores_frequencies)
+        n = len(tasks_specification.periodic_tasks)
+
+        for w_alloc in control:
+            # Create new control vector
+            new_control_processor = scipy.copy(control_task_proc)
+            # Control over t_alloc
+            new_control_processor[n:n + n * m] = scipy.asarray(w_alloc)
+            # Control over t_exec
+            new_control_processor[-n * m:] = 1
+
+            tcpn_simulator.set_control(new_control_processor)
+            mo_next = tcpn_simulator.simulate_step(mo)
+            mo = mo_next
+            mo_tcpn.append(mo)
+
+        result = scipy.concatenate(mo_tcpn, axis=1)
+        my_breakpoint = 1
+
 
 if __name__ == '__main__':
     unittest.main()

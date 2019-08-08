@@ -26,9 +26,7 @@ class TcpnSimulatorEulerVariableStep(AbstractTcpnSimulator):
         self.__pi = pi
         self.__c = self.__post - self.__pre
         self.__dt = dt
-        self.__number_of_steps = number_of_steps
-        self.__a = self.__calculate_a(self.__c, self.__lambda_vector, self.__pi,
-                                      self.__dt / self.__number_of_steps) if self.__pi is not None else None
+        self.__a = self.__calculate_a(self.__c, self.__lambda_vector, self.__pi) if self.__pi is not None else None
 
     def set_control(self, control: scipy.ndarray):
         """
@@ -36,16 +34,15 @@ class TcpnSimulatorEulerVariableStep(AbstractTcpnSimulator):
         :param control: control
         """
         self.__control = control
-        self.__a = self.__calculate_a(self.__c, self.__lambda_vector * control, self.__pi,
-                                      self.__dt / self.__number_of_steps) if self.__pi is not None else None
+        self.__a = self.__calculate_a(self.__c, self.__lambda_vector * control,
+                                      self.__pi) if self.__pi is not None else None
 
     @staticmethod
-    def __calculate_a(c: scipy.ndarray, lambda_vector: scipy.ndarray, pi: scipy.ndarray,
-                      fragmented_dt: float) -> scipy.ndarray:
+    def __calculate_a(c: scipy.ndarray, lambda_vector: scipy.ndarray, pi: scipy.ndarray) -> scipy.ndarray:
         """
         Calculate all constant values during the simulation
         """
-        return (c * lambda_vector).dot(pi) * fragmented_dt
+        return (c * lambda_vector).dot(pi)
 
     def simulate_step(self, mo: scipy.ndarray) -> scipy.ndarray:
         """
@@ -55,14 +52,10 @@ class TcpnSimulatorEulerVariableStep(AbstractTcpnSimulator):
         :return: next marking
         """
         a = self.__a if self.__a is not None else self.__calculate_a(self.__c, self.__lambda_vector * self.__control,
-                                                                     self._calculate_pi(self.__pre, mo),
-                                                                     self.__dt / self.__number_of_steps)
+                                                                     self._calculate_pi(self.__pre, mo))
 
-        mo_next = mo
-        # for _ in range(self.__number_of_steps):
-        #     mo_next = a.dot(mo_next) + mo_next
-
-        res = scipy.integrate.solve_ivp(lambda t, m: a.dot(m.reshape(-1,1)).reshape(-1), [0, self.__dt], mo.reshape(-1),
+        res = scipy.integrate.solve_ivp(lambda t, m: a.dot(m.reshape(-1, 1)).reshape(-1), [0, self.__dt],
+                                        mo.reshape(-1),
                                         dense_output=True)
 
-        return (res.y.transpose())[-1]
+        return (res.y[:, -1]).reshape(-1, 1)

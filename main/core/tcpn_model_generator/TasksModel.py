@@ -51,6 +51,8 @@ class TasksModel(object):
         # Construction of Pre an Post matrix for Transitions alloc
         pre_alloc[n_periodic:, :] = scipy.concatenate(m * [scipy.identity(n_periodic + n_aperiodic)], axis=1)
 
+        # pi_alloc = pre_alloc.copy()
+
         # Definition of task model
         self.pre_tau = pre
         self.post_tau = post
