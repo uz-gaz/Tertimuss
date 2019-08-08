@@ -3,7 +3,7 @@ import scipy
 from main.core.tcpn_simulator.template.AbstractTcpnSimulator import AbstractTcpnSimulator
 
 
-class TcpnSimulatorEulerVariableStep(AbstractTcpnSimulator):
+class TcpnSimulatorOptimizedTasksAndProcessors(AbstractTcpnSimulator):
     """
     Time continuous petri net simulator based on the euler method
     WARNING: This is only an example not used in the simulator but it may be useful if the petri net model for the
@@ -26,8 +26,11 @@ class TcpnSimulatorEulerVariableStep(AbstractTcpnSimulator):
         self.__c = self.__post - self.__pre
         self.__dt = dt
         self.__number_of_steps = number_of_steps
-        self.__a = self.__calculate_a(self.__c, self.__lambda_vector, self.__pi,
-                                      self.__dt / self.__number_of_steps) if self.__pi is not None else None
+
+        a = self.__calculate_a(self.__c, self.__lambda_vector, self.__pi, self.__dt / self.__number_of_steps)
+
+        self.__a_multi_step: scipy.ndarray = scipy.linalg.fractional_matrix_power(
+            a + scipy.identity(a.shape[0]), self.__number_of_steps)
 
     def set_control(self, control: scipy.ndarray):
         """
@@ -35,8 +38,9 @@ class TcpnSimulatorEulerVariableStep(AbstractTcpnSimulator):
         :param control: control
         """
         self.__control = control
-        self.__a = self.__calculate_a(self.__c, self.__lambda_vector * control, self.__pi,
-                                      self.__dt / self.__number_of_steps) if self.__pi is not None else None
+        a = self.__calculate_a(self.__c, self.__lambda_vector * control, self.__pi, self.__dt / self.__number_of_steps)
+        self.__a_multi_step: scipy.ndarray = scipy.linalg.fractional_matrix_power(
+            a + scipy.identity(a.shape[0]), self.__number_of_steps)
 
     @staticmethod
     def __calculate_a(c: scipy.ndarray, lambda_vector: scipy.ndarray, pi: scipy.ndarray,
@@ -53,12 +57,4 @@ class TcpnSimulatorEulerVariableStep(AbstractTcpnSimulator):
         :param mo:  actual marking
         :return: next marking
         """
-        a = self.__a if self.__a is not None else self.__calculate_a(self.__c, self.__lambda_vector * self.__control,
-                                                                     self._calculate_pi(self.__pre, mo),
-                                                                     self.__dt / self.__number_of_steps)
-
-        mo_next = mo
-        for _ in range(self.__number_of_steps):
-            mo_next = a.dot(mo_next) + mo_next
-
-        return mo_next
+        return self.__a_multi_step.dot(mo)

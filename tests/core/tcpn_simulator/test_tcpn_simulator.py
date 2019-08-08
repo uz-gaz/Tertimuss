@@ -15,10 +15,14 @@ from main.core.problem_specification.tasks_specification.PeriodicTask import Per
 from main.core.problem_specification.tasks_specification.TasksSpecification import TasksSpecification
 from main.core.tcpn_model_generator.GlobalModel import GlobalModel
 from main.core.tcpn_model_generator.ThermalModelSelector import ThermalModelSelector
-from main.core.tcpn_simulator.implementation.TcpnSimulatorEulerVariableStep import TcpnSimulatorEulerVariableStep
+from main.core.tcpn_simulator.implementation.numerical_integration.TcpnSimulatorIntegrationVariableStep import \
+    TcpnSimulatorIntegrationVariableStep
+from main.core.tcpn_simulator.implementation.numerical_integration.TcpnSimulatorOptimizedTasksAndProcessors import \
+    TcpnSimulatorOptimizedTasksAndProcessors
 from main.core.tcpn_simulator.template.AbstractTcpnSimulator import AbstractTcpnSimulator
-from main.core.tcpn_simulator.implementation.TcpnSimulatorAccurate import TcpnSimulatorAccurate
-from main.core.tcpn_simulator.implementation.TcpnSimulatorAccurateOptimized import TcpnSimulatorAccurateOptimized
+from main.core.tcpn_simulator.implementation.second_semantic.TcpnSimulatorAccurate import TcpnSimulatorAccurate
+from main.core.tcpn_simulator.implementation.second_semantic.TcpnSimulatorAccurateOptimized import \
+    TcpnSimulatorAccurateOptimized
 
 
 class TestPetriNets(unittest.TestCase):
@@ -187,7 +191,7 @@ class TestPetriNets(unittest.TestCase):
 
         pi = global_model.pi_proc_tau
 
-        tcpn_simulator: AbstractTcpnSimulator = TcpnSimulatorEulerVariableStep(pre, post, pi, lambda_vector, 10, 0.01)
+        tcpn_simulator: AbstractTcpnSimulator = TcpnSimulatorIntegrationVariableStep(pre, post, pi, lambda_vector, 0.01)
 
         # control = [
         #     [1, 0, 0, 1, 0, 0],
@@ -262,7 +266,8 @@ class TestPetriNets(unittest.TestCase):
 
         pi = global_model.pi_proc_tau
 
-        tcpn_simulator: AbstractTcpnSimulator = TcpnSimulatorEulerVariableStep(pre, post, pi, lambda_vector, 10, 0.01)
+        tcpn_simulator: AbstractTcpnSimulator = TcpnSimulatorOptimizedTasksAndProcessors(pre, post, pi, lambda_vector,
+                                                                                         128, 0.01)
 
         # control = [
         #     [1, 0, 0, 1, 0, 0],
@@ -275,7 +280,7 @@ class TestPetriNets(unittest.TestCase):
         #     [0, 1, 0, 0, 0, 1]
         # ]
 
-        control = 100 * [[1]]
+        control = 100 * [[1]] + 100 * [[0]] + 100 * [[1]]
 
         mo_tcpn = []
 
@@ -283,7 +288,10 @@ class TestPetriNets(unittest.TestCase):
         m = len(core_specification.cores_frequencies)
         n = len(tasks_specification.periodic_tasks)
 
+        iter_left = len(control)
         for w_alloc in control:
+            print(iter_left)
+            iter_left = iter_left - 1
             # Create new control vector
             new_control_processor = scipy.copy(control_task_proc)
             # Control over t_alloc

@@ -1,18 +1,20 @@
+from typing import Optional
+
 import scipy
 import scipy.integrate
 
 from main.core.tcpn_simulator.template.AbstractTcpnSimulator import AbstractTcpnSimulator
 
 
-class TcpnSimulatorEulerVariableStep(AbstractTcpnSimulator):
+class TcpnSimulatorIntegrationVariableStep(AbstractTcpnSimulator):
     """
     Time continuous petri net simulator based on the euler method
     WARNING: This is only an example not used in the simulator but it may be useful if the petri net model for the
     simulation change
     """
 
-    def __init__(self, pre: scipy.ndarray, post: scipy.ndarray, pi: scipy.ndarray, lambda_vector: scipy.ndarray,
-                 number_of_steps: int, dt: float):
+    def __init__(self, pre: scipy.ndarray, post: scipy.ndarray, pi: Optional[scipy.ndarray],
+                 lambda_vector: scipy.ndarray, dt: float):
         """
         Define the Petri net
         :param pre: pre

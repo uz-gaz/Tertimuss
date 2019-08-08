@@ -6,7 +6,7 @@ import scipy
 import scipy.linalg
 
 from main.core.tcpn_simulator.template.AbstractTcpnSimulator import AbstractTcpnSimulator
-from main.core.tcpn_simulator.implementation.TcpnSimulatorEuler import TcpnSimulatorEuler
+from main.core.tcpn_simulator.implementation.numerical_integration.TcpnSimulatorEuler import TcpnSimulatorEuler
 
 
 def test_performance_petri_net_with_control():

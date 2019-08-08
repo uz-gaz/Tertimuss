@@ -14,7 +14,7 @@ class ProcessorModel(object):
         m = len(cpu_specification.cores_specification.cores_frequencies)
 
         # Transition rate (n)
-        eta = 10000  # TODO: Review
+        eta = 100
 
         # Total of places of the TCPN processor module
         p = m * (2 * n + 1)  # m processors*(n busy places, n exec places, 1 idle place)
@@ -64,7 +64,7 @@ class ProcessorModel(object):
             pi_alloc[i + 2 * n, k * n: k * n + n] = (1 / eta) * scipy.ones(n)
 
             # Execution rates for transitions alloc \lambda^alloc= eta*\lambda^exec
-            lambda_vector_alloc[k * n:k * n + n] = eta * scipy.ones(n)  # The F will be controlled online
+            lambda_vector_alloc[k * n:k * n + n] = eta *  eta * scipy.ones(n)  # The F will be controlled online
 
             # Execution rates for transitions exec for CPU_k \lambda^exec= eta*F
             lambda_vector_exec[k * n:k * n + n] = eta * scipy.ones(n)  # The F will be controlled online

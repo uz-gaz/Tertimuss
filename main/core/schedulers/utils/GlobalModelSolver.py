@@ -5,11 +5,10 @@ import scipy.integrate
 
 from main.core.tcpn_model_generator.GlobalModel import GlobalModel
 from main.core.problem_specification.GlobalSpecification import GlobalSpecification
-from main.core.tcpn_simulator.implementation.TcpnSimulatorAccurateOptimizedTasks import \
-    TcpnSimulatorAccurateOptimizedTasks
-from main.core.tcpn_simulator.implementation.TcpnSimulatorAccurateOptimizedThermal import \
+from main.core.tcpn_simulator.implementation.numerical_integration.TcpnSimulatorOptimizedTasksAndProcessors import \
+    TcpnSimulatorOptimizedTasksAndProcessors
+from main.core.tcpn_simulator.implementation.numerical_integration.TcpnSimulatorOptimizedThermal import \
     TcpnSimulatorAccurateOptimizedThermal
-from main.core.tcpn_simulator.implementation.TcpnSimulatorEulerVariableStep import TcpnSimulatorEulerVariableStep
 
 
 class GlobalModelSolver(object):
@@ -30,18 +29,12 @@ class GlobalModelSolver(object):
             global_specification.simulation_specification.dt_fragmentation_processor_task
         self.__fragmentation_of_step_thermal = global_specification.simulation_specification.dt_fragmentation_thermal
 
-        # self.__tcpn_simulator_proc = TcpnSimulatorAccurateOptimizedTasks(global_model.pre_proc_tau,
-        #                                                                  global_model.post_proc_tau,
-        #                                                                  global_model.pi_proc_tau,
-        #                                                                  global_model.lambda_vector_proc_tau,
-        #                                                                  self.__step / self.__fragmentation_of_step_task)
-
-        self.__tcpn_simulator_proc = TcpnSimulatorEulerVariableStep(global_model.pre_proc_tau,
-                                                                    global_model.post_proc_tau,
-                                                                    global_model.pi_proc_tau,
-                                                                    global_model.lambda_vector_proc_tau,
-                                                                    self.__fragmentation_of_step_task,
-                                                                    self.__step)
+        self.__tcpn_simulator_proc = TcpnSimulatorOptimizedTasksAndProcessors(global_model.pre_proc_tau,
+                                                                              global_model.post_proc_tau,
+                                                                              global_model.pi_proc_tau,
+                                                                              global_model.lambda_vector_proc_tau,
+                                                                              self.__fragmentation_of_step_task,
+                                                                              self.__step)
 
         self.__control_task_proc = scipy.ones(len(global_model.lambda_vector_proc_tau))
         self.__mo = global_model.mo_proc_tau
@@ -117,10 +110,7 @@ class GlobalModelSolver(object):
             self.__control_task_proc = new_control_processor
             self.__tcpn_simulator_proc.set_control(new_control_processor)
 
-        # partial_results_proc = []
-        # for _ in range(self.__fragmentation_of_step_task):
         self.__mo = self.__tcpn_simulator_proc.simulate_step(self.__mo)
-        # partial_results_proc.append(self.__mo)
 
         board_temperature = None
         cores_temperature = None
