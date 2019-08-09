@@ -426,7 +426,6 @@ class ThermalModel(object):
         t_one_micro = pre_micro_cond.shape[1]
 
         # Create pre, post and lambda from the system with board and number of CPUs
-
         pre_cond = scipy.sparse.block_diag(([pre_board_cond] + [pre_micro_cond.copy() for _ in
                                                                 range(m)]))
         del pre_board_cond  # Recover memory space

@@ -39,13 +39,16 @@ class GlobalThermalAwareScheduler(AbstractBaseScheduler):
         simulation_specification = global_specification.simulation_specification
         tcpn_model_specification = global_specification.tcpn_model_specification
 
+        # Number of cores
+        m = len(cpu_specification.cores_specification.cores_frequencies)
+
         # Board and micros conductivity
         pre_board_cond, post_board_cond, lambda_board_cond = tcpn_model_specification.thermal_model_selector.value.simple_conductivity(
-            cpu_specification.board_specification,
+            cpu_specification.board_specification.physical_properties,
             simulation_specification)
 
         pre_micro_cond, post_micro_cond, lambda_micro_cond = tcpn_model_specification.thermal_model_selector.value.simple_conductivity(
-            cpu_specification.cpu_core_specification, simulation_specification)
+            cpu_specification.cores_specification.physical_properties, simulation_specification)
 
         # Number of places for the board
         p_board = pre_board_cond.shape[0]
@@ -55,26 +58,26 @@ class GlobalThermalAwareScheduler(AbstractBaseScheduler):
 
         # Create pre, post and lambda from the system with board and number of CPUs
         pre_cond = scipy.sparse.block_diag(([pre_board_cond] + [pre_micro_cond.copy() for _ in
-                                                                range(cpu_specification.number_of_cores)]))
+                                                                range(m)]))
         del pre_board_cond  # Recover memory space
         del pre_micro_cond  # Recover memory space
 
         post_cond = scipy.sparse.block_diag(([post_board_cond] + [post_micro_cond.copy() for _ in
-                                                                  range(cpu_specification.number_of_cores)]))
+                                                                  range(m)]))
         del post_board_cond  # Recover memory space
         del post_micro_cond  # Recover memory space
 
         lambda_vector_cond = scipy.concatenate(
-            [lambda_board_cond] + cpu_specification.number_of_cores * [lambda_micro_cond])
+            [lambda_board_cond] + m * [lambda_micro_cond])
         del lambda_board_cond  # Recover memory space
         del lambda_micro_cond  # Recover memory space
 
         # Add transitions between micro and board
         # Connections between micro places and board places
         pre_int, post_int, lambda_vector_int = tcpn_model_specification.thermal_model_selector.value.add_interactions_layer(
-            p_board, p_one_micro,
-            cpu_specification,
-            simulation_specification.step, simulation_specification)
+            p_board, p_one_micro, cpu_specification,
+            simulation_specification.mesh_step,
+            simulation_specification)
 
         # Convection
         pre_conv, post_conv, lambda_vector_conv, pre_conv_air, post_conv_air, lambda_vector_conv_air = \
@@ -84,14 +87,15 @@ class GlobalThermalAwareScheduler(AbstractBaseScheduler):
                                                                                  simulation_specification)
 
         # Heat generation dynamic
-        pre_heat_dynamic, post_heat_dynamic, lambda_vector_heat_dynamic, _ = tcpn_model_specification.thermal_model_selector.value.add_heat_by_dynamic_power(
-            p_board,
-            p_one_micro,
-            cpu_specification,
-            tasks_specification,
-            simulation_specification)
+        pre_heat_dynamic, post_heat_dynamic, lambda_vector_heat_dynamic, power_consumption = \
+            tcpn_model_specification.thermal_model_selector.value.add_heat_by_dynamic_power(p_board,
+                                                                                            p_one_micro,
+                                                                                            cpu_specification,
+                                                                                            tasks_specification,
+                                                                                            simulation_specification)
 
-        places_board_and_micros = p_board + cpu_specification.number_of_cores * p_one_micro
+        # Number places of boards and micros
+        places_board_and_micros = m * p_one_micro + p_board
 
         # Creation of pre matrix
         pre = scipy.sparse.hstack([pre_cond, pre_int, pre_conv, pre_heat_dynamic[:places_board_and_micros]])
@@ -111,10 +115,9 @@ class GlobalThermalAwareScheduler(AbstractBaseScheduler):
             scipy.sparse.csc_matrix(scipy.ones((p_board, 1))))
 
         # Creation of S_T
-        s_t = scipy.sparse.lil_matrix(
-            (cpu_specification.number_of_cores, p_board + cpu_specification.number_of_cores * p_one_micro))
+        s_t = scipy.sparse.lil_matrix((m, p_board + m * p_one_micro))
 
-        for i in range(cpu_specification.number_of_cores):
+        for i in range(m):
             s_t[i, p_board + i * p_one_micro + int(p_one_micro / 2)] = 1
 
         return a_t.toarray(), ct_exec.toarray(), b_ta.toarray(), s_t.toarray()
@@ -127,7 +130,7 @@ class GlobalThermalAwareScheduler(AbstractBaseScheduler):
         ti = scipy.asarray([i.t for i in global_specification.tasks_specification.periodic_tasks])
         ia = h / ti
         n = len(global_specification.tasks_specification.periodic_tasks)
-        m = global_specification.cpu_specification.number_of_cores
+        m = len(global_specification.cpu_specification.cores_specification.cores_frequencies)
 
         # Inequality constraint
         # Create matrix diag([cc1/H ... ccn/H cc1/H .....]) of n*m
@@ -170,12 +173,12 @@ class GlobalThermalAwareScheduler(AbstractBaseScheduler):
             b = bu
 
         # Interior points was the default in the original version, but i found that simplex has better results
-        res = scipy.optimize.linprog(c=objective, A_ub=a, b_ub=b, A_eq=a_eq,
-                                     b_eq=beq, bounds=bounds, method='simplex')  # FIXME: Answer original authors
+        res = scipy.optimize.linprog(c=objective, A_ub=a, b_ub=b, A_eq=a_eq, b_eq=beq, bounds=bounds, method='simplex')
 
         if not res.success:
             # No solution found
-            raise Exception("Error: No solution found when trying to solve the lineal programing problem")
+            raise Exception("Error: Offline stage, no solution found when trying to solve the lineal" +
+                            " programing problem")
 
         j_b_i = res.x
 
@@ -237,8 +240,11 @@ class GlobalThermalAwareScheduler(AbstractBaseScheduler):
 
         j_fsc_i, quantum = self.__solve_linear_programing_problem(global_specification, is_thermal_simulation)
 
+        # Number of tasks
         n = len(global_specification.tasks_specification.periodic_tasks)
-        m = global_specification.cpu_specification.number_of_cores
+
+        # Number of cores
+        m = len(global_specification.cpu_specification.cores_specification.cores_frequencies)
 
         ti = [i.t for i in global_specification.tasks_specification.periodic_tasks]
 
@@ -264,7 +270,7 @@ class GlobalThermalAwareScheduler(AbstractBaseScheduler):
 
         self.step = global_specification.simulation_specification.dt
 
-        self.__m = global_specification.cpu_specification.number_of_cores
+        self.__m = m
         self.__n = n
 
         return quantum
