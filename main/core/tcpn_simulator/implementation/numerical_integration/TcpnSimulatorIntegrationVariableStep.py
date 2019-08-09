@@ -8,8 +8,8 @@ from main.core.tcpn_simulator.template.AbstractTcpnSimulator import AbstractTcpn
 
 class TcpnSimulatorIntegrationVariableStep(AbstractTcpnSimulator):
     """
-    Time continuous petri net simulator based on the euler method
-    WARNING: This is only an example not used in the simulator but it may be useful if the petri net model for the
+    Time continuous Petri net simulator based on the Runge-Kutta formula
+    WARNING: This is only an example not used in the simulator but it may be useful if the Petri net model for the
     simulation change
     """
 

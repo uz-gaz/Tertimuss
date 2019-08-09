@@ -65,8 +65,8 @@ class GlobalModelSolver(object):
                                                                                   global_model.post_thermal,
                                                                                   global_model.pi_thermal,
                                                                                   global_model.lambda_vector_thermal,
-                                                                                  self.__step / self.__fragmentation_of_step_thermal,
-                                                                                  self.__fragmentation_of_step_thermal)
+                                                                                  self.__fragmentation_of_step_thermal,
+                                                                                  self.__step)
 
             self.__mo_thermal = global_model.mo_thermal
             self.__p_board = global_model.p_board

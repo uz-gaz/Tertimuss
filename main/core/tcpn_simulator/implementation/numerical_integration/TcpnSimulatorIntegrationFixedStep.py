@@ -7,18 +7,21 @@ from main.core.tcpn_simulator.template.AbstractTcpnSimulator import AbstractTcpn
 
 class TcpnSimulatorIntegrationFixedStep(AbstractTcpnSimulator):
     """
-    Time continuous petri net simulator based on the euler method
-    WARNING: This is only an example not used in the simulator but it may be useful if the petri net model for the
+    Time continuous Petri net simulator based on the Euler method
+    WARNING: This is only an example not used in the simulator but it may be useful if the Petri net model for the
     simulation change
     """
 
     def __init__(self, pre: scipy.ndarray, post: scipy.ndarray, pi: Optional[scipy.ndarray],
                  lambda_vector: scipy.ndarray, number_of_steps: int, dt: float):
         """
-        Define the Petri net
-        :param pre: pre
-        :param post: post
-        :param lambda_vector: lambda
+        Define the TCPN
+        :param pre: pre matrix
+        :param post: post matrix
+        :param pi: pi matrix
+        :param lambda_vector: lambda vector
+        :param number_of_steps: number of steps in the integration
+        :param dt: to solve the state equation, it will be integrated in the interval [0, dt]
         """
         self.__pre = pre
         self.__post = post
