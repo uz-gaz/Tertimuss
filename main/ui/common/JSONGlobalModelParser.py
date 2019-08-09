@@ -46,10 +46,9 @@ class JSONGlobalModelParser(object):
         # Validate the input
         # TODO: Fix to allow reference in input
         try:
-            # jsonschema.validate(input_json, schema_json)
+            jsonschema.validate(input_json, schema_json)
             return False, ""
         except ValidationError as ve:
-            print()
             return True, 'Error: Wrong fields validation in ' + '/'.join(map(lambda x: str(x), ve.absolute_path)) + \
                    ' with message ' + ve.message
 
