@@ -31,6 +31,6 @@ class ThermalModelEnergy(ThermalModel):
 
         consumption_by_task = [task.e for task in tasks]
 
-        m = len(cpu_specification.cores_specification.cores_frequencies)
+        m = len(cpu_specification.cores_specification.operating_frequencies)
 
         return scipy.repeat(scipy.asarray(consumption_by_task).reshape((1, -1)), m, axis=0)

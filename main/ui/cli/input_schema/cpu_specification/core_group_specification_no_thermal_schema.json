@@ -12,7 +12,7 @@
         "type": "integer"
       }
     },
-    "cores_frequencies": {
+    "operating_frequencies": {
       "description": "Cores set frequencies in Hz",
       "type": "array",
       "items": {

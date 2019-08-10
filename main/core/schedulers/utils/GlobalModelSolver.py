@@ -21,7 +21,7 @@ class GlobalModelSolver(object):
 
         self.__n = len(global_specification.tasks_specification.periodic_tasks) + \
                    len(global_specification.tasks_specification.aperiodic_tasks)
-        self.__m = len(global_specification.cpu_specification.cores_specification.cores_frequencies)
+        self.__m = len(global_specification.cpu_specification.cores_specification.operating_frequencies)
         self.__step = global_specification.simulation_specification.dt
         self.enable_thermal_mode = global_model.enable_thermal_mode
 

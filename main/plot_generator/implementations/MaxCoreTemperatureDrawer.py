@@ -35,7 +35,7 @@ class MaxCoreTemperatureDrawer(AbstractResultDrawer):
 
         temperature_disc = scheduler_result.max_temperature_cores
         time_temp = scheduler_result.time_steps
-        m = len(global_specification.cpu_specification.cores_specification.cores_frequencies)
+        m = len(global_specification.cpu_specification.cores_specification.operating_frequencies)
         f, axarr = plt.subplots(nrows=m, num="CPU temperature")
         for i in range(m):
             axarr[i].set_title("$CPU_" + str(i + 1) + "$ temperature")

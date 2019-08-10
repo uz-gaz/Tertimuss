@@ -39,12 +39,12 @@ class AbstractBaseScheduler(AbstractScheduler, metaclass=abc.ABCMeta):
         float_round = global_specification.simulation_specification.float_decimals_precision
 
         idle_task_id = -1
-        m = len(global_specification.cpu_specification.cores_specification.cores_frequencies)
+        m = len(global_specification.cpu_specification.cores_specification.operating_frequencies)
         n = len(global_specification.tasks_specification.aperiodic_tasks) + len(
             global_specification.tasks_specification.periodic_tasks)
 
         # Clock base frequency
-        clock_base_frequency = global_specification.cpu_specification.cores_specification.cores_frequencies[-1]
+        clock_base_frequency = global_specification.cpu_specification.cores_specification.operating_frequencies[-1]
 
         # Tasks sets
         periodic_tasks = [BaseSchedulerPeriodicTask(global_specification.tasks_specification.periodic_tasks[i], i,
@@ -123,7 +123,7 @@ class AbstractBaseScheduler(AbstractScheduler, metaclass=abc.ABCMeta):
 
         # Actual set clock frequencies
         clock_relative_frequencies = [i / clock_base_frequency for i in
-                                      global_specification.cpu_specification.cores_specification.cores_frequencies]
+                                      global_specification.cpu_specification.cores_specification.operating_frequencies]
         clock_available_frequencies = [i / clock_base_frequency for i in
                                        global_specification.cpu_specification.cores_specification.available_frequencies]
 

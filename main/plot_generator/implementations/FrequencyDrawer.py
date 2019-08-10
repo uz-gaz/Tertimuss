@@ -35,7 +35,7 @@ class FrequencyDrawer(AbstractResultDrawer):
 
         frequencies = scheduler_result.frequencies
         time_scheduler = scheduler_result.time_steps
-        m = len(global_specification.cpu_specification.cores_specification.cores_frequencies)
+        m = len(global_specification.cpu_specification.cores_specification.operating_frequencies)
         f, axarr = plt.subplots(nrows=m, num="CPU relative frequency")
         for i in range(m):
             axarr[i].set_title("$CPU_" + str(i + 1) + "$ relative frequency")

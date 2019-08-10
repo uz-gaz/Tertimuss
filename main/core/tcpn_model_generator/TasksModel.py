@@ -15,7 +15,7 @@ class TasksModel(object):
                  simulation_specification: SimulationSpecification):
         n_periodic = len(tasks_specification.periodic_tasks)
         n_aperiodic = len(tasks_specification.aperiodic_tasks)
-        m = len(cpu_specification.cores_specification.cores_frequencies)
+        m = len(cpu_specification.cores_specification.operating_frequencies)
         base_frequency = cpu_specification.cores_specification.available_frequencies[-1]
         # total of places of the TCPN ((p^w_i,p^cc_i) for each task)
         p = 2 * n_periodic + n_aperiodic

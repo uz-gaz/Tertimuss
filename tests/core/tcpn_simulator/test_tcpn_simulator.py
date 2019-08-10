@@ -209,7 +209,7 @@ class TestPetriNets(unittest.TestCase):
         mo_tcpn = []
 
         control_task_proc = scipy.ones(len(global_model.lambda_vector_proc_tau))
-        m = len(core_specification.cores_frequencies)
+        m = len(core_specification.operating_frequencies)
         n = len(tasks_specification.periodic_tasks)
 
         for w_alloc in control:
@@ -285,7 +285,7 @@ class TestPetriNets(unittest.TestCase):
         mo_tcpn = []
 
         control_task_proc = scipy.ones(len(global_model.lambda_vector_proc_tau))
-        m = len(core_specification.cores_frequencies)
+        m = len(core_specification.operating_frequencies)
         n = len(tasks_specification.periodic_tasks)
 
         iter_left = len(control)

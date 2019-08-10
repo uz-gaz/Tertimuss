@@ -40,7 +40,7 @@ class GlobalThermalAwareScheduler(AbstractBaseScheduler):
         tcpn_model_specification = global_specification.tcpn_model_specification
 
         # Number of cores
-        m = len(cpu_specification.cores_specification.cores_frequencies)
+        m = len(cpu_specification.cores_specification.operating_frequencies)
 
         # Board and micros conductivity
         pre_board_cond, post_board_cond, lambda_board_cond = tcpn_model_specification.thermal_model_selector.value.simple_conductivity(
@@ -130,7 +130,7 @@ class GlobalThermalAwareScheduler(AbstractBaseScheduler):
         ti = scipy.asarray([i.t for i in global_specification.tasks_specification.periodic_tasks])
         ia = h / ti
         n = len(global_specification.tasks_specification.periodic_tasks)
-        m = len(global_specification.cpu_specification.cores_specification.cores_frequencies)
+        m = len(global_specification.cpu_specification.cores_specification.operating_frequencies)
 
         # Inequality constraint
         # Create matrix diag([cc1/H ... ccn/H cc1/H .....]) of n*m
@@ -244,7 +244,7 @@ class GlobalThermalAwareScheduler(AbstractBaseScheduler):
         n = len(global_specification.tasks_specification.periodic_tasks)
 
         # Number of cores
-        m = len(global_specification.cpu_specification.cores_specification.cores_frequencies)
+        m = len(global_specification.cpu_specification.cores_specification.operating_frequencies)
 
         ti = [i.t for i in global_specification.tasks_specification.periodic_tasks]
 

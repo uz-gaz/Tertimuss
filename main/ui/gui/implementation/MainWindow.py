@@ -147,7 +147,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         for i in input_object["cpu_specification"]["cores_specification"]["available_frequencies"]:
             self.__add_new_row_to_table_widget(self.tableWidget_cpu_cores_available_frequencies, [i])
 
-        for i in input_object["cpu_specification"]["cores_specification"]["cores_frequencies"]:
+        for i in input_object["cpu_specification"]["cores_specification"]["operating_frequencies"]:
             self.__add_new_row_to_table_widget(self.tableWidget_cpu_cores_selected_frequencies, [i])
 
         if input_object["simulate_thermal"]:
@@ -311,7 +311,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         available_frequencies = [int(self.tableWidget_cpu_cores_available_frequencies.item(i, 0).text()) for i in
                                  range(self.tableWidget_cpu_cores_available_frequencies.rowCount())]
 
-        cores_frequencies = [int(self.tableWidget_cpu_cores_selected_frequencies.item(i, 0).text()) for i in
+        operating_frequencies = [int(self.tableWidget_cpu_cores_selected_frequencies.item(i, 0).text()) for i in
                              range(self.tableWidget_cpu_cores_selected_frequencies.rowCount())]
 
         cores_origins = [{"x": float(self.tableWidget_cpu_cores_origins_list.item(i, 0).text()),
@@ -356,7 +356,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                         "dynamic_beta": self.doubleSpinBox_cpu_cores_energy_dynamic_beta.value()
                     },
                     "available_frequencies": available_frequencies,
-                    "cores_frequencies": cores_frequencies,
+                    "operating_frequencies": operating_frequencies,
                     "cores_origins": cores_origins
                 }
             },
@@ -387,7 +387,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 "cpu_specification": {
                     "cores_specification": {
                         "available_frequencies": available_frequencies,
-                        "cores_frequencies": cores_frequencies
+                        "operating_frequencies": operating_frequencies
                     }
                 },
                 "output_specification": {

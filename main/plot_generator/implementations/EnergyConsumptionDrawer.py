@@ -30,7 +30,7 @@ class EnergyConsumptionDrawer(AbstractResultDrawer):
                                 save_path: Optional[str] = None):
         energy_consumption = scheduler_result.energy_consumption
         time_temp = scheduler_result.time_steps
-        m = len(global_specification.cpu_specification.cores_specification.cores_frequencies)
+        m = len(global_specification.cpu_specification.cores_specification.operating_frequencies)
         n_panels = m + 1
         f, axarr = plt.subplots(nrows=n_panels, num="CPU energy consumption by dynamic power")
 

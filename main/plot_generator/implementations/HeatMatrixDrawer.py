@@ -74,7 +74,7 @@ class HeatMatrixDrawer(AbstractResultDrawer):
     @staticmethod
     def __get_heat_matrix(temp, global_specification: GlobalSpecification, show_board: Optional[bool],
                           show_cores: Optional[bool]) -> scipy.ndarray:
-        m = len(global_specification.cpu_specification.cores_specification.cores_frequencies)
+        m = len(global_specification.cpu_specification.cores_specification.operating_frequencies)
 
         mx = round(
             global_specification.cpu_specification.cores_specification.physical_properties.x /
@@ -82,7 +82,7 @@ class HeatMatrixDrawer(AbstractResultDrawer):
         my = round(
             global_specification.cpu_specification.cores_specification.physical_properties.y /
             global_specification.simulation_specification.mesh_step)
-        m = len(global_specification.cpu_specification.cores_specification.cores_frequencies)
+        m = len(global_specification.cpu_specification.cores_specification.operating_frequencies)
         x = round(
             global_specification.cpu_specification.board_specification.physical_properties.x /
             global_specification.simulation_specification.mesh_step)

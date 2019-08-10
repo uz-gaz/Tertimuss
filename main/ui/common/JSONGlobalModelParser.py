@@ -159,7 +159,7 @@ class JSONGlobalModelParser(object):
 
         available_frequencies = cores_specification["available_frequencies"]
 
-        cores_frequencies = cores_specification["cores_frequencies"]
+        operating_frequencies = cores_specification["operating_frequencies"]
 
         if simulate_thermal:
             board_specification = cpu_specification["board_specification"]
@@ -202,7 +202,7 @@ class JSONGlobalModelParser(object):
                 CoreGroupSpecification(cores_material_cuboid,
                                        energy_consumption,
                                        available_frequencies,
-                                       cores_frequencies,
+                                       operating_frequencies,
                                        cores_origins)
             )
 
@@ -221,7 +221,7 @@ class JSONGlobalModelParser(object):
                 CoreGroupSpecification(cores_material_cuboid,
                                        energy_consumption,
                                        available_frequencies,
-                                       cores_frequencies,
+                                       operating_frequencies,
                                        None))
 
         return cpu_specification, input_json

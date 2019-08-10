@@ -19,7 +19,7 @@ class GlobalModel(object):
 
         n_aperiodic = len(global_specification.tasks_specification.aperiodic_tasks)
 
-        m = len(global_specification.cpu_specification.cores_specification.cores_frequencies)
+        m = len(global_specification.cpu_specification.cores_specification.operating_frequencies)
 
         # Create tasks-processors model
         tasks_model: TasksModel = TasksModel(global_specification.tasks_specification,

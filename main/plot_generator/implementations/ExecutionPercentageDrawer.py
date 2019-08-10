@@ -38,7 +38,7 @@ class ExecutionPercentageDrawer(AbstractResultDrawer):
         i_tau_disc = scheduler_result.scheduler_assignation
         frequencies = scheduler_result.frequencies
 
-        m = len(global_specification.cpu_specification.cores_specification.cores_frequencies)
+        m = len(global_specification.cpu_specification.cores_specification.operating_frequencies)
 
         n_periodic = len(global_specification.tasks_specification.periodic_tasks)
         n_aperiodic = len(global_specification.tasks_specification.aperiodic_tasks)

@@ -156,7 +156,7 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
         :param global_specification: Global specification
         :return: 1 - Scheduling quantum (default will be the step specified in problem creation)
         """
-        self.__m = len(global_specification.cpu_specification.cores_specification.cores_frequencies)
+        self.__m = len(global_specification.cpu_specification.cores_specification.operating_frequencies)
         self.__n = len(global_specification.tasks_specification.periodic_tasks)
 
         self.__decimals_precision = global_specification.simulation_specification.float_decimals_precision

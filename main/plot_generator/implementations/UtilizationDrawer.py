@@ -36,7 +36,7 @@ class UtilizationDrawer(AbstractResultDrawer):
         time_u = scheduler_result.time_steps
         n_periodic = len(global_specification.tasks_specification.periodic_tasks)
         n_aperiodic = len(global_specification.tasks_specification.aperiodic_tasks)
-        m = len(global_specification.cpu_specification.cores_specification.cores_frequencies)
+        m = len(global_specification.cpu_specification.cores_specification.operating_frequencies)
         f, ax_arr = plt.subplots(nrows=m, num="CPU utilization")
 
         for i in range(m):

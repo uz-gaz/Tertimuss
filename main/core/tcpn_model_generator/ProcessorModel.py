@@ -14,7 +14,7 @@ class ProcessorModel(object):
     def __init__(self, tasks_specification: TasksSpecification, cpu_specification: CpuSpecification,
                  simulation_specification: SimulationSpecification):
         n = len(tasks_specification.periodic_tasks) + len(tasks_specification.aperiodic_tasks)
-        m = len(cpu_specification.cores_specification.cores_frequencies)
+        m = len(cpu_specification.cores_specification.operating_frequencies)
 
         # Transition rate (n)
         eta = 100

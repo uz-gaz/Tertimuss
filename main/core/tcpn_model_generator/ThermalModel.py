@@ -125,7 +125,7 @@ class ThermalModel(object):
     def add_interactions_layer(p_board: int, p_one_micro: int, cpu_specification: CpuSpecification,
                                step: float, simulation_specification: SimulationSpecification) \
             -> [scipy.sparse.lil_matrix, scipy.sparse.lil_matrix, scipy.ndarray]:
-        m = len(cpu_specification.cores_specification.cores_frequencies)
+        m = len(cpu_specification.cores_specification.operating_frequencies)
         # Places and transitions for all CPUs
         p_micros = p_one_micro * m
 
@@ -189,7 +189,7 @@ class ThermalModel(object):
                                                                               scipy.sparse.lil_matrix,
                                                                               scipy.ndarray]:
 
-        m = len(cpu_specification.cores_specification.cores_frequencies)
+        m = len(cpu_specification.cores_specification.operating_frequencies)
 
         rho_p1 = cpu_specification.board_specification.physical_properties.p
         cp_p1 = cpu_specification.board_specification.physical_properties.c_p
@@ -230,7 +230,7 @@ class ThermalModel(object):
     def add_heat_by_leakage_power(p_board: int, p_one_micro: int, cpu_specification: CpuSpecification,
                                   simulation_specification: SimulationSpecification) \
             -> [scipy.sparse.lil_matrix, scipy.sparse.lil_matrix, scipy.ndarray]:
-        m = len(cpu_specification.cores_specification.cores_frequencies)
+        m = len(cpu_specification.cores_specification.operating_frequencies)
 
         # The generation is equal for each place in the same processor so lambdas are equal too
         lambda_coefficient_delta = cpu_specification.cores_specification.energy_consumption_properties.leakage_delta
@@ -293,7 +293,7 @@ class ThermalModel(object):
                                   simulation_specification: SimulationSpecification) \
             -> [scipy.sparse.lil_matrix, scipy.sparse.lil_matrix, scipy.ndarray, scipy.ndarray]:
         n = len(tasks_specification.periodic_tasks) + len(tasks_specification.aperiodic_tasks)
-        m = len(cpu_specification.cores_specification.cores_frequencies)
+        m = len(cpu_specification.cores_specification.operating_frequencies)
 
         # Places and transitions for all CPUs
         p_micros = p_one_micro * m
@@ -319,9 +319,9 @@ class ThermalModel(object):
 
         # Relative frequencies
         # Actual set clock frequencies
-        clock_base_frequency = cpu_specification.cores_specification.cores_frequencies[-1]
+        clock_base_frequency = cpu_specification.cores_specification.operating_frequencies[-1]
         clock_relative_frequencies = [i / clock_base_frequency for i in
-                                      cpu_specification.cores_specification.cores_frequencies]
+                                      cpu_specification.cores_specification.operating_frequencies]
 
         # Get power consumption by task in cpu
         power_consumption = cls._get_dynamic_power_consumption(cpu_specification, tasks_specification,
@@ -366,12 +366,12 @@ class ThermalModel(object):
         :return:
         """
 
-        m = len(cpu_specification.cores_specification.cores_frequencies)
+        m = len(cpu_specification.cores_specification.operating_frequencies)
 
         # Relative frequencies
-        clock_base_frequency = cpu_specification.cores_specification.cores_frequencies[-1]
+        clock_base_frequency = cpu_specification.cores_specification.operating_frequencies[-1]
         clock_relative_frequencies = [i / clock_base_frequency for i in
-                                      cpu_specification.cores_specification.cores_frequencies]
+                                      cpu_specification.cores_specification.operating_frequencies]
 
         # Get power consumption by task in cpu
         power_consumption = cls._get_dynamic_power_consumption(cpu_specification, tasks_specification,
@@ -407,7 +407,7 @@ class ThermalModel(object):
                  environment_specification: EnvironmentSpecification,
                  simulation_specification: SimulationSpecification):
 
-        m = len(cpu_specification.cores_specification.cores_frequencies)
+        m = len(cpu_specification.cores_specification.operating_frequencies)
 
         # Board and micros conductivity
         pre_board_cond, post_board_cond, lambda_board_cond = self.simple_conductivity(

@@ -26,7 +26,7 @@ class CpuSpecification(object):
                                                   0, self.board_specification.physical_properties.y,
                                                   self.cores_specification.physical_properties.x,
                                                   self.cores_specification.physical_properties.y,
-                                                  len(self.cores_specification.cores_frequencies))
+                                                  len(self.cores_specification.operating_frequencies))
 
     @classmethod
     def __generate_automatic_origins(cls, x0: float, x1: float, y0: float, y1: float, mx: float, my: float,
