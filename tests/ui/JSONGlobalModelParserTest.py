@@ -32,12 +32,9 @@ class JSONGlobalModelParserTest(unittest.TestCase):
         with open(absolute_schema_path, 'r') as fp:
             schema = json.load(fp)
 
-        resolver = RefResolver(
-            # The key part is here where we build a custom RefResolver
-            # and tell it where *this* schema lives in the filesystem
-            # Note that `file:` is for unix systems
-            'file://'.format(schema), schema
-        )
+        base_uri = 'file://' + absolute_schema_path
+        resolver = RefResolver.from_schema(schema, base_uri=base_uri)
+
         Draft7Validator.check_schema(schema)  # Unnecessary but a good idea
         validator = Draft7Validator(schema, resolver=resolver, format_checker=None)
 
@@ -45,9 +42,20 @@ class JSONGlobalModelParserTest(unittest.TestCase):
 
         validator.validate(input_json)
 
-
         schema_json = self._load_json_schema(schema_base_path, schema_name)
         JSONGlobalModelParser.validate_input(input_json, schema_json)
+
+        i = 0
+
+    def test_json_validator_2(self):
+        input_path = "../../tests/cli/input-example-thermal-aperiodics-energy.json"
+        schema_base_path = "../../out/output.json"
+
+        _, _, input_json = JSONGlobalModelParser.read_input(input_path)
+
+        _, _, schema_json = JSONGlobalModelParser.read_input(schema_base_path)
+
+        errors, message = JSONGlobalModelParser.validate_input(input_json, schema_json)
 
         i = 0
 

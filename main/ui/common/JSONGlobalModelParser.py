@@ -2,6 +2,7 @@ import json
 import os
 from typing import Dict, List, Tuple, Optional
 
+import jsonref
 import jsonschema
 from jsonschema import ValidationError
 
@@ -41,10 +42,23 @@ class JSONGlobalModelParser(object):
         except IOError:
             return True, "Error: Can't read the file " + input_path, None
 
+    @classmethod
+    def read_input_with_references(cls, input_path) -> [bool, str, Optional[Dict]]:
+        # relative_schema_path = os.path.join(schema_base_path, schema_name)
+        # absolute_schema_path = os.path.join(os.path.dirname(__file__), relative_schema_path)
+        try:
+            with open(input_path, "r") as read_file:
+                try:
+                    input_schema: Dict = jsonref.load(read_file)
+                    return False, "", input_schema
+                except ValueError:
+                    return True, "Error: Wrong json file syntax", None
+        except IOError:
+            return True, "Error: Can't read the file " + input_path, None
+
     @staticmethod
     def validate_input(input_json: Dict, schema_json: Dict) -> [bool, str]:
         # Validate the input
-        # TODO: Fix to allow reference in input
         try:
             jsonschema.validate(input_json, schema_json)
             return False, ""
