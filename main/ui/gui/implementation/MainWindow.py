@@ -432,11 +432,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.label_status.setText("Status: Processing data")
 
         # Path of the input validate schema
-        # Warning: In python paths are relative to the entry point script path
-        input_schema_path = './main/ui/cli/input_schema/input-schema.json'
+        input_schema_path = './input_schema/input-schema.json'
+        absolute_input_schema_path = os.path.join(os.path.dirname(__file__), input_schema_path)
 
         # Read schema
-        error, message, schema_object = JSONGlobalModelParser.read_input(input_schema_path)
+        error, message, schema_object = JSONGlobalModelParser.read_input(absolute_input_schema_path)
 
         if not error:
             # Validate schema
