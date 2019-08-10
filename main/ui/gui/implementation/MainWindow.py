@@ -70,7 +70,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         :param path: Path where JSON object is stored
         """
         # Path of the input validate schema
-        input_schema_path = './input_schema/input-schema.json'
+        input_schema_path = '../../cli/input_schema/input-schema.json'
         absolute_input_schema_path = os.path.join(os.path.dirname(__file__), input_schema_path)
 
         # Read schema
@@ -432,7 +432,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.label_status.setText("Status: Processing data")
 
         # Path of the input validate schema
-        input_schema_path = './input_schema/input-schema.json'
+        input_schema_path = '../../cli/input_schema/input-schema.json'
         absolute_input_schema_path = os.path.join(os.path.dirname(__file__), input_schema_path)
 
         # Read schema
