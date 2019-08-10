@@ -404,8 +404,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             }
 
         # Execute simulation
-        simulation_thread = threading.Thread(target=(lambda: self.__execute_simulation(data_as_json)))
-        simulation_thread.start()
+        # FIXME: The simulation will end even if the window is closed
+        simulator_thread = threading.Thread(target=(lambda: self.__execute_simulation(data_as_json)))
+        simulator_thread.start()
 
     def __execute_simulation(self, input_object):
         """
@@ -482,7 +483,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             except Exception:
                 self.label_status.setText("Error while solving the problem")
         else:
-            self.label_status.setText("Status:" +  message)
+            self.label_status.setText("Status:" + message)
 
         # Enable all tabs
         self.tab_simulation.setEnabled(enable_tab_simulation)
