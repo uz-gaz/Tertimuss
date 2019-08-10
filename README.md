@@ -47,6 +47,14 @@ This script may take one argument
 $ python gui_launcher.py
 ```
 
+# Developers
+## Compile JSONSchema
+Each time you modify any file of the input schema, you must recompile it
+```bash
+$ cd SchedulerFrameworkTCPN/main/ui/common/json_ref_parser
+$ npm run parse-json ../../cli/input_schema/global-schema.json ../../cli/input_schema/input-schema.json
+```
+
 # Architecture
 ![Architecture](doc/diagrams/architecture.png)
 
