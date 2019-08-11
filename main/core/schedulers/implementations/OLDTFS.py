@@ -265,7 +265,8 @@ class GlobalThermalAwareScheduler(AbstractBaseScheduler):
         a_eq = scipy.tile(scipy.eye(n), m)
 
         au = scipy.linalg.block_diag(
-            *(m * [[i.c for i in global_specification.tasks_specification.periodic_tasks]])) / h
+            *(m * [[i.c / global_specification.cpu_specification.cores_specification.available_frequencies[-1] for i in
+                    global_specification.tasks_specification.periodic_tasks]])) / h
 
         beq = scipy.transpose(ia)
         bu = scipy.ones((m, 1))
@@ -280,24 +281,36 @@ class GlobalThermalAwareScheduler(AbstractBaseScheduler):
         ct_exec = None
         b_ta = None
         s_t = None
+        a_t_inv = None
 
         # Optimization
         if is_thermal_simulation:
             a_t, ct_exec, b_ta, s_t = GlobalThermalAwareScheduler.__obtain_thermal_constraint(global_specification)
-            a_int = - s_t.dot(scipy.sparse.linalg.inv(a_t)).dot(ct_exec).dot(scipy.sparse.csc_matrix(c_h))
-            a_int = a_int.toarray()
+
+            # Inverse precision
+            # WARNING: This is a workaround to deal with float precision
+            inverse_precision = 5
 
             a_t_inv = scipy.sparse.linalg.inv(a_t)
+            a_t_precision = a_t.copy()
+            a_t_precision.data = a_t_precision.data.round(inverse_precision)
+            a_t_inv_precision = scipy.sparse.linalg.inv(a_t_precision)
 
             # Fixme: La matriz resultante de la inversa propicia a muchos errores
-            a_t_2 = a_t.toarray()
             a_t_inv_2 = a_t_inv.toarray()
-            inverse_check = a_t_2.dot(a_t_inv_2)
+            a_t_inv_precision_2 = a_t_inv_precision.toarray()
+            inverse_check = a_t.dot(a_t_inv).toarray()
+            inverse_check_precision = a_t.dot(a_t_inv_precision).toarray()
+            inverse_check_full_precision = a_t_precision.dot(a_t_inv_precision).toarray()
+
+            a_t_inv = a_t_inv_precision
+
+            a_int = - s_t.dot(a_t_inv).dot(ct_exec).dot(scipy.sparse.csc_matrix(c_h))
+            a_int = a_int.toarray()
 
             b_int = scipy.sparse.csr_matrix(
-                scipy.full((m, 1), global_specification.environment_specification.t_max)) + (
-                        s_t.dot(scipy.sparse.linalg.inv(a_t)).dot(
-                            b_ta.reshape((-1, 1)))) * global_specification.environment_specification.t_env
+                scipy.full((m, 1), global_specification.environment_specification.t_max)) + (s_t.dot(a_t_inv).dot(
+                b_ta.reshape((-1, 1)))) * global_specification.environment_specification.t_env
 
             b_int = b_int.toarray()
 
@@ -308,7 +321,7 @@ class GlobalThermalAwareScheduler(AbstractBaseScheduler):
             b = bu
 
         # Interior points was the default in the original version, but i found that simplex has better results
-        res = scipy.optimize.linprog(c=objective, A_ub=a, b_ub=b, A_eq=a_eq, b_eq=beq, bounds=bounds, method='simplex')
+        res = scipy.optimize.linprog(c=objective, A_ub=a, b_ub=b, A_eq=a_eq, b_eq=beq, bounds=bounds, method='interior-point')
 
         if not res.success:
             # No solution found
@@ -338,15 +351,15 @@ class GlobalThermalAwareScheduler(AbstractBaseScheduler):
 
         if is_thermal_simulation:
             # Solve differential equation to get a initial condition
-            theta = scipy.linalg.expm(a_t * h)
+            theta = scipy.linalg.expm(a_t.toarray() * h)
 
-            beta_1 = (scipy.linalg.inv(a_t)).dot(
-                theta - scipy.identity(len(a_t)))
-            beta_2 = beta_1.dot(b_ta.reshape((- 1, 1)))
-            beta_1 = beta_1.dot(ct_exec)
+            beta_1 = a_t_inv.toarray().dot(
+                theta - scipy.identity(a_t.shape[0]))
+            beta_2 = beta_1.dot(b_ta.toarray())
+            beta_1 = beta_1.dot(ct_exec.toarray())
 
             # Set initial condition to zero to archive a final condition where initial = final, SmT(0) = Y(H)
-            m_t_o = scipy.zeros((len(a_t), 1))
+            m_t_o = scipy.zeros((a_t.shape[0], 1))
 
             w_alloc_max = j_fsc_i / quantum
             m_t_max = theta.dot(m_t_o) + beta_1.dot(
