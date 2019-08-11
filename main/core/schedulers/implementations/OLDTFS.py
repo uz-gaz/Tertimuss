@@ -4,6 +4,7 @@ from typing import List, Optional
 
 import scipy
 import scipy.sparse
+import scipy.sparse.linalg
 
 import scipy.optimize
 
@@ -31,6 +32,114 @@ class GlobalThermalAwareScheduler(AbstractBaseScheduler):
 
     @staticmethod
     def __obtain_thermal_constraint(global_specification: GlobalSpecification) \
+            -> [scipy.sparse.csc_matrix, scipy.sparse.csc_matrix, scipy.sparse.csc_matrix, scipy.sparse.csc_matrix]:
+
+        tasks_specification = TasksSpecification(global_specification.tasks_specification.periodic_tasks)
+        cpu_specification = global_specification.cpu_specification
+        environment_specification = global_specification.environment_specification
+        simulation_specification = global_specification.simulation_specification
+        tcpn_model_specification = global_specification.tcpn_model_specification
+
+        # Number of cores
+        m = len(cpu_specification.cores_specification.operating_frequencies)
+
+        # Board and micros conductivity
+        pre_board_cond, post_board_cond, lambda_board_cond = tcpn_model_specification.thermal_model_selector.value.simple_conductivity(
+            cpu_specification.board_specification.physical_properties,
+            simulation_specification)
+
+        pre_micro_cond, post_micro_cond, lambda_micro_cond = tcpn_model_specification.thermal_model_selector.value.simple_conductivity(
+            cpu_specification.cores_specification.physical_properties, simulation_specification)
+
+        # Number of places for the board
+        p_board = pre_board_cond.shape[0]
+
+        # Number of places and transitions for one CPU
+        p_one_micro = pre_micro_cond.shape[0]
+
+        # Create pre, post and lambda from the system with board and number of CPUs
+        pre_cond = scipy.sparse.block_diag(([pre_board_cond] + [pre_micro_cond.copy() for _ in
+                                                                range(m)]))
+        del pre_board_cond  # Recover memory space
+        del pre_micro_cond  # Recover memory space
+
+        post_cond = scipy.sparse.block_diag(([post_board_cond] + [post_micro_cond.copy() for _ in
+                                                                  range(m)]))
+        del post_board_cond  # Recover memory space
+        del post_micro_cond  # Recover memory space
+
+        lambda_vector_cond = scipy.concatenate(
+            [lambda_board_cond] + m * [lambda_micro_cond])
+        del lambda_board_cond  # Recover memory space
+        del lambda_micro_cond  # Recover memory space
+
+        # Add transitions between micro and board
+        # Connections between micro places and board places
+        pre_int, post_int, lambda_vector_int = tcpn_model_specification.thermal_model_selector.value.add_interactions_layer(
+            p_board, p_one_micro, cpu_specification,
+            simulation_specification.mesh_step,
+            simulation_specification)
+
+        # Convection
+        pre_conv, post_conv, lambda_vector_conv, pre_conv_air, post_conv_air, lambda_vector_conv_air = \
+            tcpn_model_specification.thermal_model_selector.value.add_convection(p_board, p_one_micro,
+                                                                                 cpu_specification,
+                                                                                 environment_specification,
+                                                                                 simulation_specification)
+
+        # Heat generation dynamic
+        pre_heat_dynamic, post_heat_dynamic, lambda_vector_heat_dynamic, power_consumption = \
+            tcpn_model_specification.thermal_model_selector.value.add_heat_by_dynamic_power(p_board,
+                                                                                            p_one_micro,
+                                                                                            cpu_specification,
+                                                                                            tasks_specification,
+                                                                                            simulation_specification)
+
+        # Number places of boards and micros
+        places_board_and_micros = m * p_one_micro + p_board
+
+        # Creation of pre matrix
+        pre = scipy.sparse.hstack([pre_cond, pre_int, pre_conv, pre_heat_dynamic[:places_board_and_micros]])
+
+        # Creation of post matrix
+        post = scipy.sparse.hstack([post_cond, post_int, post_conv, post_heat_dynamic[:places_board_and_micros]])
+
+        # Creation of lambda matrix
+        lambda_vector = scipy.concatenate([lambda_vector_cond, lambda_vector_int, lambda_vector_conv,
+                                           lambda_vector_heat_dynamic])
+
+        # Creation of pre matrix
+        pre_2 = scipy.sparse.hstack([pre_cond, pre_int])
+
+        # Creation of post matrix
+        post_2 = scipy.sparse.hstack([post_cond, post_int])
+
+        # Creation of lambda matrix
+        lambda_vector_2 = scipy.concatenate([lambda_vector_cond, lambda_vector_int])
+
+        a_t = (pre - post).dot(scipy.sparse.diags(lambda_vector.reshape(-1))).dot(pre.transpose())
+
+        ct_exec = (post_heat_dynamic[:places_board_and_micros]).dot(scipy.sparse.diags(lambda_vector_heat_dynamic))
+
+        b_ta = (post_conv.dot(scipy.sparse.diags(lambda_vector_conv))).dot(
+            scipy.sparse.csc_matrix(scipy.ones((p_board, 1))))
+
+        # Creation of S_T
+        s_t = scipy.sparse.lil_matrix((m, p_board + m * p_one_micro))
+
+        for i in range(m):
+            s_t[i, p_board + i * p_one_micro + int(p_one_micro / 2)] = 1
+
+        # New variables
+        a = (post_2 - pre_2).dot(scipy.sparse.diags(lambda_vector_2.reshape(-1))).dot(pre_2.transpose())
+        b = (post_heat_dynamic - pre_heat_dynamic)[:places_board_and_micros, :]
+        b_star = scipy.sparse.vstack(
+            [lambda_vector_conv.reshape((-1, 1)), scipy.sparse.lil_matrix((m * p_one_micro, 1))])
+
+        return a.tocsc(), b.tocsc(), scipy.sparse.csc_matrix(b_star), s_t.tocsc()
+
+    @staticmethod
+    def __obtain_thermal_constraint_2(global_specification: GlobalSpecification) \
             -> [scipy.ndarray, scipy.ndarray, scipy.ndarray, scipy.ndarray]:
 
         tasks_specification = TasksSpecification(global_specification.tasks_specification.periodic_tasks)
@@ -107,6 +216,15 @@ class GlobalThermalAwareScheduler(AbstractBaseScheduler):
         lambda_vector = scipy.concatenate([lambda_vector_cond, lambda_vector_int, lambda_vector_conv,
                                            lambda_vector_heat_dynamic])
 
+        # Creation of pre matrix
+        pre_2 = scipy.sparse.hstack([pre_cond, pre_int])
+
+        # Creation of post matrix
+        post_2 = scipy.sparse.hstack([post_cond, post_int])
+
+        # Creation of lambda matrix
+        lambda_vector_2 = scipy.concatenate([lambda_vector_cond, lambda_vector_int])
+
         a_t = (pre - post).dot(scipy.sparse.diags(lambda_vector.reshape(-1))).dot(pre.transpose())
 
         ct_exec = (post_heat_dynamic[:places_board_and_micros]).dot(scipy.sparse.diags(lambda_vector_heat_dynamic))
@@ -119,6 +237,11 @@ class GlobalThermalAwareScheduler(AbstractBaseScheduler):
 
         for i in range(m):
             s_t[i, p_board + i * p_one_micro + int(p_one_micro / 2)] = 1
+
+        # New variables
+        a = (post_2 - pre_2).dot(scipy.sparse.diags(lambda_vector_2.reshape(-1))).dot(pre_2.transpose())
+        b = (post_heat_dynamic - pre_heat_dynamic)[:places_board_and_micros, :]
+        b_star = lambda_vector_conv.reshape((-1, 1))
 
         return a_t.toarray(), ct_exec.toarray(), b_ta.toarray(), s_t.toarray()
 
@@ -134,7 +257,9 @@ class GlobalThermalAwareScheduler(AbstractBaseScheduler):
 
         # Inequality constraint
         # Create matrix diag([cc1/H ... ccn/H cc1/H .....]) of n*m
-        ch_vector = scipy.asarray(m * [i.c for i in global_specification.tasks_specification.periodic_tasks]) / h
+        ch_vector = scipy.asarray(
+            m * [i.c / global_specification.cpu_specification.cores_specification.available_frequencies[-1] for i in
+                 global_specification.tasks_specification.periodic_tasks]) / h
         c_h = scipy.diag(ch_vector)
 
         a_eq = scipy.tile(scipy.eye(n), m)
@@ -160,11 +285,23 @@ class GlobalThermalAwareScheduler(AbstractBaseScheduler):
         if is_thermal_simulation:
             a_t, ct_exec, b_ta, s_t = GlobalThermalAwareScheduler.__obtain_thermal_constraint(global_specification)
 
-            a_int = - ((s_t.dot(scipy.linalg.inv(a_t))).dot(ct_exec)).dot(c_h)
+            # a_int = - ((s_t.dot(scipy.sparse.linalg.inv(a_t.tocsc()).tocsr())).dot(ct_exec)).dot(
+            #     scipy.sparse.csr_matrix(c_h))
+            a_int = - s_t.dot(scipy.sparse.linalg.inv(a_t)).dot(ct_exec).dot(scipy.sparse.csc_matrix(c_h))
+            a_int = a_int.toarray()
 
-            b_int = global_specification.environment_specification.t_max * scipy.ones((m, 1)) + (
-                (s_t.dot(scipy.linalg.inv(a_t))).dot(
-                    b_ta.reshape((-1, 1)))) * global_specification.environment_specification.t_env
+            a_t_inv = scipy.sparse.linalg.inv(a_t)
+
+            a_t_2 = a_t.toarray()
+            a_t_inv_2 = a_t_inv.toarray()
+            inverse_check = a_t_2.dot(a_t_inv_2)
+
+            b_int = scipy.sparse.csr_matrix(
+                scipy.full((m, 1), global_specification.environment_specification.t_max)) + (
+                        s_t.dot(scipy.sparse.linalg.inv(a_t)).dot(
+                            b_ta.reshape((-1, 1)))) * global_specification.environment_specification.t_env
+
+            b_int = b_int.toarray()
 
             a = scipy.concatenate((a_int, au))
             b = scipy.concatenate((b_int.transpose(), bu.transpose()), axis=1)
