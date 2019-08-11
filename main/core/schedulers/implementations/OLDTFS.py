@@ -335,14 +335,14 @@ class GlobalThermalAwareScheduler(AbstractBaseScheduler):
         for time_q in range(steps_in_quantum):
             for j in range(self.__m):
                 for i in range(self.__n):
-                    # Calculo del error, y la superficie para el sliding mode control
+                    # Obtain the thermal fluid execution error
                     e_i_fsc_j = j_fsc_i[i + j * self.__n] * time - m_exec_step[i + j * self.__n]
 
-                    # Cambio de variables
+                    # Change of variable
                     x1 = e_i_fsc_j
-                    x2 = m_busy[i + j * self.__n]  # m_bussy
+                    x2 = m_busy[i + j * self.__n]
 
-                    # Superficie
+                    # Sliding surface
                     s = x1 - x2 + j_fsc_i[i + j * self.__n]
 
                     # Control Para tareas temporal en cada procesador w_alloc control en I_tau
