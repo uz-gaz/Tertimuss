@@ -284,14 +284,12 @@ class GlobalThermalAwareScheduler(AbstractBaseScheduler):
         # Optimization
         if is_thermal_simulation:
             a_t, ct_exec, b_ta, s_t = GlobalThermalAwareScheduler.__obtain_thermal_constraint(global_specification)
-
-            # a_int = - ((s_t.dot(scipy.sparse.linalg.inv(a_t.tocsc()).tocsr())).dot(ct_exec)).dot(
-            #     scipy.sparse.csr_matrix(c_h))
             a_int = - s_t.dot(scipy.sparse.linalg.inv(a_t)).dot(ct_exec).dot(scipy.sparse.csc_matrix(c_h))
             a_int = a_int.toarray()
 
             a_t_inv = scipy.sparse.linalg.inv(a_t)
 
+            # Fixme: La matriz resultante de la inversa propicia a muchos errores
             a_t_2 = a_t.toarray()
             a_t_inv_2 = a_t_inv.toarray()
             inverse_check = a_t_2.dot(a_t_inv_2)
