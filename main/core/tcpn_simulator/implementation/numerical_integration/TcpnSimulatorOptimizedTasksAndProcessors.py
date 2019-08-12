@@ -47,7 +47,7 @@ class TcpnSimulatorOptimizedTasksAndProcessors(AbstractTcpnSimulator):
             self.__number_of_steps)
 
     @staticmethod
-    def __calculate_a(c: scipy.sparse.csr_matrix , lambda_vector: scipy.ndarray, pi: scipy.sparse.csr_matrix,
+    def __calculate_a(c: scipy.sparse.csr_matrix, lambda_vector: scipy.ndarray, pi: scipy.sparse.csr_matrix,
                       fragmented_dt: float) -> scipy.sparse.csr_matrix:
         """
         Calculate a matrix

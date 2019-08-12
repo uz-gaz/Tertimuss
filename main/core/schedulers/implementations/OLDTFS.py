@@ -15,20 +15,30 @@ from main.core.schedulers.templates.abstract_base_scheduler.AbstractBaseSchedule
 from main.core.schedulers.templates.abstract_base_scheduler.BaseSchedulerAperiodicTask import BaseSchedulerAperiodicTask
 from main.core.schedulers.templates.abstract_base_scheduler.BaseSchedulerPeriodicTask import BaseSchedulerPeriodicTask
 from main.core.schedulers.templates.abstract_base_scheduler.BaseSchedulerTask import BaseSchedulerTask
+from main.core.tcpn_model_generator.ProcessorModel import ProcessorModel
+from main.core.tcpn_model_generator.TasksModel import TasksModel
+from main.core.tcpn_simulator.implementation.numerical_integration.TcpnSimulatorOptimizedTasksAndProcessors import \
+    TcpnSimulatorOptimizedTasksAndProcessors
 
 
 class GlobalThermalAwareScheduler(AbstractBaseScheduler):
     def __init__(self) -> None:
         super().__init__()
-        self.sd = None
-        self.j_fsc_i = None
-        self.m_exec_accumulated = None
-        self.quantum = None
-        self.m_exec_step = None
-        self.m_busy = None
-        self.step = None
+        # Scheduler variables
+        self.__set_of_deadlines = None
+        self.__j_fsc_i = None
+        self.__m_exec_accumulated = None
+        self.__quantum = None
+
+        # Specification variables
+        self.__dt = None
         self.__m = None
         self.__n = None
+
+        # TCPN simulator variables
+        self.__tcpn_simulator = None
+        self.__tcpn_mo = None
+        self.__tcpn_lambda_len = None
 
     @staticmethod
     def __obtain_thermal_constraint(global_specification: GlobalSpecification) \
@@ -238,6 +248,69 @@ class GlobalThermalAwareScheduler(AbstractBaseScheduler):
 
         return j_fsc_i, quantum
 
+    @staticmethod
+    def __obtain_tasks_processors_tcpn_model(global_specification: GlobalSpecification) -> [scipy.sparse.csr_matrix,
+                                                                                            scipy.sparse.csr_matrix,
+                                                                                            scipy.sparse.csr_matrix,
+                                                                                            scipy.ndarray,
+                                                                                            scipy.ndarray]:
+        # As the scheduler only accepts periodic tasks, it is not necessary to include aperiodic tasks in the TCPN
+        # model of the scheduler
+        n_periodic = len(global_specification.tasks_specification.periodic_tasks)
+
+        m = len(global_specification.cpu_specification.cores_specification.operating_frequencies)
+
+        # Create tasks-processors model
+        tasks_model: TasksModel = TasksModel(
+            TasksSpecification(global_specification.tasks_specification.periodic_tasks),
+            global_specification.cpu_specification,
+            global_specification.simulation_specification)
+
+        processor_model: ProcessorModel = ProcessorModel(global_specification.tasks_specification,
+                                                         global_specification.cpu_specification,
+                                                         global_specification.simulation_specification)
+
+        pre = scipy.sparse.vstack([
+            scipy.sparse.hstack([tasks_model.pre_tau, tasks_model.pre_alloc_tau, scipy.sparse.csr_matrix(
+                (n_periodic + n_periodic, n_periodic * m),
+                dtype=global_specification.simulation_specification.type_precision)]),
+
+            scipy.sparse.hstack([scipy.sparse.csr_matrix(
+                (m * (2 * n_periodic + 1), n_periodic),
+                dtype=global_specification.simulation_specification.type_precision),
+                processor_model.pre_alloc_proc, processor_model.pre_exec_proc])
+        ])
+
+        post = scipy.sparse.vstack([
+            scipy.sparse.hstack([tasks_model.post_tau, tasks_model.post_alloc_tau,
+                                 scipy.sparse.csr_matrix(
+                                     (2 * n_periodic, n_periodic * m),
+                                     dtype=global_specification.simulation_specification.type_precision)]),
+            scipy.sparse.hstack([scipy.sparse.csr_matrix(
+                (m * (2 * n_periodic + 1), n_periodic),
+                dtype=global_specification.simulation_specification.type_precision),
+                processor_model.post_alloc_proc, processor_model.post_exec_proc])
+        ])
+
+        pi = scipy.sparse.vstack([
+            scipy.sparse.hstack([tasks_model.pi_tau, tasks_model.pi_alloc_tau,
+                                 scipy.sparse.csr_matrix(
+                                     (2 * n_periodic, n_periodic * m),
+                                     dtype=global_specification.simulation_specification.type_precision)]),
+            scipy.sparse.hstack([scipy.sparse.csr_matrix(
+                (m * (2 * n_periodic + 1), n_periodic),
+                dtype=global_specification.simulation_specification.type_precision),
+                processor_model.pi_alloc_proc,
+                processor_model.pi_exec_proc])
+        ]).transpose()
+
+        lambda_vector = scipy.block([tasks_model.lambda_vector_tau, processor_model.lambda_vector_alloc_proc,
+                                     processor_model.lambda_vector_exec_proc])
+
+        mo = scipy.block([[tasks_model.mo_tau], [processor_model.mo_proc]])
+
+        return pre, post, pi, lambda_vector, mo
+
     def offline_stage(self, global_specification: GlobalSpecification,
                       periodic_tasks: List[BaseSchedulerPeriodicTask],
                       aperiodic_tasks: List[BaseSchedulerAperiodicTask]) -> float:
@@ -248,9 +321,9 @@ class GlobalThermalAwareScheduler(AbstractBaseScheduler):
         :param global_specification: Global specification
         :return: 1 - Scheduling quantum (default will be the step specified in problem creation)
         """
-
         is_thermal_simulation = global_specification.environment_specification is not None
 
+        # Obtain quantum and FSC
         j_fsc_i, quantum = self.__solve_linear_programing_problem(global_specification, is_thermal_simulation)
 
         # Number of tasks
@@ -263,25 +336,37 @@ class GlobalThermalAwareScheduler(AbstractBaseScheduler):
 
         jobs = [int(i) for i in global_specification.tasks_specification.h / ti]
 
-        diagonal = scipy.zeros((n, scipy.amax(jobs)))
+        d = scipy.zeros((n, scipy.amax(jobs)))
 
-        kd = 1
         sd_u = []
         for i in range(n):
-            diagonal[i, 0: jobs[i]] = list(scipy.arange(ti[i], global_specification.tasks_specification.h + 1, ti[i]))
-            sd_u = scipy.union1d(sd_u, diagonal[i, 0: jobs[i]])
+            d[i, 0: jobs[i]] = list(scipy.arange(ti[i], global_specification.tasks_specification.h + 1, ti[i]))
+            sd_u = scipy.union1d(sd_u, d[i, 0: jobs[i]])
 
         sd_u = scipy.union1d(sd_u, [0])
 
-        self.sd = sd_u[kd]
-        self.j_fsc_i = j_fsc_i
-        self.m_exec_accumulated = scipy.zeros(n * m)
-        self.quantum = quantum
-        self.m_exec_step = scipy.zeros(n * m)
+        # TCPN processor and tasks simulator that the scheduler needs to work
+        tcpn_pre, tcpn_post, tcpn_pi, tcpn_lambda, tcpn_mo = self.__obtain_tasks_processors_tcpn_model(
+            global_specification)
 
-        self.m_busy = scipy.zeros(n * m)
+        self.__tcpn_simulator = TcpnSimulatorOptimizedTasksAndProcessors(tcpn_pre,
+                                                                         tcpn_post,
+                                                                         tcpn_pi,
+                                                                         tcpn_lambda,
+                                                                         global_specification.simulation_specification.dt_fragmentation_processor_task,
+                                                                         global_specification.simulation_specification.dt)
+        self.__tcpn_lambda_len = tcpn_lambda.shape[0]
 
-        self.step = global_specification.simulation_specification.dt
+        # Set of deadlines
+        self.__set_of_deadlines = sd_u[1:]
+
+        self.__j_fsc_i = j_fsc_i
+        self.__m_exec_accumulated = scipy.zeros(n * m)
+        self.__quantum = quantum
+
+        self.__tcpn_mo = tcpn_mo
+
+        self.__dt = global_specification.simulation_specification.dt
 
         self.__m = m
         self.__n = n
@@ -316,96 +401,87 @@ class GlobalThermalAwareScheduler(AbstractBaseScheduler):
                  3 - cores relatives frequencies for the next quantum (if None, will be taken the frequencies specified
                   in the problem specification)
         """
+        # Actual deadline
+        actual_deadline = self.__set_of_deadlines[0]
 
-        sd = self.sd
+        # Update deadline
+        if round(actual_deadline / self.__dt) == round(time / self.__dt):
+            self.__set_of_deadlines = self.__set_of_deadlines[1:]
 
-        w_alloc = scipy.zeros(self.__n * self.__m)
-        j_fsc_i = self.j_fsc_i
+        # Sliding mode control
+        steps_in_quantum = int(round(self.__quantum / self.__dt))
 
-        i_re_j = scipy.zeros(self.__n * self.__m)
-        i_pr_j = scipy.zeros((self.__m, self.__n))
+        for q_time in range(steps_in_quantum):
+            # Obtain m_busy mark
+            m_busy = scipy.concatenate([
+                self.__tcpn_mo[2 * self.__n + (2 * self.__n + 1) * i: 2 * self.__n + (2 * self.__n + 1) * i + self.__n,
+                0].reshape(-1) for i in range(self.__m)])
 
-        steps_in_quantum = int(round(self.quantum / self.step))
-        step = self.step
-        m_exec_step = self.m_exec_step
+            # Obtain m_exec mark
+            m_exec = scipy.concatenate([
+                self.__tcpn_mo[
+                2 * self.__n + (2 * self.__n + 1) * i + self.__n: 2 * self.__n + (2 * self.__n + 1) * i + 2 * self.__n,
+                0].reshape(-1) for i in range(self.__m)])
 
-        m_busy = self.m_busy
-        m_exec_accumulated = self.m_exec_accumulated
+            # Obtain the thermal fluid execution error
+            e_i_fsc_j = self.__j_fsc_i * (time + q_time * self.__dt) - m_exec
 
-        for time_q in range(steps_in_quantum):
-            for j in range(self.__m):
-                for i in range(self.__n):
-                    # Obtain the thermal fluid execution error
-                    e_i_fsc_j = j_fsc_i[i + j * self.__n] * time - m_exec_step[i + j * self.__n]
+            # Change of variable
+            x1 = e_i_fsc_j
+            x2 = m_busy
 
-                    # Change of variable
-                    x1 = e_i_fsc_j
-                    x2 = m_busy[i + j * self.__n]
+            # Sliding surface
+            s = x1 - x2 + self.__j_fsc_i
 
-                    # Sliding surface
-                    s = x1 - x2 + j_fsc_i[i + j * self.__n]
+            # Control for each task-processor pair
+            w_alloc = (self.__j_fsc_i * scipy.asarray([scipy.sign(i) for i in s]) + self.__j_fsc_i) / 2
 
-                    # Control Para tareas temporal en cada procesador w_alloc control en I_tau
-                    w_alloc[i + j * self.__n] = (j_fsc_i[i + j * self.__n] * scipy.sign(s) + j_fsc_i[
-                        i + j * self.__n]) / 2
+            # Simulate TCPN
+            new_control = scipy.ones(self.__tcpn_lambda_len)
+            new_control[-self.__m * self.__n:] = w_alloc
 
-            m_busy = w_alloc * step
-            m_exec_step = m_exec_step + w_alloc * step
+            # TODO: ver porque la simulación falla
+            self.__tcpn_simulator.set_control(new_control)
+            mo = self.__tcpn_mo
+            mo_next = self.__tcpn_simulator.simulate_step(self.__tcpn_mo)
+            self.__tcpn_mo = mo_next
 
-        # DISCRETIZATION
-        # Se inicializa el conjunto ET de transiciones de tareas para el modelo discreto
-        et = scipy.zeros((self.__m, self.__n), dtype=int)
+        # Discretization
+        # Obtain m_exec mark
+        m_exec = scipy.concatenate([
+            self.__tcpn_mo[
+            2 * self.__n + (2 * self.__n + 1) * i + self.__n: 2 * self.__n + (2 * self.__n + 1) * i + 2 * self.__n,
+            0].reshape(-1) for i in range(self.__m)])
 
-        fsc = scipy.zeros(self.__m * self.__n)
+        # Remaining jobs execution Re_tau(j,i) calculation
+        fsc = self.__j_fsc_i * actual_deadline
 
-        # Se calcula el remaining jobs execution Re_tau(j,i)
-        for j in range(self.__m):
-            for i in range(self.__n):
-                fsc[i + j * self.__n] = j_fsc_i[i + j * self.__n] * sd
-                i_re_j[i + j * self.__n] = m_exec_step[i + j * self.__n] - m_exec_accumulated[i + j * self.__n]
+        re = m_exec - self.__m_exec_accumulated
+        et = [i % self.__n if round(re[i], 4) == 0 else 0 for i in range(self.__n * self.__m)]
 
-                if round(i_re_j[i + j * self.__n], 4) > 0:
-                    et[j, i] = i + 1
+        pr = fsc - re
 
+        # Tasks that will be executed
         w_alloc = self.__m * [-1]
 
+        # Tasks that can be executed this quantum
+        executable_tasks = [i.id for i in executable_tasks]
+
         for j in range(self.__m):
-            # Si el conjunto no es vacio por cada j-esimo CPU, entonces se procede a
-            # calcular la prioridad de cada tarea a ser asignada
-            if scipy.count_nonzero(et[j]) > 0:
-                # Prioridad es igual al marcado del lugar continuo menos el marcado del lugar discreto
-                i_pr_j[j, :] = j_fsc_i[j * self.__n: j * self.__n + self.__n] * \
-                               sd - m_exec_accumulated[j * self.__n:j * self.__n + self.__n]
+            # Executable tasks in CPU j
+            cpu_j_executable_tasks = [i if i not in w_alloc and i in executable_tasks else 0 for i in
+                                      et[self.__n * j: self.__n * j + self.__n]]
 
-                # Se ordenan de manera descendente por orden de prioridad,
-                # IndMaxPr contiene los indices de las tareas ordenado de mayor a
-                # menor prioridad
-                ind_max_pr = scipy.flip(scipy.argsort(i_pr_j[j, :]))
+            # If exist at least one executable task
+            if scipy.count_nonzero(cpu_j_executable_tasks) > 0:
+                # Obtain the tasks priority order
+                ind_max_pr = scipy.flip(scipy.argsort(pr[self.__n * j: self.__n * j + self.__n]))
 
-                # Si en el vector ET(j,k) existe un cero entonces significa que en
-                # la posicion k la tarea no tine a Re_tau(j,k)>0 (es decir la tarea ya ejecuto lo que debía)
-                # entonces hay que incrementar a la siguiente posicion k+1 para tomar a la tarea de
-                # mayor prioridad
-                k = 0
-                while et[j, ind_max_pr[k]] == 0:
-                    k = k + 1
+                # Only keep index of tasks that can be executed
+                ind_max_pr = [i for i in ind_max_pr if cpu_j_executable_tasks[i] != 0]
 
-                # Se toma la tarea de mayor prioridad en el conjunto ET
-                ind_max_pr = et[j, ind_max_pr[k]] - 1
+                w_alloc[j] = ind_max_pr[0]
 
-                # si se asigna la procesador j la tarea de mayor prioridad IndMaxPr(1), entonces si en el
-                # conjunto ET para los procesadores restantes debe pasar que ET(k,IndMaxPr(1))=0,
-                # para evitar que las tareas se ejecuten de manera paralela
-                for k in range(self.__m):
-                    if j != k:
-                        et[k, ind_max_pr] = 0
-
-                w_alloc[j] = ind_max_pr
-
-                m_exec_accumulated[ind_max_pr + j * self.__n] += self.quantum
-
-        self.m_exec_step = m_exec_step
-        self.m_busy = m_busy
-        self.m_exec_accumulated = m_exec_accumulated
+                self.__m_exec_accumulated[j * self.__n + ind_max_pr[0]] += self.__quantum
 
         return w_alloc, None, None
