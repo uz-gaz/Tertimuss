@@ -22,7 +22,7 @@
   },
   "required": [
     "available_frequencies",
-    "cores_frequencies"
+    "operating_frequencies"
   ],
   "additionalProperties": false
 }

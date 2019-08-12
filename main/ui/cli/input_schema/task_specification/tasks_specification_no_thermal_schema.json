@@ -12,14 +12,12 @@
         "Manual",
         "Automatic"
       ]
-    },
-    "tasks": {
     }
   },
   "required": [
     "task_generation_system"
   ],
-  "allOf": [
+  "oneOf": [
     {
       "if": {
         "properties": {

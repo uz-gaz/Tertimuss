@@ -78,18 +78,21 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         if error:
             self.label_status.setText("Status:" + message)
+            return
 
         # Read input
         error, message, input_object = JSONGlobalModelParser.read_input(path)
 
         if error:
             self.label_status.setText("Status:" + message)
+            return
 
         # Validate schema
         error, message = JSONGlobalModelParser.validate_input(input_object, schema_object)
 
         if error:
             self.label_status.setText("Status:" + message)
+            return
 
         # Fill fields
         if input_object["simulate_thermal"]:

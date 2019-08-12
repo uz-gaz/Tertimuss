@@ -19,21 +19,21 @@ class RtTcpnScheduler(SchedulerAbstractTest):
 
     def test_with_thermal(self):
         scheduler, scheduler_name = self.get_global_variables()
-        # self.run_test_hash_based(scheduler, True, False, "c7fcaeaacde45b20055a789ce174d491")
-        self.save_plot_outputs_result(scheduler, True, False, "out/" + scheduler_name + "_thermal")
+        self.run_test_hash_based(scheduler, True, False, "e4e64c425b65322ad36a55a5a6bcf9bf")
+        # self.save_plot_outputs_result(scheduler, True, False, "out/" + scheduler_name + "_thermal")
         # self.save_matlab_result(scheduler, True, False, "out/" + scheduler_name + "_thermal")
 
     def test_without_thermal(self):
         scheduler, scheduler_name = self.get_global_variables()
-        self.run_test_hash_based(scheduler, False, False, "c7fcaeaacde45b20055a789ce174d491")
+        self.run_test_hash_based(scheduler, False, False, "e4e64c425b65322ad36a55a5a6bcf9bf")
         # self.save_plot_outputs_result(scheduler, False, False, "out/" + scheduler_name + "_no_thermal")
         # self.save_matlab_result(scheduler, False, False, "out/" + scheduler_name + "_no_thermal")
 
-    def test_with_thermal_and_aperiodics(self):
+    def test_with_thermal_and_aperiodic(self):
         scheduler, scheduler_name = self.get_global_variables()
-        self.run_test_hash_based(scheduler, True, True, "e81a5f21d4e7ee6bd67e34ec1a57ce77")
-        # self.save_plot_outputs_result(scheduler, True, True, "out/" + scheduler_name + "_thermal_and_aperiodics")
-        # self.save_matlab_result(scheduler, True, True, "out/" + scheduler_name + "_thermal_and_aperiodics")
+        self.run_test_hash_based(scheduler, True, True, "4317a9610c218106d0b8b9f41c6e017e")
+        # self.save_plot_outputs_result(scheduler, True, True, "out/" + scheduler_name + "_thermal_and_aperiodic")
+        # self.save_matlab_result(scheduler, True, True, "out/" + scheduler_name + "_thermal_and_aperiodic")
 
 
 if __name__ == '__main__':

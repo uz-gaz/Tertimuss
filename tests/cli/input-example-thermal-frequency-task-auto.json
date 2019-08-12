@@ -1,12 +1,12 @@
 {
-  "$schema": "../../main/ui/cli/input_schema/input-schema.json",
+  "$schema": "../../main/ui/cli/input_schema/global-schema.json",
   "$id": "input-example-thermal-aperiodics-energy.scheduler.framework.TCPN.schema.example1",
   "title": "Example input specification",
   "description": "Input for Scheduler Framework TCPN v1.0",
   "simulate_thermal": true,
   "tasks_specification": {
-    "task_generation_system": "Automatic",
     "task_consumption_model": "Energy based",
+    "task_generation_system": "Automatic",
     "automatic_generation": {
       "interval_for_periods": {
         "min_period": 2,
@@ -50,7 +50,7 @@
         850,
         1000
       ],
-      "cores_frequencies": [
+      "operating_frequencies": [
         1000,
         1000
       ],

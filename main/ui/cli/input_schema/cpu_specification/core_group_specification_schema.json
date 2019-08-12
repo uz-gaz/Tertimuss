@@ -44,7 +44,7 @@
     "physical_properties",
     "energy_consumption_properties",
     "available_frequencies",
-    "cores_frequencies",
+    "operating_frequencies",
     "cores_origins"
   ],
   "definitions": {

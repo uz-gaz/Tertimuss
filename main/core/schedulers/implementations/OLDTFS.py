@@ -266,9 +266,10 @@ class GlobalThermalAwareScheduler(AbstractBaseScheduler):
             global_specification.cpu_specification,
             global_specification.simulation_specification)
 
-        processor_model: ProcessorModel = ProcessorModel(global_specification.tasks_specification,
-                                                         global_specification.cpu_specification,
-                                                         global_specification.simulation_specification)
+        processor_model: ProcessorModel = ProcessorModel(
+            TasksSpecification(global_specification.tasks_specification.periodic_tasks),
+            global_specification.cpu_specification,
+            global_specification.simulation_specification)
 
         pre = scipy.sparse.vstack([
             scipy.sparse.hstack([tasks_model.pre_tau, tasks_model.pre_alloc_tau, scipy.sparse.csr_matrix(
