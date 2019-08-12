@@ -10,6 +10,7 @@
 - ffmpeg 4.1 or higher and all its dependencies from conda-forge
 - pyqt 5.9.2 or higher and all its dependencies
 - qt 5.9.2 or higher and all its dependencies (This package is necessary only if you want to modify the GUI)
+- nodejs 10.13.0 or higher and all its dependencies
 
 
 ## Usage
@@ -44,6 +45,14 @@ This script may take one argument
 
 ```bash
 $ python gui_launcher.py
+```
+
+# Developers
+## Compile JSONSchema
+Each time you modify any file of the input schema, you must recompile it
+```bash
+$ cd SchedulerFrameworkTCPN/main/ui/common/json_ref_parser
+$ npm run parse-json ../../cli/input_schema/global-schema.json ../../cli/input_schema/input-schema.json
 ```
 
 # Architecture

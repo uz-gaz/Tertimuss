@@ -70,11 +70,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         :param path: Path where JSON object is stored
         """
         # Path of the input validate schema
-        # Warning: In python paths are relative to the entry point script path
-        input_schema_path = './main/ui/cli/input_schema/input-schema.json'
+        input_schema_path = '../../cli/input_schema/input-schema.json'
+        absolute_input_schema_path = os.path.join(os.path.dirname(__file__), input_schema_path)
 
         # Read schema
-        error, message, schema_object = JSONGlobalModelParser.read_input(input_schema_path)
+        error, message, schema_object = JSONGlobalModelParser.read_input(absolute_input_schema_path)
 
         if error:
             self.label_status.setText("Status:" + message)
@@ -404,8 +404,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             }
 
         # Execute simulation
-        simulation_thread = threading.Thread(target=(lambda: self.__execute_simulation(data_as_json)))
-        simulation_thread.start()
+        # FIXME: The simulation will end even if the window is closed
+        simulator_thread = threading.Thread(target=(lambda: self.__execute_simulation(data_as_json)))
+        simulator_thread.start()
 
     def __execute_simulation(self, input_object):
         """
@@ -432,11 +433,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.label_status.setText("Status: Processing data")
 
         # Path of the input validate schema
-        # Warning: In python paths are relative to the entry point script path
-        input_schema_path = './main/ui/cli/input_schema/input-schema.json'
+        input_schema_path = '../../cli/input_schema/input-schema.json'
+        absolute_input_schema_path = os.path.join(os.path.dirname(__file__), input_schema_path)
 
         # Read schema
-        error, message, schema_object = JSONGlobalModelParser.read_input(input_schema_path)
+        error, message, schema_object = JSONGlobalModelParser.read_input(absolute_input_schema_path)
 
         if not error:
             # Validate schema
@@ -482,7 +483,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             except Exception:
                 self.label_status.setText("Error while solving the problem")
         else:
-            self.label_status.setText("Status:" +  message)
+            self.label_status.setText("Status:" + message)
 
         # Enable all tabs
         self.tab_simulation.setEnabled(enable_tab_simulation)
