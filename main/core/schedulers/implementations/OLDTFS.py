@@ -438,13 +438,10 @@ class GlobalThermalAwareScheduler(AbstractBaseScheduler):
 
             # Simulate TCPN
             new_control = scipy.ones(self.__tcpn_lambda_len)
-            new_control[-self.__m * self.__n:] = w_alloc
+            new_control[self.__n:self.__n + self.__m * self.__n] = w_alloc
 
-            # TODO: ver porque la simulación falla
             self.__tcpn_simulator.set_control(new_control)
-            mo = self.__tcpn_mo
-            mo_next = self.__tcpn_simulator.simulate_step(self.__tcpn_mo)
-            self.__tcpn_mo = mo_next
+            self.__tcpn_mo = self.__tcpn_simulator.simulate_step(self.__tcpn_mo)
 
         # Discretization
         # Obtain m_exec mark
@@ -457,7 +454,7 @@ class GlobalThermalAwareScheduler(AbstractBaseScheduler):
         fsc = self.__j_fsc_i * actual_deadline
 
         re = m_exec - self.__m_exec_accumulated
-        et = [i % self.__n if round(re[i], 4) == 0 else 0 for i in range(self.__n * self.__m)]
+        et = [round(re[i], 4) > 0 for i in range(self.__n * self.__m)]
 
         pr = fsc - re
 
@@ -468,17 +465,20 @@ class GlobalThermalAwareScheduler(AbstractBaseScheduler):
         executable_tasks = [i.id for i in executable_tasks]
 
         for j in range(self.__m):
+            # Actual CPU ET
+            local_et = et[self.__n * j: self.__n * j + self.__n]
+
             # Executable tasks in CPU j
-            cpu_j_executable_tasks = [i if i not in w_alloc and i in executable_tasks else 0 for i in
-                                      et[self.__n * j: self.__n * j + self.__n]]
+            cpu_j_executable_tasks = [i not in w_alloc and i in executable_tasks and local_et[i] for i in
+                                      range(self.__n)]
 
             # If exist at least one executable task
-            if scipy.count_nonzero(cpu_j_executable_tasks) > 0:
+            if any(cpu_j_executable_tasks):
                 # Obtain the tasks priority order
                 ind_max_pr = scipy.flip(scipy.argsort(pr[self.__n * j: self.__n * j + self.__n]))
 
                 # Only keep index of tasks that can be executed
-                ind_max_pr = [i for i in ind_max_pr if cpu_j_executable_tasks[i] != 0]
+                ind_max_pr = [i for i in ind_max_pr if cpu_j_executable_tasks[i]]
 
                 w_alloc[j] = ind_max_pr[0]
 
