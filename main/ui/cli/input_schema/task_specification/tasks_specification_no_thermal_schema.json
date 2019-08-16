@@ -17,58 +17,45 @@
   "required": [
     "task_generation_system"
   ],
-  "oneOf": [
-    {
-      "if": {
-        "properties": {
-          "task_generation_system": {
-            "const": "Automatic"
-          }
-        }
-      },
-      "then": {
-        "properties": {
-          "automatic_generation": {
-            "$ref": "#/definitions/automatic_tasks"
-          }
-        },
-        "required": [
-          "automatic_generation"
-        ]
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "task_generation_system": {
-            "const": "Manual"
-          }
-        }
-      },
-      "then": {
-        "properties": {
-          "tasks": {
-            "description": "Set of tasks",
-            "type": "array",
-            "items": {
-              "oneOf": [
-                {
-                  "$ref": "#/definitions/periodic_task"
-                },
-                {
-                  "$ref": "#/definitions/aperiodic_task"
-                }
-              ]
-            },
-            "minItems": 1
-          }
-        },
-        "required": [
-          "tasks"
-        ]
+  "if": {
+    "properties": {
+      "task_generation_system": {
+        "const": "Automatic"
       }
     }
-  ],
+  },
+  "then": {
+    "properties": {
+      "automatic_generation": {
+        "$ref": "#/definitions/automatic_tasks"
+      }
+    },
+    "required": [
+      "automatic_generation"
+    ]
+  },
+  "else": {
+    "properties": {
+      "tasks": {
+        "description": "Set of tasks",
+        "type": "array",
+        "items": {
+          "oneOf": [
+            {
+              "$ref": "#/definitions/periodic_task"
+            },
+            {
+              "$ref": "#/definitions/aperiodic_task"
+            }
+          ]
+        },
+        "minItems": 1
+      }
+    },
+    "required": [
+      "tasks"
+    ]
+  },
   "definitions": {
     "periodic_task": {
       "$ref": "periodic_task_schema.json"
@@ -79,6 +66,5 @@
     "automatic_tasks": {
       "$ref": "automatic_tasks_schema.json"
     }
-  },
-  "additionalProperties": false
+  }
 }
