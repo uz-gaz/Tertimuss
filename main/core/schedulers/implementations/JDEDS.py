@@ -157,17 +157,21 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
         clock_available_frequencies_hz = [i for i in
                                           global_specification.cpu_specification.cores_specification.available_frequencies]
 
+        dt = global_specification.simulation_specification.dt
+
         # Calculate F start
-        phi_min_hz = clock_available_frequencies_hz[0]
-        phi_start_hz = max(float(phi_min_hz), sum([i.c / i.t for i in periodic_tasks]) / self.__m)
+        # The minimum number cycles you can execute is (frequency * dt). Therefore the real number of cycles you will
+        # execute for each task will be ceil(task cc / (frequency * dt)) * (frequency * dt)
+        available_frequencies_hz = [actual_frequency for actual_frequency in clock_available_frequencies_hz if (sum(
+            [(math.ceil(i.c / (actual_frequency * dt)) * actual_frequency * dt) / i.t for i in
+             periodic_tasks]) / self.__m) <= actual_frequency]
 
-        possible_f_hz = [x for x in clock_available_frequencies_hz if x >= phi_start_hz]
-
-        if len(possible_f_hz) == 0:
+        if len(available_frequencies_hz) == 0:
             raise Exception("Error: Schedule is not feasible")
 
+        # TODO: Seguir por aqui
         # F star in HZ
-        f_star_hz = possible_f_hz[0]
+        f_star_hz = available_frequencies_hz[0]
 
         # Number of cycles
         cci = [i.c for i in periodic_tasks]
@@ -212,7 +216,7 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
         self.__intervals_frequencies = len(self.__intervals_end) * [f_star_hz]
 
         # Possible frequencies
-        self.__possible_f = possible_f_hz
+        self.__possible_f = available_frequencies_hz
 
         # True if new aperiodic has arrive
         self.__aperiodic_arrive = False
@@ -388,13 +392,10 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
                  3 - cores relatives frequencies for the next quantum (if None, will be taken the frequencies specified
                   in the problem specification)
         """
-
-        if time == 4.0:
-            sfdfdf = 1
-
         # Check if new interval have arrived and update everything
         new_interval_start = (round(time / self.__dt) >= round(
-            self.__intervals_end[self.__actual_interval_index] / self.__dt)) or time == 0
+            self.__intervals_end[self.__actual_interval_index] / self.__dt))
+
         if new_interval_start:
             self.__actual_interval_index += 1
             self.__interval_cc_left = [
