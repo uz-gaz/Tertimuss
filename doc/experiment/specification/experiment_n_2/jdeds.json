@@ -72,7 +72,7 @@
   },
   "output_specification": {
     "output_path": "./results/experiment_n_2",
-    "output_naming": "g_edf",
+    "output_naming": "jdeds",
     "selected_output": [
       "Accumulated execution time",
       "Energy consumption",
@@ -84,7 +84,7 @@
     ]
   },
   "scheduler_specification": {
-    "name": "G-EDF"
+    "name": "JDEDS"
   },
   "simulation_specification": {
     "mesh_step": 1,

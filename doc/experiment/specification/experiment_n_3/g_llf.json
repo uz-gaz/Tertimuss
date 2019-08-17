@@ -1,8 +1,8 @@
 {
   "$schema": "../../../../main/ui/cli/input_schema/global-schema.json",
-  "$id": "scheduler.framework.TCPN.schema.experiment.n2_fb",
+  "$id": "scheduler.framework.TCPN.schema.experiment.n3_fb",
   "title": "Experiment specification",
-  "description": "Experiment number 2 with frequency based thermal model specification. Utilization of 60%, G-EDF fail",
+  "description": "Experiment number 3 with frequency based thermal model specification. Aperiodic task",
   "simulate_thermal": true,
   "tasks_specification": {
     "task_generation_system": "Manual",
@@ -10,18 +10,24 @@
     "tasks": [
       {
         "type": "Periodic",
-        "worst_case_execution_time": 11100,
+        "worst_case_execution_time": 2000,
+        "period": 4
+      },
+      {
+        "type": "Periodic",
+        "worst_case_execution_time": 5000,
+        "period": 8
+      },
+      {
+        "type": "Periodic",
+        "worst_case_execution_time": 6000,
         "period": 12
       },
       {
-        "type": "Periodic",
-        "worst_case_execution_time": 1000,
-        "period": 8
-      },
-      {
-        "type": "Periodic",
-        "worst_case_execution_time": 1000,
-        "period": 8
+        "type": "Aperiodic",
+        "worst_case_execution_time": 2000,
+        "arrive": 10,
+        "deadline": 20
       }
     ]
   },
@@ -71,8 +77,8 @@
     "convection_factor": 0.001
   },
   "output_specification": {
-    "output_path": "./results/experiment_n_2",
-    "output_naming": "g_edf",
+    "output_path": "./results/experiment_n_3",
+    "output_naming": "g_llf",
     "selected_output": [
       "Accumulated execution time",
       "Energy consumption",
@@ -84,7 +90,7 @@
     ]
   },
   "scheduler_specification": {
-    "name": "G-EDF"
+    "name": "G-LLF-AFA"
   },
   "simulation_specification": {
     "mesh_step": 1,
