@@ -6,6 +6,9 @@ from main.core.task_generator.template.AbstractTaskGeneratorAlgorithm import Abs
 
 
 class UUniFast(AbstractTaskGeneratorAlgorithm):
+    """
+    UUniFast task generation algorithm
+    """
 
     def generate(self, options: Dict) -> List[PeriodicTask]:
         """

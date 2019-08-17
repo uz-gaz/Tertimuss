@@ -128,7 +128,7 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
 
         f = scipy.full((v, 1), -1)
 
-        # FIXME: Presolve = False may be only a temporal solution
+        # WARNING: "Presolve = False" is a workaround to deal with an issue on the scipy.optimize.linprog library
         res = scipy.optimize.linprog(c=f, A_ub=a, b_ub=b, A_eq=a_eq,
                                      b_eq=b_eq, method='simplex', options={"presolve": False})
         if not res.success:

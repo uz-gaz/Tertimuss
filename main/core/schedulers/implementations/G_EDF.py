@@ -59,7 +59,6 @@ class GlobalEDFScheduler(AbstractBaseScheduler):
                  3 - cores relatives frequencies for the next quantum (if None, will be taken the frequencies specified
                   in the problem specification)
         """
-        # alive_tasks = [x for x in tasks if x.next_arrival <= time]
         task_order = scipy.argsort(list(map(lambda x: x.next_deadline, executable_tasks)))
         return ([executable_tasks[i].id for i in task_order] + (self.__m - len(executable_tasks)) * [-1])[
                0:self.__m], None, None

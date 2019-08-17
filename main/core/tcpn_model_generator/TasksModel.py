@@ -8,7 +8,7 @@ from main.core.problem_specification.tasks_specification.TasksSpecification impo
 
 class TasksModel(object):
     """
-        Represents the Task arrival and CPU'S Module in the paper
+    Create the TCPN that represents the task model
     """
 
     def __init__(self, tasks_specification: TasksSpecification, cpu_specification: CpuSpecification,

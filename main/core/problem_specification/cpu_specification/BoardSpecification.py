@@ -4,7 +4,7 @@ from main.core.problem_specification.cpu_specification.MaterialCuboid import Mat
 class BoardSpecification(object):
     def __init__(self, physical_properties: MaterialCuboid):
         """
-        Board specification
+        Specification of the board where the cores are located
 
         :param physical_properties: Board physical properties
         """

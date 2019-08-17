@@ -11,12 +11,12 @@ class CoreGroupSpecification(object):
                  available_frequencies: List[int], operating_frequencies: List[int],
                  cores_origins: Optional[List[Origin]] = None):
         """
-        Group of cores with the same characteristics specification
+        Specification of a group of cores with the same characteristics
 
         :param physical_properties: Cores physical properties
         :param energy_consumption_properties: Core construction properties relatives to the energy consumption
         :param available_frequencies: Cores available frequencies in Hz
-        :param operating_frequencies: Cores set operating frequencies in Hz. Each frequency must belong to the
+        :param operating_frequencies: Cores operating frequencies in Hz. Each frequency must belong to the
          available_frequencies set
         :param cores_origins: Cores origins locations
         """

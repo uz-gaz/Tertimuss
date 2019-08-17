@@ -5,9 +5,9 @@ import scipy
 
 class SimulationPrecision(Enum):
     """
-    Select the simulation precision.
+    Simulation precision.
 
-    Higher precision implies more resources consumption and long simulation time
+    Higher precision implies more resources consumption and more simulation time
     """
     HIGH_PRECISION = scipy.float64,
     MIDDLE_PRECISION = scipy.float32

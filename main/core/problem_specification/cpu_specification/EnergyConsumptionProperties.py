@@ -6,19 +6,17 @@ class EnergyConsumptionProperties(object):
 
         Dynamic power = dynamic_alpha * F^3 + dynamic_beta
 
-        Static power = current temperature * 2 * leakage_delta + leakage_alpha
-
-        To understand leakage_alpha and leakage_delta see the papers
+        Leakage power = current temperature * 2 * leakage_delta + leakage_alpha
 
         :param leakage_alpha: leakage_alpha
         :param leakage_delta: leakage_delta
         :param dynamic_alpha: dynamic_alpha
         :param dynamic_beta: dynamic_beta
         """
-        # Convection properties
+        # Leakage power properties
         self.leakage_delta: float = leakage_delta
         self.leakage_alpha: float = leakage_alpha
 
-        # Heat generation properties
+        # Dynamic power properties
         self.dynamic_alpha: float = dynamic_alpha
         self.dynamic_beta: float = dynamic_beta

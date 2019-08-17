@@ -2,7 +2,7 @@ class MaterialCuboid(object):
 
     def __init__(self, x: float, y: float, z: float, p: float, c_p: float, k: float):
         """
-        Material object with cuboid' shape
+        Cuboid-shaped material object
 
         :param x: X size (mm)
         :param y: Y size (mm)

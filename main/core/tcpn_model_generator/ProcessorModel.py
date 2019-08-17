@@ -8,7 +8,7 @@ from main.core.problem_specification.tasks_specification.TasksSpecification impo
 
 class ProcessorModel(object):
     """
-        Represents the task execution module in the paper
+    Create the TCPN that represents the processor model
     """
 
     def __init__(self, tasks_specification: TasksSpecification, cpu_specification: CpuSpecification,
@@ -42,11 +42,6 @@ class ProcessorModel(object):
         lambda_vector_exec = scipy.zeros(t_exec)
 
         # Construction of the model
-        # numeration of places and the corresponding label in the model for CPU_1:
-        # busy places: p1-pn->p^busy_{1,1},..,p^busy_{n,1}
-        # exec places: pn+1-p2n->p^exec_{1,1},...,p^exec_{n,1}
-        # idle place:  p2n+1->p^idle_1
-
         for k in range(m):
             # f = cpu_specification.clock_relative_frequencies[k]
 
@@ -73,10 +68,10 @@ class ProcessorModel(object):
 
             pi_alloc[i + 2 * n, k * n: k * n + n] = (1 / eta)
 
-            # Execution rates for transitions alloc \lambda^alloc= eta*\lambda^exec
+            # Execution rates for transitions alloc lambda^alloc = eta * lambda^exec
             lambda_vector_alloc[k * n:k * n + n] = eta * eta  # The F will be controlled online
 
-            # Execution rates for transitions exec for CPU_k \lambda^exec= eta*F
+            # Execution rates for transitions exec for CPU_k lambda^exec = eta * F
             lambda_vector_exec[k * n:k * n + n] = eta  # The F will be controlled online
 
             # Initial condition

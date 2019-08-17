@@ -12,7 +12,7 @@ class GlobalSpecification(object):
                  simulation_specification: SimulationSpecification,
                  tcpn_model_specification: TCPNModelSpecification):
         """
-        Problem global specification
+        Problem specification
 
         :param tasks_specification: Tasks specification
         :param cpu_specification: Cpu cores and board specification
