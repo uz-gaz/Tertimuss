@@ -216,7 +216,7 @@ class AbstractBaseScheduler(AbstractScheduler, metaclass=abc.ABCMeta):
                 if active_task_id[j] != idle_task_id:
                     # Task is not idle
                     tasks_set[
-                        active_task_id[j]].pending_c -= cores_operating_frequencies[j]
+                        active_task_id[j]].pending_c -= int(cores_operating_frequencies[j] * global_specification.simulation_specification.dt)
                     w_alloc[active_task_id[j] + j * n] = 1
                     m_exec_step[active_task_id[j] + j * n] += global_specification.simulation_specification.dt
 

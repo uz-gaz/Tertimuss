@@ -60,7 +60,7 @@ class ExecutionPercentageDrawer(AbstractResultDrawer):
 
         base_frequencie = global_specification.cpu_specification.cores_specification.available_frequencies[-1]
 
-        ci_p_dt = [int(round(i.c / (global_specification.simulation_specification.dt * base_frequencie))) for i in
+        ci_p_dt = [i.c for i in
                    global_specification.tasks_specification.periodic_tasks]
 
         di_p_dt = [int(round(i.d / global_specification.simulation_specification.dt)) for i in
@@ -69,7 +69,7 @@ class ExecutionPercentageDrawer(AbstractResultDrawer):
         ti_p_dt = [int(round(i.t / global_specification.simulation_specification.dt)) for i in
                    global_specification.tasks_specification.periodic_tasks]
 
-        ci_a_dt = [int(round(i.c / (global_specification.simulation_specification.dt * base_frequencie))) for i in
+        ci_a_dt = [i.c for i in
                    global_specification.tasks_specification.aperiodic_tasks]
 
         ai_a_dt = [int(round(i.a / global_specification.simulation_specification.dt)) for i in
@@ -87,11 +87,15 @@ class ExecutionPercentageDrawer(AbstractResultDrawer):
 
         for i in range(n_periodic):
             period_ranges = range(0, hyperperiod, ti_p_dt[i])
-            task_percentage_periodic[i][:] = [sum(i_tau_disc_accond[i, j: j + di_p_dt[i]]) / ci_p_dt[i] for j in
-                                              period_ranges]
+            task_percentage_periodic[i][:] = [
+                (sum(i_tau_disc_accond[i, j: j + di_p_dt[i]]) * global_specification.simulation_specification.dt) /
+                ci_p_dt[i] for j in
+                period_ranges]
 
         for i in range(n_aperiodic):
-            execution_aperiodic = sum(i_tau_disc_accond[n_periodic + i, ai_a_dt[i]: di_a_dt[i]]) / ci_a_dt[i]
+            execution_aperiodic = (sum(i_tau_disc_accond[n_periodic + i,
+                                       ai_a_dt[i]: di_a_dt[i]]) * global_specification.simulation_specification.dt) / \
+                                  ci_a_dt[i]
             task_percentage_aperiodic.append([execution_aperiodic])
 
         f, axarr = plt.subplots(nrows=(n_periodic + n_aperiodic), num="Task execution")

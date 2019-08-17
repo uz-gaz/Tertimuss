@@ -194,7 +194,7 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
             x = x[:-1, :]
 
         # All intervals
-        self.__intervals_end = sd
+        self.__intervals_end = sd[1:]
 
         # All executions by intervals
         self.__execution_by_intervals = x
@@ -329,7 +329,8 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
              and i[1] not in active_tasks for i in executable_tasks_interval])
 
         # True if new quantum has started (True if any task has arrived in this step)
-        new_interval_start = any([round(i / self.__dt) == round(time / self.__dt) for i in self.__intervals_end])
+        new_interval_start = any([round(i / self.__dt) == round(time / self.__dt) for i in self.__intervals_end]) \
+                             or time == 0
 
         # True if new aperiodic has arrived
         aperiodic_arrive = self.__aperiodic_arrive
@@ -389,8 +390,8 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
         """
 
         # Check if new interval have arrived and update everything
-        new_interval_start = round(time / self.__dt) >= round(
-            self.__intervals_end[self.__actual_interval_index] / self.__dt)
+        new_interval_start = (round(time / self.__dt) >= round(
+            self.__intervals_end[self.__actual_interval_index] / self.__dt)) or time == 0
         if new_interval_start:
             self.__actual_interval_index += 1
             self.__interval_cc_left = [
@@ -404,7 +405,8 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
 
         # Update cc in tasks being executed
         self.__interval_cc_left = [
-            (i[0] - self.__intervals_frequencies[self.__actual_interval_index], i[1]) if i[1] in tasks_to_execute else i
+            (i[0] - (self.__intervals_frequencies[self.__actual_interval_index] *
+                     self.__dt), i[1]) if i[1] in tasks_to_execute else i
             for i in self.__interval_cc_left]
 
         # Do affinity, this is a little improvement over the original algorithm
