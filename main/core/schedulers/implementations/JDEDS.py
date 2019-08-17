@@ -27,18 +27,13 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
         self.__n = None
         self.__intervals_end = None
         self.__execution_by_intervals = None
-        self.__execution_by_intervals_all_freq = None
         self.__interval_cc_left = None
-        self.__actual_interval_end = None
         self.__actual_interval_index = None
         self.__dt = None
         self.__aperiodic_arrive = None
         self.__possible_f = None
         self.__periodic_tasks = None
         self.__intervals_frequencies = None
-
-        # Decimals precision
-        self.__decimals_precision = None
 
     @staticmethod
     def ilpp_dp(ci: List[int], ti: List[int], n: int, m: int) -> [scipy.ndarray, scipy.ndarray,
@@ -159,9 +154,6 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
         self.__m = len(global_specification.cpu_specification.cores_specification.operating_frequencies)
         self.__n = len(global_specification.tasks_specification.periodic_tasks)
 
-        self.__decimals_precision = global_specification.simulation_specification.float_decimals_precision
-
-        clock_base_frequency_hz = global_specification.cpu_specification.cores_specification.available_frequencies[-1]
         clock_available_frequencies_hz = [i for i in
                                           global_specification.cpu_specification.cores_specification.available_frequencies]
 
@@ -196,24 +188,19 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
         x, sd, _, _ = self.ilpp_dp(cci, tci, len(tci), self.__m)
 
         sd = sd / f_star_hz
-        x = x / clock_base_frequency_hz
 
         # Delete dummy task
         if total_used_cycles < self.__m * hyperperiod_hz:
             x = x[:-1, :]
 
         # All intervals
-        self.__intervals_end = [round(i, self.__decimals_precision) for i in sd[1:]]
+        self.__intervals_end = sd
 
         # All executions by intervals
         self.__execution_by_intervals = x
 
         # [(cc left in the interval, task id)]
-        self.__interval_cc_left = [((i[0] * clock_base_frequency_hz) / f_star_hz, i[1].id) for i in
-                                   zip((x[:, 0]).reshape(-1), periodic_tasks)]
-
-        # Time when the interval end
-        self.__actual_interval_end = self.__intervals_end[0]
+        self.__interval_cc_left = [(int(i[0]), i[1].id) for i in zip((x[:, 0]).reshape(-1), periodic_tasks)]
 
         # Index of the actual interval
         self.__actual_interval_index = 0
@@ -222,13 +209,13 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
         self.__dt = super().offline_stage(global_specification, periodic_tasks, aperiodic_tasks)
 
         # Processors frequencies in each step
-        self.__intervals_frequencies = len(self.__intervals_end) * [f_star_hz / clock_base_frequency_hz]
+        self.__intervals_frequencies = len(self.__intervals_end) * [f_star_hz]
 
         # Possible frequencies
-        self.__possible_f = [i / clock_base_frequency_hz for i in possible_f_hz]
+        self.__possible_f = possible_f_hz
 
         # True if new aperiodic has arrive
-        self.__aperiodic_arrive = True
+        self.__aperiodic_arrive = False
 
         # Periodic tasks
         self.__periodic_tasks = periodic_tasks
@@ -236,7 +223,7 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
         return self.__dt
 
     def aperiodic_arrive(self, time: float, aperiodic_tasks_arrived: List[BaseSchedulerTask],
-                         actual_cores_frequency: List[float], cores_max_temperature: Optional[scipy.ndarray]) -> bool:
+                         actual_cores_frequency: List[int], cores_max_temperature: Optional[scipy.ndarray]) -> bool:
         """
         Method to implement with the actual on aperiodic arrive scheduler police
         :param actual_cores_frequency: Frequencies of cores
@@ -252,31 +239,30 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
                 self.__actual_interval_index]
 
             # Remaining time for aperiodic in the actual interval for each frequency
-            remaining_actual = [round(self.__m * (self.__actual_interval_end - time) - sum(cc / i),
-                                      self.__decimals_precision) for i in self.__possible_f]
+            remaining_actual = [self.__m * (self.__intervals_end[self.__actual_interval_index] - time) - sum(cc / i) for
+                                i in self.__possible_f]
 
             # Remaining time for aperiodic in full intervals between aperiodic start and its deadline
             number_of_full_intervals = len(
                 [i for i in self.__intervals_end[self.__actual_interval_index + 1:] if i <= actual_task.next_deadline])
 
-            remaining_full_intervals = [[round(
+            remaining_full_intervals = [[
                 self.__m * (self.__intervals_end[self.__actual_interval_index + i + 1] - self.__intervals_end[
                     self.__actual_interval_index + i]) - sum(
-                    (x[:, self.__actual_interval_index + i + 1]).reshape(-1) / j),
-                self.__decimals_precision) for i in range(number_of_full_intervals)] for j in
+                    (x[:, self.__actual_interval_index + i + 1]).reshape(-1) / j) for i in
+                range(number_of_full_intervals)] for j in
                 self.__possible_f] if number_of_full_intervals > 0 else len(self.__possible_f) * [0]
 
             # Remaining time for aperiodic in last interval
-            remaining_last_interval_to_deadline = round(
-                self.__m * (actual_task.next_deadline - self.__intervals_end[
-                    self.__actual_interval_index + number_of_full_intervals]), self.__decimals_precision)
+            remaining_last_interval_to_deadline = self.__m * (actual_task.next_deadline - self.__intervals_end[
+                self.__actual_interval_index + number_of_full_intervals])
 
-            remaining_last_interval = [min(round(
+            remaining_last_interval = [min(
                 self.__intervals_end[self.__actual_interval_index + number_of_full_intervals + 1] -
                 self.__intervals_end[
                     self.__actual_interval_index + number_of_full_intervals] - sum(
                     (x[:, self.__actual_interval_index + number_of_full_intervals + 1]).reshape(-1) / j),
-                self.__decimals_precision), remaining_last_interval_to_deadline) for j in
+                remaining_last_interval_to_deadline) for j in
                 self.__possible_f] if remaining_last_interval_to_deadline > 0 else len(self.__possible_f) * [0]
 
             # Remaining time in each frequency
@@ -286,7 +272,7 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
 
             c_aperiodic = actual_task.pending_c
 
-            possible_f_index = [i[1] for i in remaining if i[0] >= c_aperiodic]
+            possible_f_index = [i[1] for i in remaining if i[0] >= (c_aperiodic / self.__possible_f[i[1]])]
 
             if len(possible_f_index) > 0:
                 self.__aperiodic_arrive = True
@@ -302,7 +288,7 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
                                                  possible_f_index[
                                                      0]]] if remaining_last_interval_to_deadline > 0 else [])
 
-                times_to_execute[-1] = times_to_execute[-1] - (sum(times_to_execute) - c_aperiodic)
+                times_to_execute[-1] = times_to_execute[-1] - (sum(times_to_execute) - (c_aperiodic / f_star))
 
                 new_x_row = scipy.zeros((1, len(self.__intervals_end)))
                 new_x_row[0, self.__actual_interval_index: self.__actual_interval_index
@@ -312,12 +298,8 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
 
                 self.__execution_by_intervals = scipy.concatenate([self.__execution_by_intervals, new_x_row], axis=0)
 
-                self.__interval_cc_left = [
-                    ((i[0] * self.__intervals_frequencies[self.__actual_interval_index]) / f_star, i[1]) for i in
-                    self.__interval_cc_left]
-
                 self.__interval_cc_left = self.__interval_cc_left + [
-                    (self.__execution_by_intervals[-1, self.__actual_interval_index] / f_star, actual_task.id)]
+                    (self.__execution_by_intervals[-1, self.__actual_interval_index], actual_task.id)]
 
                 self.__intervals_frequencies[self.__actual_interval_index:
                                              self.__actual_interval_index + intervals_in_execution] = \
@@ -335,22 +317,25 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
         :return: true if need to schedule
         """
         # True if any task have ended in this step
-        tasks_have_ended = any([round(i[0], self.__decimals_precision) <= 0 and i[1] in active_tasks
+        tasks_have_ended = any([i[0] <= 0 and i[1] in active_tasks
                                 for i in self.__interval_cc_left])
 
         # True if any task laxity is 0
-        executable_tasks_interval = [i for i in self.__interval_cc_left if round(i[0], self.__decimals_precision) > 0.0]
-        tasks_laxity_zero = any([round(self.__actual_interval_end - time - i[0], self.__decimals_precision) <= 0
-                                 and i[1] not in active_tasks for i in executable_tasks_interval])
+        executable_tasks_interval = [i for i in
+                                     self.__interval_cc_left if i[0] > 0]
+
+        tasks_laxity_zero = any(
+            [round((time - (i[0] / self.__intervals_frequencies[self.__actual_interval_index])) / self.__dt) <= 0
+             and i[1] not in active_tasks for i in executable_tasks_interval])
 
         # True if new quantum has started (True if any task has arrived in this step)
-        new_quantum_start = round(time, self.__decimals_precision) in (self.__intervals_end + [0.0])
+        new_interval_start = any([round(i / self.__dt) == round(time / self.__dt) for i in self.__intervals_end])
 
         # True if new aperiodic has arrived
         aperiodic_arrive = self.__aperiodic_arrive
         self.__aperiodic_arrive = False
 
-        return tasks_have_ended or tasks_laxity_zero or new_quantum_start or aperiodic_arrive
+        return tasks_have_ended or tasks_laxity_zero or new_interval_start or aperiodic_arrive
 
     def __schedule_policy_imp(self, time: float, active_tasks: List[int], executable_tasks_proc: List[int]) \
             -> List[int]:
@@ -361,12 +346,12 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
         :return: next tasks to execute
         """
         # Contains tasks that can be executed
-        executable_tasks = [i for i in self.__interval_cc_left if round(i[0], self.__decimals_precision) > 0.0]
+        executable_tasks = [i for i in self.__interval_cc_left if i[0] > 0]
 
         # Contains all zero laxity tasks
-        interval_time_left = self.__actual_interval_end - time
         tasks_laxity_zero = [i[1] for i in executable_tasks if
-                             round(interval_time_left - i[0], self.__decimals_precision) <= 0]
+                             round((time - (i[0] / self.__intervals_frequencies[
+                                 self.__actual_interval_index])) / self.__dt) <= 0]
 
         # Update executable tasks
         executable_tasks = [i for i in executable_tasks if i[1] not in tasks_laxity_zero]
@@ -388,8 +373,8 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
         return tasks_to_execute[:self.__m]
 
     def schedule_policy(self, time: float, executable_tasks: List[BaseSchedulerTask], active_tasks: List[int],
-                        actual_cores_frequency: List[float], cores_max_temperature: Optional[scipy.ndarray]) -> \
-            [List[int], Optional[float], Optional[List[float]]]:
+                        actual_cores_frequency: List[int], cores_max_temperature: Optional[scipy.ndarray]) -> \
+            [List[int], Optional[float], Optional[List[int]]]:
         """
         Method to implement with the actual scheduler police
         :param actual_cores_frequency: Frequencies of cores
@@ -404,14 +389,13 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
         """
 
         # Check if new interval have arrived and update everything
-        new_quantum_start = round(time, self.__decimals_precision) == self.__actual_interval_end
-        if new_quantum_start:
+        new_interval_start = round(time / self.__dt) >= round(
+            self.__intervals_end[self.__actual_interval_index] / self.__dt)
+        if new_interval_start:
             self.__actual_interval_index += 1
-            self.__actual_interval_end = self.__intervals_end[self.__actual_interval_index]
             self.__interval_cc_left = [
-                ((i[0] / self.__intervals_frequencies[self.__actual_interval_index]), i[1][1]) for
-                i in zip(self.__execution_by_intervals[:, self.__actual_interval_index],
-                         self.__interval_cc_left)]
+                (i[0], i[1][1]) for i in zip(self.__execution_by_intervals[:, self.__actual_interval_index],
+                                             self.__interval_cc_left)]
 
         # Obtain new tasks to execute
         tasks_to_execute = active_tasks
@@ -419,14 +403,15 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
             tasks_to_execute = self.__schedule_policy_imp(time, active_tasks, [i.id for i in executable_tasks])
 
         # Update cc in tasks being executed
-        self.__interval_cc_left = [(i[0] - self.__dt, i[1]) if i[1] in tasks_to_execute else i for i in
-                                   self.__interval_cc_left]
+        self.__interval_cc_left = [
+            (i[0] - self.__intervals_frequencies[self.__actual_interval_index], i[1]) if i[1] in tasks_to_execute else i
+            for i in self.__interval_cc_left]
 
-        # Do affinity
+        # Do affinity, this is a little improvement over the original algorithm
         for i in range(self.__m):
             actual = active_tasks[i]
             for j in range(self.__m):
-                if tasks_to_execute[j] == actual and actual_cores_frequency[j] == actual_cores_frequency[i]:
+                if tasks_to_execute[j] == actual and tasks_to_execute[j] != -1 and j != i:
                     tasks_to_execute[j], tasks_to_execute[i] = tasks_to_execute[i], tasks_to_execute[j]
 
         return tasks_to_execute, None, self.__m * [self.__intervals_frequencies[self.__actual_interval_index]]

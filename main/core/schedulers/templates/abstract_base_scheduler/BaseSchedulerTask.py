@@ -9,5 +9,5 @@ class BaseSchedulerTask(object):
         """
         self.next_deadline = d  # next task deadline in absolute seconds (since simulation start)
         self.next_arrival = a  # next task arrival in absolute seconds (since simulation start)
-        self.pending_c = c # pending execution in cycles
+        self.pending_c = c  # pending execution in cycles
         self.id = task_id  # task id (always natural integer)

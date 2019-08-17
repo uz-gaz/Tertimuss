@@ -46,8 +46,8 @@ class GlobalLeastLaxityFirstAFAScheduler(AbstractBaseScheduler):
         return False
 
     def schedule_policy(self, time: float, executable_tasks: List[BaseSchedulerTask], active_tasks: List[int],
-                        actual_cores_frequency: List[float], cores_max_temperature: Optional[scipy.ndarray]) -> \
-            [List[int], Optional[float], Optional[List[float]]]:
+                        actual_cores_frequency: List[int], cores_max_temperature: Optional[scipy.ndarray]) -> \
+            [List[int], Optional[float], Optional[List[int]]]:
         """
         Method to implement with the actual scheduler police
         :param actual_cores_frequency: Frequencies of cores

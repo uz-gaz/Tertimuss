@@ -44,7 +44,7 @@ class AbstractBaseScheduler(AbstractScheduler, metaclass=abc.ABCMeta):
             global_specification.tasks_specification.periodic_tasks)
 
         # Clock base frequency
-        clock_base_frequency = global_specification.cpu_specification.cores_specification.operating_frequencies[-1]
+        clock_base_frequency = global_specification.cpu_specification.cores_specification.available_frequencies[-1]
 
         # Tasks sets
         periodic_tasks = [BaseSchedulerPeriodicTask(global_specification.tasks_specification.periodic_tasks[i], i)
@@ -127,6 +127,24 @@ class AbstractBaseScheduler(AbstractScheduler, metaclass=abc.ABCMeta):
         active_task_id = m * [-1]
 
         for zeta_q in range(simulation_time_steps):
+            # Check if some deadline has arrived and update this task properties
+            n_periodic = len(global_specification.tasks_specification.periodic_tasks)
+            n_aperiodic = len(global_specification.tasks_specification.aperiodic_tasks)
+
+            for j in range(n_periodic):
+                if round_i(tasks_set[j].next_deadline / global_specification.simulation_specification.dt) == zeta_q:
+                    # It only manage the end of periodic tasks
+                    tasks_set[j].pending_c = periodic_tasks[j].c
+                    tasks_set[j].next_arrival += periodic_tasks[j].t
+                    tasks_set[j].next_deadline += periodic_tasks[j].t
+
+            for j in range(n_aperiodic):
+                if round_i(tasks_set[n_periodic + j].next_deadline /
+                           global_specification.simulation_specification.dt) == zeta_q:
+                    # It only manage the end of aperiodic tasks
+                    tasks_set[n_periodic + j].next_arrival += global_specification.tasks_specification.h
+                    tasks_set[n_periodic + j].next_deadline += global_specification.tasks_specification.h
+
             # Update progress
             if progress_bar is not None:
                 progress_bar.update_progress(zeta_q / simulation_time_steps * 100)
@@ -137,6 +155,7 @@ class AbstractBaseScheduler(AbstractScheduler, metaclass=abc.ABCMeta):
             # Manage aperiodic tasks
             if any([round_i(x.next_arrival / global_specification.simulation_specification.dt) == zeta_q for
                     x in aperiodic_tasks]):
+                # Has arrived a new aperiodic task
                 aperiodic_arrives_list = [x for x in aperiodic_tasks if round_i(
                     x.next_arrival / global_specification.simulation_specification.dt) == zeta_q]
                 need_scheduled = self.aperiodic_arrive(time, aperiodic_arrives_list, cores_operating_frequencies,
@@ -151,9 +170,7 @@ class AbstractBaseScheduler(AbstractScheduler, metaclass=abc.ABCMeta):
                 executable_tasks = [actual_task for actual_task in tasks_set if
                                     round_i(
                                         actual_task.next_arrival / global_specification.simulation_specification.dt
-                                    ) <= zeta_q and round_i(
-                                        actual_task.pending_c / global_specification.simulation_specification.dt
-                                    ) > 0]
+                                    ) <= zeta_q and actual_task.pending_c > 0]
 
                 available_tasks_to_execute = [actual_task.id for actual_task in executable_tasks] + [-1]
 
@@ -176,7 +193,7 @@ class AbstractBaseScheduler(AbstractScheduler, metaclass=abc.ABCMeta):
 
                 # Check if the processor frequencies returned are in available ones
                 if next_core_frequencies is not None and not all(
-                        [x in clock_available_frequencies for x in
+                        [x in cores_available_frequencies for x in
                          next_core_frequencies]):
                     print("Warning: At least one frequency selected on time", time, "to execute is not available ones")
 
@@ -184,8 +201,8 @@ class AbstractBaseScheduler(AbstractScheduler, metaclass=abc.ABCMeta):
                     if next_quantum is not None else simulation_quantum_steps - 1
                 quantum_q = 0 if quantum_q < 0 else quantum_q
 
-                clock_relative_frequencies = next_core_frequencies if next_core_frequencies is not None \
-                    else clock_relative_frequencies
+                cores_operating_frequencies = next_core_frequencies if next_core_frequencies is not None \
+                    else cores_operating_frequencies
 
             else:
                 quantum_q = quantum_q - 1
@@ -199,13 +216,12 @@ class AbstractBaseScheduler(AbstractScheduler, metaclass=abc.ABCMeta):
                 if active_task_id[j] != idle_task_id:
                     # Task is not idle
                     tasks_set[
-                        active_task_id[j]].pending_c -= global_specification.simulation_specification.dt * \
-                                                        clock_relative_frequencies[j]
+                        active_task_id[j]].pending_c -= cores_operating_frequencies[j]
                     w_alloc[active_task_id[j] + j * n] = 1
                     m_exec_step[active_task_id[j] + j * n] += global_specification.simulation_specification.dt
 
             m_exec_step_tcpn, board_temperature, cores_temperature, energy_consumption_actual = \
-                global_model_solver.run_step(w_alloc, clock_relative_frequencies)
+                global_model_solver.run_step(w_alloc, [i / clock_base_frequency for i in cores_operating_frequencies])
 
             i_tau_disc[:, zeta_q] = w_alloc
 
@@ -215,30 +231,12 @@ class AbstractBaseScheduler(AbstractScheduler, metaclass=abc.ABCMeta):
 
             time_step[zeta_q] = time
 
-            core_frequencies[:, zeta_q] = clock_relative_frequencies
+            core_frequencies[:, zeta_q] = cores_operating_frequencies
 
             if is_thermal_simulation:
                 max_temperature_cores[:, zeta_q] = cores_temperature.reshape(-1)
                 temperature_map[:, zeta_q] = board_temperature.reshape(-1)
                 energy_consumption[:, zeta_q] = energy_consumption_actual
-
-            # Check if some deadline has arrived and update this task properties
-            n_periodic = len(global_specification.tasks_specification.periodic_tasks)
-            n_aperiodic = len(global_specification.tasks_specification.aperiodic_tasks)
-
-            for j in range(n_periodic):
-                if round_i(tasks_set[j].next_deadline / global_specification.simulation_specification.dt) == zeta_q:
-                    # It only manage the end of periodic tasks
-                    tasks_set[j].pending_c = periodic_tasks[j].c / clock_base_frequency
-                    tasks_set[j].next_arrival += periodic_tasks[j].t
-                    tasks_set[j].next_deadline += periodic_tasks[j].t
-
-            for j in range(n_aperiodic):
-                if round_i(tasks_set[n_periodic + j].next_deadline /
-                           global_specification.simulation_specification.dt) == zeta_q:
-                    # It only manage the end of aperiodic tasks
-                    tasks_set[n_periodic + j].next_arrival += global_specification.tasks_specification.h
-                    tasks_set[n_periodic + j].next_deadline += global_specification.tasks_specification.h
 
         return SchedulerResult(temperature_map, max_temperature_cores, time_step, m_exec, m_exec_tcpn, i_tau_disc,
                                core_frequencies, energy_consumption, global_specification.simulation_specification.dt)
