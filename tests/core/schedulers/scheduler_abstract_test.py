@@ -70,7 +70,7 @@ class SchedulerAbstractTest(unittest.TestCase):
     @staticmethod
     def create_problem_specification(scheduler: AbstractBaseScheduler, is_thermal: bool,
                                      with_aperiodics: bool):
-        tasks = [PeriodicTask(2000, 4, 4, 6.4), PeriodicTask(5000, 8, 8, 8), PeriodicTask(6000, 12, 12, 9.6)]
+        tasks = [PeriodicTask(2000000, 4, 4, 6.4), PeriodicTask(5000000, 8, 8, 8), PeriodicTask(6000000, 12, 12, 9.6)]
 
         if with_aperiodics:
             tasks.append(AperiodicTask(2000, 10, 20, 6))
@@ -79,8 +79,8 @@ class SchedulerAbstractTest(unittest.TestCase):
 
         core_specification = CoreGroupSpecification(MaterialCuboid(x=10, y=10, z=2, p=2330, c_p=712, k=148),
                                                     EnergyConsumptionProperties(),
-                                                    [150, 400, 600, 850, 1000],
-                                                    [1000, 1000])
+                                                    [150000, 400000, 600000, 850000, 1000000],
+                                                    [1000000, 1000000])
 
         board_specification = BoardSpecification(MaterialCuboid(x=50, y=50, z=1, p=8933, c_p=385, k=400))
 

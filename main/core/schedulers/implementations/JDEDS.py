@@ -389,6 +389,9 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
                   in the problem specification)
         """
 
+        if time == 4.0:
+            sfdfdf = 1
+
         # Check if new interval have arrived and update everything
         new_interval_start = (round(time / self.__dt) >= round(
             self.__intervals_end[self.__actual_interval_index] / self.__dt)) or time == 0
