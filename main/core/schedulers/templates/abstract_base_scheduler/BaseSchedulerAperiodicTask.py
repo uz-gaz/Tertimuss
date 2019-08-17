@@ -3,8 +3,7 @@ from main.core.schedulers.templates.abstract_base_scheduler.BaseSchedulerTask im
 
 
 class BaseSchedulerAperiodicTask(AperiodicTask, BaseSchedulerTask):
-    def __init__(self, task_specification: AperiodicTask, task_id: int, base_frequency: int):
+    def __init__(self, task_specification: AperiodicTask, task_id: int):
         AperiodicTask.__init__(self, task_specification.c, task_specification.a, task_specification.d,
                                task_specification.e)
-        BaseSchedulerTask.__init__(self, task_specification.d, task_specification.a, task_specification.c, task_id,
-                                   base_frequency)
+        BaseSchedulerTask.__init__(self, task_specification.d, task_specification.a, task_specification.c, task_id)

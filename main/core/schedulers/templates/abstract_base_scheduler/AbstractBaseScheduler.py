@@ -1,7 +1,6 @@
 import abc
 
 import scipy
-import math
 
 from main.core.schedulers.templates.abstract_base_scheduler.BaseSchedulerAperiodicTask import BaseSchedulerAperiodicTask
 from main.core.schedulers.templates.abstract_base_scheduler.BaseSchedulerPeriodicTask import BaseSchedulerPeriodicTask
@@ -35,8 +34,9 @@ class AbstractBaseScheduler(AbstractScheduler, metaclass=abc.ABCMeta):
         # True if simulation must save the temperature map
         is_thermal_simulation = global_model.enable_thermal_mode
 
-        # Round float to this decimal
-        float_round = global_specification.simulation_specification.float_decimals_precision
+        # Round a value and transform it to int
+        def round_i(x: float) -> int:
+            return int(round(x))
 
         idle_task_id = -1
         m = len(global_specification.cpu_specification.cores_specification.operating_frequencies)
@@ -47,19 +47,18 @@ class AbstractBaseScheduler(AbstractScheduler, metaclass=abc.ABCMeta):
         clock_base_frequency = global_specification.cpu_specification.cores_specification.operating_frequencies[-1]
 
         # Tasks sets
-        periodic_tasks = [BaseSchedulerPeriodicTask(global_specification.tasks_specification.periodic_tasks[i], i,
-                                                    clock_base_frequency)
+        periodic_tasks = [BaseSchedulerPeriodicTask(global_specification.tasks_specification.periodic_tasks[i], i)
                           for i in range(len(global_specification.tasks_specification.periodic_tasks))]
         aperiodic_tasks = [BaseSchedulerAperiodicTask(global_specification.tasks_specification.aperiodic_tasks[i],
-                                                      i + len(periodic_tasks), clock_base_frequency)
+                                                      i + len(periodic_tasks))
                            for i in range(len(global_specification.tasks_specification.aperiodic_tasks))]
 
         tasks_set: List[BaseSchedulerTask] = periodic_tasks + aperiodic_tasks  # The elements in this list will
         # point to the periodic_tasks and aperiodic_tasks elements
 
         # Number of steps in the simulation
-        simulation_time_steps = math.floor(round(
-            global_specification.tasks_specification.h / global_specification.simulation_specification.dt, float_round))
+        simulation_time_steps = round_i(
+            global_specification.tasks_specification.h / global_specification.simulation_specification.dt)
 
         # Allocation of each task in each simulation step
         i_tau_disc = scipy.ndarray((n * m, simulation_time_steps))
@@ -107,8 +106,7 @@ class AbstractBaseScheduler(AbstractScheduler, metaclass=abc.ABCMeta):
         quantum = self.offline_stage(global_specification, periodic_tasks, aperiodic_tasks)
 
         # Number of steps in each quantum
-        simulation_quantum_steps = math.ceil(round(
-            quantum / global_specification.simulation_specification.dt, float_round))
+        simulation_quantum_steps = round_i(quantum / global_specification.simulation_specification.dt)
         simulation_quantum_steps = 1 if simulation_quantum_steps == 0 else simulation_quantum_steps
 
         # Accumulated execution time in each step
@@ -122,10 +120,8 @@ class AbstractBaseScheduler(AbstractScheduler, metaclass=abc.ABCMeta):
         del global_model
 
         # Actual set clock frequencies
-        clock_relative_frequencies = [i / clock_base_frequency for i in
-                                      global_specification.cpu_specification.cores_specification.operating_frequencies]
-        clock_available_frequencies = [i / clock_base_frequency for i in
-                                       global_specification.cpu_specification.cores_specification.available_frequencies]
+        cores_operating_frequencies = global_specification.cpu_specification.cores_specification.operating_frequencies
+        cores_available_frequencies = global_specification.cpu_specification.cores_specification.available_frequencies
 
         # Active tasks
         active_task_id = m * [-1]
@@ -139,12 +135,11 @@ class AbstractBaseScheduler(AbstractScheduler, metaclass=abc.ABCMeta):
             time = zeta_q * global_specification.simulation_specification.dt
 
             # Manage aperiodic tasks
-            if any([math.ceil(
-                    round(x.next_arrival / global_specification.simulation_specification.dt, float_round)) == zeta_q for
+            if any([round_i(x.next_arrival / global_specification.simulation_specification.dt) == zeta_q for
                     x in aperiodic_tasks]):
-                aperiodic_arrives_list = [x for x in aperiodic_tasks if math.ceil(
-                    round(x.next_arrival / global_specification.simulation_specification.dt, float_round)) == zeta_q]
-                need_scheduled = self.aperiodic_arrive(time, aperiodic_arrives_list, clock_relative_frequencies,
+                aperiodic_arrives_list = [x for x in aperiodic_tasks if round_i(
+                    x.next_arrival / global_specification.simulation_specification.dt) == zeta_q]
+                need_scheduled = self.aperiodic_arrive(time, aperiodic_arrives_list, cores_operating_frequencies,
                                                        cores_temperature if is_thermal_simulation else None)
                 if need_scheduled:
                     # If scheduler need to be call
@@ -154,20 +149,18 @@ class AbstractBaseScheduler(AbstractScheduler, metaclass=abc.ABCMeta):
             if quantum_q <= 0:
                 # Get executable tasks in this interval
                 executable_tasks = [actual_task for actual_task in tasks_set if
-                                    math.ceil(round(
-                                        actual_task.next_arrival / global_specification.simulation_specification.dt,
-                                        float_round
-                                    )) <= zeta_q and math.ceil(round(
-                                        actual_task.pending_c / global_specification.simulation_specification.dt,
-                                        float_round
-                                    )) > 0]
+                                    round_i(
+                                        actual_task.next_arrival / global_specification.simulation_specification.dt
+                                    ) <= zeta_q and round_i(
+                                        actual_task.pending_c / global_specification.simulation_specification.dt
+                                    ) > 0]
 
                 available_tasks_to_execute = [actual_task.id for actual_task in executable_tasks] + [-1]
 
                 # Get active task in this step
                 active_task_id, next_quantum, next_core_frequencies = self.schedule_policy(time, executable_tasks,
                                                                                            active_task_id,
-                                                                                           clock_relative_frequencies,
+                                                                                           cores_operating_frequencies,
                                                                                            cores_temperature if
                                                                                            is_thermal_simulation
                                                                                            else None)
@@ -187,8 +180,7 @@ class AbstractBaseScheduler(AbstractScheduler, metaclass=abc.ABCMeta):
                          next_core_frequencies]):
                     print("Warning: At least one frequency selected on time", time, "to execute is not available ones")
 
-                quantum_q = math.ceil(
-                    round(next_quantum / global_specification.simulation_specification.dt, float_round)) - 1 \
+                quantum_q = round_i(next_quantum / global_specification.simulation_specification.dt) - 1 \
                     if next_quantum is not None else simulation_quantum_steps - 1
                 quantum_q = 0 if quantum_q < 0 else quantum_q
 
@@ -235,17 +227,15 @@ class AbstractBaseScheduler(AbstractScheduler, metaclass=abc.ABCMeta):
             n_aperiodic = len(global_specification.tasks_specification.aperiodic_tasks)
 
             for j in range(n_periodic):
-                if math.ceil(round(tasks_set[j].next_deadline / global_specification.simulation_specification.dt,
-                                   float_round)) == zeta_q:
+                if round_i(tasks_set[j].next_deadline / global_specification.simulation_specification.dt) == zeta_q:
                     # It only manage the end of periodic tasks
                     tasks_set[j].pending_c = periodic_tasks[j].c / clock_base_frequency
                     tasks_set[j].next_arrival += periodic_tasks[j].t
                     tasks_set[j].next_deadline += periodic_tasks[j].t
 
             for j in range(n_aperiodic):
-                if math.ceil(round(tasks_set[
-                                       n_periodic + j].next_deadline / global_specification.simulation_specification.dt,
-                                   float_round)) == zeta_q:
+                if round_i(tasks_set[n_periodic + j].next_deadline /
+                           global_specification.simulation_specification.dt) == zeta_q:
                     # It only manage the end of aperiodic tasks
                     tasks_set[n_periodic + j].next_arrival += global_specification.tasks_specification.h
                     tasks_set[n_periodic + j].next_deadline += global_specification.tasks_specification.h
@@ -268,8 +258,8 @@ class AbstractBaseScheduler(AbstractScheduler, metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def schedule_policy(self, time: float, executable_tasks: List[BaseSchedulerTask], active_tasks: List[int],
-                        actual_cores_frequency: List[float], cores_max_temperature: Optional[scipy.ndarray]) -> \
-            [List[int], Optional[float], Optional[List[float]]]:
+                        actual_cores_frequency: List[int], cores_max_temperature: Optional[scipy.ndarray]) -> \
+            [List[int], Optional[float], Optional[List[int]]]:
         """
         Method to implement with the actual scheduler police
         :param actual_cores_frequency: Frequencies of cores
@@ -286,7 +276,7 @@ class AbstractBaseScheduler(AbstractScheduler, metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def aperiodic_arrive(self, time: float, aperiodic_tasks_arrived: List[BaseSchedulerTask],
-                         actual_cores_frequency: List[float], cores_max_temperature: Optional[scipy.ndarray]) -> bool:
+                         actual_cores_frequency: List[int], cores_max_temperature: Optional[scipy.ndarray]) -> bool:
         """
         Method to implement with the actual on aperiodic arrive scheduler police
         :param actual_cores_frequency: Frequencies of cores
