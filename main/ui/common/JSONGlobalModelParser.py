@@ -2,7 +2,6 @@ import json
 import os
 from typing import Dict, List, Tuple, Optional
 
-import jsonref
 import jsonschema
 from jsonschema import ValidationError
 
