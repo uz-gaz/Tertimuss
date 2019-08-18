@@ -25,6 +25,7 @@ class OLDTFSScheduler(AbstractBaseScheduler):
     """
     Implements the OLDTFS scheduler
     """
+
     def __init__(self) -> None:
         super().__init__()
         # Scheduler variables
@@ -199,10 +200,26 @@ class OLDTFSScheduler(AbstractBaseScheduler):
             b = bu
 
         # Interior points was the default in the original version, but i found that simplex has better results
-        res = scipy.optimize.linprog(c=objective, A_ub=a, b_ub=b, A_eq=a_eq, b_eq=beq, bounds=bounds,
-                                     method='interior-point')
+        methods_for_solving_the_lpp = ["simplex", "revised simplex", "interior-point"]
+        lpp_solved = False
+        lpp_method_index = 0
+        res = None
+        while lpp_method_index < len(methods_for_solving_the_lpp) and not lpp_solved:
+            try:
+                res = scipy.optimize.linprog(c=objective, A_ub=a, b_ub=b, A_eq=a_eq, b_eq=beq, bounds=bounds,
+                                             method=methods_for_solving_the_lpp[lpp_method_index])
 
-        if not res.success:
+                if res.success:
+                    lpp_solved = True
+                else:
+                    print("The LPP could't be solved with the", methods_for_solving_the_lpp[lpp_method_index], "method")
+
+            except ValueError:
+                print("The LPP could't be solved with the", methods_for_solving_the_lpp[lpp_method_index], "method")
+
+            lpp_method_index = lpp_method_index + 1
+
+        if not lpp_solved:
             # No solution found
             raise Exception("Error: Offline stage, no solution found when trying to solve the lineal" +
                             " programing problem")
