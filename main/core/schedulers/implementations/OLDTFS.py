@@ -21,7 +21,10 @@ from main.core.tcpn_simulator.implementation.numerical_integration.TcpnSimulator
     TcpnSimulatorOptimizedTasksAndProcessors
 
 
-class GlobalThermalAwareScheduler(AbstractBaseScheduler):
+class OLDTFSScheduler(AbstractBaseScheduler):
+    """
+    Implements the OLDTFS scheduler
+    """
     def __init__(self) -> None:
         super().__init__()
         # Scheduler variables
@@ -43,6 +46,9 @@ class GlobalThermalAwareScheduler(AbstractBaseScheduler):
     @staticmethod
     def __obtain_thermal_constraint(global_specification: GlobalSpecification) \
             -> [scipy.sparse.csc_matrix, scipy.sparse.csc_matrix, scipy.sparse.csc_matrix, scipy.sparse.csc_matrix]:
+        """
+        Returns the thermal constraint required in the LPP solving
+        """
 
         tasks_specification = TasksSpecification(global_specification.tasks_specification.periodic_tasks)
         cpu_specification = global_specification.cpu_specification
@@ -134,6 +140,9 @@ class GlobalThermalAwareScheduler(AbstractBaseScheduler):
     @staticmethod
     def __solve_linear_programing_problem(global_specification: GlobalSpecification, is_thermal_simulation: bool) -> [
         scipy.ndarray, scipy.ndarray, float, scipy.ndarray]:
+        """
+        Solves the linear programing problem
+        """
 
         h = global_specification.tasks_specification.h
         ti = scipy.asarray([i.t for i in global_specification.tasks_specification.periodic_tasks])
@@ -165,7 +174,7 @@ class GlobalThermalAwareScheduler(AbstractBaseScheduler):
 
         # Optimization
         if is_thermal_simulation:
-            a_t, ct_exec, b_ta, s_t = GlobalThermalAwareScheduler.__obtain_thermal_constraint(global_specification)
+            a_t, ct_exec, b_ta, s_t = OLDTFSScheduler.__obtain_thermal_constraint(global_specification)
 
             # Inverse precision
             # WARNING: This is a workaround to deal with float precision
@@ -244,7 +253,7 @@ class GlobalThermalAwareScheduler(AbstractBaseScheduler):
         #
         #     if all(item[0] > global_specification.environment_specification.t_max for item in temp_max / m):
         #         raise Exception(
-        #             "Error: No one solution found when trying to solve the linear programing problem is feasible")
+        #             "Error: No one solution found when trying to solve the linear programing problem")
 
         return j_fsc_i, quantum
 
@@ -254,6 +263,9 @@ class GlobalThermalAwareScheduler(AbstractBaseScheduler):
                                                                                             scipy.sparse.csr_matrix,
                                                                                             scipy.ndarray,
                                                                                             scipy.ndarray]:
+        """
+        Create a TCPN model for tasks and processors
+        """
         # As the scheduler only accepts periodic tasks, it is not necessary to include aperiodic tasks in the TCPN
         # model of the scheduler
         n_periodic = len(global_specification.tasks_specification.periodic_tasks)

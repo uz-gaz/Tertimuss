@@ -10,6 +10,18 @@ class SchedulerResult(object):
                  frequencies: scipy.ndarray,
                  energy_consumption: scipy.ndarray,
                  quantum: float):
+        """
+        Result of the scheduler execution
+        :param temperature_map: temperature map of the processor
+        :param max_temperature_cores: max temperature in the cores
+        :param time_steps:
+        :param execution_time_scheduler:
+        :param execution_time_tcpn:
+        :param scheduler_assignation:
+        :param frequencies:
+        :param energy_consumption:
+        :param quantum:
+        """
         self.time_steps = time_steps
         self.temperature_map = temperature_map
         self.max_temperature_cores = max_temperature_cores

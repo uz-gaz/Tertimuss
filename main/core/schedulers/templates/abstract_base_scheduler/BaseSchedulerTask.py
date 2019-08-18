@@ -1,7 +1,8 @@
 class BaseSchedulerTask(object):
     def __init__(self, d: float, a: float, c: int, task_id: int):
         """
-        Task information managed by the schedulers
+        This class represent a job, where next_deadline is the deadline of the job and next_arrival the arrival of the
+         job
         :param d: deadline
         :param a: arrival
         :param c: execution time in cycles

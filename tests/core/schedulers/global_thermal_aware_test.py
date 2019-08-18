@@ -1,7 +1,7 @@
 import unittest
 
 from main.core.schedulers.templates.abstract_scheduler.AbstractScheduler import AbstractScheduler
-from main.core.schedulers.implementations.OLDTFS import GlobalThermalAwareScheduler
+from main.core.schedulers.implementations.OLDTFS import OLDTFSScheduler
 from tests.core.schedulers.scheduler_abstract_test import SchedulerAbstractTest
 
 
@@ -10,7 +10,7 @@ class RtTcpnScheduler(SchedulerAbstractTest):
     @staticmethod
     def get_global_variables() -> [AbstractScheduler, str]:
         # Scheduler
-        scheduler = GlobalThermalAwareScheduler()
+        scheduler = OLDTFSScheduler()
 
         # Result base name
         scheduler_name = "global_thermal_aware"

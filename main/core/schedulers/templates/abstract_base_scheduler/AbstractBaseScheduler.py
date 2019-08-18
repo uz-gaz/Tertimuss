@@ -16,8 +16,7 @@ from main.ui.common.AbstractProgressBar import AbstractProgressBar
 
 class AbstractBaseScheduler(AbstractScheduler, metaclass=abc.ABCMeta):
     """
-    Abstract implementation of global scheduler (Custom Scheduler in original work).
-    Method schedule_police must be implemented
+    Abstract implementation of global scheduler.
     """
 
     def __init__(self) -> None:
@@ -26,10 +25,11 @@ class AbstractBaseScheduler(AbstractScheduler, metaclass=abc.ABCMeta):
     def simulate(self, global_specification: GlobalSpecification, global_model: GlobalModel,
                  progress_bar: Optional[AbstractProgressBar]) -> SchedulerResult:
         """
-
-        :param global_model:
-        :param progress_bar:
-        :type global_specification: object
+        Simulate problem
+        :param global_specification: global specification of the problem
+        :param global_model: global TCPN model
+        :param progress_bar: progress bar object if want to get simulation state feedback
+        :return:
         """
         # True if simulation must save the temperature map
         is_thermal_simulation = global_model.enable_thermal_mode

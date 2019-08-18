@@ -15,8 +15,7 @@ import scipy.linalg
 
 class GlobalJDEDSScheduler(AbstractBaseScheduler):
     """
-    Implements a revision of the global earliest deadline first scheduler where affinity of tasks to processors have been
-    got in mind and frequency too
+    Implements the JDEDS scheduler
     """
 
     def __init__(self) -> None:
@@ -36,8 +35,16 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
         self.__intervals_frequencies = None
 
     @staticmethod
-    def ilpp_dp(ci: List[int], ti: List[int], n: int, m: int) -> [scipy.ndarray, scipy.ndarray,
-                                                                  scipy.ndarray]:
+    def ilpp_dp(ci: List[int], ti: List[int], n: int, m: int) -> [scipy.ndarray, scipy.ndarray ]:
+        """
+        Solves the linear programing problem
+        :param ci: execution cycles of each task
+        :param ti: period in cycles of each task
+        :param n: number of tasks
+        :param m: number of cpus
+        :return: 1 -> tasks execution each interval
+                 2 -> intervals
+        """
         hyperperiod = scipy.lcm.reduce(ti)
 
         jobs = list(map(lambda task: int(hyperperiod / task), ti))
@@ -139,7 +146,7 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
             s[0:n, k] = x[i:i + n]
             i = i + n
 
-        return s, sd, hyperperiod, isd
+        return s, sd
 
     def offline_stage(self, global_specification: GlobalSpecification,
                       periodic_tasks: List[BaseSchedulerPeriodicTask],
@@ -194,7 +201,7 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
             tci_in_quantums.append(hyperperiod_in_quantums)
 
         # Linear programing problem
-        x, sd, _, _ = self.ilpp_dp(cci_in_quantums, tci_in_quantums, len(cci_in_quantums), self.__m)
+        x, sd = self.ilpp_dp(cci_in_quantums, tci_in_quantums, len(cci_in_quantums), self.__m)
 
         # Transform from quantums to cycles
         x = x * round(f_star_hz * dt)
