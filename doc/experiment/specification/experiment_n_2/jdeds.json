@@ -10,17 +10,17 @@
     "tasks": [
       {
         "type": "Periodic",
-        "worst_case_execution_time": 11100,
+        "worst_case_execution_time": 11100000,
         "period": 12
       },
       {
         "type": "Periodic",
-        "worst_case_execution_time": 1000,
+        "worst_case_execution_time": 1000000,
         "period": 8
       },
       {
         "type": "Periodic",
-        "worst_case_execution_time": 1000,
+        "worst_case_execution_time": 1000000,
         "period": 8
       }
     ]
@@ -52,15 +52,15 @@
         "dynamic_beta": 0.08
       },
       "available_frequencies": [
-        150,
-        400,
-        600,
-        850,
-        1000
+        150000,
+        400000,
+        600000,
+        850000,
+        1000000
       ],
       "operating_frequencies": [
-        1000,
-        1000
+        1000000,
+        1000000
       ],
       "cores_origins": "Automatic"
     }
