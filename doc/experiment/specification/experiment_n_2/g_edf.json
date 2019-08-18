@@ -10,18 +10,18 @@
     "tasks": [
       {
         "type": "Periodic",
+        "worst_case_execution_time": 1000000,
+        "period": 8
+      },
+      {
+        "type": "Periodic",
+        "worst_case_execution_time": 1000000,
+        "period": 8
+      },
+      {
+        "type": "Periodic",
         "worst_case_execution_time": 11100000,
         "period": 12
-      },
-      {
-        "type": "Periodic",
-        "worst_case_execution_time": 1000000,
-        "period": 8
-      },
-      {
-        "type": "Periodic",
-        "worst_case_execution_time": 1000000,
-        "period": 8
       }
     ]
   },
