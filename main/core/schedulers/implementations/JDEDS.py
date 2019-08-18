@@ -169,7 +169,6 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
         if len(available_frequencies_hz) == 0:
             raise Exception("Error: Schedule is not feasible")
 
-        # TODO: Seguir por aqui
         # F star in HZ
         f_star_hz = available_frequencies_hz[0]
 
@@ -247,10 +246,9 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
         :return: true if want to immediately call the scheduler (schedule_policy method), false otherwise
         """
         for actual_task in aperiodic_tasks_arrived:
-            # x in base frequency time
+            # x in cycles
             x = self.__execution_by_intervals
-            cc = scipy.asarray([i[0] for i in self.__interval_cc_left]) * self.__intervals_frequencies[
-                self.__actual_interval_index]
+            cc = scipy.asarray([i[0] for i in self.__interval_cc_left])
 
             # Remaining time for aperiodic in the actual interval for each frequency
             remaining_actual = [self.__m * (self.__intervals_end[self.__actual_interval_index] - time) - sum(cc / i) for
@@ -284,9 +282,10 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
                          zip(remaining_actual, remaining_full_intervals, remaining_last_interval,
                              range(len(self.__possible_f)))]
 
-            c_aperiodic = actual_task.pending_c
+            dt = self.__dt
 
-            possible_f_index = [i[1] for i in remaining if i[0] >= (c_aperiodic / self.__possible_f[i[1]])]
+            possible_f_index = [i[1] for i in remaining if
+                                i[0] >= (math.ceil(actual_task.pending_c / round(self.__possible_f[i[1]] * dt)) * dt)]
 
             if len(possible_f_index) > 0:
                 self.__aperiodic_arrive = True
@@ -302,7 +301,9 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
                                                  possible_f_index[
                                                      0]]] if remaining_last_interval_to_deadline > 0 else [])
 
-                times_to_execute[-1] = times_to_execute[-1] - (sum(times_to_execute) - (c_aperiodic / f_star))
+                times_to_execute_c_aperiodic = math.ceil(actual_task.pending_c / round(f_star * dt)) * dt
+
+                times_to_execute[-1] = times_to_execute[-1] - (sum(times_to_execute) - times_to_execute_c_aperiodic)
 
                 new_x_row = scipy.zeros((1, len(self.__intervals_end)))
                 new_x_row[0, self.__actual_interval_index: self.__actual_interval_index
@@ -342,7 +343,7 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
 
         tasks_laxity_zero = any(
             [round((actual_interval_end - time - (
-                        i[0] / self.__intervals_frequencies[self.__actual_interval_index])) / self.__dt) <= 0
+                    i[0] / self.__intervals_frequencies[self.__actual_interval_index])) / self.__dt) <= 0
              and i[1] not in active_tasks for i in executable_tasks_interval])
 
         # True if new quantum has started (True if any task has arrived in this step)

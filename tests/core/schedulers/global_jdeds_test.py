@@ -45,8 +45,8 @@ class GlobalWodes(SchedulerAbstractTest):
 
     def test_with_thermal_and_aperiodic(self):
         scheduler, scheduler_name = self.get_global_variables()
-        self.run_test_hash_based(scheduler, True, True, "41c38748ec4f1f09f679c6d9c010d6d0")
-        # self.save_plot_outputs_result(scheduler, True, True, "out/" + scheduler_name + "_thermal_and_aperiodic")
+        # self.run_test_hash_based(scheduler, True, True, "41c38748ec4f1f09f679c6d9c010d6d0")
+        self.save_plot_outputs_result(scheduler, True, True, "out/" + scheduler_name + "_thermal_and_aperiodic")
         # self.save_matlab_result(scheduler, True, True, "out/" + scheduler_name + "_thermal_and_aperiodic")
 
 
