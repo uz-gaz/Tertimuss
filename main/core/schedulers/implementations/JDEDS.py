@@ -35,7 +35,7 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
         self.__intervals_frequencies = None
 
     @staticmethod
-    def ilpp_dp(ci: List[int], ti: List[int], n: int, m: int) -> [scipy.ndarray, scipy.ndarray ]:
+    def ilpp_dp(ci: List[int], ti: List[int], n: int, m: int) -> [scipy.ndarray, scipy.ndarray]:
         """
         Solves the linear programing problem
         :param ci: execution cycles of each task
@@ -169,9 +169,19 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
         # Calculate F start
         # The minimum number cycles you can execute is (frequency * dt). Therefore the real number of cycles you will
         # execute for each task will be ceil(task cc / (frequency * dt)) * (frequency * dt)
-        available_frequencies_hz = [actual_frequency for actual_frequency in clock_available_frequencies_hz if (sum(
-            [(math.ceil(i.c / round(actual_frequency * dt)) * actual_frequency * dt) / i.t for i in
-             periodic_tasks]) / self.__m) <= actual_frequency]
+        available_frequencies_hz = []
+
+        for actual_frequency in clock_available_frequencies_hz:
+            tasks_real_cycles = [
+                ((math.ceil(i.c / round(actual_frequency * dt)) * actual_frequency * dt), i.t * actual_frequency) for i
+                in periodic_tasks]
+
+            utilization_constraint = sum([i[0] / i[1] for i in tasks_real_cycles]) <= self.__m
+
+            task_period_constraint = all([(i[0] / i[1]) <= 1 for i in tasks_real_cycles])
+
+            if utilization_constraint and task_period_constraint:
+                available_frequencies_hz.append(actual_frequency)
 
         if len(available_frequencies_hz) == 0:
             raise Exception("Error: Schedule is not feasible")
