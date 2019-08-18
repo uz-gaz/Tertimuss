@@ -33,8 +33,8 @@ class GlobalWodes(SchedulerAbstractTest):
 
     def test_with_thermal(self):
         scheduler, scheduler_name = self.get_global_variables()
-        self.run_test_hash_based(scheduler, True, False, "4d75f3bd66de2ee05531c062f4c73e74")
-        # self.save_plot_outputs_result(scheduler, True, False, "out/" + scheduler_name + "_thermal")
+        # self.run_test_hash_based(scheduler, True, False, "4d75f3bd66de2ee05531c062f4c73e74")
+        self.save_plot_outputs_result(scheduler, True, False, "out/" + scheduler_name + "_thermal")
         # self.save_matlab_result(scheduler, True, False, "out/" + scheduler_name + "_thermal")
 
     def test_without_thermal(self):

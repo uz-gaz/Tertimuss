@@ -163,7 +163,7 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
         # The minimum number cycles you can execute is (frequency * dt). Therefore the real number of cycles you will
         # execute for each task will be ceil(task cc / (frequency * dt)) * (frequency * dt)
         available_frequencies_hz = [actual_frequency for actual_frequency in clock_available_frequencies_hz if (sum(
-            [(math.ceil(i.c / (actual_frequency * dt)) * actual_frequency * dt) / i.t for i in
+            [(math.ceil(i.c / round(actual_frequency * dt)) * actual_frequency * dt) / i.t for i in
              periodic_tasks]) / self.__m) <= actual_frequency]
 
         if len(available_frequencies_hz) == 0:
@@ -182,19 +182,29 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
 
         a_i = [int(hyperperiod_hz / i) for i in tci]
 
-        total_used_cycles = sum([i[0] * i[1] for i in zip(cci, a_i)])
+        # Get the number of quantums that each task will execute
+        cci_in_quantums = [math.ceil(i / round(f_star_hz * dt)) for i in cci]
+        tci_in_quantums = [math.ceil(i / round(f_star_hz * dt)) for i in tci]
 
-        if total_used_cycles < self.__m * hyperperiod_hz:
-            cci.append(int(self.__m * hyperperiod_hz - total_used_cycles))
-            tci.append(hyperperiod_hz)
+        # Check if it's needed a dummy task
+        total_used_quantums = sum([i[0] * i[1] for i in zip(cci_in_quantums, a_i)])
+        hyperperiod_in_quantums = int(hyperperiod_hz / round(f_star_hz * dt))
+
+        if total_used_quantums < self.__m * hyperperiod_in_quantums:
+            cci_in_quantums.append(int(round(self.__m * hyperperiod_in_quantums - total_used_quantums)))
+            tci_in_quantums.append(hyperperiod_in_quantums)
 
         # Linear programing problem
-        x, sd, _, _ = self.ilpp_dp(cci, tci, len(tci), self.__m)
+        x, sd, _, _ = self.ilpp_dp(cci_in_quantums, tci_in_quantums, len(cci_in_quantums), self.__m)
 
-        sd = sd / f_star_hz
+        # Transform from quantums to cycles
+        x = x * round(f_star_hz * dt)
+
+        # Transform from quantums to time
+        sd = sd * dt
 
         # Delete dummy task
-        if total_used_cycles < self.__m * hyperperiod_hz:
+        if total_used_quantums < self.__m * hyperperiod_in_quantums:
             x = x[:-1, :]
 
         # All intervals
@@ -328,8 +338,11 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
         executable_tasks_interval = [i for i in
                                      self.__interval_cc_left if i[0] > 0]
 
+        actual_interval_end = self.__intervals_end[self.__actual_interval_index]
+
         tasks_laxity_zero = any(
-            [round((time - (i[0] / self.__intervals_frequencies[self.__actual_interval_index])) / self.__dt) <= 0
+            [round((actual_interval_end - time - (
+                        i[0] / self.__intervals_frequencies[self.__actual_interval_index])) / self.__dt) <= 0
              and i[1] not in active_tasks for i in executable_tasks_interval])
 
         # True if new quantum has started (True if any task has arrived in this step)
@@ -353,9 +366,11 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
         # Contains tasks that can be executed
         executable_tasks = [i for i in self.__interval_cc_left if i[0] > 0]
 
+        actual_interval_end = self.__intervals_end[self.__actual_interval_index]
+
         # Contains all zero laxity tasks
         tasks_laxity_zero = [i[1] for i in executable_tasks if
-                             round((time - (i[0] / self.__intervals_frequencies[
+                             round((actual_interval_end - time - (i[0] / self.__intervals_frequencies[
                                  self.__actual_interval_index])) / self.__dt) <= 0]
 
         # Update executable tasks
@@ -417,7 +432,7 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
         for i in range(self.__m):
             actual = active_tasks[i]
             for j in range(self.__m):
-                if tasks_to_execute[j] == actual and tasks_to_execute[j] != -1 and j != i:
+                if tasks_to_execute[j] == actual and j != i:
                     tasks_to_execute[j], tasks_to_execute[i] = tasks_to_execute[i], tasks_to_execute[j]
 
         return tasks_to_execute, None, self.__m * [self.__intervals_frequencies[self.__actual_interval_index]]
