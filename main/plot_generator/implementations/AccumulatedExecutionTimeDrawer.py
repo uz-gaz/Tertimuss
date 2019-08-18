@@ -25,7 +25,7 @@ class AccumulatedExecutionTimeDrawer(AbstractResultDrawer):
 
     @staticmethod
     def __plot_accumulated_execution_time(global_specification: GlobalSpecification, scheduler_result: SchedulerResult,
-                                        save_path: Optional[str] = None):
+                                          save_path: Optional[str] = None):
         """
         Plot tasks accumulated execution time during the simulation
         :param global_specification: problem specification
@@ -34,7 +34,7 @@ class AccumulatedExecutionTimeDrawer(AbstractResultDrawer):
         """
 
         m_exec = scheduler_result.execution_time_scheduler
-        m_exec_tcpn = scheduler_result.execution_time_tcpn
+        # m_exec_tcpn = scheduler_result.execution_time_tcpn
         time_u = scheduler_result.time_steps
         # time_step = scheduler_result.time_tcpn
         n_periodic = len(global_specification.tasks_specification.periodic_tasks)
@@ -45,7 +45,7 @@ class AccumulatedExecutionTimeDrawer(AbstractResultDrawer):
             for j in range(n_periodic):
                 axarr[i][j].set_title(r'$\tau_' + str(j + 1) + '$ execution \n on $CPU_' + str(i + 1) + '$')
                 axarr[i][j].plot(time_u, m_exec[i * (n_periodic + n_aperiodic) + j])
-                axarr[i][j].plot(time_u, m_exec_tcpn[i * (n_periodic + n_aperiodic) + j], label="mexec tcpn")
+                # axarr[i][j].plot(time_u, m_exec_tcpn[i * (n_periodic + n_aperiodic) + j], label="mexec tcpn")
                 axarr[i][j].set_ylabel('executed time (s)')
                 axarr[i][j].set_xlabel('system time (s)')
 
