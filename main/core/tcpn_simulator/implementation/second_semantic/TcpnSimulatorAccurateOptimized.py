@@ -5,8 +5,8 @@ from main.core.tcpn_simulator.template.AbstractTcpnSimulator import AbstractTcpn
 
 class TcpnSimulatorAccurateOptimized(AbstractTcpnSimulator):
     """
-    Time continuous petri net simulator optimized for the scenario where pi is variable
-    WARNING: This is only an example not used in the simulator but it may be useful if the petri net model for the
+    Time continuous Petri net simulator optimized for the scenario where Pi is variable
+    WARNING: This is only an example, it is not used in the simulator but it may be useful if the Petri net model of the
     simulation change
     """
 

@@ -2,6 +2,9 @@ import abc
 
 
 class AbstractProgressBar(object, metaclass=abc.ABCMeta):
+    """
+    Abstract progress bar
+    """
     def __init__(self):
         self.__phase = ""
         self.__progress = 0
@@ -24,12 +27,25 @@ class AbstractProgressBar(object, metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def _phase_changed(self, phase: str):
+        """
+        It's called when the simulation phase changes
+        e.g. Go from simulating the scheduler to save the graphical representation of the result
+        :param phase: New phase
+        """
         pass
 
     @abc.abstractmethod
     def _progress_changed(self, phase: str, progress: float):
+        """
+        Progress has changed in the actual phase
+        :param phase: phase name
+        :param progress: progress
+        """
         pass
 
     @abc.abstractmethod
     def close(self):
+        """
+        It's called when end the simulation that the progress bar was logging
+        """
         pass

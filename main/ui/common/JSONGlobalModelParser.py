@@ -31,6 +31,13 @@ from main.ui.common.TaskGeneratorSelector import TaskGeneratorSelector
 class JSONGlobalModelParser(object):
     @staticmethod
     def read_input(input_path) -> [bool, str, Optional[Dict]]:
+        """
+        Read JSON and return a Dict object
+        :param input_path: JSON path
+        :return: 1 -> True if there was an error
+                 2 -> Error message
+                 2 -> Dict object
+        """
         try:
             with open(input_path, "r") as read_file:
                 try:
@@ -43,6 +50,13 @@ class JSONGlobalModelParser(object):
 
     @staticmethod
     def validate_input(input_json: Dict, schema_json: Dict) -> [bool, str]:
+        """
+        Check if input_json conforms to scheme schema_json
+        :param input_json: JSON as a Dict object
+        :param schema_json: JSON schema as a Dict object
+        :return: 1 -> True if there was an error
+                 2 -> Error message
+        """
         # Validate the input
         try:
             jsonschema.validate(input_json, schema_json)
@@ -335,6 +349,11 @@ class JSONGlobalModelParser(object):
     @classmethod
     def obtain_global_model(cls, input_json: Dict) -> [GlobalSpecification, AbstractScheduler, str,
                                                        List[Tuple[AbstractResultDrawer, Dict[str, str]]], Dict]:
+        """
+        Obtain global model from specification in JSON
+        :param input_json: Json specification
+        :return: Simulation specification
+        """
 
         tasks_specification, input_json = cls.__obtain_tasks_specification(input_json)
 

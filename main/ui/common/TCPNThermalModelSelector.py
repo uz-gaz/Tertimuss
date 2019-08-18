@@ -6,6 +6,11 @@ from main.core.tcpn_model_generator.ThermalModelSelector import ThermalModelSele
 class TCPNThermalModelSelector(object):
     @staticmethod
     def select_tcpn_model(name: str) -> ThermalModelSelector:
+        """
+        Select thermal TCPN model by name
+        :param name: Name of the TCPN model
+        :return:
+        """
         tcpn_model_definition = {
             "Energy based": ThermalModelSelector.THERMAL_MODEL_ENERGY_BASED,
             "Frequency based": ThermalModelSelector.THERMAL_MODEL_FREQUENCY_BASED

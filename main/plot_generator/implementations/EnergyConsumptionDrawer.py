@@ -28,6 +28,13 @@ class EnergyConsumptionDrawer(AbstractResultDrawer):
     @staticmethod
     def __plot_energy_consumption(global_specification: GlobalSpecification, scheduler_result: SchedulerResult,
                                 save_path: Optional[str] = None):
+        """
+        Plot the dynamic energy consumed by each core during the simulation
+        :param global_specification: Problem global specification
+        :param scheduler_result: Result of the simulation
+        :param save_path: path to save the simulation
+        :return:
+        """
         energy_consumption = scheduler_result.energy_consumption
         time_temp = scheduler_result.time_steps
         m = len(global_specification.cpu_specification.cores_specification.operating_frequencies)

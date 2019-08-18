@@ -9,6 +9,9 @@ from main.ui.common.JSONGlobalModelParser import JSONGlobalModelParser
 
 
 class CliController(object):
+    """
+    Manage the command line interface
+    """
     @classmethod
     def cli_main(cls, args):
         # Progress bar

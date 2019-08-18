@@ -8,7 +8,7 @@ from main.core.tcpn_simulator.template.AbstractTcpnSimulator import AbstractTcpn
 class TcpnSimulatorIntegrationFixedStep(AbstractTcpnSimulator):
     """
     Time continuous Petri net simulator based on the Euler method
-    WARNING: This is only an example not used in the simulator but it may be useful if the Petri net model for the
+    WARNING: This is only an example, it is not used in the simulator but it may be useful if the Petri net model of the
     simulation change
     """
 

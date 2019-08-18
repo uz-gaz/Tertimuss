@@ -14,6 +14,9 @@ from main.core.problem_specification.tasks_specification.TasksSpecification impo
 
 
 class ThermalModel(object):
+    """
+    Create the TCPN that represents an abstract thermal model
+    """
 
     @staticmethod
     def simple_conductivity(material_cuboid: MaterialCuboid,

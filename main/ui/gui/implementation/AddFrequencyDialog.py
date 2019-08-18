@@ -2,6 +2,10 @@ from main.ui.gui.ui_specification.implementation.gui_add_frequency_design import
 
 
 class AddFrequencyDialog(QtWidgets.QDialog, Ui_DialogAddFrequency):
+    """
+    Add frequency window
+    """
+
     def __init__(self, *args, **kwargs):
         QtWidgets.QDialog.__init__(self, *args, **kwargs)
         self.setupUi(self)

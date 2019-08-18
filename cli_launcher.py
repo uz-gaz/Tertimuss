@@ -3,6 +3,8 @@ import argparse
 from main.ui.cli.CliController import CliController
 
 if __name__ == "__main__":
+    # Launch the CLI
+
     # Get scenario specification and pass it to the main
     parser = argparse.ArgumentParser(description='Configure simulation scenario')
     parser.add_argument("-f", "--file", help="path to find description file", required=True)

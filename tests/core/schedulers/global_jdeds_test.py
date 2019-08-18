@@ -33,20 +33,17 @@ class GlobalWodes(SchedulerAbstractTest):
 
     def test_with_thermal(self):
         scheduler, scheduler_name = self.get_global_variables()
-        self.run_test_hash_based(scheduler, True, False, "4d75f3bd66de2ee05531c062f4c73e74")
-        # self.save_plot_outputs_result(scheduler, True, False, "out/" + scheduler_name + "_thermal")
+        self.save_plot_outputs_result(scheduler, True, False, "out/" + scheduler_name + "_thermal")
         # self.save_matlab_result(scheduler, True, False, "out/" + scheduler_name + "_thermal")
 
     def test_without_thermal(self):
         scheduler, scheduler_name = self.get_global_variables()
-        self.run_test_hash_based(scheduler, False, False, "4d75f3bd66de2ee05531c062f4c73e74")
-        # self.save_plot_outputs_result(scheduler, False, False, "out/" + scheduler_name + "_no_thermal")
+        self.save_plot_outputs_result(scheduler, False, False, "out/" + scheduler_name + "_no_thermal")
         # self.save_matlab_result(scheduler, False, False, "out/" + scheduler_name + "_no_thermal")
 
     def test_with_thermal_and_aperiodic(self):
         scheduler, scheduler_name = self.get_global_variables()
-        self.run_test_hash_based(scheduler, True, True, "41c38748ec4f1f09f679c6d9c010d6d0")
-        # self.save_plot_outputs_result(scheduler, True, True, "out/" + scheduler_name + "_thermal_and_aperiodic")
+        self.save_plot_outputs_result(scheduler, True, True, "out/" + scheduler_name + "_thermal_and_aperiodic")
         # self.save_matlab_result(scheduler, True, True, "out/" + scheduler_name + "_thermal_and_aperiodic")
 
 

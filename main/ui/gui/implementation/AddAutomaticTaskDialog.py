@@ -3,6 +3,10 @@ from main.ui.gui.ui_specification.implementation.gui_automatic_task_generator im
 
 
 class AddAutomaticTaskDialog(QtWidgets.QDialog, Ui_Dialog):
+    """
+    Generate automatic tasks window
+    """
+
     def __init__(self, *args, **kwargs):
         QtWidgets.QDialog.__init__(self, *args, **kwargs)
         self.setupUi(self)

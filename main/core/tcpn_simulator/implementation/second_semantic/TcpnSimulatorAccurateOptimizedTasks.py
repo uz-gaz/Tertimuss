@@ -4,6 +4,8 @@ import scipy
 class TcpnSimulatorAccurateOptimizedTasks(object):
     """
     Time continuous petri net simulator optimized to simulate task and processors
+    WARNING: This is only an example, it is not used in the simulator but it may be useful if the Petri net model of the
+    simulation change
     """
 
     def __init__(self, pre: scipy.ndarray, post: scipy.ndarray, pi: scipy.ndarray,

@@ -10,7 +10,7 @@ from main.core.problem_specification.tasks_specification.Task import Task
 
 class ThermalModelEnergy(ThermalModel):
     """
-    Thermal model where task energy consumption is used to simulate the task heat generation
+    Thermal model where task energy consumption is used to simulate the tasks heat generation
     """
 
     @staticmethod

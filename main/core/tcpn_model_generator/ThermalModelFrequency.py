@@ -10,7 +10,7 @@ from main.core.problem_specification.tasks_specification.TasksSpecification impo
 
 class ThermalModelFrequencyAware(thermal_model.ThermalModel):
     """
-    Thermal model where cpu frequency is used to simulate the task heat generation
+    Thermal model where cpu frequency is used to simulate the tasks heat generation
     """
 
     @staticmethod

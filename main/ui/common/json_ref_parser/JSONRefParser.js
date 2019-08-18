@@ -1,3 +1,4 @@
+// Transform a JSON Schema divided in multiple files with references into a single JSON Schema file
 // Imports
 const ref_parser = require("json-schema-ref-parser");
 const fs = require('fs');

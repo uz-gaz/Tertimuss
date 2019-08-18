@@ -191,7 +191,8 @@ class TestPetriNets(unittest.TestCase):
 
         pi = global_model.pi_proc_tau
 
-        tcpn_simulator: AbstractTcpnSimulator = TcpnSimulatorIntegrationVariableStep(pre, post, pi, lambda_vector, 0.01)
+        tcpn_simulator: AbstractTcpnSimulator = TcpnSimulatorIntegrationVariableStep(pre.toarray(), post.toarray(),
+                                                                                     pi.toarray(), lambda_vector, 0.01)
 
         # control = [
         #     [1, 0, 0, 1, 0, 0],
@@ -226,7 +227,6 @@ class TestPetriNets(unittest.TestCase):
             mo_tcpn.append(mo)
 
         result = scipy.concatenate(mo_tcpn, axis=1)
-        my_breakpoint = 1
 
     def test_petri_net_task_processor_one_cpu_one_task(self):
         tasks = [PeriodicTask(2000, 4, 4, 6.4)]
@@ -288,10 +288,7 @@ class TestPetriNets(unittest.TestCase):
         m = len(core_specification.operating_frequencies)
         n = len(tasks_specification.periodic_tasks)
 
-        iter_left = len(control)
         for w_alloc in control:
-            print(iter_left)
-            iter_left = iter_left - 1
             # Create new control vector
             new_control_processor = scipy.copy(control_task_proc)
             # Control over t_alloc
@@ -305,7 +302,6 @@ class TestPetriNets(unittest.TestCase):
             mo_tcpn.append(mo)
 
         result = scipy.concatenate(mo_tcpn, axis=1)
-        my_breakpoint = 1
 
 
 if __name__ == '__main__':

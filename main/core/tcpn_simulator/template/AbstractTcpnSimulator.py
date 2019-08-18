@@ -5,7 +5,7 @@ import scipy
 
 class AbstractTcpnSimulator(object, metaclass=abc.ABCMeta):
     """
-    Time continuous petri net simulator
+    Time continuous Petri net simulator
     """
 
     @abc.abstractmethod

@@ -14,13 +14,14 @@ class SchedulerResult(object):
         Result of the scheduler execution
         :param temperature_map: temperature map of the processor
         :param max_temperature_cores: max temperature in the cores
-        :param time_steps:
-        :param execution_time_scheduler:
-        :param execution_time_tcpn:
-        :param scheduler_assignation:
-        :param frequencies:
-        :param energy_consumption:
-        :param quantum:
+        :param time_steps: time where each quantum start
+        :param execution_time_scheduler: execution time of the tasks in each core at the end of each quantum
+        :param execution_time_tcpn: execution time of the tasks in each core at the end of each quantum read from
+        the TCPN model
+        :param scheduler_assignation: w_alloc each quantum
+        :param frequencies: cores frequencies each quantum
+        :param energy_consumption: cores energy consumption each quantum
+        :param quantum: quantum length
         """
         self.time_steps = time_steps
         self.temperature_map = temperature_map
