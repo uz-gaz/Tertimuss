@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(656, 568)
+        MainWindow.resize(624, 516)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.centralwidget)
@@ -679,10 +679,10 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "Scheduler simulator"))
         self.label_11.setText(_translate("MainWindow", "Load JSON specification"))
         self.pushButton_simulation_load.setText(_translate("MainWindow", "Load"))
-        self.label_12.setText(_translate("MainWindow", "Save as specification as JSON"))
+        self.label_12.setText(_translate("MainWindow", "Save specification as JSON"))
         self.label_2.setText(_translate("MainWindow", "Simulate thermal"))
         self.label.setText(_translate("MainWindow", "Energy generation model"))
         self.label_4.setText(_translate("MainWindow", "Mesh step size (mm)"))

@@ -10,6 +10,7 @@ class AddAutomaticTaskDialog(QtWidgets.QDialog, Ui_Dialog):
     def __init__(self, *args, **kwargs):
         QtWidgets.QDialog.__init__(self, *args, **kwargs)
         self.setupUi(self)
+        self.setWindowTitle("Add automatic task")
 
         task_generators_names = TaskGeneratorSelector.get_task_generators_names()
 

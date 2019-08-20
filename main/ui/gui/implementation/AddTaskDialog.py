@@ -9,6 +9,7 @@ class AddTaskDialog(QtWidgets.QDialog, Ui_DialogAddTask):
     def __init__(self, is_thermal_enabled: bool, is_energy_enabled: bool, *args, **kwargs):
         QtWidgets.QDialog.__init__(self, *args, **kwargs)
         self.setupUi(self)
+        self.setWindowTitle("Add task")
         self.is_thermal_enabled = is_thermal_enabled
         self.is_energy_enabled = is_energy_enabled
         self.__return_value = None

@@ -24,6 +24,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
         QtWidgets.QMainWindow.__init__(self, *args, **kwargs)
         self.setupUi(self)
+        self.setWindowTitle("HRT Schedulers for MP simulation framework")
 
         # Energy generation model
         tcpn_model_names = TCPNThermalModelSelector.get_tcpn_model_names()
