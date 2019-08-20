@@ -14,7 +14,7 @@ from main.core.tcpn_simulator.implementation.numerical_integration.TcpnSimulator
 class GlobalModelSolver(object):
     def __init__(self, global_model: GlobalModel, global_specification: GlobalSpecification):
         """
-
+        This class is responsible of simulate both TCPN models in a coordinated way
         :param global_model: Global model
         :param global_specification: Global specification
         """
