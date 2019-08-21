@@ -22,6 +22,7 @@ from main.plot_generator.implementations.AccumulatedExecutionTimeDrawer import A
 from main.plot_generator.implementations.EnergyConsumptionDrawer import EnergyConsumptionDrawer
 from main.plot_generator.implementations.ExecutionPercentageDrawer import ExecutionPercentageDrawer
 from main.plot_generator.implementations.FrequencyDrawer import FrequencyDrawer
+from main.plot_generator.implementations.HeatMatrixDrawer import HeatMatrixDrawer
 from main.plot_generator.implementations.MaxCoreTemperatureDrawer import MaxCoreTemperatureDrawer
 from main.plot_generator.implementations.TaskExecutionDrawer import TaskExecutionDrawer
 from main.plot_generator.implementations.UtilizationDrawer import UtilizationDrawer
@@ -141,5 +142,4 @@ class SchedulerAbstractTest(unittest.TestCase):
             MaxCoreTemperatureDrawer.plot(global_specification, result,
                                           {"save_path": result_save_path + "_cpu_temperature.png"})
 
-            # TODO: Uncomment
-            # draw_heat_matrix(global_specification, result, True, True, result_save_path + "_heat_matrix.mp4")
+            HeatMatrixDrawer.plot(global_specification, result, {"save_path": result_save_path + "_heat_matrix.mp4"})
