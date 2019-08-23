@@ -198,7 +198,7 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
 
         a_i = [int(hyperperiod_hz / i) for i in tci]
 
-        # Get the number of quantums that each task will execute
+        # Get the number of quantums for which each task will be executed
         cci_in_quantums = [math.ceil(i / round(f_star_hz * dt)) for i in cci]
         tci_in_quantums = [math.ceil(i / round(f_star_hz * dt)) for i in tci]
 
@@ -223,8 +223,25 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
         if total_used_quantums < self.__m * hyperperiod_in_quantums:
             x = x[:-1, :]
 
+        # Delete deadline 0
+        sd = sd[1:]
+
+        # Delete the extra cycles added to x
+        for task in range(self.__n):
+            if cci[task] % int(round(dt * f_star_hz)) != 0:
+                for i in range(a_i[task]):
+                    # Obtain last interval where each job is executed
+                    intervals_of_execution = [j for j in range(sd.shape[0]) if
+                                              i * tci[task] < round(sd[j] * f_star_hz) <= (i + 1) * tci[task] and
+                                              sd.shape[0] != 0]
+                    last_interval_of_execution = intervals_of_execution[-1]
+
+                    # Delete the extra cycles
+                    number_of_extra_cycles = (dt * f_star_hz) - (cci[task] % int(round(dt * f_star_hz)))
+                    x[task, last_interval_of_execution] = x[task, last_interval_of_execution] - number_of_extra_cycles
+
         # All intervals
-        self.__intervals_end = sd[1:]
+        self.__intervals_end = sd
 
         # All executions by intervals
         self.__execution_by_intervals = x
@@ -320,13 +337,22 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
 
                 times_to_execute_c_aperiodic = math.ceil(actual_task.pending_c / round(f_star * dt)) * dt
 
-                times_to_execute[-1] = times_to_execute[-1] - (sum(times_to_execute) - times_to_execute_c_aperiodic)
+                times_to_execute_cc = scipy.asarray(times_to_execute) * f_star
+                # Number of intervals that we will need for the execution
+                intervals_needed = 0
+                remaining_auxiliary = times_to_execute_c_aperiodic * f_star
+
+                while remaining_auxiliary > 0:
+                    remaining_auxiliary = remaining_auxiliary - times_to_execute_cc[intervals_needed]
+                    intervals_needed = intervals_needed + 1
+
+                times_to_execute_cc[intervals_needed - 1] = times_to_execute_cc[
+                                                                intervals_needed - 1] + remaining_auxiliary
 
                 new_x_row = scipy.zeros((1, len(self.__intervals_end)))
-                new_x_row[0, self.__actual_interval_index: self.__actual_interval_index
-                                                           + intervals_in_execution] = times_to_execute
-
-                new_x_row = new_x_row * f_star
+                new_x_row[0,
+                self.__actual_interval_index: self.__actual_interval_index + intervals_needed] = times_to_execute_cc[
+                                                                                                 :intervals_needed - 1]
 
                 self.__execution_by_intervals = scipy.concatenate([self.__execution_by_intervals, new_x_row], axis=0)
 
@@ -353,13 +379,12 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
                                 for i in self.__interval_cc_left])
 
         # True if any task laxity is 0
-        executable_tasks_interval = [i for i in
-                                     self.__interval_cc_left if i[0] > 0]
+        executable_tasks_interval = [i for i in self.__interval_cc_left if i[0] > 0]
 
         actual_interval_end = self.__intervals_end[self.__actual_interval_index]
 
         tasks_laxity_zero = any(
-            [round((actual_interval_end - time - (
+            [int((actual_interval_end - time - (
                     i[0] / self.__intervals_frequencies[self.__actual_interval_index])) / self.__dt) <= 0
              and i[1] not in active_tasks for i in executable_tasks_interval])
 
@@ -388,7 +413,7 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
 
         # Contains all zero laxity tasks
         tasks_laxity_zero = [i[1] for i in executable_tasks if
-                             round((actual_interval_end - time - (i[0] / self.__intervals_frequencies[
+                             int((actual_interval_end - time - (i[0] / self.__intervals_frequencies[
                                  self.__actual_interval_index])) / self.__dt) <= 0]
 
         # Update executable tasks
@@ -445,6 +470,9 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
             (i[0] - (self.__intervals_frequencies[self.__actual_interval_index] *
                      self.__dt), i[1]) if i[1] in tasks_to_execute else i
             for i in self.__interval_cc_left]
+
+        # If any task has negative cc left, transform to 0
+        self.__interval_cc_left = [i if i[0] > 0 else (0, i[1]) for i in self.__interval_cc_left]
 
         # Do affinity, this is a little improvement over the original algorithm
         for i in range(self.__m):

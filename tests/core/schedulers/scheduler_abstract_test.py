@@ -142,4 +142,4 @@ class SchedulerAbstractTest(unittest.TestCase):
             MaxCoreTemperatureDrawer.plot(global_specification, result,
                                           {"save_path": result_save_path + "_cpu_temperature.png"})
 
-            HeatMatrixDrawer.plot(global_specification, result, {"save_path": result_save_path + "_heat_matrix.mp4"})
+            # HeatMatrixDrawer.plot(global_specification, result, {"save_path": result_save_path + "_heat_matrix.mp4"})
