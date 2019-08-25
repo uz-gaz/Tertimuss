@@ -6,7 +6,7 @@ from main.core.schedulers.templates.abstract_scheduler.AbstractScheduler import 
 from tests.core.schedulers.scheduler_abstract_test import SchedulerAbstractTest
 
 
-class GlobalWodes(SchedulerAbstractTest):
+class TestJDEDSScheduler(SchedulerAbstractTest):
     def test_lpp(self):
         ci = [9, 9, 8]
         ti = [10, 10, 40]
@@ -32,7 +32,7 @@ class GlobalWodes(SchedulerAbstractTest):
         scheduler = GlobalJDEDSScheduler()
 
         # Result base name
-        scheduler_name = "global_jdeds"
+        scheduler_name = "jdeds"
 
         return scheduler, scheduler_name
 

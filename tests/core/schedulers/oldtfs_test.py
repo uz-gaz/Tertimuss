@@ -1,19 +1,19 @@
 import unittest
 
-from main.core.schedulers.implementations.G_LLF_AFA import GlobalLeastLaxityFirstAFAScheduler
 from main.core.schedulers.templates.abstract_scheduler.AbstractScheduler import AbstractScheduler
+from main.core.schedulers.implementations.OLDTFS import OLDTFSScheduler
 from tests.core.schedulers.scheduler_abstract_test import SchedulerAbstractTest
 
 
-class TestGlobalLlfAfaScheduler(SchedulerAbstractTest):
+class TestOLDTFSScheduler(SchedulerAbstractTest):
 
     @staticmethod
     def get_global_variables() -> [AbstractScheduler, str]:
         # Scheduler
-        scheduler = GlobalLeastLaxityFirstAFAScheduler()
+        scheduler = OLDTFSScheduler()
 
         # Result base name
-        scheduler_name = "global_llf_afa"
+        scheduler_name = "oldtfs"
 
         return scheduler, scheduler_name
 
