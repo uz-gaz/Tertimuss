@@ -74,7 +74,7 @@ class SchedulerAbstractTest(unittest.TestCase):
         tasks = [PeriodicTask(2000000, 4, 4, 6.4), PeriodicTask(5000000, 8, 8, 8), PeriodicTask(6000000, 12, 12, 9.6)]
 
         if with_aperiodics:
-            tasks.append(AperiodicTask(1000000, 10, 20, 6))
+            tasks.append(AperiodicTask(2000000, 10, 20, 6))
 
         tasks_specification: TasksSpecification = TasksSpecification(tasks)
 

@@ -325,10 +325,6 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
                 self.__aperiodic_arrive = True
                 # Recreate x
                 f_star = self.__possible_f[possible_f_index[0]]
-                # self.__execution_by_intervals = x / f_star
-
-                intervals_in_execution = 1 + number_of_full_intervals + (
-                    1 if remaining_last_interval_to_deadline > 0 else 0)
 
                 times_to_execute = [remaining_actual[possible_f_index[0]]] + remaining_full_intervals[
                     possible_f_index[0]] + ([remaining_last_interval[
@@ -337,7 +333,8 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
 
                 times_to_execute_c_aperiodic = math.ceil(actual_task.pending_c / round(f_star * dt)) * dt
 
-                times_to_execute_cc = scipy.asarray(times_to_execute) * f_star
+                times_to_execute_cc = [round(i * f_star) for i in times_to_execute]
+
                 # Number of intervals that we will need for the execution
                 intervals_needed = 0
                 remaining_auxiliary = times_to_execute_c_aperiodic * f_star
@@ -352,7 +349,7 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
                 new_x_row = scipy.zeros((1, len(self.__intervals_end)))
                 new_x_row[0,
                 self.__actual_interval_index: self.__actual_interval_index + intervals_needed] = times_to_execute_cc[
-                                                                                                 :intervals_needed - 1]
+                                                                                                 :intervals_needed]
 
                 self.__execution_by_intervals = scipy.concatenate([self.__execution_by_intervals, new_x_row], axis=0)
 
@@ -360,8 +357,8 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
                     (self.__execution_by_intervals[-1, self.__actual_interval_index], actual_task.id)]
 
                 self.__intervals_frequencies[self.__actual_interval_index:
-                                             self.__actual_interval_index + intervals_in_execution] = \
-                    intervals_in_execution * [f_star]
+                                             self.__actual_interval_index + intervals_needed] = intervals_needed * [
+                    f_star]
             else:
                 print("Warning: The aperiodic task can not be executed")
 
