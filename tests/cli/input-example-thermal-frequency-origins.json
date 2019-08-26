@@ -1,5 +1,5 @@
 {
-  "$schema": "../../main/ui/cli/input_schema/input-schema.json",
+  "$schema": "../../main/ui/cli/input_schema/global-schema.json",
   "$id": "input-example-thermal-aperiodics-energy.scheduler.framework.TCPN.schema.example1",
   "title": "Example input specification",
   "description": "Input for Scheduler Framework TCPN v1.0",
@@ -64,7 +64,7 @@
         850,
         1000
       ],
-      "cores_frequencies": [
+      "operating_frequencies": [
         1000,
         1000
       ],

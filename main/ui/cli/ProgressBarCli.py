@@ -3,6 +3,9 @@ from progress.bar import Bar
 
 
 class ProgressBarCli(AbstractProgressBar):
+    """
+    Command line progress bar
+    """
     def __init__(self):
         super().__init__()
         self.bar = None

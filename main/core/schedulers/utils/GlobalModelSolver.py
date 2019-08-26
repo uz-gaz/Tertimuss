@@ -3,23 +3,25 @@ from typing import List
 import scipy
 import scipy.integrate
 
-from main.core.tcpn_model_generator.global_model import GlobalModel
+from main.core.tcpn_model_generator.GlobalModel import GlobalModel
 from main.core.problem_specification.GlobalSpecification import GlobalSpecification
-from main.core.tcpn_simulator.TcpnSimulatorAccurateOptimizedTasks import TcpnSimulatorAccurateOptimizedTasks
-from main.core.tcpn_simulator.TcpnSimulatorAccurateOptimizedThermal import TcpnSimulatorAccurateOptimizedThermal
+from main.core.tcpn_simulator.implementation.numerical_integration.TcpnSimulatorOptimizedTasksAndProcessors import \
+    TcpnSimulatorOptimizedTasksAndProcessors
+from main.core.tcpn_simulator.implementation.numerical_integration.TcpnSimulatorOptimizedThermal import \
+    TcpnSimulatorAccurateOptimizedThermal
 
 
 class GlobalModelSolver(object):
     def __init__(self, global_model: GlobalModel, global_specification: GlobalSpecification):
         """
-
+        This class is responsible of simulate both TCPN models in a coordinated way
         :param global_model: Global model
         :param global_specification: Global specification
         """
 
         self.__n = len(global_specification.tasks_specification.periodic_tasks) + \
                    len(global_specification.tasks_specification.aperiodic_tasks)
-        self.__m = len(global_specification.cpu_specification.cores_specification.cores_frequencies)
+        self.__m = len(global_specification.cpu_specification.cores_specification.operating_frequencies)
         self.__step = global_specification.simulation_specification.dt
         self.enable_thermal_mode = global_model.enable_thermal_mode
 
@@ -27,11 +29,12 @@ class GlobalModelSolver(object):
             global_specification.simulation_specification.dt_fragmentation_processor_task
         self.__fragmentation_of_step_thermal = global_specification.simulation_specification.dt_fragmentation_thermal
 
-        self.__tcpn_simulator_proc = TcpnSimulatorAccurateOptimizedTasks(global_model.pre_proc_tau,
-                                                                         global_model.post_proc_tau,
-                                                                         global_model.pi_proc_tau,
-                                                                         global_model.lambda_vector_proc_tau,
-                                                                         self.__step / self.__fragmentation_of_step_task)
+        self.__tcpn_simulator_proc = TcpnSimulatorOptimizedTasksAndProcessors(global_model.pre_proc_tau,
+                                                                              global_model.post_proc_tau,
+                                                                              global_model.pi_proc_tau,
+                                                                              global_model.lambda_vector_proc_tau,
+                                                                              self.__fragmentation_of_step_task,
+                                                                              self.__step)
 
         self.__control_task_proc = scipy.ones(len(global_model.lambda_vector_proc_tau))
         self.__mo = global_model.mo_proc_tau
@@ -62,8 +65,8 @@ class GlobalModelSolver(object):
                                                                                   global_model.post_thermal,
                                                                                   global_model.pi_thermal,
                                                                                   global_model.lambda_vector_thermal,
-                                                                                  self.__step / self.__fragmentation_of_step_thermal,
-                                                                                  self.__fragmentation_of_step_thermal)
+                                                                                  self.__fragmentation_of_step_thermal,
+                                                                                  self.__step)
 
             self.__mo_thermal = global_model.mo_thermal
             self.__p_board = global_model.p_board
@@ -76,18 +79,16 @@ class GlobalModelSolver(object):
             self.__control_thermal = scipy.asarray(clock_relative_frequencies)
             self.__power_consumption = global_model.power_consumption
 
-    def run_step(self, w_alloc: List[int], time: float, core_frequencies: List[float]) -> [scipy.ndarray,
-                                                                                           scipy.ndarray,
-                                                                                           scipy.ndarray,
-                                                                                           scipy.ndarray,
-                                                                                           scipy.ndarray,
-                                                                                           scipy.ndarray,
-                                                                                           scipy.ndarray,
-                                                                                           scipy.ndarray]:
+    def run_step(self, w_alloc: List[int], core_frequencies: List[float]) -> [scipy.ndarray,
+                                                                              scipy.ndarray,
+                                                                              scipy.ndarray,
+                                                                              scipy.ndarray,
+                                                                              scipy.ndarray,
+                                                                              scipy.ndarray,
+                                                                              scipy.ndarray]:
         """
         Run one simulation step
         :param w_alloc: allocation vector
-        :param time: actual simulation time
         :param core_frequencies: actual relative cores frequency
         :return execution time after simulation, board temperature after simulation, cores max temperature after
                 simulation, time of temperatures measurements
@@ -109,10 +110,7 @@ class GlobalModelSolver(object):
             self.__control_task_proc = new_control_processor
             self.__tcpn_simulator_proc.set_control(new_control_processor)
 
-        partial_results_proc = []
-        for _ in range(self.__fragmentation_of_step_task):
-            self.__mo = self.__tcpn_simulator_proc.simulate_step(self.__mo)
-            partial_results_proc.append(self.__mo)
+        self.__mo = self.__tcpn_simulator_proc.simulate_step(self.__mo)
 
         board_temperature = None
         cores_temperature = None
@@ -172,8 +170,7 @@ class GlobalModelSolver(object):
                 scipy.asarray(w_alloc).reshape(self.__m, self.__n) * self.__power_consumption,
                 axis=1)
 
-        return self.__accumulated_m_exec, board_temperature, cores_temperature, energy_consumption, scipy.asarray(
-            [time + self.__step])
+        return self.__accumulated_m_exec, board_temperature, cores_temperature, energy_consumption
 
     def get_mo(self):
         return self.__mo

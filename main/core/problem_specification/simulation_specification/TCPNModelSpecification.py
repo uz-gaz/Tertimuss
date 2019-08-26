@@ -1,11 +1,11 @@
-from main.core.tcpn_model_generator.thermal_model_selector import ThermalModelSelector
+from main.core.tcpn_model_generator.ThermalModelSelector import ThermalModelSelector
 
 
 class TCPNModelSpecification(object):
 
     def __init__(self, thermal_model_selector: ThermalModelSelector):
         """
-        Specification of some parameters of the simulation
+        Selection of the thermal model to use
 
         :param thermal_model_selector: Thermal model to use
         """

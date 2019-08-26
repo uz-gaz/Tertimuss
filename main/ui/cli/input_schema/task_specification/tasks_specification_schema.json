@@ -20,103 +20,82 @@
         "Manual",
         "Automatic"
       ]
-    },
-    "tasks": {
     }
   },
   "required": [
     "task_consumption_model",
     "task_generation_system"
   ],
-  "allOf": [
-    {
-      "if": {
-        "properties": {
-          "task_generation_system": {
-            "const": "Automatic"
-          }
-        }
-      },
-      "then": {
-        "properties": {
-          "automatic_generation": {
-            "$ref": "#/definitions/automatic_tasks"
-          }
-        },
-        "required": [
-          "automatic_generation"
-        ]
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "task_generation_system": {
-            "const": "Manual"
-          },
-          "task_consumption_model": {
-            "const": "Energy based"
-          }
-        }
-      },
-      "then": {
-        "properties": {
-          "tasks": {
-            "description": "Set of tasks",
-            "type": "array",
-            "items": {
-              "oneOf": [
-                {
-                  "$ref": "#/definitions/periodic_task_energy"
-                },
-                {
-                  "$ref": "#/definitions/aperiodic_task_energy"
-                }
-              ]
-            },
-            "minItems": 1
-          }
-        },
-        "required": [
-          "tasks"
-        ]
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "task_generation_system": {
-            "const": "Manual"
-          },
-          "task_consumption_model": {
-            "const": "Frequency based"
-          }
-        }
-      },
-      "then": {
-        "properties": {
-          "tasks": {
-            "description": "Set of tasks",
-            "type": "array",
-            "items": {
-              "oneOf": [
-                {
-                  "$ref": "#/definitions/periodic_task"
-                },
-                {
-                  "$ref": "#/definitions/aperiodic_task"
-                }
-              ]
-            },
-            "minItems": 1
-          }
-        },
-        "required": [
-          "tasks"
-        ]
+  "if": {
+    "properties": {
+      "task_generation_system": {
+        "const": "Automatic"
       }
     }
-  ],
+  },
+  "then": {
+    "properties": {
+      "automatic_generation": {
+        "$ref": "#/definitions/automatic_tasks"
+      }
+    },
+    "required": [
+      "automatic_generation"
+    ]
+  },
+  "else": {
+    "if": {
+      "properties": {
+        "task_consumption_model": {
+          "const": "Energy based"
+        }
+      }
+    },
+    "then": {
+      "properties": {
+        "tasks": {
+          "description": "Set of tasks",
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/definitions/periodic_task_energy"
+              },
+              {
+                "$ref": "#/definitions/aperiodic_task_energy"
+              }
+            ]
+          },
+          "minItems": 1
+        }
+      },
+      "required": [
+        "tasks"
+      ]
+    },
+    "else": {
+      "properties": {
+        "tasks": {
+          "description": "Set of tasks",
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/definitions/periodic_task"
+              },
+              {
+                "$ref": "#/definitions/aperiodic_task"
+              }
+            ]
+          },
+          "minItems": 1
+        }
+      },
+      "required": [
+        "tasks"
+      ]
+    }
+  },
   "definitions": {
     "periodic_task_energy": {
       "$ref": "periodic_task_energy_schema.json"
@@ -133,6 +112,5 @@
     "automatic_tasks": {
       "$ref": "automatic_tasks_schema.json"
     }
-  },
-  "additionalProperties": false
+  }
 }

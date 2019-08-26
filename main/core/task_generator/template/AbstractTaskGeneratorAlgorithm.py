@@ -5,6 +5,9 @@ from main.core.problem_specification.tasks_specification.PeriodicTask import Per
 
 
 class AbstractTaskGeneratorAlgorithm(metaclass=abc.ABCMeta):
+    """
+    Task generator algorithm interface
+    """
 
     @abc.abstractmethod
     def generate(self, options: Dict[str, str]) -> List[PeriodicTask]:

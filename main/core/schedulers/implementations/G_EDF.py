@@ -28,7 +28,7 @@ class GlobalEDFScheduler(AbstractBaseScheduler):
         :param global_specification: Global specification
         :return: 1 - Scheduling quantum (default will be the step specified in problem creation)
         """
-        self.__m = len(global_specification.cpu_specification.cores_specification.cores_frequencies)
+        self.__m = len(global_specification.cpu_specification.cores_specification.operating_frequencies)
         return super().offline_stage(global_specification, periodic_tasks, aperiodic_tasks)
 
     def aperiodic_arrive(self, time: float, aperiodic_tasks_arrived: List[BaseSchedulerTask],
@@ -46,7 +46,7 @@ class GlobalEDFScheduler(AbstractBaseScheduler):
 
     def schedule_policy(self, time: float, executable_tasks: List[BaseSchedulerTask], active_tasks: List[int],
                         actual_cores_frequency: List[float], cores_max_temperature: Optional[scipy.ndarray]) -> \
-            [List[int], Optional[float], Optional[List[float]]]:
+            [List[int], Optional[float], Optional[List[int]]]:
         """
         Method to implement with the actual scheduler police
         :param actual_cores_frequency: Frequencies of cores
@@ -59,7 +59,6 @@ class GlobalEDFScheduler(AbstractBaseScheduler):
                  3 - cores relatives frequencies for the next quantum (if None, will be taken the frequencies specified
                   in the problem specification)
         """
-        # alive_tasks = [x for x in tasks if x.next_arrival <= time]
         task_order = scipy.argsort(list(map(lambda x: x.next_deadline, executable_tasks)))
         return ([executable_tasks[i].id for i in task_order] + (self.__m - len(executable_tasks)) * [-1])[
                0:self.__m], None, None

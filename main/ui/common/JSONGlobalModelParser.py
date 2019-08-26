@@ -20,7 +20,7 @@ from main.core.problem_specification.tasks_specification.PeriodicTask import Per
 from main.core.problem_specification.tasks_specification.Task import Task
 from main.core.problem_specification.tasks_specification.TasksSpecification import TasksSpecification
 from main.core.schedulers.templates.abstract_scheduler.AbstractScheduler import AbstractScheduler
-from main.core.tcpn_model_generator.thermal_model_selector import ThermalModelSelector
+from main.core.tcpn_model_generator.ThermalModelSelector import ThermalModelSelector
 from main.plot_generator.templates.AbstractResultDrawer import AbstractResultDrawer
 from main.ui.common.OutputSelector import OutputSelector
 from main.ui.common.SchedulerSelector import SchedulerSelector
@@ -31,6 +31,13 @@ from main.ui.common.TaskGeneratorSelector import TaskGeneratorSelector
 class JSONGlobalModelParser(object):
     @staticmethod
     def read_input(input_path) -> [bool, str, Optional[Dict]]:
+        """
+        Read JSON and return a Dict object
+        :param input_path: JSON path
+        :return: 1 -> True if there was an error
+                 2 -> Error message
+                 2 -> Dict object
+        """
         try:
             with open(input_path, "r") as read_file:
                 try:
@@ -43,13 +50,18 @@ class JSONGlobalModelParser(object):
 
     @staticmethod
     def validate_input(input_json: Dict, schema_json: Dict) -> [bool, str]:
+        """
+        Check if input_json conforms to scheme schema_json
+        :param input_json: JSON as a Dict object
+        :param schema_json: JSON schema as a Dict object
+        :return: 1 -> True if there was an error
+                 2 -> Error message
+        """
         # Validate the input
-        # TODO: Fix to allow reference in input
         try:
-            # jsonschema.validate(input_json, schema_json)
+            jsonschema.validate(input_json, schema_json)
             return False, ""
         except ValidationError as ve:
-            print()
             return True, 'Error: Wrong fields validation in ' + '/'.join(map(lambda x: str(x), ve.absolute_path)) + \
                    ' with message ' + ve.message
 
@@ -159,7 +171,7 @@ class JSONGlobalModelParser(object):
 
         available_frequencies = cores_specification["available_frequencies"]
 
-        cores_frequencies = cores_specification["cores_frequencies"]
+        operating_frequencies = cores_specification["operating_frequencies"]
 
         if simulate_thermal:
             board_specification = cpu_specification["board_specification"]
@@ -202,7 +214,7 @@ class JSONGlobalModelParser(object):
                 CoreGroupSpecification(cores_material_cuboid,
                                        energy_consumption,
                                        available_frequencies,
-                                       cores_frequencies,
+                                       operating_frequencies,
                                        cores_origins)
             )
 
@@ -221,7 +233,7 @@ class JSONGlobalModelParser(object):
                 CoreGroupSpecification(cores_material_cuboid,
                                        energy_consumption,
                                        available_frequencies,
-                                       cores_frequencies,
+                                       operating_frequencies,
                                        None))
 
         return cpu_specification, input_json
@@ -337,6 +349,11 @@ class JSONGlobalModelParser(object):
     @classmethod
     def obtain_global_model(cls, input_json: Dict) -> [GlobalSpecification, AbstractScheduler, str,
                                                        List[Tuple[AbstractResultDrawer, Dict[str, str]]], Dict]:
+        """
+        Obtain global model from specification in JSON
+        :param input_json: Json specification
+        :return: Simulation specification
+        """
 
         tasks_specification, input_json = cls.__obtain_tasks_specification(input_json)
 

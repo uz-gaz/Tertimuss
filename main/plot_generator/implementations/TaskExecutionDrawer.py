@@ -39,7 +39,7 @@ class TaskExecutionDrawer(AbstractResultDrawer):
         time_u = scheduler_result.time_steps
         n_periodic = len(global_specification.tasks_specification.periodic_tasks)
         n_aperiodic = len(global_specification.tasks_specification.aperiodic_tasks)
-        m = len(global_specification.cpu_specification.cores_specification.cores_frequencies)
+        m = len(global_specification.cpu_specification.cores_specification.operating_frequencies)
         f, axarr = plt.subplots(nrows=(n_periodic + n_aperiodic), num="Task execution")
         utilization_by_task = scipy.zeros(((n_periodic + n_aperiodic), len(i_tau_disc[0])))
 

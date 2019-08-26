@@ -5,11 +5,17 @@ import scipy
 
 import scipy.linalg
 
-from main.core.tcpn_simulator.AbstractTcpnSimulator import AbstractTcpnSimulator
-from main.core.tcpn_simulator.TcpnSimulatorEuler import TcpnSimulatorEuler
+from main.core.tcpn_simulator.template.AbstractTcpnSimulator import AbstractTcpnSimulator
+from main.core.tcpn_simulator.implementation.numerical_integration.TcpnSimulatorIntegrationFixedStep import TcpnSimulatorIntegrationFixedStep
 
 
 def test_performance_petri_net_with_control():
+    """
+    WARNING: These tests have been outdated and may not run but are preserved for historical reasons
+
+    This class have been used to test different tcpn simulators
+    :return:
+    """
     # Petri net size
     petri_net_size = 1000
 
@@ -59,7 +65,7 @@ def test_performance_petri_net_with_control():
 
     mo = scipy.asarray([1] + (petri_net_size * [3, 0, 0])).reshape((-1, 1))
 
-    tcpn_simulator: AbstractTcpnSimulator = TcpnSimulatorEuler(pre, post, lambda_vector, step_size)
+    tcpn_simulator: AbstractTcpnSimulator = TcpnSimulatorIntegrationFixedStep(pre, post, lambda_vector, step_size)
     tcpn_simulator.set_pi(pi)
 
     # Array where t 3*n + 1 are disabled

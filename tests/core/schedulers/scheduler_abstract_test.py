@@ -16,12 +16,13 @@ from main.core.problem_specification.tasks_specification.AperiodicTask import Ap
 from main.core.problem_specification.tasks_specification.PeriodicTask import PeriodicTask
 from main.core.schedulers.templates.abstract_base_scheduler.AbstractBaseScheduler import AbstractBaseScheduler
 from main.core.schedulers.templates.abstract_scheduler.SchedulerResult import SchedulerResult
-from main.core.tcpn_model_generator.global_model import GlobalModel
-from main.core.tcpn_model_generator.thermal_model_selector import ThermalModelSelector
+from main.core.tcpn_model_generator.GlobalModel import GlobalModel
+from main.core.tcpn_model_generator.ThermalModelSelector import ThermalModelSelector
 from main.plot_generator.implementations.AccumulatedExecutionTimeDrawer import AccumulatedExecutionTimeDrawer
-from main.plot_generator.implementations.EnergyConsumptionDrawer import EnergyConsumptionDrawer
+from main.plot_generator.implementations.DynamicPowerConsumptionDrawer import DynamicPowerConsumptionDrawer
 from main.plot_generator.implementations.ExecutionPercentageDrawer import ExecutionPercentageDrawer
 from main.plot_generator.implementations.FrequencyDrawer import FrequencyDrawer
+from main.plot_generator.implementations.HeatMatrixDrawer import HeatMatrixDrawer
 from main.plot_generator.implementations.MaxCoreTemperatureDrawer import MaxCoreTemperatureDrawer
 from main.plot_generator.implementations.TaskExecutionDrawer import TaskExecutionDrawer
 from main.plot_generator.implementations.UtilizationDrawer import UtilizationDrawer
@@ -35,13 +36,13 @@ class SchedulerAbstractTest(unittest.TestCase):
         temperature_map = matlab_file["temperature_map"] if is_thermal else None
         max_temperature_cores = matlab_file["max_temperature_cores"] if is_thermal else None
         execution_time_scheduler = matlab_file["execution_time_scheduler"]
+        execution_time_tcpn = matlab_file["execution_time_tcpn"]
         frequencies = matlab_file["frequencies"]
         energy_consumption = matlab_file["energy_consumption"] if is_thermal else None
         scheduler_assignation = matlab_file["scheduler_assignation"]
         quantum = matlab_file["time_steps"][0][0]
         return SchedulerResult(temperature_map, max_temperature_cores, time_steps, execution_time_scheduler,
-                               scheduler_assignation, frequencies, energy_consumption,
-                               quantum)
+                               execution_time_tcpn, scheduler_assignation, frequencies, energy_consumption, quantum)
 
     @staticmethod
     def save_scheduler_result_in_matlab_format(scheduler_simulation: SchedulerResult, path: str, is_thermal: bool):
@@ -51,6 +52,7 @@ class SchedulerAbstractTest(unittest.TestCase):
                 'temperature_map': scheduler_simulation.temperature_map,
                 'max_temperature_cores': scheduler_simulation.max_temperature_cores,
                 'execution_time_scheduler': scheduler_simulation.execution_time_scheduler,
+                'execution_time_tcpn': scheduler_simulation.execution_time_tcpn,
                 'frequencies': scheduler_simulation.frequencies,
                 'energy_consumption': scheduler_simulation.energy_consumption,
                 'scheduler_assignation': scheduler_simulation.scheduler_assignation,
@@ -60,6 +62,7 @@ class SchedulerAbstractTest(unittest.TestCase):
             scipy.io.savemat(path + ".mat", {
                 'time_steps': scheduler_simulation.time_steps,
                 'execution_time_scheduler': scheduler_simulation.execution_time_scheduler,
+                'execution_time_tcpn': scheduler_simulation.execution_time_tcpn,
                 'frequencies': scheduler_simulation.frequencies,
                 'scheduler_assignation': scheduler_simulation.scheduler_assignation,
                 'quantum': scheduler_simulation.quantum
@@ -68,17 +71,17 @@ class SchedulerAbstractTest(unittest.TestCase):
     @staticmethod
     def create_problem_specification(scheduler: AbstractBaseScheduler, is_thermal: bool,
                                      with_aperiodics: bool):
-        tasks = [PeriodicTask(2000, 4, 4, 6.4), PeriodicTask(5000, 8, 8, 8), PeriodicTask(6000, 12, 12, 9.6)]
+        tasks = [PeriodicTask(1000000, 8, 8, 3.4), PeriodicTask(1000000, 8, 8, 8), PeriodicTask(11100000, 12, 12, 9.6)]
 
         if with_aperiodics:
-            tasks.append(AperiodicTask(2000, 10, 20, 6))
+            tasks.append(AperiodicTask(2000000, 10, 20, 6))
 
         tasks_specification: TasksSpecification = TasksSpecification(tasks)
 
         core_specification = CoreGroupSpecification(MaterialCuboid(x=10, y=10, z=2, p=2330, c_p=712, k=148),
                                                     EnergyConsumptionProperties(),
-                                                    [150, 400, 600, 850, 1000],
-                                                    [1000, 1000])
+                                                    [150000, 400000, 600000, 850000, 1000000],
+                                                    [1000000, 1000000])
 
         board_specification = BoardSpecification(MaterialCuboid(x=50, y=50, z=1, p=8933, c_p=385, k=400))
 
@@ -134,10 +137,9 @@ class SchedulerAbstractTest(unittest.TestCase):
         ExecutionPercentageDrawer.plot(global_specification, result,
                                        {"save_path": result_save_path + "_execution_percentage.png"})
         if is_thermal:
-            EnergyConsumptionDrawer.plot(global_specification, result,
-                                         {"save_path": result_save_path + "_energy_consumption.png"})
+            DynamicPowerConsumptionDrawer.plot(global_specification, result,
+                                               {"save_path": result_save_path + "_energy_consumption.png"})
             MaxCoreTemperatureDrawer.plot(global_specification, result,
                                           {"save_path": result_save_path + "_cpu_temperature.png"})
 
-            # TODO: Uncomment
-            # draw_heat_matrix(global_specification, result, True, True, result_save_path + "_heat_matrix.mp4")
+            # HeatMatrixDrawer.plot(global_specification, result, {"save_path": result_save_path + "_heat_matrix.mp4"})

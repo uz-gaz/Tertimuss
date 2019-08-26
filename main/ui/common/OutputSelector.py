@@ -1,7 +1,7 @@
 from typing import List
 
 from main.plot_generator.implementations.AccumulatedExecutionTimeDrawer import AccumulatedExecutionTimeDrawer
-from main.plot_generator.implementations.EnergyConsumptionDrawer import EnergyConsumptionDrawer
+from main.plot_generator.implementations.DynamicPowerConsumptionDrawer import DynamicPowerConsumptionDrawer
 from main.plot_generator.implementations.ExecutionPercentageDrawer import ExecutionPercentageDrawer
 from main.plot_generator.implementations.FrequencyDrawer import FrequencyDrawer
 from main.plot_generator.implementations.HeatMatrixDrawer import HeatMatrixDrawer
@@ -21,7 +21,7 @@ class OutputSelector(object):
         """
         output_definition = {
             "Accumulated execution time": AccumulatedExecutionTimeDrawer(),
-            "Energy consumption": EnergyConsumptionDrawer(),
+            "Energy consumption": DynamicPowerConsumptionDrawer(),
             "Execution percentage": ExecutionPercentageDrawer(),
             "Frequency": FrequencyDrawer(),
             "CPU heat evolution": HeatMatrixDrawer(),
