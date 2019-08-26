@@ -71,7 +71,7 @@ class SchedulerAbstractTest(unittest.TestCase):
     @staticmethod
     def create_problem_specification(scheduler: AbstractBaseScheduler, is_thermal: bool,
                                      with_aperiodics: bool):
-        tasks = [PeriodicTask(2000000, 4, 4, 6.4), PeriodicTask(5000000, 8, 8, 8), PeriodicTask(6000000, 12, 12, 9.6)]
+        tasks = [PeriodicTask(1000000, 4, 4, 3.4), PeriodicTask(4000000, 8, 8, 8), PeriodicTask(5000000, 12, 12, 9.6)]
 
         if with_aperiodics:
             tasks.append(AperiodicTask(2000000, 10, 20, 6))

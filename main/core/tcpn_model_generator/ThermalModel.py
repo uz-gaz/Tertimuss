@@ -372,13 +372,13 @@ class ThermalModel(object):
         m = len(cpu_specification.cores_specification.operating_frequencies)
 
         # Relative frequencies
-        clock_base_frequency = cpu_specification.cores_specification.operating_frequencies[-1]
-        clock_relative_frequencies = [i / clock_base_frequency for i in
-                                      cpu_specification.cores_specification.operating_frequencies]
+        #clock_base_frequency = cpu_specification.cores_specification.operating_frequencies[-1]
+        #clock_relative_frequencies = [i / clock_base_frequency for i in
+        #                             cpu_specification.cores_specification.operating_frequencies]
 
         # Get power consumption by task in cpu
         power_consumption = cls._get_dynamic_power_consumption(cpu_specification, tasks_specification,
-                                                               clock_relative_frequencies)
+                                                               frequency_vector)
 
         rho = cpu_specification.cores_specification.physical_properties.p
         cp = cpu_specification.cores_specification.physical_properties.c_p
