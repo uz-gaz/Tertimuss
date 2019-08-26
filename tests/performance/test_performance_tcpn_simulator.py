@@ -11,6 +11,8 @@ from main.core.tcpn_simulator.implementation.numerical_integration.TcpnSimulator
 
 def test_performance_petri_net_with_control():
     """
+    WARNING: These tests have been outdated and may not run but are preserved for historical reasons
+
     This class have been used to test different tcpn simulators
     :return:
     """

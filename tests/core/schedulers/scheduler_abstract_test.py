@@ -19,7 +19,7 @@ from main.core.schedulers.templates.abstract_scheduler.SchedulerResult import Sc
 from main.core.tcpn_model_generator.GlobalModel import GlobalModel
 from main.core.tcpn_model_generator.ThermalModelSelector import ThermalModelSelector
 from main.plot_generator.implementations.AccumulatedExecutionTimeDrawer import AccumulatedExecutionTimeDrawer
-from main.plot_generator.implementations.EnergyConsumptionDrawer import EnergyConsumptionDrawer
+from main.plot_generator.implementations.DynamicPowerConsumptionDrawer import DynamicPowerConsumptionDrawer
 from main.plot_generator.implementations.ExecutionPercentageDrawer import ExecutionPercentageDrawer
 from main.plot_generator.implementations.FrequencyDrawer import FrequencyDrawer
 from main.plot_generator.implementations.HeatMatrixDrawer import HeatMatrixDrawer
@@ -71,7 +71,7 @@ class SchedulerAbstractTest(unittest.TestCase):
     @staticmethod
     def create_problem_specification(scheduler: AbstractBaseScheduler, is_thermal: bool,
                                      with_aperiodics: bool):
-        tasks = [PeriodicTask(1000000, 4, 4, 3.4), PeriodicTask(4000000, 8, 8, 8), PeriodicTask(5000000, 12, 12, 9.6)]
+        tasks = [PeriodicTask(1000000, 8, 8, 3.4), PeriodicTask(1000000, 8, 8, 8), PeriodicTask(11100000, 12, 12, 9.6)]
 
         if with_aperiodics:
             tasks.append(AperiodicTask(2000000, 10, 20, 6))
@@ -137,8 +137,8 @@ class SchedulerAbstractTest(unittest.TestCase):
         ExecutionPercentageDrawer.plot(global_specification, result,
                                        {"save_path": result_save_path + "_execution_percentage.png"})
         if is_thermal:
-            EnergyConsumptionDrawer.plot(global_specification, result,
-                                         {"save_path": result_save_path + "_energy_consumption.png"})
+            DynamicPowerConsumptionDrawer.plot(global_specification, result,
+                                               {"save_path": result_save_path + "_energy_consumption.png"})
             MaxCoreTemperatureDrawer.plot(global_specification, result,
                                           {"save_path": result_save_path + "_cpu_temperature.png"})
 

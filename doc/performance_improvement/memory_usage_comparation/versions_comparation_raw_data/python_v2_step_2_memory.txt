@@ -1,0 +1,8 @@
+18647 pts/0    Sl+    0:01      0  2284 834251 142752  1.7 python gui_launcher.py
+18647 pts/0    Sl+    0:01      0  2284 834251 142752  1.7 python gui_launcher.py
+18647 pts/0    Sl+    0:02      0  2284 1071511 172816  2.1 python gui_launcher.py
+18647 pts/0    Sl+    0:09      0  2284 1073823 178668  2.1 python gui_launcher.py
+18647 pts/0    Sl+    0:10      0  2284 1074363 180092  2.2 python gui_launcher.py
+18647 pts/0    Sl+    0:10      0  2284 1074363 180092  2.2 python gui_launcher.py
+18647 pts/0    Sl+    0:10      0  2284 1074363 180092  2.2 python gui_launcher.py
+18647 pts/0    Sl+    0:10      0  2284 1074363 180092  2.2 python gui_launcher.py

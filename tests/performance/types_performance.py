@@ -6,6 +6,9 @@ import scipy
 
 
 class PerformanceTests(unittest.TestCase):
+    """
+    This test compares the performance of dot product
+    """
 
     def dot_profile_memory_and_time(self, iterations: int, dimension: int, dtype_1, dtype_2) -> [float, float]:
         def dot_timed(x: scipy.ndarray, y: scipy.ndarray):
