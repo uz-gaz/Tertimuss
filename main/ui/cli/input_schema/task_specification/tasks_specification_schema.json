@@ -1,0 +1,116 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "tasks_specification.task_specification.scheduler.framework.tcpn.json",
+  "title": "System tasks",
+  "description": "System tasks",
+  "type": "object",
+  "properties": {
+    "task_consumption_model": {
+      "description": "Task energy consumption model to use",
+      "type": "string",
+      "enum": [
+        "Energy based",
+        "Frequency based"
+      ]
+    },
+    "task_generation_system": {
+      "description": "Task generation system to use",
+      "type": "string",
+      "enum": [
+        "Manual",
+        "Automatic"
+      ]
+    }
+  },
+  "required": [
+    "task_consumption_model",
+    "task_generation_system"
+  ],
+  "if": {
+    "properties": {
+      "task_generation_system": {
+        "const": "Automatic"
+      }
+    }
+  },
+  "then": {
+    "properties": {
+      "automatic_generation": {
+        "$ref": "#/definitions/automatic_tasks"
+      }
+    },
+    "required": [
+      "automatic_generation"
+    ]
+  },
+  "else": {
+    "if": {
+      "properties": {
+        "task_consumption_model": {
+          "const": "Energy based"
+        }
+      }
+    },
+    "then": {
+      "properties": {
+        "tasks": {
+          "description": "Set of tasks",
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/definitions/periodic_task_energy"
+              },
+              {
+                "$ref": "#/definitions/aperiodic_task_energy"
+              }
+            ]
+          },
+          "minItems": 1
+        }
+      },
+      "required": [
+        "tasks"
+      ]
+    },
+    "else": {
+      "properties": {
+        "tasks": {
+          "description": "Set of tasks",
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/definitions/periodic_task"
+              },
+              {
+                "$ref": "#/definitions/aperiodic_task"
+              }
+            ]
+          },
+          "minItems": 1
+        }
+      },
+      "required": [
+        "tasks"
+      ]
+    }
+  },
+  "definitions": {
+    "periodic_task_energy": {
+      "$ref": "periodic_task_energy_schema.json"
+    },
+    "aperiodic_task_energy": {
+      "$ref": "aperiodic_task_energy_schema.json"
+    },
+    "periodic_task": {
+      "$ref": "periodic_task_schema.json"
+    },
+    "aperiodic_task": {
+      "$ref": "aperiodic_task_schema.json"
+    },
+    "automatic_tasks": {
+      "$ref": "automatic_tasks_schema.json"
+    }
+  }
+}

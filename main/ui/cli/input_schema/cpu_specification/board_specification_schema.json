@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "board_specification.cpu_specification.scheduler.framework.tcpn.json",
+  "title": "Board specification schema",
+  "description": "Origins of material cuboid",
+  "type": "object",
+  "properties": {
+    "physical_properties": {
+      "$ref": "#/definitions/material_cuboid"
+    }
+  },
+  "required": [
+    "physical_properties"
+  ],
+  "definitions": {
+    "material_cuboid": {
+      "$ref": "material_cuboid_schema.json"
+    }
+  },
+  "additionalProperties": false
+}

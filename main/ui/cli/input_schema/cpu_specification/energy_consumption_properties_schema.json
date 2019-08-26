@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "energy_consumption_properties.cpu_specification.scheduler.framework.tcpn.json",
+  "title": "Core construction properties relatives to the energy consumption",
+  "description": "Core construction properties relatives to the energy consumption",
+  "type": "object",
+  "properties": {
+    "leakage_delta": {
+      "description": "Static power = current temperature * 2 * leakage_delta + leakage_alpha",
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "leakage_alpha": {
+      "description": "Static power = current temperature * 2 * leakage_delta + leakage_alpha",
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "dynamic_alpha": {
+      "description": "Dynamic power = dynamic_alpha * F^3 + dynamic_beta",
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "dynamic_beta": {
+      "description": "Dynamic power = dynamic_alpha * F^3 + dynamic_beta",
+      "type": "number"
+    }
+  },
+  "required": [
+    "leakage_delta",
+    "leakage_alpha",
+    "dynamic_alpha",
+    "dynamic_beta"
+  ],
+  "additionalProperties": false
+}

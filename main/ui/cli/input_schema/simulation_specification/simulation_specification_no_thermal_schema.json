@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "simulation_specification_no_thermal.simulation_specification.scheduler.framework.tcpn.json",
+  "title": "Specification of some parameters of the simulation",
+  "description": "Specification of some parameters of the simulation",
+  "type": "object",
+  "properties": {
+    "dt": {
+      "description": "Minimum time unit simulated by the framework",
+      "type": "number",
+      "exclusiveMinimum": 0
+    }
+  },
+  "required": [
+    "dt"
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,107 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "scheduler.framework.TCPN.json",
+  "title": "Scheduler Framework TCPN JSON input specification schema",
+  "description": "Input for Scheduler Framework TCPN v2.0",
+  "type": "object",
+  "properties": {
+    "simulate_thermal": {
+      "description": "True if want to simulate the thermal model",
+      "type": "boolean"
+    },
+    "scheduler_specification": {
+      "$ref": "#/definitions/scheduler_specification"
+    }
+  },
+  "if": {
+    "properties": {
+      "simulate_thermal": {
+        "const": true
+      }
+    }
+  },
+  "then": {
+    "properties": {
+      "cpu_specification": {
+        "$ref": "#/definitions/cpu_specification"
+      },
+      "environment_specification": {
+        "$ref": "#/definitions/environment_specification"
+      },
+      "simulation_specification": {
+        "$ref": "#/definitions/simulation_specification"
+      },
+      "tasks_specification": {
+        "$ref": "#/definitions/tasks_specification"
+      },
+      "output_specification": {
+        "$ref": "#/definitions/output_specification"
+      }
+    },
+    "required": [
+      "cpu_specification",
+      "environment_specification",
+      "simulation_specification",
+      "tasks_specification",
+      "output_specification"
+    ]
+  },
+  "else": {
+    "properties": {
+      "cpu_specification": {
+        "$ref": "#/definitions/cpu_specification_no_thermal"
+      },
+      "simulation_specification": {
+        "$ref": "#/definitions/simulation_specification_no_thermal"
+      },
+      "tasks_specification": {
+        "$ref": "#/definitions/tasks_specification_no_thermal"
+      },
+      "output_specification": {
+        "$ref": "#/definitions/output_specification_no_thermal"
+      }
+    },
+    "required": [
+      "cpu_specification",
+      "simulation_specification",
+      "tasks_specification",
+      "output_specification"
+    ]
+  },
+  "definitions": {
+    "cpu_specification": {
+      "$ref": "cpu_specification/cpu_specification_schema.json"
+    },
+    "environment_specification": {
+      "$ref": "environment_specification/environment_specification_schema.json"
+    },
+    "simulation_specification": {
+      "$ref": "simulation_specification/simulation_specification_schema.json"
+    },
+    "tasks_specification": {
+      "$ref": "task_specification/tasks_specification_schema.json"
+    },
+    "scheduler_specification": {
+      "$ref": "scheduler_specification/scheduler_specification_schema.json"
+    },
+    "output_specification": {
+      "$ref": "output_specification/output_specification_schema.json"
+    },
+    "cpu_specification_no_thermal": {
+      "$ref": "cpu_specification/cpu_specification_no_thermal_schema.json"
+    },
+    "simulation_specification_no_thermal": {
+      "$ref": "simulation_specification/simulation_specification_no_thermal_schema.json"
+    },
+    "tasks_specification_no_thermal": {
+      "$ref": "task_specification/tasks_specification_no_thermal_schema.json"
+    },
+    "output_specification_no_thermal": {
+      "$ref": "output_specification/output_specification_no_thermal_schema.json"
+    }
+  },
+  "required": [
+    "simulate_thermal",
+    "scheduler_specification"
+  ]
+}

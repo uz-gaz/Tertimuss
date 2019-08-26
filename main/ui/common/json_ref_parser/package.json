@@ -1,0 +1,14 @@
+{
+  "name": "json-ref-parser",
+  "version": "1.0.0",
+  "description": "Parse a JSON object with references into an object without references",
+  "main": "JSONRefParser.js",
+  "scripts": {
+    "parse-json": "npm install && node JSONRefParser.js"
+  },
+  "keywords": [],
+  "author": "AbelChT",
+  "dependencies": {
+    "json-schema-ref-parser": "^7.1.0"
+  }
+}

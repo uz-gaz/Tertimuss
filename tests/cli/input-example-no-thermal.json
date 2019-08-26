@@ -1,41 +1,62 @@
 {
-  "$schema": "../../cli/input-schema/input-schema.json",
-  "$id": "scheduler.framework.TCPN.schema.example1",
+  "$schema": "../../main/ui/cli/input_schema/global-schema.json",
+  "$id": "input-example-thermal-aperiodics-energy.scheduler.framework.TCPN.schema.example1",
   "title": "Example input specification",
   "description": "Input for Scheduler Framework TCPN v1.0",
-  "specification": {
+  "simulate_thermal": false,
+  "tasks_specification": {
+    "task_generation_system": "Manual",
     "tasks": [
       {
-        "worstCaseExecutionTime": 2,
+        "type": "Periodic",
+        "worst_case_execution_time": 2000,
         "period": 4
       },
       {
-        "worstCaseExecutionTime": 3,
+        "type": "Periodic",
+        "worst_case_execution_time": 5000,
         "period": 8
       },
       {
-        "worstCaseExecutionTime": 3,
+        "type": "Periodic",
+        "worst_case_execution_time": 6000,
         "period": 12
+      },
+      {
+        "type": "Aperiodic",
+        "worst_case_execution_time": 2000,
+        "arrive": 10,
+        "deadline": 20
       }
-    ],
-    "processor": {
-      "coresProperties": {
-        "numberOfCores": 2,
-        "frequencyScale": 1.0
-      }
-    },
-    "simulation": {
-      "timeStep": 0.01
-    },
-    "scheduler": {
-      "name": "global_edf_affinity_scheduler"
-    },
-    "output": {
-      "path": "./out/",
-      "baseName": "simulation_example_no_thermal",
-      "generate": [
-        "allocationAndExecution"
+    ]
+  },
+  "cpu_specification": {
+
+    "cores_specification": {
+      "available_frequencies": [
+        150,
+        400,
+        600,
+        850,
+        1000
+      ],
+      "operating_frequencies": [
+        1000,
+        1000
       ]
     }
+  },
+  "output_specification": {
+    "output_path": "./out/",
+    "output_naming": "example_thermal_aperiodics-energy",
+    "selected_output": [
+      "Accumulated execution time"
+    ]
+  },
+  "scheduler_specification": {
+    "name": "G-EDF"
+  },
+  "simulation_specification": {
+    "dt": 0.01
   }
 }
