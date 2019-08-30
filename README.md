@@ -84,7 +84,7 @@ To launch it execute the following command:
 $ designer
 ```
 
-One you have modified the XML (.ui) file that you create with Qt Designer, you have to transform it to a Python file.
+Once you have modified the XML (.ui) file that you create with Qt Designer, you have to transform it into a Python file.
 To do it, just execute the following command (changing foo and bar for the files names):
 
 ```bash
