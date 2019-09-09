@@ -34,9 +34,8 @@ class AccumulatedExecutionTimeDrawer(AbstractResultDrawer):
         """
 
         m_exec = scheduler_result.execution_time_scheduler
-        # m_exec_tcpn = scheduler_result.execution_time_tcpn
+        m_exec_tcpn = scheduler_result.execution_time_tcpn
         time_u = scheduler_result.time_steps
-        # time_step = scheduler_result.time_tcpn
         n_periodic = len(global_specification.tasks_specification.periodic_tasks)
         n_aperiodic = len(global_specification.tasks_specification.aperiodic_tasks)
         m = len(global_specification.cpu_specification.cores_specification.operating_frequencies)
@@ -45,7 +44,7 @@ class AccumulatedExecutionTimeDrawer(AbstractResultDrawer):
             for j in range(n_periodic):
                 axarr[i][j].set_title(r'$\tau_' + str(j + 1) + '$ execution \n on $CPU_' + str(i + 1) + '$')
                 axarr[i][j].plot(time_u, m_exec[i * (n_periodic + n_aperiodic) + j])
-                # axarr[i][j].plot(time_u, m_exec_tcpn[i * (n_periodic + n_aperiodic) + j], label="mexec tcpn")
+                axarr[i][j].plot(time_u, m_exec_tcpn[i * (n_periodic + n_aperiodic) + j], label="mexec tcpn")
                 axarr[i][j].set_ylabel('executed time (s)')
                 axarr[i][j].set_xlabel('system time (s)')
 
@@ -54,8 +53,8 @@ class AccumulatedExecutionTimeDrawer(AbstractResultDrawer):
                 axarr[i][j + n_periodic].set_title(
                     r'$\tau_' + str(j + 1) + '^a$ execution \n on $CPU_' + str(i + 1) + '$')
                 axarr[i][j + n_periodic].plot(time_u, m_exec[i * (n_periodic + n_aperiodic) + n_periodic + j])
-                # axarr[i][j + n_periodic].plot(time_step, mexec_tcpn[i * (n_periodic + n_aperiodic) + n_periodic + j],
-                #                               label="mexec tcpn")
+                axarr[i][j + n_periodic].plot(time_u, m_exec_tcpn[i * (n_periodic + n_aperiodic) + n_periodic + j],
+                                              label="mexec tcpn")
                 axarr[i][j + n_periodic].set_ylabel('executed time (s)')
                 axarr[i][j + n_periodic].set_xlabel('system time (s)')
 
