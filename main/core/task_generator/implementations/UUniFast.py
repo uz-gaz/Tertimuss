@@ -32,19 +32,15 @@ class UUniFast(AbstractTaskGeneratorAlgorithm):
         a = 6
         b = 20
 
-        # Number of decimals of each return value
-        precision = 3
-
         t_i = [randrange(int(min_period_interval), int(max_period_interval)) for _ in
                range(number_of_tasks)]
-        e_i = [a + (b - a) * round(uniform(0, 1), precision) for _ in range(number_of_tasks)]
+        e_i = [a + (b - a) * uniform(0, 1) for _ in range(number_of_tasks)]
 
         sum_u = utilization  # the sum of n uniform random variables
         vector_u = number_of_tasks * [0]  # initialization
 
         for i in range(number_of_tasks - 1):
-            next_sum_u = round(sum_u * round(uniform(0, 1) ** (1 / (number_of_tasks - 1 - i)), precision),
-                               precision)
+            next_sum_u = sum_u * (uniform(0, 1) ** (1 / (number_of_tasks - 1 - i)))
             vector_u[i] = sum_u - next_sum_u
             sum_u = next_sum_u
 
