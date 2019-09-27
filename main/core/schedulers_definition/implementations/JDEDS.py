@@ -4,16 +4,16 @@ from typing import List, Optional
 import scipy
 
 from main.core.problem_specification.GlobalSpecification import GlobalSpecification
-from main.core.schedulers.templates.abstract_base_scheduler.AbstractBaseScheduler import AbstractBaseScheduler
-from main.core.schedulers.templates.abstract_base_scheduler.BaseSchedulerAperiodicTask import BaseSchedulerAperiodicTask
-from main.core.schedulers.templates.abstract_base_scheduler.BaseSchedulerPeriodicTask import BaseSchedulerPeriodicTask
-from main.core.schedulers.templates.abstract_base_scheduler.BaseSchedulerTask import BaseSchedulerTask
+from main.core.schedulers_definition.templates.AbstractScheduler import AbstractScheduler
+from main.core.execution_simulator.system_simulator.SystemAperiodicTask import SystemAperiodicTask
+from main.core.execution_simulator.system_simulator.SystemPeriodicTask import SystemPeriodicTask
+from main.core.execution_simulator.system_simulator.SystemTask import SystemTask
 
 import scipy.optimize
 import scipy.linalg
 
 
-class GlobalJDEDSScheduler(AbstractBaseScheduler):
+class GlobalJDEDSScheduler(AbstractScheduler):
     """
     Implements the JDEDS scheduler
     """
@@ -149,8 +149,8 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
         return s, sd
 
     def offline_stage(self, global_specification: GlobalSpecification,
-                      periodic_tasks: List[BaseSchedulerPeriodicTask],
-                      aperiodic_tasks: List[BaseSchedulerAperiodicTask]) -> float:
+                      periodic_tasks: List[SystemPeriodicTask],
+                      aperiodic_tasks: List[SystemAperiodicTask]) -> float:
         """
         Method to implement with the offline stage scheduler tasks
         :param aperiodic_tasks: list of aperiodic tasks with their assigned ids
@@ -269,7 +269,7 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
 
         return self.__dt
 
-    def aperiodic_arrive(self, time: float, aperiodic_tasks_arrived: List[BaseSchedulerTask],
+    def aperiodic_arrive(self, time: float, aperiodic_tasks_arrived: List[SystemTask],
                          actual_cores_frequency: List[int], cores_max_temperature: Optional[scipy.ndarray]) -> bool:
         """
         Method to implement with the actual on aperiodic arrive scheduler police
@@ -432,7 +432,7 @@ class GlobalJDEDSScheduler(AbstractBaseScheduler):
         tasks_to_execute = tasks_to_execute + self.__m * [-1]
         return tasks_to_execute[:self.__m]
 
-    def schedule_policy(self, time: float, executable_tasks: List[BaseSchedulerTask], active_tasks: List[int],
+    def schedule_policy(self, time: float, executable_tasks: List[SystemTask], active_tasks: List[int],
                         actual_cores_frequency: List[int], cores_max_temperature: Optional[scipy.ndarray]) -> \
             [List[int], Optional[float], Optional[List[int]]]:
         """

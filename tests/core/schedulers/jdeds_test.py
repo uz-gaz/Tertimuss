@@ -1,8 +1,8 @@
 import hashlib
 import unittest
 
-from main.core.schedulers.implementations.JDEDS import GlobalJDEDSScheduler
-from main.core.schedulers.templates.abstract_scheduler.AbstractScheduler import AbstractScheduler
+from main.core.schedulers_definition.implementations.JDEDS import GlobalJDEDSScheduler
+from main.core.schedulers_definition.templates.AbstractScheduler import AbstractScheduler
 from tests.core.schedulers.scheduler_abstract_test import SchedulerAbstractTest
 
 

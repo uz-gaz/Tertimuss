@@ -1,9 +1,9 @@
 import scipy
 import scipy.sparse
 
-from main.core.tcpn_model_generator.ProcessorModel import ProcessorModel
-from main.core.tcpn_model_generator.TasksModel import TasksModel
-from main.core.tcpn_model_generator.ThermalModel import ThermalModel
+from main.core.execution_simulator.system_modeling.ProcessorModel import ProcessorModel
+from main.core.execution_simulator.system_modeling.TasksModel import TasksModel
+from main.core.execution_simulator.system_modeling.ThermalModel import ThermalModel
 from main.core.problem_specification.GlobalSpecification import GlobalSpecification
 
 

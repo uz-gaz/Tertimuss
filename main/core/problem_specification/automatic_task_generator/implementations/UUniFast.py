@@ -2,7 +2,7 @@ from random import randrange, uniform
 from typing import List, Dict
 
 from main.core.problem_specification.tasks_specification.PeriodicTask import PeriodicTask
-from main.core.task_generator.template.AbstractTaskGeneratorAlgorithm import AbstractTaskGeneratorAlgorithm
+from main.core.problem_specification.automatic_task_generator.template.AbstractTaskGeneratorAlgorithm import AbstractTaskGeneratorAlgorithm
 
 
 class UUniFast(AbstractTaskGeneratorAlgorithm):

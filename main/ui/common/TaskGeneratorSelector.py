@@ -1,7 +1,7 @@
 from typing import List
 
-from main.core.task_generator.template.AbstractTaskGeneratorAlgorithm import AbstractTaskGeneratorAlgorithm
-from main.core.task_generator.implementations.UUniFast import UUniFast
+from main.core.problem_specification.automatic_task_generator.template.AbstractTaskGeneratorAlgorithm import AbstractTaskGeneratorAlgorithm
+from main.core.problem_specification.automatic_task_generator.implementations.UUniFast import UUniFast
 
 
 class TaskGeneratorSelector(object):

@@ -1,7 +1,8 @@
 import os
 from typing import Optional
 
-from main.core.tcpn_model_generator.GlobalModel import GlobalModel
+from main.core.execution_simulator.system_modeling.GlobalModel import GlobalModel
+from main.core.execution_simulator.system_simulator.SystemSimulator import SystemSimulator
 from main.ui.cli.ProgressBarCli import ProgressBarCli
 
 from main.ui.common.AbstractProgressBar import AbstractProgressBar
@@ -72,7 +73,7 @@ class CliController(object):
             progress_bar.update("Scheduling", 0)
 
         try:
-            scheduler_result = scheduler.simulate(global_specification, global_model, progress_bar)
+            scheduler_result = SystemSimulator.simulate(global_specification, global_model,scheduler, progress_bar)
         except Exception as ex:
             print(ex)
             return 1

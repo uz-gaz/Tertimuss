@@ -2,6 +2,7 @@ import hashlib
 import unittest
 import scipy.io
 
+from main.core.execution_simulator.system_simulator.SystemSimulator import SystemSimulator
 from main.core.problem_specification.cpu_specification.BoardSpecification import BoardSpecification
 from main.core.problem_specification.cpu_specification.CoreGroupSpecification import CoreGroupSpecification
 from main.core.problem_specification.cpu_specification.CpuSpecification import CpuSpecification
@@ -14,15 +15,15 @@ from main.core.problem_specification.simulation_specification.TCPNModelSpecifica
 from main.core.problem_specification.tasks_specification.TasksSpecification import TasksSpecification
 from main.core.problem_specification.tasks_specification.AperiodicTask import AperiodicTask
 from main.core.problem_specification.tasks_specification.PeriodicTask import PeriodicTask
-from main.core.schedulers.templates.abstract_base_scheduler.AbstractBaseScheduler import AbstractBaseScheduler
-from main.core.schedulers.templates.abstract_scheduler.SchedulerResult import SchedulerResult
-from main.core.tcpn_model_generator.GlobalModel import GlobalModel
-from main.core.tcpn_model_generator.ThermalModelSelector import ThermalModelSelector
+from main.core.schedulers_definition.templates.AbstractScheduler import AbstractScheduler
+from main.core.execution_simulator.system_simulator.SchedulingResult import SchedulingResult
+from main.core.execution_simulator.system_modeling.GlobalModel import GlobalModel
+from main.core.execution_simulator.system_modeling.ThermalModelSelector import ThermalModelSelector
 from main.plot_generator.implementations.AccumulatedExecutionTimeDrawer import AccumulatedExecutionTimeDrawer
 from main.plot_generator.implementations.DynamicPowerConsumptionDrawer import DynamicPowerConsumptionDrawer
 from main.plot_generator.implementations.ExecutionPercentageDrawer import ExecutionPercentageDrawer
+from main.plot_generator.implementations.ExecutionPercentageStatics import ExecutionPercentageStatics
 from main.plot_generator.implementations.FrequencyDrawer import FrequencyDrawer
-from main.plot_generator.implementations.HeatMatrixDrawer import HeatMatrixDrawer
 from main.plot_generator.implementations.MaxCoreTemperatureDrawer import MaxCoreTemperatureDrawer
 from main.plot_generator.implementations.TaskExecutionDrawer import TaskExecutionDrawer
 from main.plot_generator.implementations.UtilizationDrawer import UtilizationDrawer
@@ -30,7 +31,7 @@ from main.plot_generator.implementations.UtilizationDrawer import UtilizationDra
 
 class SchedulerAbstractTest(unittest.TestCase):
     @staticmethod
-    def load_scheduler_result_from_matlab_format(path: str, is_thermal: bool) -> SchedulerResult:
+    def load_scheduler_result_from_matlab_format(path: str, is_thermal: bool) -> SchedulingResult:
         matlab_file = scipy.io.loadmat(path + ".mat")
         time_steps = matlab_file["time_steps"][0]
         temperature_map = matlab_file["temperature_map"] if is_thermal else None
@@ -41,11 +42,11 @@ class SchedulerAbstractTest(unittest.TestCase):
         energy_consumption = matlab_file["energy_consumption"] if is_thermal else None
         scheduler_assignation = matlab_file["scheduler_assignation"]
         quantum = matlab_file["time_steps"][0][0]
-        return SchedulerResult(temperature_map, max_temperature_cores, time_steps, execution_time_scheduler,
-                               execution_time_tcpn, scheduler_assignation, frequencies, energy_consumption, quantum)
+        return SchedulingResult(temperature_map, max_temperature_cores, time_steps, execution_time_scheduler,
+                                execution_time_tcpn, scheduler_assignation, frequencies, energy_consumption, quantum)
 
     @staticmethod
-    def save_scheduler_result_in_matlab_format(scheduler_simulation: SchedulerResult, path: str, is_thermal: bool):
+    def save_scheduler_result_in_matlab_format(scheduler_simulation: SchedulingResult, path: str, is_thermal: bool):
         if is_thermal:
             scipy.io.savemat(path + ".mat", {
                 'time_steps': scheduler_simulation.time_steps,
@@ -69,9 +70,9 @@ class SchedulerAbstractTest(unittest.TestCase):
             })
 
     @staticmethod
-    def create_problem_specification(scheduler: AbstractBaseScheduler, is_thermal: bool,
+    def create_problem_specification(scheduler: AbstractScheduler, is_thermal: bool,
                                      with_aperiodics: bool):
-        tasks = [PeriodicTask(1000000, 8, 8, 3.4), PeriodicTask(1000000, 8, 8, 8), PeriodicTask(11100000, 12, 12, 9.6)]
+        tasks = [PeriodicTask(2000000, 4, 4, 3.4), PeriodicTask(5000000, 8, 8, 8), PeriodicTask(6000000, 12, 12, 9.6)]
 
         if with_aperiodics:
             tasks.append(AperiodicTask(2000000, 10, 20, 6))
@@ -101,14 +102,15 @@ class SchedulerAbstractTest(unittest.TestCase):
 
         global_model = GlobalModel(global_specification)
 
-        return scheduler.simulate(global_specification, global_model, None), global_specification, global_model
+        return SystemSimulator.simulate(global_specification, global_model, scheduler,
+                                        None), global_specification, global_model
 
-    def run_test_hash_based(self, scheduler: AbstractBaseScheduler, is_thermal: bool,
+    def run_test_hash_based(self, scheduler: AbstractScheduler, is_thermal: bool,
                             with_aperiodics: bool, scheduler_assignation_hash: str):
         result, _, _ = self.create_problem_specification(scheduler, is_thermal, with_aperiodics)
         self.assertEqual(hashlib.md5(result.scheduler_assignation).hexdigest(), scheduler_assignation_hash)
 
-    def run_test_matlab_result_based(self, scheduler: AbstractBaseScheduler, is_thermal: bool,
+    def run_test_matlab_result_based(self, scheduler: AbstractScheduler, is_thermal: bool,
                                      with_aperiodics: bool, result_save_path: str):
         result, _, _ = self.create_problem_specification(scheduler, is_thermal, with_aperiodics)
         result_correct = self.load_scheduler_result_from_matlab_format(result_save_path, is_thermal)
@@ -116,30 +118,34 @@ class SchedulerAbstractTest(unittest.TestCase):
         self.assertEqual(hashlib.md5(result.scheduler_assignation).hexdigest(),
                          hashlib.md5(result_correct.scheduler_assignation).hexdigest())
 
-    def save_matlab_result(self, scheduler: AbstractBaseScheduler, is_thermal: bool,
+    def save_matlab_result(self, scheduler: AbstractScheduler, is_thermal: bool,
                            with_aperiodics: bool, result_save_path: str):
         result, _, _ = self.create_problem_specification(scheduler, is_thermal, with_aperiodics)
         self.save_scheduler_result_in_matlab_format(result, result_save_path, is_thermal)
 
-    def save_plot_outputs_result(self, scheduler: AbstractBaseScheduler, is_thermal: bool,
+    def save_plot_outputs_result(self, scheduler: AbstractScheduler, is_thermal: bool,
                                  with_aperiodics: bool, result_save_path: str):
         result, global_specification, simulation_kernel = self.create_problem_specification(scheduler,
                                                                                             is_thermal,
                                                                                             with_aperiodics)
 
-        UtilizationDrawer.plot(global_specification, result, {"save_path": result_save_path + "_cpu_utilization.png"})
-        TaskExecutionDrawer.plot(global_specification, result, {"save_path": result_save_path + "_task_execution.png"})
+        # UtilizationDrawer.plot(global_specification, result, {"save_path": result_save_path + "_cpu_utilization.png"})
+        # TaskExecutionDrawer.plot(global_specification, result, {"save_path": result_save_path + "_task_execution.png"})
+        #
+        # AccumulatedExecutionTimeDrawer.plot(global_specification, result,
+        #                                     {"save_path": result_save_path + "_accumulated_execution_time.png"})
+        #
+        # FrequencyDrawer.plot(global_specification, result, {"save_path": result_save_path + "_frequency.png"})
+        # ExecutionPercentageDrawer.plot(global_specification, result,
+        #                                {"save_path": result_save_path + "_execution_percentage.png"})
 
-        AccumulatedExecutionTimeDrawer.plot(global_specification, result,
-                                            {"save_path": result_save_path + "_accumulated_execution_time.png"})
+        ExecutionPercentageStatics.plot(global_specification, result,
+                                        {"save_path": result_save_path + "_execution_percentage_statics.json"})
 
-        FrequencyDrawer.plot(global_specification, result, {"save_path": result_save_path + "_frequency.png"})
-        ExecutionPercentageDrawer.plot(global_specification, result,
-                                       {"save_path": result_save_path + "_execution_percentage.png"})
-        if is_thermal:
-            DynamicPowerConsumptionDrawer.plot(global_specification, result,
-                                               {"save_path": result_save_path + "_energy_consumption.png"})
-            MaxCoreTemperatureDrawer.plot(global_specification, result,
-                                          {"save_path": result_save_path + "_cpu_temperature.png"})
+        # if is_thermal:
+        #     DynamicPowerConsumptionDrawer.plot(global_specification, result,
+        #                                        {"save_path": result_save_path + "_energy_consumption.png"})
+        #     MaxCoreTemperatureDrawer.plot(global_specification, result,
+        #                                   {"save_path": result_save_path + "_cpu_temperature.png"})
 
             # HeatMatrixDrawer.plot(global_specification, result, {"save_path": result_save_path + "_heat_matrix.mp4"})

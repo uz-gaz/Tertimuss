@@ -1,4 +1,4 @@
-class BaseSchedulerTask(object):
+class SystemTask(object):
     def __init__(self, d: float, a: float, c: int, task_id: int):
         """
         This class represent a job, where next_deadline is the deadline of the job and next_arrival the arrival of the

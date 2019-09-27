@@ -1,7 +1,7 @@
 import scipy
 
 
-class SchedulerResult(object):
+class SchedulingResult(object):
     def __init__(self, temperature_map: scipy.ndarray, max_temperature_cores: scipy.ndarray,
                  time_steps: scipy.ndarray,
                  execution_time_scheduler: scipy.ndarray,

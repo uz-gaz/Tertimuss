@@ -1,7 +1,7 @@
 import unittest
 
-from main.core.schedulers.implementations.G_LLF_AFA import GlobalLeastLaxityFirstAFAScheduler
-from main.core.schedulers.templates.abstract_scheduler.AbstractScheduler import AbstractScheduler
+from main.core.schedulers_definition.implementations.G_LLF_AFA import GlobalLeastLaxityFirstAFAScheduler
+from main.core.schedulers_definition.templates.AbstractScheduler import AbstractScheduler
 from tests.core.schedulers.scheduler_abstract_test import SchedulerAbstractTest
 
 

@@ -10,7 +10,7 @@ from main.core.problem_specification.tasks_specification.PeriodicTask import Per
 
 import unittest
 
-from main.core.tcpn_model_generator.TasksModel import TasksModel
+from main.core.execution_simulator.system_modeling.TasksModel import TasksModel
 
 
 class TestTaskModel(unittest.TestCase):

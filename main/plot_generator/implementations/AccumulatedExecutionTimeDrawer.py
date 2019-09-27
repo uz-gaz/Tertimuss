@@ -1,7 +1,7 @@
 from typing import Optional, Dict
 
 from main.core.problem_specification.GlobalSpecification import GlobalSpecification
-from main.core.schedulers.templates.abstract_scheduler.SchedulerResult import SchedulerResult
+from main.core.execution_simulator.system_simulator.SchedulingResult import SchedulingResult
 import matplotlib.pyplot as plt
 
 from main.plot_generator.templates.AbstractResultDrawer import AbstractResultDrawer
@@ -10,7 +10,7 @@ from main.plot_generator.templates.AbstractResultDrawer import AbstractResultDra
 class AccumulatedExecutionTimeDrawer(AbstractResultDrawer):
 
     @classmethod
-    def plot(cls, global_specification: GlobalSpecification, scheduler_result: SchedulerResult,
+    def plot(cls, global_specification: GlobalSpecification, scheduler_result: SchedulingResult,
              options: Dict[str, str]):
         """
         Plot results
@@ -24,7 +24,7 @@ class AccumulatedExecutionTimeDrawer(AbstractResultDrawer):
         cls.__plot_accumulated_execution_time(global_specification, scheduler_result, options.get("save_path"))
 
     @staticmethod
-    def __plot_accumulated_execution_time(global_specification: GlobalSpecification, scheduler_result: SchedulerResult,
+    def __plot_accumulated_execution_time(global_specification: GlobalSpecification, scheduler_result: SchedulingResult,
                                           save_path: Optional[str] = None):
         """
         Plot tasks accumulated execution time during the simulation

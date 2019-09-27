@@ -8,8 +8,8 @@ import scipy.sparse
 from main.core.problem_specification.cpu_specification.BoardSpecification import BoardSpecification
 from main.core.problem_specification.cpu_specification.CoreGroupSpecification import CoreGroupSpecification
 from main.core.problem_specification.cpu_specification.EnergyConsumptionProperties import EnergyConsumptionProperties
-from main.core.tcpn_model_generator.GlobalModel import GlobalModel
-from main.core.tcpn_model_generator.ThermalModelSelector import ThermalModelSelector
+from main.core.execution_simulator.system_modeling.GlobalModel import GlobalModel
+from main.core.execution_simulator.system_modeling.ThermalModelSelector import ThermalModelSelector
 from main.core.problem_specification.cpu_specification.CpuSpecification import CpuSpecification
 from main.core.problem_specification.cpu_specification.MaterialCuboid import MaterialCuboid
 from main.core.problem_specification.environment_specification.EnvironmentSpecification import EnvironmentSpecification

@@ -3,16 +3,16 @@ from typing import List, Optional
 import scipy
 
 from main.core.problem_specification.GlobalSpecification import GlobalSpecification
-from main.core.schedulers.templates.abstract_base_scheduler.AbstractBaseScheduler import AbstractBaseScheduler
-from main.core.schedulers.templates.abstract_base_scheduler.BaseSchedulerAperiodicTask import BaseSchedulerAperiodicTask
-from main.core.schedulers.templates.abstract_base_scheduler.BaseSchedulerPeriodicTask import BaseSchedulerPeriodicTask
-from main.core.schedulers.templates.abstract_base_scheduler.BaseSchedulerTask import BaseSchedulerTask
+
+from main.core.execution_simulator.system_simulator.SystemAperiodicTask import SystemAperiodicTask
+from main.core.execution_simulator.system_simulator.SystemPeriodicTask import SystemPeriodicTask
+from main.core.execution_simulator.system_simulator.SystemTask import SystemTask
+from main.core.schedulers_definition.templates.AbstractScheduler import AbstractScheduler
 
 
-class GlobalEDFAffinityFrequencyAwareScheduler(AbstractBaseScheduler):
+class GlobalEDFScheduler(AbstractScheduler):
     """
-    Implements a revision of the global earliest deadline first scheduler where affinity of tasks to processors have been
-    got in mind and frequency too
+    Implements global earliest deadline first scheduler
     """
 
     def __init__(self) -> None:
@@ -20,8 +20,8 @@ class GlobalEDFAffinityFrequencyAwareScheduler(AbstractBaseScheduler):
         self.__m = None
 
     def offline_stage(self, global_specification: GlobalSpecification,
-                      periodic_tasks: List[BaseSchedulerPeriodicTask],
-                      aperiodic_tasks: List[BaseSchedulerAperiodicTask]) -> float:
+                      periodic_tasks: List[SystemPeriodicTask],
+                      aperiodic_tasks: List[SystemAperiodicTask]) -> float:
         """
         Method to implement with the offline stage scheduler tasks
         :param aperiodic_tasks: list of aperiodic tasks with their assigned ids
@@ -32,8 +32,8 @@ class GlobalEDFAffinityFrequencyAwareScheduler(AbstractBaseScheduler):
         self.__m = len(global_specification.cpu_specification.cores_specification.operating_frequencies)
         return super().offline_stage(global_specification, periodic_tasks, aperiodic_tasks)
 
-    def aperiodic_arrive(self, time: float, aperiodic_tasks_arrived: List[BaseSchedulerTask],
-                         actual_cores_frequency: List[int], cores_max_temperature: Optional[scipy.ndarray]) -> bool:
+    def aperiodic_arrive(self, time: float, aperiodic_tasks_arrived: List[SystemTask],
+                         actual_cores_frequency: List[float], cores_max_temperature: Optional[scipy.ndarray]) -> bool:
         """
         Method to implement with the actual on aperiodic arrive scheduler police
         :param actual_cores_frequency: Frequencies of cores
@@ -45,8 +45,8 @@ class GlobalEDFAffinityFrequencyAwareScheduler(AbstractBaseScheduler):
         # Nothing to do
         return False
 
-    def schedule_policy(self, time: float, executable_tasks: List[BaseSchedulerTask], active_tasks: List[int],
-                        actual_cores_frequency: List[int], cores_max_temperature: Optional[scipy.ndarray]) -> \
+    def schedule_policy(self, time: float, executable_tasks: List[SystemTask], active_tasks: List[int],
+                        actual_cores_frequency: List[float], cores_max_temperature: Optional[scipy.ndarray]) -> \
             [List[int], Optional[float], Optional[List[int]]]:
         """
         Method to implement with the actual scheduler police
@@ -60,17 +60,6 @@ class GlobalEDFAffinityFrequencyAwareScheduler(AbstractBaseScheduler):
                  3 - cores relatives frequencies for the next quantum (if None, will be taken the frequencies specified
                   in the problem specification)
         """
-        alive_tasks = [x for x in executable_tasks if x.next_arrival <= time]
-        task_order = scipy.argsort(list(map(lambda x: x.next_deadline, alive_tasks)))
-        tasks_to_execute = ([alive_tasks[i].id for i in task_order] + (self.__m - len(alive_tasks)) * [-1])[0:self.__m]
-
-        # Assign highest priority task to faster processor
-        tasks_to_execute = [x for _, x in sorted(zip(actual_cores_frequency, tasks_to_execute), reverse=True)]
-
-        # Do affinity
-        for i in range(self.__m):
-            actual = active_tasks[i]
-            for j in range(self.__m):
-                if tasks_to_execute[j] == actual and actual_cores_frequency[j] == actual_cores_frequency[i]:
-                    tasks_to_execute[j], tasks_to_execute[i] = tasks_to_execute[i], tasks_to_execute[j]
-        return tasks_to_execute, None, None
+        task_order = scipy.argsort(list(map(lambda x: x.next_deadline, executable_tasks)))
+        return ([executable_tasks[i].id for i in task_order] + (self.__m - len(executable_tasks)) * [-1])[
+               0:self.__m], None, None

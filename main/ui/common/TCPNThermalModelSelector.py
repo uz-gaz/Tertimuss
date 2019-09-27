@@ -1,6 +1,6 @@
 from typing import List
 
-from main.core.tcpn_model_generator.ThermalModelSelector import ThermalModelSelector
+from main.core.execution_simulator.system_modeling.ThermalModelSelector import ThermalModelSelector
 
 
 class TCPNThermalModelSelector(object):

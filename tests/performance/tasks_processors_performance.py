@@ -13,9 +13,9 @@ from main.core.problem_specification.environment_specification.EnvironmentSpecif
 from main.core.problem_specification.simulation_specification.SimulationSpecification import SimulationSpecification
 from main.core.problem_specification.simulation_specification.TCPNModelSpecification import TCPNModelSpecification
 from main.core.problem_specification.tasks_specification.TasksSpecification import TasksSpecification
-from main.core.task_generator.implementations.UUniFast import UUniFast
-from main.core.tcpn_model_generator.GlobalModel import GlobalModel
-from main.core.tcpn_model_generator.ThermalModelSelector import ThermalModelSelector
+from main.core.problem_specification.automatic_task_generator.implementations.UUniFast import UUniFast
+from main.core.execution_simulator.system_modeling.GlobalModel import GlobalModel
+from main.core.execution_simulator.system_modeling.ThermalModelSelector import ThermalModelSelector
 from main.core.tcpn_simulator.implementation.numerical_integration.TcpnSimulatorOptimizedTasksAndProcessors import \
     TcpnSimulatorOptimizedTasksAndProcessors
 from main.core.tcpn_simulator.implementation.numerical_integration.TcpnSimulatorOptimizedTasksAndProcessorsIterative import \

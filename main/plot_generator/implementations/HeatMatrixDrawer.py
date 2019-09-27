@@ -5,14 +5,14 @@ import matplotlib.pyplot as plt
 from matplotlib import animation
 
 from main.core.problem_specification.GlobalSpecification import GlobalSpecification
-from main.core.schedulers.templates.abstract_scheduler.SchedulerResult import SchedulerResult
+from main.core.execution_simulator.system_simulator.SchedulingResult import SchedulingResult
 from main.plot_generator.templates.AbstractResultDrawer import AbstractResultDrawer
 
 
 class HeatMatrixDrawer(AbstractResultDrawer):
 
     @classmethod
-    def plot(cls, global_specification: GlobalSpecification, scheduler_result: SchedulerResult,
+    def plot(cls, global_specification: GlobalSpecification, scheduler_result: SchedulingResult,
              options: Dict[str, str]):
         """
         Plot results
@@ -28,7 +28,7 @@ class HeatMatrixDrawer(AbstractResultDrawer):
         cls.__draw_heat_matrix(global_specification, scheduler_result, True, True, options.get("save_path"))
 
     @classmethod
-    def __draw_heat_matrix(cls, global_specification: GlobalSpecification, scheduler_result: SchedulerResult,
+    def __draw_heat_matrix(cls, global_specification: GlobalSpecification, scheduler_result: SchedulingResult,
                            show_board: Optional[bool], show_cores: Optional[bool], save_path: Optional[str] = None):
         """
         Draw heat matrix or save the simulation in file if save_path is not null

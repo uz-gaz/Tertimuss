@@ -13,7 +13,7 @@ from main.core.problem_specification.environment_specification.EnvironmentSpecif
 from main.core.problem_specification.simulation_specification.SimulationSpecification import SimulationSpecification
 from main.core.problem_specification.tasks_specification.PeriodicTask import PeriodicTask
 from main.core.problem_specification.tasks_specification.TasksSpecification import TasksSpecification
-from main.core.tcpn_model_generator.ThermalModelFrequency import ThermalModelFrequencyAware
+from main.core.execution_simulator.system_modeling.ThermalModelFrequency import ThermalModelFrequencyAware
 import scipy.sparse
 
 

@@ -1,8 +1,8 @@
 from main.core.problem_specification.tasks_specification.PeriodicTask import PeriodicTask
-from main.core.schedulers.templates.abstract_base_scheduler.BaseSchedulerTask import BaseSchedulerTask
+from main.core.execution_simulator.system_simulator.SystemTask import SystemTask
 
 
-class BaseSchedulerPeriodicTask(PeriodicTask, BaseSchedulerTask):
+class SystemPeriodicTask(PeriodicTask, SystemTask):
     def __init__(self, task_specification: PeriodicTask, task_id: int):
         """
         This class is a fusion between the current job that is being executed of a periodic task and the task itself
@@ -11,4 +11,4 @@ class BaseSchedulerPeriodicTask(PeriodicTask, BaseSchedulerTask):
         """
         PeriodicTask.__init__(self, task_specification.c, task_specification.t, task_specification.d,
                               task_specification.e)
-        BaseSchedulerTask.__init__(self, task_specification.d, 0, task_specification.c, task_id)
+        SystemTask.__init__(self, task_specification.d, 0, task_specification.c, task_id)

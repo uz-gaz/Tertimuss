@@ -2,13 +2,13 @@ import abc
 from typing import Dict
 
 from main.core.problem_specification.GlobalSpecification import GlobalSpecification
-from main.core.schedulers.templates.abstract_scheduler.SchedulerResult import SchedulerResult
+from main.core.execution_simulator.system_simulator.SchedulingResult import SchedulingResult
 
 
 class AbstractResultDrawer(object, metaclass=abc.ABCMeta):
     @classmethod
     @abc.abstractmethod
-    def plot(cls, global_specification: GlobalSpecification, scheduler_result: SchedulerResult,
+    def plot(cls, global_specification: GlobalSpecification, scheduler_result: SchedulingResult,
              options: Dict[str, str]):
         """
         Plot results

@@ -1,33 +1,29 @@
-import abc
-
 import scipy
 
-from main.core.schedulers.templates.abstract_base_scheduler.BaseSchedulerAperiodicTask import BaseSchedulerAperiodicTask
-from main.core.schedulers.templates.abstract_base_scheduler.BaseSchedulerPeriodicTask import BaseSchedulerPeriodicTask
-from main.core.schedulers.templates.abstract_base_scheduler.BaseSchedulerTask import BaseSchedulerTask
-from main.core.tcpn_model_generator.GlobalModel import GlobalModel
+from main.core.execution_simulator.system_simulator.SystemAperiodicTask import SystemAperiodicTask
+from main.core.execution_simulator.system_simulator.SystemPeriodicTask import SystemPeriodicTask
+from main.core.execution_simulator.system_simulator.SystemTask import SystemTask
+from main.core.execution_simulator.system_modeling.GlobalModel import GlobalModel
 from main.core.problem_specification.GlobalSpecification import GlobalSpecification
-from main.core.schedulers.templates.abstract_scheduler.AbstractScheduler import AbstractScheduler
-from main.core.schedulers.templates.abstract_scheduler.SchedulerResult import SchedulerResult
+from main.core.execution_simulator.system_simulator.SchedulingResult import SchedulingResult
 from typing import List, Optional
-from main.core.schedulers.utils.GlobalModelSolver import GlobalModelSolver
+from main.core.execution_simulator.system_simulator.GlobalModelSolver import GlobalModelSolver
+from main.core.schedulers_definition.templates.AbstractScheduler import AbstractScheduler
 from main.ui.common.AbstractProgressBar import AbstractProgressBar
 
 
-class AbstractBaseScheduler(AbstractScheduler, metaclass=abc.ABCMeta):
+class SystemSimulator(object):
     """
-    Abstract implementation of global scheduler.
+    System simulator
     """
-
-    def __init__(self) -> None:
-        super().__init__()
-
-    def simulate(self, global_specification: GlobalSpecification, global_model: GlobalModel,
-                 progress_bar: Optional[AbstractProgressBar]) -> SchedulerResult:
+    @staticmethod
+    def simulate(global_specification: GlobalSpecification, global_model: GlobalModel,
+                 scheduler: AbstractScheduler, progress_bar: Optional[AbstractProgressBar]) -> SchedulingResult:
         """
         Simulate problem
         :param global_specification: global specification of the problem
         :param global_model: global TCPN model
+        :param scheduler: scheduler to use
         :param progress_bar: progress bar object if want to get simulation state feedback
         :return:
         """
@@ -47,13 +43,13 @@ class AbstractBaseScheduler(AbstractScheduler, metaclass=abc.ABCMeta):
         clock_base_frequency = global_specification.cpu_specification.cores_specification.available_frequencies[-1]
 
         # Tasks sets
-        periodic_tasks = [BaseSchedulerPeriodicTask(global_specification.tasks_specification.periodic_tasks[i], i)
+        periodic_tasks = [SystemPeriodicTask(global_specification.tasks_specification.periodic_tasks[i], i)
                           for i in range(len(global_specification.tasks_specification.periodic_tasks))]
-        aperiodic_tasks = [BaseSchedulerAperiodicTask(global_specification.tasks_specification.aperiodic_tasks[i],
-                                                      i + len(periodic_tasks))
+        aperiodic_tasks = [SystemAperiodicTask(global_specification.tasks_specification.aperiodic_tasks[i],
+                                               i + len(periodic_tasks))
                            for i in range(len(global_specification.tasks_specification.aperiodic_tasks))]
 
-        tasks_set: List[BaseSchedulerTask] = periodic_tasks + aperiodic_tasks  # The elements in this list will
+        tasks_set: List[SystemTask] = periodic_tasks + aperiodic_tasks  # The elements in this list will
         # point to the periodic_tasks and aperiodic_tasks elements
 
         # Number of steps in the simulation
@@ -103,7 +99,7 @@ class AbstractBaseScheduler(AbstractScheduler, metaclass=abc.ABCMeta):
             energy_consumption = scipy.ndarray((m, simulation_time_steps))
 
         # Run offline stage
-        quantum = self.offline_stage(global_specification, periodic_tasks, aperiodic_tasks)
+        quantum = scheduler.offline_stage(global_specification, periodic_tasks, aperiodic_tasks)
 
         # Number of steps in each quantum
         simulation_quantum_steps = round_i(quantum / global_specification.simulation_specification.dt)
@@ -158,8 +154,8 @@ class AbstractBaseScheduler(AbstractScheduler, metaclass=abc.ABCMeta):
                 # Has arrived a new aperiodic task
                 aperiodic_arrives_list = [x for x in aperiodic_tasks if round_i(
                     x.next_arrival / global_specification.simulation_specification.dt) == zeta_q]
-                need_scheduled = self.aperiodic_arrive(time, aperiodic_arrives_list, cores_operating_frequencies,
-                                                       cores_temperature if is_thermal_simulation else None)
+                need_scheduled = scheduler.aperiodic_arrive(time, aperiodic_arrives_list, cores_operating_frequencies,
+                                                            cores_temperature if is_thermal_simulation else None)
                 if need_scheduled:
                     # If scheduler need to be call
                     quantum_q = 0
@@ -175,12 +171,12 @@ class AbstractBaseScheduler(AbstractScheduler, metaclass=abc.ABCMeta):
                 available_tasks_to_execute = [actual_task.id for actual_task in executable_tasks] + [-1]
 
                 # Get active task in this step
-                active_task_id, next_quantum, next_core_frequencies = self.schedule_policy(time, executable_tasks,
-                                                                                           active_task_id,
-                                                                                           cores_operating_frequencies,
-                                                                                           cores_temperature if
-                                                                                           is_thermal_simulation
-                                                                                           else None)
+                active_task_id, next_quantum, next_core_frequencies = scheduler.schedule_policy(time, executable_tasks,
+                                                                                                active_task_id,
+                                                                                                cores_operating_frequencies,
+                                                                                                cores_temperature if
+                                                                                                is_thermal_simulation
+                                                                                                else None)
                 # Tasks selected by the scheduler to execute
                 scheduler_selected_tasks = scipy.asarray(active_task_id)
 
@@ -216,7 +212,8 @@ class AbstractBaseScheduler(AbstractScheduler, metaclass=abc.ABCMeta):
                 if active_task_id[j] != idle_task_id:
                     # Task is not idle
                     tasks_set[
-                        active_task_id[j]].pending_c -= int(cores_operating_frequencies[j] * global_specification.simulation_specification.dt)
+                        active_task_id[j]].pending_c -= int(
+                        cores_operating_frequencies[j] * global_specification.simulation_specification.dt)
                     w_alloc[active_task_id[j] + j * n] = 1
                     m_exec_step[active_task_id[j] + j * n] += global_specification.simulation_specification.dt
 
@@ -238,49 +235,5 @@ class AbstractBaseScheduler(AbstractScheduler, metaclass=abc.ABCMeta):
                 temperature_map[:, zeta_q] = board_temperature.reshape(-1)
                 energy_consumption[:, zeta_q] = energy_consumption_actual
 
-        return SchedulerResult(temperature_map, max_temperature_cores, time_step, m_exec, m_exec_tcpn, i_tau_disc,
-                               core_frequencies, energy_consumption, global_specification.simulation_specification.dt)
-
-    @abc.abstractmethod
-    def offline_stage(self, global_specification: GlobalSpecification,
-                      periodic_tasks: List[BaseSchedulerPeriodicTask],
-                      aperiodic_tasks: List[BaseSchedulerAperiodicTask]) -> float:
-        """
-        Method to implement with the offline stage scheduler tasks
-        :param aperiodic_tasks: list of aperiodic tasks with their assigned ids
-        :param periodic_tasks: list of periodic tasks with their assigned ids
-        :param global_specification: Global specification
-        :return: 1 - Scheduling quantum (default will be the step specified in problem creation)
-        """
-        return global_specification.simulation_specification.dt
-
-    @abc.abstractmethod
-    def schedule_policy(self, time: float, executable_tasks: List[BaseSchedulerTask], active_tasks: List[int],
-                        actual_cores_frequency: List[int], cores_max_temperature: Optional[scipy.ndarray]) -> \
-            [List[int], Optional[float], Optional[List[int]]]:
-        """
-        Method to implement with the actual scheduler police
-        :param actual_cores_frequency: Frequencies of cores
-        :param time: actual simulation time passed
-        :param executable_tasks: actual tasks that can be executed ( c > 0 and arrive_time <= time)
-        :param active_tasks: actual id of tasks assigned to cores (task with id -1 is the idle task)
-        :param cores_max_temperature: temperature of each core
-        :return: 1 - tasks to assign to cores in next step (task with id -1 is the idle task)
-                 2 - next quantum size (if None, will be taken the quantum specified in the offline_stage)
-                 3 - cores relatives frequencies for the next quantum (if None, will be taken the frequencies specified
-                  in the problem specification)
-        """
-        pass
-
-    @abc.abstractmethod
-    def aperiodic_arrive(self, time: float, aperiodic_tasks_arrived: List[BaseSchedulerTask],
-                         actual_cores_frequency: List[int], cores_max_temperature: Optional[scipy.ndarray]) -> bool:
-        """
-        Method to implement with the actual on aperiodic arrive scheduler police
-        :param actual_cores_frequency: Frequencies of cores
-        :param time: actual simulation time passed
-        :param aperiodic_tasks_arrived: aperiodic tasks arrived in this step (arrive_time == time)
-        :param cores_max_temperature: temperature of each core
-        :return: true if want to immediately call the scheduler (schedule_policy method), false otherwise
-        """
-        pass
+        return SchedulingResult(temperature_map, max_temperature_cores, time_step, m_exec, m_exec_tcpn, i_tau_disc,
+                                core_frequencies, energy_consumption, global_specification.simulation_specification.dt)

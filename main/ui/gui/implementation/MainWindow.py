@@ -4,7 +4,8 @@ import threading
 
 from PyQt5.QtWidgets import QFileDialog
 
-from main.core.tcpn_model_generator.GlobalModel import GlobalModel
+from main.core.execution_simulator.system_modeling.GlobalModel import GlobalModel
+from main.core.execution_simulator.system_simulator.SystemSimulator import SystemSimulator
 from main.ui.common.JSONGlobalModelParser import JSONGlobalModelParser
 from main.ui.common.SchedulerSelector import SchedulerSelector
 from main.ui.common.TCPNThermalModelSelector import TCPNThermalModelSelector
@@ -33,7 +34,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.comboBox_simulation_energy_model.addItem("")
             self.comboBox_simulation_energy_model.setItemText(i, tcpn_model_names[i])
 
-        # Available schedulers
+        # Available schedulers_definition
         scheduler_names = SchedulerSelector.get_scheduler_names()
 
         for i in range(len(scheduler_names)):
@@ -316,7 +317,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                                  range(self.tableWidget_cpu_cores_available_frequencies.rowCount())]
 
         operating_frequencies = [int(self.tableWidget_cpu_cores_selected_frequencies.item(i, 0).text()) for i in
-                             range(self.tableWidget_cpu_cores_selected_frequencies.rowCount())]
+                                 range(self.tableWidget_cpu_cores_selected_frequencies.rowCount())]
 
         cores_origins = [{"x": float(self.tableWidget_cpu_cores_origins_list.item(i, 0).text()),
                           "y": float(self.tableWidget_cpu_cores_origins_list.item(i, 1).text())} for i in
@@ -466,7 +467,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
                 self.label_status.setText("Status: Running simulation")
 
-                scheduler_result = scheduler.simulate(global_specification, global_model, None)
+                scheduler_result = SystemSimulator.simulate(global_specification, global_model, scheduler, None)
 
                 self.label_status.setText("Status: Saving output")
 

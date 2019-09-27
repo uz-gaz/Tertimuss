@@ -1,15 +1,15 @@
+import json
 from typing import Optional, Dict
 
 import scipy
 
 from main.core.problem_specification.GlobalSpecification import GlobalSpecification
 from main.core.execution_simulator.system_simulator.SchedulingResult import SchedulingResult
-import matplotlib.pyplot as plt
 
 from main.plot_generator.templates.AbstractResultDrawer import AbstractResultDrawer
 
 
-class ExecutionPercentageDrawer(AbstractResultDrawer):
+class ExecutionPercentageStatics(AbstractResultDrawer):
 
     @classmethod
     def plot(cls, global_specification: GlobalSpecification, scheduler_result: SchedulingResult,
@@ -23,11 +23,12 @@ class ExecutionPercentageDrawer(AbstractResultDrawer):
         Available options:
         save_path: path to save the simulation
         """
-        cls.__plot_task_execution_percentage(global_specification, scheduler_result, options.get("save_path"))
+        cls.__plot_task_execution_percentage_statics(global_specification, scheduler_result, options.get("save_path"))
 
     @staticmethod
-    def __plot_task_execution_percentage(global_specification: GlobalSpecification, scheduler_result: SchedulingResult,
-                                         save_path: Optional[str] = None):
+    def __plot_task_execution_percentage_statics(global_specification: GlobalSpecification,
+                                                 scheduler_result: SchedulingResult,
+                                                 save_path: Optional[str] = None):
         """
         Plot task execution in each cpu
         :param global_specification: problem specification
@@ -50,13 +51,6 @@ class ExecutionPercentageDrawer(AbstractResultDrawer):
         i_tau_disc = i_tau_disc * frequencies_disc_f
 
         hyperperiod = int(global_specification.tasks_specification.h / global_specification.simulation_specification.dt)
-
-        ai = [int(global_specification.tasks_specification.h / i.t) for i in
-              global_specification.tasks_specification.periodic_tasks]
-
-        task_percentage_periodic = [scipy.zeros(i) for i in ai]
-
-        task_percentage_aperiodic = []
 
         ci_p_dt = [i.c for i in
                    global_specification.tasks_specification.periodic_tasks]
@@ -83,46 +77,42 @@ class ExecutionPercentageDrawer(AbstractResultDrawer):
                                                     i * (n_periodic + n_aperiodic): (i + 1) * (
                                                             n_periodic + n_aperiodic), :]
 
+        deadline_missed_details = {}
+        number_deadline_missed = 0
+
         for i in range(n_periodic):
-            period_ranges = range(0, hyperperiod, ti_p_dt[i])
-            task_percentage_periodic[i][:] = [
-                (sum(i_tau_disc_accond[i, j: j + di_p_dt[i]]) * global_specification.simulation_specification.dt) /
-                ci_p_dt[i] for j in
-                period_ranges]
+            missed_deadlines = 0
+            missed_deadline_jobs = []
+            period_ranges = list(range(0, hyperperiod, ti_p_dt[i]))
+            for j in range(len(period_ranges)):
+                if (sum(i_tau_disc_accond[i, period_ranges[j]: period_ranges[j] + di_p_dt[i]]) *
+                    global_specification.simulation_specification.dt) / ci_p_dt[i] < 1.0:
+                    missed_deadlines = missed_deadlines + 1
+                    missed_deadline_jobs.append(j)
+
+            if missed_deadlines > 0:
+                deadline_missed_details["task_" + str(i)] = {
+                    "number_of_missed_deadlines": missed_deadlines,
+                    "jobs_which_missed_deadlines": missed_deadline_jobs
+                }
+                number_deadline_missed = number_deadline_missed + missed_deadlines
 
         for i in range(n_aperiodic):
-            execution_aperiodic = (sum(i_tau_disc_accond[n_periodic + i,
-                                       ai_a_dt[i]: di_a_dt[i]]) * global_specification.simulation_specification.dt) / \
-                                  ci_a_dt[i]
-            task_percentage_aperiodic.append([execution_aperiodic])
+            if (sum(i_tau_disc_accond[n_periodic + i, ai_a_dt[i]: di_a_dt[i]]) *
+                global_specification.simulation_specification.dt) / ci_a_dt[i] < 1.0:
+                deadline_missed_details["aperiodic_" + str(i)] = {
+                    "number_of_missed_deadlines": 1
+                }
+                number_deadline_missed = number_deadline_missed + 1
 
-        f, axarr = plt.subplots(nrows=(n_periodic + n_aperiodic), num="Task execution")
+        json_to_return = {
+            "statics": {
+                "number_of_missed_deadlines": number_deadline_missed
+            }
+        }
 
-        for j in range(n_periodic):
-            axarr[j].set_title(r'$\tau_' + str(j + 1) + '$ execution percentage in each period')
-            to_draw = task_percentage_periodic[j]
-            axarr[j].bar(list(range(len(to_draw))), to_draw,
-                         align='center')
-            axarr[j].set_ylabel('executed\n percentage')
-            axarr[j].set_xlabel('periods / execution percentage')
-            axarr[j].set_xticks(list(range(len(to_draw))))
-            axarr[j].set_xticklabels([str(round(i * 100, 2)) + "%" for i in to_draw])
+        if deadline_missed_details:
+            json_to_return["details"] = deadline_missed_details
 
-        for j in range(n_aperiodic):
-            axarr[n_periodic + j].set_title(r'$\tau_' + str(j + 1) + '^a$ execution percentage')
-            to_draw = task_percentage_aperiodic[j]
-            axarr[n_periodic + j].bar(list(range(len(to_draw))), to_draw,
-                                      align='center')
-            axarr[n_periodic + j].set_ylabel('executed\n percentage')
-            axarr[n_periodic + j].set_xlabel('periods / execution percentage')
-            axarr[n_periodic + j].set_xticks(list(range(len(to_draw))))
-            axarr[n_periodic + j].set_xticklabels([str(round(i * 100, 2)) + "%" for i in to_draw])
-
-        f.tight_layout()
-
-        if save_path is None:
-            plt.show()
-        else:
-            plt.savefig(save_path)
-
-        plt.close(f)
+        with open(save_path, 'w') as f:
+            json.dump(json_to_return, f, indent=4)
