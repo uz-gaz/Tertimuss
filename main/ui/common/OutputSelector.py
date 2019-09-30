@@ -51,7 +51,9 @@ class OutputSelector(object):
             "CPU heat evolution": "_heat_matrix.mp4",
             "Cores maximum temperature": "_cpu_temperature.png",
             "Task execution": "_task_execution.png",
-            "Processor utilization": "_cpu_utilization.png"
+            "Processor utilization": "_cpu_utilization.png",
+            "Context switch statistics":  "_context_switch_statics.json",
+            "Execution percentage statistics":  "_execution_percentage_statics.json"
         }
 
         return output_definition.get(name)
@@ -59,9 +61,10 @@ class OutputSelector(object):
     @staticmethod
     def get_output_names_thermal() -> List[str]:
         return ["Accumulated execution time", "Energy consumption", "Execution percentage", "Frequency",
-                "CPU heat evolution", "Cores maximum temperature", "Task execution", "Processor utilization"]
+                "CPU heat evolution", "Cores maximum temperature", "Task execution", "Processor utilization",
+                "Context switch statistics", "Execution percentage statistics"]
 
     @staticmethod
     def get_output_names_no_thermal() -> List[str]:
         return ["Accumulated execution time", "Execution percentage", "Frequency", "Task execution",
-                "Processor utilization"]
+                "Processor utilization", "Context switch statistics", "Execution percentage statistics"]
