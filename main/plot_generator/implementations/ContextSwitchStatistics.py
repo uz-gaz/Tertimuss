@@ -85,9 +85,9 @@ class ContextSwitchStatistics(AbstractResultDrawer):
         output_statics = {
             "statics": {
                 "total_context_switch_number": int(sum(context_changes_by_tasks)),
-                "mandatory_context_switch_number": int(sum(
-                    [context_changes_by_tasks[i] - jobs_by_tasks[i] for i in range(n_periodic + n_aperiodic)])),
                 "scheduler_produced_context_switch_number": int(sum(
+                    [context_changes_by_tasks[i] - jobs_by_tasks[i] for i in range(n_periodic + n_aperiodic)])),
+                "mandatory_context_switch_number": int(sum(
                     [jobs_by_tasks[i] for i in range(n_periodic + n_aperiodic)])),
                 "migrations_number": int(sum(migrations_changes_by_tasks))
             },
@@ -102,10 +102,10 @@ class ContextSwitchStatistics(AbstractResultDrawer):
                            {
                                "aperiodic_" + str(task_no): {
                                    "total_context_switch_number": int(context_changes_by_tasks[n_periodic + task_no]),
-                                   "mandatory_context_switch_number": int(
+                                   "scheduler_produced_context_switch_number": int(
                                        context_changes_by_tasks[n_periodic + task_no] -
                                        jobs_by_tasks[n_periodic + task_no]),
-                                   "scheduler_produced_context_switch_number": int(jobs_by_tasks[n_periodic + task_no]),
+                                   "mandatory_context_switch_number": int(jobs_by_tasks[n_periodic + task_no]),
                                    "migrations_number": int(migrations_changes_by_tasks[n_periodic + task_no])
                                }
                            } for task_no in range(n_aperiodic)]
