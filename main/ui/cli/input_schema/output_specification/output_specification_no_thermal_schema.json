@@ -23,7 +23,9 @@
           "Execution percentage",
           "Frequency",
           "Task execution",
-          "Processor utilization"
+          "Processor utilization",
+          "Context switch statistics",
+          "Execution percentage statistics"
         ]
       },
       "minLength": 1

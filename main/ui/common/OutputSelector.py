@@ -1,8 +1,10 @@
 from typing import List
 
 from main.plot_generator.implementations.AccumulatedExecutionTimeDrawer import AccumulatedExecutionTimeDrawer
+from main.plot_generator.implementations.ContextSwitchStatistics import ContextSwitchStatistics
 from main.plot_generator.implementations.DynamicPowerConsumptionDrawer import DynamicPowerConsumptionDrawer
 from main.plot_generator.implementations.ExecutionPercentageDrawer import ExecutionPercentageDrawer
+from main.plot_generator.implementations.ExecutionPercentageStatistics import ExecutionPercentageStatistics
 from main.plot_generator.implementations.FrequencyDrawer import FrequencyDrawer
 from main.plot_generator.implementations.HeatMatrixDrawer import HeatMatrixDrawer
 from main.plot_generator.implementations.MaxCoreTemperatureDrawer import MaxCoreTemperatureDrawer
@@ -21,13 +23,15 @@ class OutputSelector(object):
         """
         output_definition = {
             "Accumulated execution time": AccumulatedExecutionTimeDrawer(),
+            "Context switch statistics": ContextSwitchStatistics(),
+            "Cores maximum temperature": MaxCoreTemperatureDrawer(),
+            "CPU heat evolution": HeatMatrixDrawer(),
             "Energy consumption": DynamicPowerConsumptionDrawer(),
             "Execution percentage": ExecutionPercentageDrawer(),
+            "Execution percentage statistics": ExecutionPercentageStatistics(),
             "Frequency": FrequencyDrawer(),
-            "CPU heat evolution": HeatMatrixDrawer(),
-            "Cores maximum temperature": MaxCoreTemperatureDrawer(),
-            "Task execution": TaskExecutionDrawer(),
-            "Processor utilization": UtilizationDrawer()
+            "Processor utilization": UtilizationDrawer(),
+            "Task execution": TaskExecutionDrawer()
         }
 
         return output_definition.get(name)
