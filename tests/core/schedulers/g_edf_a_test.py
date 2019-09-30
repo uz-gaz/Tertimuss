@@ -20,8 +20,8 @@ class TestGEDFScheduler(SchedulerAbstractTest):
 
     def test_with_thermal(self):
         scheduler, scheduler_name = self.get_global_variables()
-        self.save_plot_outputs_result(scheduler, True, False, "out/" + scheduler_name + "_thermal")
-        # self.save_matlab_result(scheduler, True, False, "out/" + scheduler_name + "_thermal")
+        # self.save_plot_outputs_result(scheduler, True, False, "out/" + scheduler_name + "_thermal")
+        self.save_matlab_result(scheduler, True, False, "out/" + scheduler_name + "_thermal")
 
     def test_without_thermal(self):
         scheduler, scheduler_name = self.get_global_variables()

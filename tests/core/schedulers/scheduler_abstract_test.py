@@ -22,7 +22,7 @@ from main.core.execution_simulator.system_modeling.ThermalModelSelector import T
 from main.plot_generator.implementations.AccumulatedExecutionTimeDrawer import AccumulatedExecutionTimeDrawer
 from main.plot_generator.implementations.DynamicPowerConsumptionDrawer import DynamicPowerConsumptionDrawer
 from main.plot_generator.implementations.ExecutionPercentageDrawer import ExecutionPercentageDrawer
-from main.plot_generator.implementations.ExecutionPercentageStatics import ExecutionPercentageStatics
+from main.plot_generator.implementations.ExecutionPercentageStatistics import ExecutionPercentageStatistics
 from main.plot_generator.implementations.FrequencyDrawer import FrequencyDrawer
 from main.plot_generator.implementations.MaxCoreTemperatureDrawer import MaxCoreTemperatureDrawer
 from main.plot_generator.implementations.TaskExecutionDrawer import TaskExecutionDrawer
@@ -139,7 +139,7 @@ class SchedulerAbstractTest(unittest.TestCase):
         # ExecutionPercentageDrawer.plot(global_specification, result,
         #                                {"save_path": result_save_path + "_execution_percentage.png"})
 
-        ExecutionPercentageStatics.plot(global_specification, result,
+        ExecutionPercentageStatistics.plot(global_specification, result,
                                         {"save_path": result_save_path + "_execution_percentage_statics.json"})
 
         # if is_thermal:

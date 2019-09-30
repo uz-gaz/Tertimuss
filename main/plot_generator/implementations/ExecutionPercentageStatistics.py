@@ -9,7 +9,7 @@ from main.core.execution_simulator.system_simulator.SchedulingResult import Sche
 from main.plot_generator.templates.AbstractResultDrawer import AbstractResultDrawer
 
 
-class ExecutionPercentageStatics(AbstractResultDrawer):
+class ExecutionPercentageStatistics(AbstractResultDrawer):
 
     @classmethod
     def plot(cls, global_specification: GlobalSpecification, scheduler_result: SchedulingResult,
@@ -23,12 +23,13 @@ class ExecutionPercentageStatics(AbstractResultDrawer):
         Available options:
         save_path: path to save the simulation
         """
-        cls.__plot_task_execution_percentage_statics(global_specification, scheduler_result, options.get("save_path"))
+        cls.__plot_task_execution_percentage_statistics(global_specification, scheduler_result,
+                                                        options.get("save_path"))
 
     @staticmethod
-    def __plot_task_execution_percentage_statics(global_specification: GlobalSpecification,
-                                                 scheduler_result: SchedulingResult,
-                                                 save_path: Optional[str] = None):
+    def __plot_task_execution_percentage_statistics(global_specification: GlobalSpecification,
+                                                    scheduler_result: SchedulingResult,
+                                                    save_path: Optional[str] = None):
         """
         Plot task execution in each cpu
         :param global_specification: problem specification
