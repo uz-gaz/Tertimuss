@@ -1,5 +1,7 @@
 from typing import List
 
+import scipy
+
 
 class VirtualTask(object):
     def __init__(self, c: int, d: int):
@@ -11,8 +13,8 @@ class VirtualTask(object):
 class Pack(VirtualTask):
     def __init__(self, content: List[VirtualTask]):
         self.content = content
-        c = 1  # TODO: obtener c
-        d = 1  # TODO: obtener d (hiperperíodo)
+        d = int(scipy.lcm.reduce([i.d for i in content]))
+        c = int(sum([i.c * (d / i.d) for i in content]))
         super().__init__(c, d)
 
 
@@ -22,11 +24,8 @@ class RUNTask(VirtualTask):
         super().__init__(c, d)
 
 
-def create_packs_from_tasks(tasks: List[RUNTask]) -> List[Pack]:
-    pass
-
-
-def create_packs_from_packs(packs: List[Pack]) -> List[Pack]:
+def create_packs_from_virtual_tasks(packs: List[VirtualTask]) -> List[Pack]:
+    packs_mcd = 14  # TODO
     pass
 
 
