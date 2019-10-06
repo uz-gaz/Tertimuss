@@ -46,16 +46,14 @@ def create_packs_from_virtual_tasks(packs: List[VirtualTask]) -> List[Pack]:
         index_started_bins = 0
         while not assigned and index_started_bins < len(started_bins):
             actual_bin = started_bins[index_started_bins]
-            c_actual_bin = actual_bin.c
-            d_actual_bin = actual_bin.d
-            possible_deadline = scipy.gcd(pack.d, d_actual_bin)
-            c_actual = int(pack.laxity * (possible_deadline / pack.d))
-            c_actual_bin_new_deadline = int(c_actual_bin * (d_actual_bin / pack.d))
+            deadline = scipy.gcd(pack.d, actual_bin.d)
+            actual_bin_c = int(actual_bin.c / (actual_bin.d / deadline))
+            actual_pack_dual = int(pack.laxity / (pack.d / deadline))
 
-            if c_actual <= (possible_deadline - c_actual_bin_new_deadline):
+            if actual_pack_dual <= (deadline - actual_bin_c):
                 assigned = True
-                started_bins[index_started_bins].c = started_bins[index_started_bins].c + c_actual
-                started_bins[index_started_bins].d = possible_deadline
+                started_bins[index_started_bins].c = actual_bin_c + actual_pack_dual
+                started_bins[index_started_bins].d = deadline
                 started_bins[index_started_bins].packs.append(pack)
             index_started_bins = index_started_bins + 1
 
@@ -113,6 +111,7 @@ def select_children_to_execute(parent: Pack, dt: int) -> List[RUNTask]:
     for i in children_with_time_to_execute[1:]:
         if isinstance(i, RUNTask):
             tasks_to_execute.append(i)
+            i.pending_c -= dt
         elif isinstance(i, Pack):
             tasks_to_execute = tasks_to_execute + select_children_to_execute(i, dt)
 
@@ -144,6 +143,7 @@ def run_algorithm(task_set: List[RUNTask]) -> List[List[int]]:
 
 
 if __name__ == '__main__':
+    # Tasks set 1: Can't produce feasible scheduling
     set_of_tasks_1 = [
         RUNTask(1, 5, 7),
         RUNTask(2, 5, 7),
@@ -157,6 +157,19 @@ if __name__ == '__main__':
 
     total_tasks_1 = set_of_tasks_1 + [idle_task_1]
 
-    result = run_algorithm(total_tasks_1)
+    # Tasks set 2:
+    set_of_tasks_2 = [
+        RUNTask(1, 5, 7),
+        RUNTask(2, 5, 7),
+        RUNTask(3, 5, 7),
+        RUNTask(4, 10, 14),
+        RUNTask(5, 10, 14),
+        RUNTask(6, 10, 14),
+        RUNTask(7, 5, 7)
+    ]
+
+    total_tasks_2 = set_of_tasks_2
+
+    result = run_algorithm(total_tasks_2)
 
     pass
