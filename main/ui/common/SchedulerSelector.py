@@ -4,6 +4,7 @@ from main.core.schedulers_definition.implementations.G_EDF_AFA import GlobalEDFA
 from main.core.schedulers_definition.implementations.G_LLF_AFA import GlobalLeastLaxityFirstAFAScheduler
 from main.core.schedulers_definition.implementations.JDEDS import GlobalJDEDSScheduler
 from main.core.schedulers_definition.implementations.OLDTFS import OLDTFSScheduler
+from main.core.schedulers_definition.implementations.RUN import RUNScheduler
 from main.core.schedulers_definition.templates import AbstractScheduler
 from main.core.schedulers_definition.implementations.G_EDF_A import GlobalEDFAffinityScheduler
 from main.core.schedulers_definition.implementations.G_EDF import GlobalEDFScheduler
@@ -23,10 +24,11 @@ class SchedulerSelector(object):
             "G-EDF-AFA": GlobalEDFAffinityFrequencyAwareScheduler(),
             "G-LLF-AFA": GlobalLeastLaxityFirstAFAScheduler(),
             "JDEDS": GlobalJDEDSScheduler(),
-            "OLDTFS": OLDTFSScheduler()
+            "OLDTFS": OLDTFSScheduler(),
+            "RUN": RUNScheduler()
         }
         return schedulers_definition.get(name)
 
     @staticmethod
     def get_scheduler_names() -> List[str]:
-        return ["G-EDF", "G-EDF-A", "G-EDF-AFA", "G-LLF-AFA", "JDEDS", "OLDTFS"]
+        return ["G-EDF", "G-EDF-A", "G-EDF-AFA", "G-LLF-AFA", "JDEDS", "OLDTFS", "RUN"]
