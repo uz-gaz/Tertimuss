@@ -111,7 +111,7 @@ def count_tree_levels(parent: RUNPack) -> int:
     :param parent:
     :return:
     """
-    count = 0
+    count = 1
     actual_parent = parent
     while not isinstance(actual_parent, RUNTask):
         actual_parent = actual_parent.content[0]
@@ -150,9 +150,10 @@ def _select_servers_from_level(level: int, parent: RUNPack) -> List[RUNServer]:
         to_return = []
         for i in parent.content:
             if isinstance(i, RUNPack):
-                to_return = to_return + _select_servers_from_level(level - 1, i)
+                recursive_return = _select_servers_from_level(level - 1, i)
+                to_return = to_return + recursive_return
             else:
-                to_return = to_return.append(i)
+                to_return = to_return + [i]
 
         return to_return
 
@@ -179,7 +180,7 @@ def select_tasks_to_execute_one_parent(parent: RUNPack, actual_time: int, dt: in
         # Decrease pending dual_c (laxity) of those servers selected by edf
         for server in edf_selection:
             server.pending_laxity -= dt
-            server.last_time_executed_edf = actual_time
+            server.last_time_executed_edf = actual_time + dt
 
         # Select servers from the set of dual servers previously selected
         dual_selection = dual_server_selection(level, parent, edf_selection)
@@ -187,7 +188,7 @@ def select_tasks_to_execute_one_parent(parent: RUNPack, actual_time: int, dt: in
         # Decrease pending c of those servers selected
         for server in dual_selection:
             server.pending_c -= dt
-            server.last_time_executed_dual = actual_time
+            server.last_time_executed_dual = actual_time + dt
 
     # In the leafs of the tree, we must have Tasks
     return [i for i in dual_selection if isinstance(i, RUNTask)]
