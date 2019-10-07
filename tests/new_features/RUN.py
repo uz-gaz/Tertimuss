@@ -270,11 +270,9 @@ if __name__ == '__main__':
         RUNTask(4, 10, 14),
         RUNTask(5, 5, 14),
         RUNTask(6, 5, 14),
-        RUNTask(7, 5, 7)
+        RUNTask(7, 5, 7),
+        RUNTask(8, 10, 14)
     ]
-    idle_task_1 = RUNTask(-1, 10, 14)
-
-    total_tasks_1 = set_of_tasks_1 + [idle_task_1]
 
     # Tasks set 2:
     set_of_tasks_2 = [
@@ -287,8 +285,6 @@ if __name__ == '__main__':
         RUNTask(7, 5, 7)
     ]
 
-    total_tasks_2 = set_of_tasks_2
-
     # Tasks set 3:
     set_of_tasks_3 = [
         RUNTask(1, 3, 5),
@@ -298,9 +294,32 @@ if __name__ == '__main__':
         RUNTask(5, 3, 5)
     ]
 
-    total_tasks_3 = set_of_tasks_3
+    # Tasks set 4
+    set_of_tasks_4 = [
+        RUNTask(1, 4, 6),
+        RUNTask(2, 6, 9),
+        RUNTask(3, 12, 18)
+    ]
 
-    result = run_algorithm(set_of_tasks_3, 3)
+    # Tasks set 5
+    set_of_tasks_5 = [
+        RUNTask(1, 12, 20),
+        RUNTask(2, 6, 10),
+        RUNTask(3, 6, 10),
+        RUNTask(4, 12, 20),
+        RUNTask(5, 2, 5),
+        RUNTask(6, 1, 5)
+    ]
+
+    # Tasks set 6: TODO: Solve error on this
+    set_of_tasks_6 = [
+        RUNTask(1, 2, 10),
+        RUNTask(2, 14, 20),
+        RUNTask(3, 1, 2),
+        RUNTask(4, 3, 5)
+    ]
+
+    result = run_algorithm(set_of_tasks_6, 2)
 
     result_as_array = scipy.asarray(result).transpose()
 
