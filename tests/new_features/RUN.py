@@ -289,7 +289,18 @@ if __name__ == '__main__':
 
     total_tasks_2 = set_of_tasks_2
 
-    result = run_algorithm(total_tasks_2, 5)
+    # Tasks set 3:
+    set_of_tasks_3 = [
+        RUNTask(1, 3, 5),
+        RUNTask(2, 6, 10),
+        RUNTask(3, 9, 15),
+        RUNTask(4, 6, 10),
+        RUNTask(5, 3, 5)
+    ]
+
+    total_tasks_3 = set_of_tasks_3
+
+    result = run_algorithm(set_of_tasks_3, 3)
 
     result_as_array = scipy.asarray(result).transpose()
 
