@@ -33,6 +33,7 @@ class RUNPack(RUNServer):
 class RUNTask(RUNServer):
     def __init__(self, task_id: int, c: int, d: int):
         self.task_id = task_id
+        self.last_cpu_execution = -1
         super().__init__(c, d)
 
 
@@ -203,16 +204,59 @@ def select_tasks_to_execute(parents: List[RUNPack], actual_time: int, dt: int) -
     return tasks_to_execute
 
 
-def run_algorithm(task_set: List[RUNTask]) -> List[List[int]]:
+def assign_tasks_to_cpu(task_set: List[RUNTask], last_tasks_cpu_assignation: List[int], m: int) -> List[int]:
+    tasks_assignation = m * [-1]
+
+    not_assigned_yet_phase_1 = []
+    # Phase 1
+    for i in task_set:
+        if i.task_id in last_tasks_cpu_assignation and i.task_id != -1:
+            cpu_assigned = last_tasks_cpu_assignation.index(i.task_id)
+            tasks_assignation[cpu_assigned] = i.task_id
+            # i.last_cpu_execution = cpu_assigned
+        else:
+            not_assigned_yet_phase_1 = not_assigned_yet_phase_1 + [i]
+
+    # Phase 2
+    not_assigned_yet_phase_2 = []
+    for i in not_assigned_yet_phase_1:
+        if i.last_cpu_execution != -1 and tasks_assignation[i.last_cpu_execution] == -1:
+            tasks_assignation[i.last_cpu_execution] = i.task_id
+        else:
+            not_assigned_yet_phase_2 = not_assigned_yet_phase_2 + [i]
+
+    # If we have more tasks than CPUs, delete the excess of tasks
+
+    not_assigned_yet_phase_2 = [i for i in not_assigned_yet_phase_2 if i.task_id != -1]  # First delete the dummy task
+
+    number_of_tasks_to_execute = len([i for i in task_set if i.task_id != -1])
+
+    if number_of_tasks_to_execute > m:
+        not_assigned_yet_phase_2 = not_assigned_yet_phase_2[(number_of_tasks_to_execute - m):]
+
+    # Phase 3
+    for i in not_assigned_yet_phase_2:
+        next_empty_cpu = tasks_assignation.index(-1)
+        tasks_assignation[next_empty_cpu] = i.task_id
+        i.last_cpu_execution = next_empty_cpu
+
+    return tasks_assignation
+
+
+def run_algorithm(task_set: List[RUNTask], m: int) -> List[List[int]]:
     # Run algorithm
     h = int(scipy.lcm.reduce([i.d for i in task_set]))
     parents_of_tree = create_tree(task_set)
 
     result_algorithm = []
 
+    last_tasks_assignation = m * [-1]
+
     for i in range(h):
         iteration_result = select_tasks_to_execute(parents_of_tree, i, 1)
-        result_algorithm.append([j.task_id for j in iteration_result])
+        iteration_result = assign_tasks_to_cpu(iteration_result, last_tasks_assignation, m)
+        last_tasks_assignation = iteration_result
+        result_algorithm = result_algorithm + [last_tasks_assignation]
 
     return result_algorithm
 
@@ -245,6 +289,9 @@ if __name__ == '__main__':
 
     total_tasks_2 = set_of_tasks_2
 
-    result = run_algorithm(total_tasks_2)
+    result = run_algorithm(total_tasks_2, 5)
 
+    result_as_array = scipy.asarray(result).transpose()
+
+    pass
     pass
