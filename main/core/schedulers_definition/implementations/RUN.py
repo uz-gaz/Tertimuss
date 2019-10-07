@@ -96,36 +96,64 @@ def create_tree(tasks: List[RUNTask]) -> List[Pack]:
     return parents
 
 
-def select_children_to_execute(parent: Pack, dt: int) -> List[RUNTask]:
-    children_with_time_to_execute = [i for i in parent.content if i.pending_laxity > 0]
-    if len(children_with_time_to_execute) == 0:
-        return []
+#
+# def select_children_to_execute(parent: Pack, dt: int) -> List[RUNTask]:
+#     children_with_time_to_execute = [i for i in parent.content if i.pending_laxity > 0]
+#     if len(children_with_time_to_execute) == 0:
+#         return []
+#
+#     children_with_time_to_execute.sort(key=lambda x: x.next_arrive,
+#                                        reverse=False)  # Sort packs in ascendant order of arrive
+#
+#     children_with_time_to_execute[0].pending_laxity -= dt
+#
+#     tasks_to_execute = []
+#
+#     for i in children_with_time_to_execute[1:]:
+#         if isinstance(i, RUNTask):
+#             tasks_to_execute.append(i)
+#             i.pending_c -= dt
+#         elif isinstance(i, Pack):
+#             tasks_to_execute = tasks_to_execute + select_children_to_execute(i, dt)
+#
+#     return tasks_to_execute
 
-    children_with_time_to_execute.sort(key=lambda x: x.next_arrive,
-                                       reverse=False)  # Sort packs in ascendant order of arrive
 
-    children_with_time_to_execute[0].pending_laxity -= dt
+# def select_tasks_to_execute(parents: List[Pack], actual_time: int, dt: int) -> List[RUNTask]:
+#     update_virtual_task_info(parents, actual_time)
+#     children_to_execute = []
+#     for parent in parents:
+#         children_to_execute = children_to_execute + select_children_to_execute(parent, dt)
+#
+#     # TODO: Do assignation algorithm
+#     return children_to_execute
+def select_servers_from_level(level: int, parent: Pack, previous_level_selected: List[Pack]) -> List[List[Pack]]:
+    pass
 
-    tasks_to_execute = []
 
-    for i in children_with_time_to_execute[1:]:
-        if isinstance(i, RUNTask):
-            tasks_to_execute.append(i)
-            i.pending_c -= dt
-        elif isinstance(i, Pack):
-            tasks_to_execute = tasks_to_execute + select_children_to_execute(i, dt)
+def circle_algorithm(servers: List[List[Pack]]) -> List[Pack]:
+    pass
 
-    return tasks_to_execute
+
+def count_tree_levels(parent: Pack) -> int:
+    pass
+
+
+def select_tasks_to_execute_one_parent(parent: Pack, actual_time: int, dt: int) -> List[RUNTask]:
+    tree_levels = count_tree_levels(parent)
+    previous_level_selected = []
+    for level in range(tree_levels - 1):
+        servers_i = select_servers_from_level(level + 1, parent, previous_level_selected)
+        previous_level_selected = circle_algorithm(servers_i)
+    return previous_level_selected
 
 
 def select_tasks_to_execute(parents: List[Pack], actual_time: int, dt: int) -> List[RUNTask]:
-    update_virtual_task_info(parents, actual_time)
-    children_to_execute = []
+    tasks_to_execute = []
     for parent in parents:
-        children_to_execute = children_to_execute + select_children_to_execute(parent, dt)
-
-    # TODO: Do assignation algorithm
-    return children_to_execute
+        actual_tasks = select_tasks_to_execute_one_parent(parent, actual_time, dt)
+        tasks_to_execute += actual_tasks
+    return tasks_to_execute
 
 
 def run_algorithm(task_set: List[RUNTask]) -> List[List[int]]:
