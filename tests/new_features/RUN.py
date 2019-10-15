@@ -4,7 +4,7 @@ import scipy
 
 
 class RUNServer(object):
-    def __init__(self, c: int, d: int):
+    def __init__(self, c: float, d: int):
         self.c = c
         self.d = d
         self.laxity = d - c
@@ -25,8 +25,8 @@ class RUNPack(RUNServer):
 
     def __init__(self, content: List[RUNServer]):
         self.content = content
-        d = int(scipy.gcd.reduce([i.d for i in content]))
-        c = int(sum([i.laxity * (d / i.d) for i in content]))
+        d = scipy.gcd.reduce([i.d for i in content])
+        c = sum([i.laxity * (d / i.d) for i in content])
         super().__init__(c, d)
 
 
@@ -38,7 +38,7 @@ class RUNTask(RUNServer):
 
 
 class PacksBin(object):
-    def __init__(self, c: int, d: int, packs: List[RUNServer]):
+    def __init__(self, c: float, d: int, packs: List[RUNServer]):
         self.c = c
         self.d = d
         self.packs = packs
@@ -57,8 +57,8 @@ def create_packs_from_virtual_tasks(packs: List[RUNServer]) -> List[RUNPack]:
         while not assigned and index_started_bins < len(started_bins):
             actual_bin = started_bins[index_started_bins]
             deadline = scipy.gcd(pack.d, actual_bin.d)
-            actual_bin_c = int(actual_bin.c / (actual_bin.d / deadline))
-            actual_pack_dual = int(pack.laxity / (pack.d / deadline))
+            actual_bin_c = actual_bin.c / (actual_bin.d / deadline)
+            actual_pack_dual = pack.laxity / (pack.d / deadline)
 
             if actual_pack_dual <= (deadline - actual_bin_c):
                 assigned = True
@@ -322,6 +322,3 @@ if __name__ == '__main__':
     result = run_algorithm(set_of_tasks_6, 2)
 
     result_as_array = scipy.asarray(result).transpose()
-
-    pass
-    pass
