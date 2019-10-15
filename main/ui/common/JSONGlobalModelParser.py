@@ -248,10 +248,10 @@ class JSONGlobalModelParser(object):
         # Make a copy of the json spec
         input_json = input_json.copy()
 
-        environment_specification = input_json["environment_specification"]
         simulate_thermal = input_json["simulate_thermal"]
 
         if simulate_thermal:
+            environment_specification = input_json["environment_specification"]
             environment_specification = EnvironmentSpecification(environment_specification["convection_factor"],
                                                                  environment_specification["environment_temperature"],
                                                                  environment_specification["maximum_temperature"])
