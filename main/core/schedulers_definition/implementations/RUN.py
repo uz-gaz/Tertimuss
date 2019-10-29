@@ -267,7 +267,7 @@ class RUNScheduler(AbstractScheduler):
         # TODO: We should reduce the frequency to the lowest possible as in JDEDS
         available_frequencies = global_specification.cpu_specification.cores_specification.available_frequencies
         available_frequencies.sort(reverse=True)
-        selected_frequency = available_frequencies[-1]
+        selected_frequency = available_frequencies[0]
 
         task_set = [RUNTask(i.id, i.c, round(i.d * selected_frequency)) for i in periodic_tasks]
         h = int(scipy.lcm.reduce([i.d for i in task_set]))

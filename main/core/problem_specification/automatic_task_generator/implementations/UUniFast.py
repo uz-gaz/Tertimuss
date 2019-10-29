@@ -1,8 +1,11 @@
+import math
+import random
 from random import randrange, uniform
 from typing import List, Dict
 
 from main.core.problem_specification.tasks_specification.PeriodicTask import PeriodicTask
-from main.core.problem_specification.automatic_task_generator.template.AbstractTaskGeneratorAlgorithm import AbstractTaskGeneratorAlgorithm
+from main.core.problem_specification.automatic_task_generator.template.AbstractTaskGeneratorAlgorithm import \
+    AbstractTaskGeneratorAlgorithm
 
 
 class UUniFast(AbstractTaskGeneratorAlgorithm):
@@ -19,6 +22,7 @@ class UUniFast(AbstractTaskGeneratorAlgorithm):
                         min_period_interval: int -> min possible value of periods
                         max_period_interval: int -> max possible value of periods
                         processor_frequency: int -> max processor frequency in Hz
+                        hyperperiod: int -> hyperperiod in second
         :return: List of tasks
         """
         # Obtain options
@@ -26,14 +30,17 @@ class UUniFast(AbstractTaskGeneratorAlgorithm):
         utilization = options["utilization"]
         min_period_interval = options["min_period_interval"]
         max_period_interval = options["max_period_interval"]
+        hyperperiod = options["hyperperiod"]
         processor_frequency = options["processor_frequency"]
+
+        # Divisors of hyperperiod
+        selected = [int(i) for i in self.divisor_generator(hyperperiod) if min_period_interval <= i <= max_period_interval]
+        t_i = random.choices(selected, k=number_of_tasks)
 
         # random number in interval[a, b]
         a = 6
         b = 20
 
-        t_i = [randrange(int(min_period_interval), int(max_period_interval)) for _ in
-               range(number_of_tasks)]
         e_i = [a + (b - a) * uniform(0, 1) for _ in range(number_of_tasks)]
 
         sum_u = utilization  # the sum of n uniform random variables
@@ -48,3 +55,14 @@ class UUniFast(AbstractTaskGeneratorAlgorithm):
 
         return [PeriodicTask(int(processor_frequency * vector_u[i] * t_i[i]), t_i[i], t_i[i], e_i[i]) for i in
                 range(number_of_tasks)]
+
+    @staticmethod
+    def divisor_generator(n):
+        large_divisors = []
+        for i in range(1, int(math.sqrt(n) + 1)):
+            if n % i == 0:
+                yield i
+                if i * i != n:
+                    large_divisors.append(n / i)
+        for divisor in reversed(large_divisors):
+            yield divisor

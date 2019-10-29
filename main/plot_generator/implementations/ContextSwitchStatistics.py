@@ -34,7 +34,6 @@ class ContextSwitchStatistics(AbstractResultDrawer):
         :param scheduler_result: result of scheduling
         :param save_path: path to save the simulation
         """
-
         i_tau_disc = scheduler_result.scheduler_assignation
         n_periodic = len(global_specification.tasks_specification.periodic_tasks)
         n_aperiodic = len(global_specification.tasks_specification.aperiodic_tasks)
@@ -47,6 +46,9 @@ class ContextSwitchStatistics(AbstractResultDrawer):
         migrations_changes_by_tasks = scipy.zeros(n_periodic + n_aperiodic)
 
         for i in range(len(i_tau_disc[0])):
+            actual_step = i_tau_disc[:, i]
+            actual_step_simple = [sum(i_tau_disc[:, i][task::(n_periodic + n_aperiodic)][:m]) for task in
+                                  range(n_periodic + n_aperiodic)]
             for j in range(n_periodic):
                 actual_deadline = int(
                     global_specification.tasks_specification.periodic_tasks[
@@ -55,7 +57,9 @@ class ContextSwitchStatistics(AbstractResultDrawer):
                     last_executed_cpu[j] = -1
                     last_cycle_execution[j] = -1
 
-            actual_step = i_tau_disc[:, i]
+                if (i + 1) % actual_deadline == 0 and actual_step_simple[j] == 1:
+                    # Context change in the last cycle
+                    context_changes_by_tasks[j] = context_changes_by_tasks[j] + 1
 
             for task_no in range(n_aperiodic + n_periodic):
                 # Get the cpu where the task is being executed
@@ -81,6 +85,11 @@ class ContextSwitchStatistics(AbstractResultDrawer):
             global_specification.tasks_specification.h / global_specification.tasks_specification.periodic_tasks[i].d)
                             for i in range(n_periodic)] + n_aperiodic * [1]
 
+        context_changes_by_tasks = [sum(context_changes_by_tasks[task::(n_periodic + n_aperiodic)][:m]) for task in
+                                    range(n_periodic + n_aperiodic)]
+        migrations_changes_by_tasks = [sum(migrations_changes_by_tasks[task::(n_periodic + n_aperiodic)][:m]) for task
+                                       in range(n_periodic + n_aperiodic)]
+
         # Is assumed that each job was executed
         output_statics = {
             "statics": {
@@ -94,8 +103,9 @@ class ContextSwitchStatistics(AbstractResultDrawer):
             "details": [{
                 "task_" + str(task_no): {
                     "total_context_switch_number": int(context_changes_by_tasks[task_no]),
-                    "mandatory_context_switch_number": int(context_changes_by_tasks[task_no] - jobs_by_tasks[task_no]),
-                    "scheduler_produced_context_switch_number": int(jobs_by_tasks[task_no]),
+                    "mandatory_context_switch_number": int(jobs_by_tasks[task_no]),
+                    "scheduler_produced_context_switch_number": int(
+                        context_changes_by_tasks[task_no] - jobs_by_tasks[task_no]),
                     "migrations_number": int(migrations_changes_by_tasks[task_no])
                 }
             } for task_no in range(n_periodic)] + [
