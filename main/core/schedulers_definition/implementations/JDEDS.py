@@ -410,7 +410,7 @@ class GlobalJDEDSScheduler(AbstractScheduler):
 
         # Contains all zero laxity tasks
         tasks_laxity_zero = [i[1] for i in executable_tasks if
-                             int((actual_interval_end - time - (i[0] / self.__intervals_frequencies[
+                             round((actual_interval_end - time - (i[0] / self.__intervals_frequencies[
                                  self.__actual_interval_index])) / self.__dt) <= 0]
 
         # Update executable tasks

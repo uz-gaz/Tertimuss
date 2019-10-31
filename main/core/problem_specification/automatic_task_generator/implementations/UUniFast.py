@@ -6,6 +6,7 @@ from typing import List, Dict
 from main.core.problem_specification.tasks_specification.PeriodicTask import PeriodicTask
 from main.core.problem_specification.automatic_task_generator.template.AbstractTaskGeneratorAlgorithm import \
     AbstractTaskGeneratorAlgorithm
+from main.core.problem_specification.tasks_specification.TasksSpecification import TasksSpecification
 
 
 class UUniFast(AbstractTaskGeneratorAlgorithm):
@@ -34,7 +35,8 @@ class UUniFast(AbstractTaskGeneratorAlgorithm):
         processor_frequency = options["processor_frequency"]
 
         # Divisors of hyperperiod
-        selected = [int(i) for i in self.divisor_generator(hyperperiod) if min_period_interval <= i <= max_period_interval]
+        selected = [int(i) for i in self.divisor_generator(hyperperiod) if
+                    min_period_interval <= i <= max_period_interval]
         t_i = random.choices(selected, k=number_of_tasks)
 
         # random number in interval[a, b]
@@ -53,8 +55,53 @@ class UUniFast(AbstractTaskGeneratorAlgorithm):
 
         vector_u[-1] = sum_u
 
-        return [PeriodicTask(int(processor_frequency * vector_u[i] * t_i[i]), t_i[i], t_i[i], e_i[i]) for i in
-                range(number_of_tasks)]
+        tasks_inst1 = [PeriodicTask(int(processor_frequency * vector_u[i] * t_i[i]) if int(
+            processor_frequency * vector_u[i] * t_i[i]) > 0 else 1, t_i[i], t_i[i], e_i[i]) for i in
+                       range(number_of_tasks)]
+
+        hyperperiod_final = TasksSpecification(tasks_inst1).h
+
+        cycles_in_hyperperiod = int(processor_frequency * hyperperiod_final * utilization)
+
+        for i in tasks_inst1:
+            c_in_hyperperiod = int(i.c * round(hyperperiod_final / i.d))
+            cycles_in_hyperperiod = cycles_in_hyperperiod - c_in_hyperperiod
+
+        if cycles_in_hyperperiod > 0:
+            task_index = 0
+            while cycles_in_hyperperiod != 0 and task_index < number_of_tasks:
+                c_in_hyperperiod = int(tasks_inst1[task_index].c * round(hyperperiod_final / tasks_inst1[task_index].d))
+                cycles_left_in_hyperperiod = processor_frequency * hyperperiod_final - c_in_hyperperiod
+                if cycles_left_in_hyperperiod > cycles_in_hyperperiod:
+                    cycles_left_in_hyperperiod = cycles_in_hyperperiod
+
+                tasks_inst1[task_index].c += int(
+                    cycles_left_in_hyperperiod / round(hyperperiod_final / tasks_inst1[task_index].d))
+
+                cycles_in_hyperperiod = cycles_in_hyperperiod - int(
+                    cycles_left_in_hyperperiod / round(hyperperiod_final / tasks_inst1[task_index].d)) * round(
+                    hyperperiod_final / tasks_inst1[task_index].d)
+
+                task_index = task_index + 1
+
+        if cycles_in_hyperperiod < 0:
+            task_index = 0
+            while cycles_in_hyperperiod != 0 and task_index < number_of_tasks:
+                c_in_hyperperiod = int(
+                    (tasks_inst1[task_index].c - 1) * round(hyperperiod_final / tasks_inst1[task_index].d))
+                if c_in_hyperperiod > cycles_in_hyperperiod:
+                    c_in_hyperperiod = cycles_in_hyperperiod
+
+                tasks_inst1[task_index].c -= int(
+                    c_in_hyperperiod / round(hyperperiod_final / tasks_inst1[task_index].d))
+
+                cycles_in_hyperperiod = cycles_in_hyperperiod - int(
+                    c_in_hyperperiod / round(hyperperiod_final / tasks_inst1[task_index].d)) * round(
+                    hyperperiod_final / tasks_inst1[task_index].d)
+
+                task_index = task_index + 1
+
+        return tasks_inst1
 
     @staticmethod
     def divisor_generator(n):

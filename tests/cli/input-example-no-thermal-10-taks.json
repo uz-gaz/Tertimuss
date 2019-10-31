@@ -1,0 +1,90 @@
+{
+  "$schema": "../../main/ui/cli/input_schema/global-schema.json",
+  "$id": "input-example-thermal-aperiodics-energy.scheduler.framework.TCPN.schema.example1",
+  "title": "Example input specification",
+  "description": "Input for Scheduler Framework TCPN v1.0",
+  "simulate_thermal": false,
+  "tasks_specification": {
+    "task_generation_system": "Manual",
+    "tasks": [
+      {
+        "type": "Periodic",
+        "worst_case_execution_time": 430,
+        "period": 2
+      },
+      {
+        "type": "Periodic",
+        "worst_case_execution_time": 1830,
+        "period": 12
+      },
+      {
+        "type": "Periodic",
+        "worst_case_execution_time": 510,
+        "period": 8
+      },
+      {
+        "type": "Periodic",
+        "worst_case_execution_time": 250,
+        "period": 2
+      },
+      {
+        "type": "Periodic",
+        "worst_case_execution_time": 1420,
+        "period": 12
+      },
+      {
+        "type": "Periodic",
+        "worst_case_execution_time": 3900,
+        "period": 12
+      },
+      {
+        "type": "Periodic",
+        "worst_case_execution_time": 2080,
+        "period": 4
+      },
+      {
+        "type": "Periodic",
+        "worst_case_execution_time": 380,
+        "period": 3
+      },
+      {
+        "type": "Periodic",
+        "worst_case_execution_time": 590,
+        "period": 6
+      },
+      {
+        "type": "Periodic",
+        "worst_case_execution_time": 1020,
+        "period": 4
+      }
+    ]
+  },
+  "cpu_specification": {
+    "cores_specification": {
+      "available_frequencies": [
+        150,
+        400,
+        600,
+        850,
+        1000
+      ],
+      "operating_frequencies": [
+        1000,
+        1000
+      ]
+    }
+  },
+  "output_specification": {
+    "output_path": "./out/",
+    "output_naming": "example_thermal_aperiodics-energy",
+    "selected_output": [
+      "Accumulated execution time"
+    ]
+  },
+  "scheduler_specification": {
+    "name": "G-EDF"
+  },
+  "simulation_specification": {
+    "dt": 0.01
+  }
+}

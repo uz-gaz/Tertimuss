@@ -22,60 +22,78 @@ from main.core.schedulers_definition.implementations.RUN import RUNScheduler
 from main.core.schedulers_definition.templates.AbstractScheduler import AbstractScheduler
 from main.plot_generator.implementations.ContextSwitchStatistics import ContextSwitchStatistics
 from main.plot_generator.implementations.ExecutionPercentageStatistics import ExecutionPercentageStatistics
+from main.plot_generator.implementations.UtilizationDrawer import UtilizationDrawer
 
 
 class RUNJDEDSComparisionTest(unittest.TestCase):
     def test_comparision(self):
         save_path = "out/experimentation/"
-        simulation_name = "50_10_"
+        simulation_name = "100_10_5_"
+        automatic_generation = False
+        x = []
 
-        u = UUniFast()
-        x = u.generate(
-            {
-                "min_period_interval": 2,
-                "max_period_interval": 12,
-                "hyperperiod": 24,
-                "number_of_tasks": 10,
-                "utilization": 1,
-                "processor_frequency": 100,
-            }
-        )
+        if automatic_generation:
+            u = UUniFast()
+            x = u.generate(
+                {
+                    "min_period_interval": 2,
+                    "max_period_interval": 12,
+                    "hyperperiod": 24,
+                    "number_of_tasks": 10,
+                    "utilization": 2,
+                    "processor_frequency": 100,
+                }
+            )
 
-        x = [PeriodicTask(i.c * 10, i.t, i.d, i.e) for i in x]
+            x = [PeriodicTask(i.c * 10, i.t, i.d, i.e) for i in x]
 
-        tasks_definition_dict = []
+            tasks_definition_dict = []
 
-        for i in x:
-            tasks_definition_dict.append({
-                "type": "Periodic",
-                "worst_case_execution_time": i.c,
-                "period": i.d
-            })
+            for i in x:
+                tasks_definition_dict.append({
+                    "type": "Periodic",
+                    "worst_case_execution_time": i.c,
+                    "period": i.d
+                })
 
-        with open(save_path + simulation_name + "tasks_specification", 'w') as f:
-            json.dump(tasks_definition_dict, f, indent=4)
+            with open(save_path + simulation_name + "tasks_specification", 'w') as f:
+                json.dump(tasks_definition_dict, f, indent=4)
 
-        # Tasks set 5
+        else:
+            with open(save_path + simulation_name + "tasks_specification", "r") as read_file:
+                decoded_json = json.load(read_file)
+            for i in decoded_json:
+                x.append(PeriodicTask(i["worst_case_execution_time"], i["period"], i["period"], 0))
 
         schedulers = [
-            (RUNScheduler(), "run"),
             (GlobalJDEDSScheduler(), "jdeds"),
+            (RUNScheduler(), "run"),
+
         ]
 
         for scheduler_actual in schedulers:
-            result, global_specification, simulation_kernel = self.create_problem_specification(x, scheduler_actual[0])
-            result_save_path = scheduler_actual[1]
+            try:
+                result, global_specification, simulation_kernel = self.create_problem_specification(x,
+                                                                                                    scheduler_actual[0])
+                result_save_path = scheduler_actual[1]
 
-            ExecutionPercentageStatistics.plot(global_specification, result,
-                                               {
-                                                   "save_path": save_path + simulation_name + result_save_path +
-                                                                "_execution_percentage_statics.json"})
+                ExecutionPercentageStatistics.plot(global_specification, result,
+                                                   {
+                                                       "save_path": save_path + simulation_name + result_save_path +
+                                                                    "_execution_percentage_statics.json"})
 
-            ContextSwitchStatistics.plot(global_specification, result,
-                                         {
-                                             "save_path": save_path + simulation_name
-                                                          + result_save_path + "_context_switch_statics.json"
-                                         })
+                ContextSwitchStatistics.plot(global_specification, result,
+                                             {
+                                                 "save_path": save_path + simulation_name
+                                                              + result_save_path + "_context_switch_statics.json"
+                                             })
+
+                UtilizationDrawer.plot(global_specification, result,
+                                       {"save_path": save_path + simulation_name
+                                                     + result_save_path + "_cpu_utilization.png"})
+            except Exception as e:
+                print("Fail for " + scheduler_actual[1])
+                print(e.args)
 
     @staticmethod
     def create_problem_specification(tasks_set: List[PeriodicTask], scheduler: AbstractScheduler):
@@ -85,7 +103,7 @@ class RUNJDEDSComparisionTest(unittest.TestCase):
         core_specification = CoreGroupSpecification(MaterialCuboid(x=10, y=10, z=2, p=2330, c_p=712, k=148),
                                                     EnergyConsumptionProperties(),
                                                     [150, 400, 600, 850, 1000],
-                                                    [1000, 1000, 1000])
+                                                    [1000, 1000])
 
         board_specification = BoardSpecification(MaterialCuboid(x=50, y=50, z=1, p=8933, c_p=385, k=400))
 
