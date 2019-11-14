@@ -28,7 +28,7 @@ from main.plot_generator.implementations.UtilizationDrawer import UtilizationDra
 class RUNJDEDSComparisionTest(unittest.TestCase):
     def test_comparision(self):
         save_path = "out/experimentation/"
-        simulation_name = "100_10_5_"
+        simulation_name = "100_10_9_"
         automatic_generation = False
         x = []
 
@@ -65,10 +65,13 @@ class RUNJDEDSComparisionTest(unittest.TestCase):
             for i in decoded_json:
                 x.append(PeriodicTask(i["worst_case_execution_time"], i["period"], i["period"], 0))
 
-        schedulers = [
-            (GlobalJDEDSScheduler(), "jdeds"),
-            (RUNScheduler(), "run"),
+        # schedulers = [
+        #     (GlobalJDEDSScheduler(), "jdeds"),
+        #     (RUNScheduler(), "run"),
+        # ]
 
+        schedulers = [
+            (RUNScheduler(), "run"),
         ]
 
         for scheduler_actual in schedulers:

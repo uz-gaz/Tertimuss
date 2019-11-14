@@ -6,12 +6,16 @@ from main.core.execution_simulator.system_simulator.SystemAperiodicTask import S
 from main.core.execution_simulator.system_simulator.SystemPeriodicTask import SystemPeriodicTask
 
 from main.core.execution_simulator.system_simulator.SystemTask import SystemTask
+from main.core.math_utils.float_gcd import float_gcd
+from main.core.math_utils.is_float_equal import is_float_close
 from main.core.problem_specification.GlobalSpecification import GlobalSpecification
 from main.core.schedulers_definition.templates.AbstractScheduler import AbstractScheduler
 
 
+# TODO: Revisar comparaciones
+
 class RUNServer(object):
-    def __init__(self, c: int, d: int):
+    def __init__(self, c: float, d: float):
         self.c = c
         self.d = d
         self.laxity = d - c
@@ -32,20 +36,20 @@ class RUNPack(RUNServer):
 
     def __init__(self, content: List[RUNServer]):
         self.content = content
-        d = int(scipy.gcd.reduce([i.d for i in content]))
-        c = int(sum([i.laxity * (d / i.d) for i in content]))
+        d = float_gcd([i.d for i in content])
+        c = sum([i.laxity * (d / i.d) for i in content])
         super().__init__(c, d)
 
 
 class RUNTask(RUNServer):
-    def __init__(self, task_id: int, c: int, d: int):
+    def __init__(self, task_id: int, c: float, d: float):
         self.task_id = task_id
         self.last_cpu_execution = -1
         super().__init__(c, d)
 
 
 class PacksBin(object):
-    def __init__(self, c: int, d: int, packs: List[RUNServer]):
+    def __init__(self, c: float, d: float, packs: List[RUNServer]):
         self.c = c
         self.d = d
         self.packs = packs
@@ -74,8 +78,8 @@ class RUNScheduler(AbstractScheduler):
             while not assigned and index_started_bins < len(started_bins):
                 actual_bin = started_bins[index_started_bins]
                 deadline = scipy.gcd(pack.d, actual_bin.d)
-                actual_bin_c = int(actual_bin.c / (actual_bin.d / deadline))
-                actual_pack_dual = int(pack.laxity / (pack.d / deadline))
+                actual_bin_c = float(actual_bin.c / (actual_bin.d / deadline))
+                actual_pack_dual = float(pack.laxity / (pack.d / deadline))
 
                 if actual_pack_dual <= (deadline - actual_bin_c):
                     assigned = True
@@ -94,7 +98,7 @@ class RUNScheduler(AbstractScheduler):
         tree_children: List[RUNPack] = []
 
         for pack in packs:
-            if pack.laxity == 0:
+            if is_float_close(pack.laxity, 0):
                 tree_parents.append(pack)
             else:
                 tree_children.append(pack)
@@ -152,7 +156,7 @@ class RUNScheduler(AbstractScheduler):
                 # If there are several tasks with the same priority, the last executed is selected to decrease
                 # context changes
                 children_with_highest_priority = [i for i in children_with_time_to_execute if
-                                                  i.next_arrive == selected_next_arrive]
+                                                  is_float_close(i.next_arrive, selected_next_arrive)]
                 children_with_highest_priority.sort(key=lambda x: x.last_time_executed_edf,
                                                     reverse=True)  # Sort packs in descendant order of last execution
 
@@ -190,7 +194,7 @@ class RUNScheduler(AbstractScheduler):
         return servers_with_pending_c
 
     @classmethod
-    def _select_tasks_to_execute_one_parent(cls, parent: RUNPack, actual_time: int, dt: int) -> List[RUNTask]:
+    def _select_tasks_to_execute_one_parent(cls, parent: RUNPack, actual_time: int, dt: float) -> List[RUNTask]:
         tree_levels = cls._count_tree_levels(parent)
         dual_selection = [parent]
         for level in range(1, tree_levels):
