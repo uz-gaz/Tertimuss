@@ -6,14 +6,16 @@ from main.core.execution_simulator.system_simulator.SystemAperiodicTask import S
 from main.core.execution_simulator.system_simulator.SystemPeriodicTask import SystemPeriodicTask
 
 from main.core.execution_simulator.system_simulator.SystemTask import SystemTask
-from main.core.math_utils.float_gcd import float_gcd
-from main.core.math_utils.float_comparision import is_equal, is_less_or_equal_than
+import main.core.math_utils.float_operations as float_operations
+from main.core.math_utils.float_operations import is_equal, is_less_or_equal_than
 from main.core.problem_specification.GlobalSpecification import GlobalSpecification
 from main.core.schedulers_definition.templates.AbstractScheduler import AbstractScheduler
 
 
 class RUNServer(object):
     def __init__(self, c: float, d: float):
+        # c: WCET in seconds
+        # d: deadline in seconds
         self.c = c
         self.d = d
         self.laxity = d - c
@@ -34,7 +36,7 @@ class RUNPack(RUNServer):
 
     def __init__(self, content: List[RUNServer]):
         self.content = content
-        d = float_gcd([i.d for i in content])
+        d = float_operations.float_gcd([i.d for i in content])
         c = sum([(i.laxity if isinstance(i, RUNPack) else i.c) * (d / i.d) for i in content])
         super().__init__(c, d)
 
@@ -85,33 +87,29 @@ class RUNScheduler(AbstractScheduler):
     def _create_packs_from_virtual_tasks(cls, packs: List[RUNServer]) -> List[RUNPack]:
         started_bins: List[PacksBin] = []
 
-        packs.sort(key=lambda x: x.c / x.d, reverse=True)  # Sort packs in descendant order of utilization
+        packs.sort(key=lambda x: (x.laxity if isinstance(x, RUNPack) else x.c) / x.d,
+                   reverse=True)  # Sort packs in descendant order of utilization
 
         for pack in packs:
-            started_bins.sort(key=lambda x: x.c / x.d,
-                              reverse=False)  # Sort started bins in ascendant order of utilization
+            emptiest_bin_index = None
 
-            assigned = False
-            index_started_bins = 0
-            while not assigned and index_started_bins < len(started_bins):
-                actual_bin = started_bins[index_started_bins]
+            if len(started_bins) > 0:
+                emptiest_bin_index = scipy.argmin([x.c / x.d for x in started_bins])
 
-                if actual_bin.can_add_server(pack):
-                    assigned = True
-                    actual_bin.add_server(pack)
-                index_started_bins = index_started_bins + 1
-
-            if not assigned:
+            if emptiest_bin_index is not None and started_bins[emptiest_bin_index].can_add_server(pack):
+                started_bins[emptiest_bin_index].add_server(pack)
+            else:
                 started_bins.append(PacksBin(pack))
+
         return [actual_bin.transform_to_pack() for actual_bin in started_bins]
 
     @classmethod
-    def _create_recursive_tree(cls, packs: List[RUNPack]) -> List[RUNPack]:
+    def _create_recursive_tree(cls, packs: List[RUNServer]) -> List[RUNPack]:
         tree_parents: List[RUNPack] = []
-        tree_children: List[RUNPack] = []
+        tree_children: List[RUNServer] = []
 
         for pack in packs:
-            if is_equal(pack.laxity, 0):
+            if is_equal(pack.laxity, 0) and isinstance(pack, RUNPack):
                 tree_parents.append(pack)
             else:
                 tree_children.append(pack)
@@ -119,8 +117,9 @@ class RUNScheduler(AbstractScheduler):
         if len(tree_children) > 0:
             tree_parents = tree_parents + cls._create_recursive_tree(
                 cls._create_packs_from_virtual_tasks(tree_children))
-
-        return tree_parents
+            return tree_parents
+        else:
+            return tree_parents
 
     @classmethod
     def _update_virtual_task_info(cls, children: List[RUNServer], actual_time: int):
@@ -136,8 +135,7 @@ class RUNScheduler(AbstractScheduler):
 
     @classmethod
     def _create_tree(cls, tasks: List[RUNTask]) -> List[RUNPack]:
-        packs = cls._create_packs_from_virtual_tasks(tasks)
-        parents = cls._create_recursive_tree(packs)
+        parents = cls._create_recursive_tree(tasks)
         return parents
 
     @classmethod
@@ -294,8 +292,8 @@ class RUNScheduler(AbstractScheduler):
         available_frequencies.sort(reverse=True)
         selected_frequency = available_frequencies[0]
 
-        task_set = [RUNTask(i.id, i.c, round(i.d * selected_frequency)) for i in periodic_tasks]
-        h = int(scipy.lcm.reduce([i.d for i in task_set]))
+        task_set = [RUNTask(i.id, i.c / selected_frequency, i.d) for i in periodic_tasks]
+        h = float_operations.float_lcm([i.d for i in task_set])
 
         used_cycles = int(sum([i.c * (h / i.d) for i in task_set]))
 
@@ -304,7 +302,7 @@ class RUNScheduler(AbstractScheduler):
         free_cycles = h * m - used_cycles
 
         if free_cycles > 0:
-            task_set = task_set + [RUNTask(-1, free_cycles, h)]
+            task_set = task_set + [RUNTask(-1, free_cycles / selected_frequency, h)]
 
         self.__parents_of_tree = self._create_tree(task_set)
         self.__dt = global_specification.simulation_specification.dt

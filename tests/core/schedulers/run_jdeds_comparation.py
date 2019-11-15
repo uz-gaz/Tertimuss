@@ -24,6 +24,7 @@ from main.plot_generator.implementations.ContextSwitchStatistics import ContextS
 from main.plot_generator.implementations.ExecutionPercentageStatistics import ExecutionPercentageStatistics
 from main.plot_generator.implementations.UtilizationDrawer import UtilizationDrawer
 
+
 class RUNJDEDSComparisionTest(unittest.TestCase):
     def test_comparision(self):
         save_path = "out/experimentation/"
@@ -105,7 +106,7 @@ class RUNJDEDSComparisionTest(unittest.TestCase):
         core_specification = CoreGroupSpecification(MaterialCuboid(x=10, y=10, z=2, p=2330, c_p=712, k=148),
                                                     EnergyConsumptionProperties(),
                                                     [150, 400, 600, 850, 1000],
-                                                    [1000, 1000])
+                                                    [1000, 1000, 1000, 1000, 1000])
 
         board_specification = BoardSpecification(MaterialCuboid(x=50, y=50, z=1, p=8933, c_p=385, k=400))
 

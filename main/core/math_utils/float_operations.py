@@ -1,4 +1,16 @@
+import math
 from typing import List
+
+import scipy
+
+
+def is_equal(number_a: float, number_b: float, rtol: float = 1e-05, atol: float = 1e-08):
+    return math.isclose(number_a, number_b, rel_tol=rtol, abs_tol=atol)
+
+
+# True if number_a <= number_b
+def is_less_or_equal_than(number_a: float, number_b: float, rtol: float = 1e-05, atol: float = 1e-08):
+    return number_a < number_b or is_equal(number_a, number_b, rtol, atol)
 
 
 # Taken from https://stackoverflow.com/questions/45323619/python-greatest-common-divisor-gcd-for-floats-preferably-in-numpy
@@ -17,3 +29,8 @@ def float_gcd(numbers: List[float], rtol=1e-05, atol=1e-08) -> float:
         return gcd_accumulated
     else:
         return 1
+
+
+def float_lcm(numbers: List[float], rtol=1e-05, atol=1e-08) -> float:
+    lcm = scipy.lcm.reduce([int(i / atol) for i in numbers])
+    return lcm * atol
