@@ -111,5 +111,6 @@ The code in this repository, unless otherwise noted, is GNU GPLv3 licensed. See 
 
 ## References
 
-It is an improvement of a previous environment created in MATLAB that can be found in the following link:
-[http://www.cys.cic.ipn.mx/ojs/index.php/CyS/article/view/3204](http://www.cys.cic.ipn.mx/ojs/index.php/CyS/article/view/3204).
+- Degree dissertation of Abel Chils Trabanco: [https://deposita.unizar.es/record/49370](https://deposita.unizar.es/record/49370)
+
+- Flexible Framework for Real-Time Thermal-Aware Schedulers using Timed Continuous Petri Nets: [http://www.cys.cic.ipn.mx/ojs/index.php/CyS/article/view/3204](http://www.cys.cic.ipn.mx/ojs/index.php/CyS/article/view/3204)
