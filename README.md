@@ -1,4 +1,4 @@
-# Simulation environment for Real-Time Multiprocessor Schedulers
+# Tertimuss: Temperature Energy Real TIme Multiprocessor Scheduling Simulator
 
 This is a tool to test real-time thermal aware schedulers.
 
@@ -11,14 +11,17 @@ environment definition and variable CPU frequencies (the utilization of DVFS is 
 It has an easy interface to define a new scheduler and a set of pre-loaded schedulers.
 
 ## Project componets
+
 ![Project components](./doc/diagrams/basic_components/SimulatorComponents.png)
 
 ## System requirements
+
 This project has been developed using the Miniconda Python distribution with a Python version 3.7 installed (Can be downloaded from: [https://docs.conda.io/en/latest/miniconda.html](https://docs.conda.io/en/latest/miniconda.html)).
 
 It's highly recommended to use the same Python distribution (or Anaconda) to avoid issues related with dependencies. However you can use another of your choice.
 
 ### Project dependencies (libraries)
+
 The project needs the follow packages:
 
 - Python 3.7 or higher and all its dependencies
@@ -40,11 +43,13 @@ $ conda install -c conda-forge ffmpeg progress
 ```
 
 ## Usage
+
 Once you have filled the requirements listed in the above section and have downloaded the repository, place in the project root folder.
 
 There are two python Scripts, one for the Command Line Interface and other for the Graphical User Interface.
 
 ### Command Line Interface
+
 To launch the Command Line Interface execute the script called cli_launcher.py.
 
 main/ui/cli/input_schema/global-schema.json
@@ -62,6 +67,7 @@ You can find a description of the JSON input file in [JSON-Schema](https://json-
 Some examples are located in [./tests/cli/](./tests/cli).
 
 ### Graphical User Interface
+
 To launch the Graphical User Interface execute the script called gui_launcher.py.
 
 ```bash
@@ -70,6 +76,7 @@ $ python gui_launcher.py
 
 ## For developers only
 ### Modifications in the schema to validate the input of the CLI
+
 Each time you modify any file of the schema to validate the input, you must recompile it:
 ```bash
 $ cd main/ui/common/json_ref_parser
@@ -77,6 +84,7 @@ $ npm run parse-json ../../cli/input_schema/global-schema.json ../../cli/input_s
 ```
 
 ### Modifications on the GUI
+
 To modify the GUI is recommended to use the Qt Designer.
 
 To launch it execute the following command:
@@ -92,15 +100,16 @@ $ pyuic5 foo.ui -o bar.py
 ```
 
 ### Add a new scheduler to the environment
+
 To add a new scheduler to the environment, you have to create a new class in the main.core.schedulers.implementations package that extends from main.core.schedulers.templates.abstract_base_scheduler.AbstractBaseScheduler or from main.core.schedulers.templates.abstract_scheduler.AbstractScheduler.
 
 Next, you have to add his name to the main.ui.common.SchedulerSelector class.
 
 ## License
+
 The code in this repository, unless otherwise noted, is GNU GPLv3 licensed. See the `LICENSE` file in this repository.
 
 ## References
-This work is part of the degree dissertation of [Abel Chils Trabanco](https://github.com/AbelChT/).
 
 It is an improvement of a previous environment created in MATLAB that can be found in the following link:
 [http://www.cys.cic.ipn.mx/ojs/index.php/CyS/article/view/3204](http://www.cys.cic.ipn.mx/ojs/index.php/CyS/article/view/3204).
