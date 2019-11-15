@@ -84,17 +84,22 @@ class ExecutionPercentageStatistics(AbstractResultDrawer):
         for i in range(n_periodic):
             missed_deadlines = 0
             missed_deadline_jobs = []
+            missed_deadline_jobs_cycles = []
             period_ranges = list(range(0, hyperperiod, ti_p_dt[i]))
             for j in range(len(period_ranges)):
                 if (sum(i_tau_disc_accond[i, period_ranges[j]: period_ranges[j] + di_p_dt[i]]) *
                     global_specification.simulation_specification.dt) / ci_p_dt[i] < 1.0:
                     missed_deadlines = missed_deadlines + 1
                     missed_deadline_jobs.append(j)
+                    missed_deadline_jobs_cycles.append(
+                        (sum(i_tau_disc_accond[i, period_ranges[j]: period_ranges[j] + di_p_dt[i]]) *
+                         global_specification.simulation_specification.dt))
 
             if missed_deadlines > 0:
                 deadline_missed_details["task_" + str(i)] = {
                     "number_of_missed_deadlines": missed_deadlines,
-                    "jobs_which_missed_deadlines": missed_deadline_jobs
+                    "jobs_which_missed_deadlines": missed_deadline_jobs,
+                    "executed_cycles_in_jobs_which_missed_deadlines": missed_deadline_jobs_cycles
                 }
                 number_deadline_missed = number_deadline_missed + missed_deadlines
 

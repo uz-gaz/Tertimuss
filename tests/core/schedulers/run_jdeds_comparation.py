@@ -24,11 +24,10 @@ from main.plot_generator.implementations.ContextSwitchStatistics import ContextS
 from main.plot_generator.implementations.ExecutionPercentageStatistics import ExecutionPercentageStatistics
 from main.plot_generator.implementations.UtilizationDrawer import UtilizationDrawer
 
-
 class RUNJDEDSComparisionTest(unittest.TestCase):
     def test_comparision(self):
         save_path = "out/experimentation/"
-        simulation_name = "100_10_9_"
+        simulation_name = "100_10_8_"
         automatic_generation = False
         x = []
 
