@@ -12,7 +12,7 @@ It has an easy interface to define a new scheduler and a set of pre-loaded sched
 
 ## Project componets
 
-![Project components](./doc/diagrams/basic_components/SimulatorComponents.png)
+![Project components](doc/diagrams/basic_components/SimulatorComponents.png)
 
 ## System requirements
 
