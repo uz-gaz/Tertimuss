@@ -122,7 +122,7 @@ class RUNScheduler(AbstractScheduler):
             return tree_parents
 
     @classmethod
-    def _update_virtual_task_info(cls, children: List[RUNServer], actual_time: int):
+    def _update_virtual_task_info(cls, children: List[RUNServer], actual_time: float):
         for i in children:
             if is_less_or_equal_than(i.next_arrive, actual_time):
                 # We need update the task info
@@ -205,7 +205,11 @@ class RUNScheduler(AbstractScheduler):
         return servers_with_pending_c
 
     @classmethod
-    def _select_tasks_to_execute_one_parent(cls, parent: RUNPack, actual_time: int, dt: float) -> List[RUNTask]:
+    def _select_tasks_to_execute_one_parent(cls, parent: RUNPack, actual_time: float, dt: float) -> List[RUNTask]:
+        if is_equal(actual_time, 5):
+            iii = 0
+            pass
+
         tree_levels = cls._count_tree_levels(parent)
         dual_selection = [parent]
         for level in range(1, tree_levels - 1):
@@ -225,19 +229,27 @@ class RUNScheduler(AbstractScheduler):
                 server.pending_c -= dt
                 server.last_time_executed_dual = actual_time + dt
 
+        if len(dual_selection) != 5:
+            iii = 0
+            pass
+
         # Select tasks by EDF
         edf_selection_tasks = cls._edf_server_selection(dual_selection)
 
+        if len(edf_selection_tasks) != 5:
+            iii = 0
+            pass
+
         # Decrease pending dual_c (laxity) of those servers selected by edf
         for server in edf_selection_tasks:
-            server.pending_laxity -= dt
+            server.pending_c -= dt
             server.last_time_executed_edf = actual_time + dt
 
         # In the leafs of the tree, we must have Tasks
         return [i for i in edf_selection_tasks if isinstance(i, RUNTask)]
 
     @classmethod
-    def _select_tasks_to_execute(cls, parents: List[RUNPack], actual_time: int, dt: int) -> List[RUNTask]:
+    def _select_tasks_to_execute(cls, parents: List[RUNPack], actual_time: float, dt: float) -> List[RUNTask]:
         cls._update_virtual_task_info(parents, actual_time)
         tasks_to_execute = []
         for parent in parents:
@@ -250,6 +262,7 @@ class RUNScheduler(AbstractScheduler):
         tasks_assignation = m * [-1]
 
         not_assigned_yet_phase_1 = []
+
         # Phase 1
         for i in task_set:
             if i.task_id in last_tasks_cpu_assignation and i.task_id != -1:
@@ -316,9 +329,11 @@ class RUNScheduler(AbstractScheduler):
                         actual_cores_frequency: List[int], cores_max_temperature: Optional[scipy.ndarray]) -> \
             [List[int], Optional[float], Optional[List[int]]]:
 
-        time_cycles = int(time * self.__operating_frequency[0])
-        dt_cycles = int(self.__dt * self.__operating_frequency[0])
-        iteration_result = self._select_tasks_to_execute(self.__parents_of_tree, time_cycles, dt_cycles)
+        if is_equal(time, 5):
+            iii = 0
+            pass
+
+        iteration_result = self._select_tasks_to_execute(self.__parents_of_tree, time, self.__dt)
         iteration_result = self._assign_tasks_to_cpu(iteration_result, self.__last_tasks_assignation, self.__m)
         self.__last_tasks_assignation = iteration_result
         return iteration_result, self.__dt, self.__operating_frequency
