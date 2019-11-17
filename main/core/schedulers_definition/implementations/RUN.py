@@ -328,7 +328,7 @@ class RUNScheduler(AbstractScheduler):
 
         free_cycles = h * m - used_cycles
 
-        if free_cycles > 0:
+        if not float_operations.is_equal(free_cycles, 0):
             task_set = task_set + [RUNTask(-1, free_cycles / selected_frequency, h)]
 
         self.__parents_of_tree = self._create_tree(task_set)
@@ -345,6 +345,11 @@ class RUNScheduler(AbstractScheduler):
         iteration_result = self._select_tasks_to_execute(self.__parents_of_tree, time, self.__dt)
         iteration_result = self._assign_tasks_to_cpu(iteration_result, self.__last_tasks_assignation, self.__m)
         self.__last_tasks_assignation = iteration_result
+
+        if len([i for i in iteration_result if i != -1]) < 2:
+            ii = 0
+            pass
+
         return iteration_result, self.__dt, self.__operating_frequency
 
     def aperiodic_arrive(self, time: float, aperiodic_tasks_arrived: List[SystemTask],

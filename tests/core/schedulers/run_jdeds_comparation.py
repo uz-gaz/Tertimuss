@@ -27,9 +27,15 @@ from main.plot_generator.implementations.UtilizationDrawer import UtilizationDra
 
 class RUNJDEDSComparisionTest(unittest.TestCase):
     def test_comparision(self):
+        for i in range(40):
+            name = "test_" + str(i)
+            print(name)
+            self.rec_comparision(name)
+
+    def rec_comparision(self, name):
         save_path = "out/experimentation/"
-        simulation_name = "100_10_3_"
-        automatic_generation = False
+        simulation_name = name + "_"
+        automatic_generation = True
         x = []
 
         if automatic_generation:
@@ -37,15 +43,15 @@ class RUNJDEDSComparisionTest(unittest.TestCase):
             x = u.generate(
                 {
                     "min_period_interval": 2,
-                    "max_period_interval": 12,
-                    "hyperperiod": 24,
+                    "max_period_interval": 10,
+                    "hyperperiod": 10,
                     "number_of_tasks": 10,
                     "utilization": 2,
-                    "processor_frequency": 100,
+                    "processor_frequency": 10,
                 }
             )
 
-            x = [PeriodicTask(i.c * 10, i.t, i.d, i.e) for i in x]
+            x = [PeriodicTask(i.c * 100, i.t, i.d, i.e) for i in x]
 
             tasks_definition_dict = []
 
@@ -65,14 +71,14 @@ class RUNJDEDSComparisionTest(unittest.TestCase):
             for i in decoded_json:
                 x.append(PeriodicTask(i["worst_case_execution_time"], i["period"], i["period"], 0))
 
-        # schedulers = [
-        #     (GlobalJDEDSScheduler(), "jdeds"),
-        #     (RUNScheduler(), "run"),
-        # ]
-
         schedulers = [
+            (GlobalJDEDSScheduler(), "jdeds"),
             (RUNScheduler(), "run"),
         ]
+
+        # schedulers = [
+        #     (RUNScheduler(), "run"),
+        # ]
 
         for scheduler_actual in schedulers:
             try:

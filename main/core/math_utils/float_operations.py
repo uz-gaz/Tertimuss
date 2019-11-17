@@ -32,5 +32,5 @@ def float_gcd(numbers: List[float], rtol=1e-03, atol=1e-05) -> float:
 
 
 def float_lcm(numbers: List[float], rtol=1e-03, atol=1e-05) -> float:
-    lcm = scipy.lcm.reduce([int(i / atol) for i in numbers])
+    lcm = scipy.lcm.reduce([round(i / atol) for i in numbers])
     return lcm * atol
