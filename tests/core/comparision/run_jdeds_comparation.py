@@ -2,8 +2,11 @@ import json
 import unittest
 from typing import List
 
+import scipy
+
 from main.core.execution_simulator.system_modeling.GlobalModel import GlobalModel
 from main.core.execution_simulator.system_modeling.ThermalModelSelector import ThermalModelSelector
+from main.core.execution_simulator.system_simulator.SchedulingResult import SchedulingResult
 from main.core.execution_simulator.system_simulator.SystemSimulator import SystemSimulator
 from main.core.problem_specification.GlobalSpecification import GlobalSpecification
 from main.core.problem_specification.automatic_task_generator.implementations.UUniFast import UUniFast
@@ -86,23 +89,100 @@ class RUNJDEDSComparisionTest(unittest.TestCase):
                                                                                                     scheduler_actual[0])
                 result_save_path = scheduler_actual[1]
 
-                ExecutionPercentageStatistics.plot(global_specification, result,
-                                                   {
-                                                       "save_path": save_path + simulation_name + result_save_path +
-                                                                    "_execution_percentage_statics.json"})
+                if self._have_miss_deadline(global_specification, result):
+                    print("Deadline perdido")
+                else:
+                    ExecutionPercentageStatistics.plot(global_specification, result,
+                                                       {
+                                                           "save_path": save_path + simulation_name + result_save_path +
+                                                                        "_execution_percentage_statics.json"})
 
-                ContextSwitchStatistics.plot(global_specification, result,
-                                             {
-                                                 "save_path": save_path + simulation_name
-                                                              + result_save_path + "_context_switch_statics.json"
-                                             })
+                    ContextSwitchStatistics.plot(global_specification, result,
+                                                 {
+                                                     "save_path": save_path + simulation_name
+                                                                  + result_save_path + "_context_switch_statics.json"
+                                                 })
 
-                UtilizationDrawer.plot(global_specification, result,
-                                       {"save_path": save_path + simulation_name
-                                                     + result_save_path + "_cpu_utilization.png"})
+                    UtilizationDrawer.plot(global_specification, result,
+                                           {"save_path": save_path + simulation_name
+                                                         + result_save_path + "_cpu_utilization.png"})
             except Exception as e:
                 print("Fail for " + scheduler_actual[1])
                 print(e.args)
+
+    @staticmethod
+    def _have_miss_deadline(global_specification: GlobalSpecification, scheduler_result: SchedulingResult) -> bool:
+        """
+             Plot task execution in each cpu
+             :param global_specification: problem specification
+             :param scheduler_result: result of scheduling
+             """
+
+        i_tau_disc = scheduler_result.scheduler_assignation
+        frequencies = scheduler_result.frequencies
+
+        m = len(global_specification.cpu_specification.cores_specification.operating_frequencies)
+
+        n_periodic = len(global_specification.tasks_specification.periodic_tasks)
+        n_aperiodic = len(global_specification.tasks_specification.aperiodic_tasks)
+
+        frequencies_disc_f = scipy.concatenate(
+            [scipy.repeat(i.reshape(1, -1), n_periodic + n_aperiodic, axis=0) for i in frequencies],
+            axis=0)
+
+        i_tau_disc = i_tau_disc * frequencies_disc_f
+
+        hyperperiod = int(global_specification.tasks_specification.h / global_specification.simulation_specification.dt)
+
+        ci_p_dt = [i.c for i in
+                   global_specification.tasks_specification.periodic_tasks]
+
+        di_p_dt = [int(round(i.d / global_specification.simulation_specification.dt)) for i in
+                   global_specification.tasks_specification.periodic_tasks]
+
+        ti_p_dt = [int(round(i.t / global_specification.simulation_specification.dt)) for i in
+                   global_specification.tasks_specification.periodic_tasks]
+
+        ci_a_dt = [i.c for i in
+                   global_specification.tasks_specification.aperiodic_tasks]
+
+        ai_a_dt = [int(round(i.a / global_specification.simulation_specification.dt)) for i in
+                   global_specification.tasks_specification.aperiodic_tasks]
+
+        di_a_dt = [int(round(i.d / global_specification.simulation_specification.dt)) for i in
+                   global_specification.tasks_specification.aperiodic_tasks]
+
+        i_tau_disc_accond = scipy.zeros((n_periodic + n_aperiodic, len(i_tau_disc[0])))
+
+        for i in range(m):
+            i_tau_disc_accond = i_tau_disc_accond + i_tau_disc[
+                                                    i * (n_periodic + n_aperiodic): (i + 1) * (
+                                                            n_periodic + n_aperiodic), :]
+        number_deadline_missed = 0
+
+        for i in range(n_periodic):
+            missed_deadlines = 0
+            missed_deadline_jobs = []
+            missed_deadline_jobs_cycles = []
+            period_ranges = list(range(0, hyperperiod, ti_p_dt[i]))
+            for j in range(len(period_ranges)):
+                if (sum(i_tau_disc_accond[i, period_ranges[j]: period_ranges[j] + di_p_dt[i]]) *
+                    global_specification.simulation_specification.dt) / ci_p_dt[i] < 1.0:
+                    missed_deadlines = missed_deadlines + 1
+                    missed_deadline_jobs.append(j)
+                    missed_deadline_jobs_cycles.append(
+                        (sum(i_tau_disc_accond[i, period_ranges[j]: period_ranges[j] + di_p_dt[i]]) *
+                         global_specification.simulation_specification.dt))
+
+            if missed_deadlines > 0:
+                number_deadline_missed = number_deadline_missed + missed_deadlines
+
+        for i in range(n_aperiodic):
+            if (sum(i_tau_disc_accond[n_periodic + i, ai_a_dt[i]: di_a_dt[i]]) *
+                global_specification.simulation_specification.dt) / ci_a_dt[i] < 1.0:
+                number_deadline_missed = number_deadline_missed + 1
+
+        return number_deadline_missed != 0
 
     @staticmethod
     def create_problem_specification(tasks_set: List[PeriodicTask], scheduler: AbstractScheduler):
