@@ -55,14 +55,14 @@ class PacksBin(object):
         self.packs = [pack]
 
     def can_add_server(self, pack: RUNServer) -> bool:
-        deadline = scipy.gcd(pack.d, self.d)
+        deadline = float_operations.float_gcd([pack.d, self.d])
         bin_c = float(self.c / (self.d / deadline))
         ant_pack_c = pack.laxity if isinstance(pack, RUNPack) else pack.c
         pack_c = float(ant_pack_c / (pack.d / deadline))
         return is_less_or_equal_than(bin_c + pack_c, deadline)
 
     def add_server(self, pack: RUNServer):
-        deadline = scipy.gcd(pack.d, self.d)
+        deadline = float_operations.float_gcd([pack.d, self.d])
         bin_c = float(self.c / (self.d / deadline))
         ant_pack_c = pack.laxity if isinstance(pack, RUNPack) else pack.c
         pack_c = float(ant_pack_c / (pack.d / deadline))
@@ -178,6 +178,31 @@ class RUNScheduler(AbstractScheduler):
         return selection
 
     @classmethod
+    def _edf_task_selection(cls, previous_dual_selection: List[RUNPack]) -> List[RUNServer]:
+        selection = []
+
+        for server in previous_dual_selection:
+            children_with_time_to_execute = [i for i in server.content if
+                                             i.pending_c > 0 and not is_equal(i.pending_c, 0)]
+            if len(children_with_time_to_execute) != 0:
+                # Order the tasks by the EDF criteria
+                children_with_time_to_execute.sort(key=lambda x: x.next_arrive,
+                                                   reverse=False)  # Sort packs in ascendant order of arrive
+                selected_next_arrive = children_with_time_to_execute[0].next_arrive
+
+                # If there are several tasks with the same priority, the last executed is selected to decrease
+                # context changes
+                children_with_highest_priority = [i for i in children_with_time_to_execute if
+                                                  is_equal(i.next_arrive, selected_next_arrive)]
+                children_with_highest_priority.sort(key=lambda x: x.last_time_executed_edf,
+                                                    reverse=True)  # Sort packs in descendant order of last execution
+
+                # Append to selection the highest priority task
+                selection.append(children_with_highest_priority[0])
+
+        return selection
+
+    @classmethod
     def _select_servers_from_level(cls, level: int, parent: RUNPack) -> List[RUNServer]:
         if level == 0:
             return [parent]
@@ -228,7 +253,7 @@ class RUNScheduler(AbstractScheduler):
                 server.last_time_executed_dual = actual_time + dt
 
         # Select tasks by EDF
-        edf_selection_tasks = cls._edf_server_selection(dual_selection)
+        edf_selection_tasks = cls._edf_task_selection(dual_selection)
 
         # Decrease pending dual_c (laxity) of those servers selected by edf
         for server in edf_selection_tasks:

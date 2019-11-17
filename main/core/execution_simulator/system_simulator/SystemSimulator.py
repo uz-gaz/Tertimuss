@@ -4,6 +4,7 @@ from main.core.execution_simulator.system_simulator.SystemAperiodicTask import S
 from main.core.execution_simulator.system_simulator.SystemPeriodicTask import SystemPeriodicTask
 from main.core.execution_simulator.system_simulator.SystemTask import SystemTask
 from main.core.execution_simulator.system_modeling.GlobalModel import GlobalModel
+from main.core.math_utils import float_operations
 from main.core.problem_specification.GlobalSpecification import GlobalSpecification
 from main.core.execution_simulator.system_simulator.SchedulingResult import SchedulingResult
 from typing import List, Optional
@@ -16,6 +17,7 @@ class SystemSimulator(object):
     """
     System simulator
     """
+
     @staticmethod
     def simulate(global_specification: GlobalSpecification, global_model: GlobalModel,
                  scheduler: AbstractScheduler, progress_bar: Optional[AbstractProgressBar]) -> SchedulingResult:
@@ -147,6 +149,10 @@ class SystemSimulator(object):
 
             # Update time
             time = zeta_q * global_specification.simulation_specification.dt
+
+            if float_operations.is_equal(time, 0.5):
+                iii = 0
+                pass
 
             # Manage aperiodic tasks
             if any([round_i(x.next_arrival / global_specification.simulation_specification.dt) == zeta_q for
