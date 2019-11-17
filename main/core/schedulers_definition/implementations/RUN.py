@@ -157,7 +157,8 @@ class RUNScheduler(AbstractScheduler):
         selection = []
 
         for server in previous_dual_selection:
-            children_with_time_to_execute = [i for i in server.content if i.pending_laxity > 0]
+            children_with_time_to_execute = [i for i in server.content if
+                                             i.pending_laxity > 0 and not is_equal(i.pending_laxity, 0)]
             if len(children_with_time_to_execute) != 0:
                 # Order the tasks by the EDF criteria
                 children_with_time_to_execute.sort(key=lambda x: x.next_arrive,
@@ -200,16 +201,13 @@ class RUNScheduler(AbstractScheduler):
 
         servers_not_selected_in_edf = [i for i in servers_from_level if i.server_id not in previous_edf_selection_ids]
 
-        servers_with_pending_c = [i for i in servers_not_selected_in_edf if i.pending_c >= 0]
+        servers_with_pending_c = [i for i in servers_not_selected_in_edf if
+                                  i.pending_c > 0 and not is_equal(i.pending_c, 0)]
 
         return servers_with_pending_c
 
     @classmethod
     def _select_tasks_to_execute_one_parent(cls, parent: RUNPack, actual_time: float, dt: float) -> List[RUNTask]:
-        if is_equal(actual_time, 5):
-            iii = 0
-            pass
-
         tree_levels = cls._count_tree_levels(parent)
         dual_selection = [parent]
         for level in range(1, tree_levels - 1):
@@ -229,16 +227,8 @@ class RUNScheduler(AbstractScheduler):
                 server.pending_c -= dt
                 server.last_time_executed_dual = actual_time + dt
 
-        if len(dual_selection) != 5:
-            iii = 0
-            pass
-
         # Select tasks by EDF
         edf_selection_tasks = cls._edf_server_selection(dual_selection)
-
-        if len(edf_selection_tasks) != 5:
-            iii = 0
-            pass
 
         # Decrease pending dual_c (laxity) of those servers selected by edf
         for server in edf_selection_tasks:
@@ -281,7 +271,6 @@ class RUNScheduler(AbstractScheduler):
                 not_assigned_yet_phase_2 = not_assigned_yet_phase_2 + [i]
 
         # If we have more tasks than CPUs, delete the excess of tasks
-
         not_assigned_yet_phase_2 = [i for i in not_assigned_yet_phase_2 if
                                     i.task_id != -1]  # First delete the dummy task
 
@@ -328,11 +317,6 @@ class RUNScheduler(AbstractScheduler):
     def schedule_policy(self, time: float, executable_tasks: List[SystemTask], active_tasks: List[int],
                         actual_cores_frequency: List[int], cores_max_temperature: Optional[scipy.ndarray]) -> \
             [List[int], Optional[float], Optional[List[int]]]:
-
-        if is_equal(time, 5):
-            iii = 0
-            pass
-
         iteration_result = self._select_tasks_to_execute(self.__parents_of_tree, time, self.__dt)
         iteration_result = self._assign_tasks_to_cpu(iteration_result, self.__last_tasks_assignation, self.__m)
         self.__last_tasks_assignation = iteration_result
