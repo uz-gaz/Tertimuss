@@ -33,12 +33,15 @@ class RUNJDEDSComparisionTest(unittest.TestCase):
         for i in range(40):
             name = "test_" + str(i)
             print(name)
-            self.rec_comparision(name)
+            self.rec_comparision(name, 2)
 
-    def rec_comparision(self, name):
+    def test_one_comparision(self):
+        name = "test_basic"
+        self.rec_comparision(name, 5, False)
+
+    def rec_comparision(self, name: str, number_of_cpus: int, automatic_generation=True):
         save_path = "out/experimentation/"
         simulation_name = name + "_"
-        automatic_generation = True
         x = []
 
         if automatic_generation:
@@ -65,11 +68,11 @@ class RUNJDEDSComparisionTest(unittest.TestCase):
                     "period": i.d
                 })
 
-            with open(save_path + simulation_name + "tasks_specification", 'w') as f:
+            with open(save_path + simulation_name + "tasks_specification.json", 'w') as f:
                 json.dump(tasks_definition_dict, f, indent=4)
 
         else:
-            with open(save_path + simulation_name + "tasks_specification", "r") as read_file:
+            with open(save_path + simulation_name + "tasks_specification.json", "r") as read_file:
                 decoded_json = json.load(read_file)
             for i in decoded_json:
                 x.append(PeriodicTask(i["worst_case_execution_time"], i["period"], i["period"], 0))
@@ -86,7 +89,8 @@ class RUNJDEDSComparisionTest(unittest.TestCase):
         for scheduler_actual in schedulers:
             try:
                 result, global_specification, simulation_kernel = self.create_problem_specification(x,
-                                                                                                    scheduler_actual[0])
+                                                                                                    scheduler_actual[0],
+                                                                                                    number_of_cpus)
                 result_save_path = scheduler_actual[1]
 
                 if self._have_miss_deadline(global_specification, result):
@@ -185,14 +189,14 @@ class RUNJDEDSComparisionTest(unittest.TestCase):
         return number_deadline_missed != 0
 
     @staticmethod
-    def create_problem_specification(tasks_set: List[PeriodicTask], scheduler: AbstractScheduler):
+    def create_problem_specification(tasks_set: List[PeriodicTask], scheduler: AbstractScheduler, number_of_cpus: int):
 
         tasks_specification: TasksSpecification = TasksSpecification(tasks_set)
 
         core_specification = CoreGroupSpecification(MaterialCuboid(x=10, y=10, z=2, p=2330, c_p=712, k=148),
                                                     EnergyConsumptionProperties(),
                                                     [150, 400, 600, 850, 1000],
-                                                    [1000, 1000])
+                                                    number_of_cpus * [1000])
 
         board_specification = BoardSpecification(MaterialCuboid(x=50, y=50, z=1, p=8933, c_p=385, k=400))
 
