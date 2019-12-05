@@ -47,24 +47,27 @@ class ContextSwitchStatistics(AbstractResultDrawer):
 
         for i in range(len(i_tau_disc[0])):
             actual_step = i_tau_disc[:, i]
-            actual_step_simple = [sum(i_tau_disc[:, i][task::(n_periodic + n_aperiodic)][:m]) for task in
-                                  range(n_periodic + n_aperiodic)]
+            actual_step_execution = [sum(i_tau_disc[:, i][task::(n_periodic + n_aperiodic)][:m]) for task in
+                                     range(n_periodic + n_aperiodic)]
             for j in range(n_periodic):
-                actual_deadline = int(
+                deadline_interval = round(
                     global_specification.tasks_specification.periodic_tasks[
                         j].t / global_specification.simulation_specification.dt)
-                if i % actual_deadline == 0:
+                if i % deadline_interval == 0:
+                    # New interval start in this cycle
                     last_executed_cpu[j] = -1
                     last_cycle_execution[j] = -1
 
-                if (i + 1) % actual_deadline == 0 and actual_step_simple[j] == 1:
-                    # Context change in the last cycle
+                if (i + 1) % deadline_interval == 0 and actual_step_execution[j] == 1:
+                    # Last cycle of execution and task executing on it (we will produce a context change)
                     context_changes_by_tasks[j] = context_changes_by_tasks[j] + 1
 
             for task_no in range(n_aperiodic + n_periodic):
                 # Get the cpu where the task is being executed
                 possible_cpu = [actual_cpu for actual_cpu in range(m) if
-                                actual_step[task_no + (n_aperiodic + n_periodic) * actual_cpu] == 1]
+                                actual_step[(n_aperiodic + n_periodic) * actual_cpu + task_no] == 1]
+
+                # CPU where task is executing this cycle
                 actual_execution_cpu = -1 if len(possible_cpu) == 0 else possible_cpu[0]
 
                 if last_cycle_execution[task_no] != actual_execution_cpu and last_cycle_execution[task_no] != -1:
