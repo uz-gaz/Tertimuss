@@ -32,6 +32,7 @@ class UUniFast(AbstractTaskGeneratorAlgorithm):
         wcet_multiple = options["wcet_multiple"]
         processor_frequency = options["processor_frequency"]
 
+
         # Divisors of hyperperiod
         selected = [int(i) for i in self.divisor_generator(hyperperiod) if
                     min_period_interval <= i <= max_period_interval]
