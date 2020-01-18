@@ -1,6 +1,5 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "tasks_specification_no_thermal.task_specification.scheduler.framework.tcpn.json",
   "title": "System tasks",
   "description": "System tasks",
   "type": "object",
@@ -27,7 +26,7 @@
   "then": {
     "properties": {
       "automatic_generation": {
-        "$ref": "#/definitions/automatic_tasks"
+        "$ref": "automatic_tasks_schema.json"
       }
     },
     "required": [
@@ -42,10 +41,10 @@
         "items": {
           "oneOf": [
             {
-              "$ref": "#/definitions/periodic_task"
+              "$ref": "periodic_task_schema.json"
             },
             {
-              "$ref": "#/definitions/aperiodic_task"
+              "$ref": "aperiodic_task_schema.json"
             }
           ]
         },
@@ -55,16 +54,5 @@
     "required": [
       "tasks"
     ]
-  },
-  "definitions": {
-    "periodic_task": {
-      "$ref": "periodic_task_schema.json"
-    },
-    "aperiodic_task": {
-      "$ref": "aperiodic_task_schema.json"
-    },
-    "automatic_tasks": {
-      "$ref": "automatic_tasks_schema.json"
-    }
   }
 }

@@ -2,6 +2,7 @@ import json
 import os
 import threading
 
+import jsonschema
 from PyQt5.QtWidgets import QFileDialog
 
 from main.core.execution_simulator.system_modeling.GlobalModel import GlobalModel
@@ -72,7 +73,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         :param path: Path where JSON object is stored
         """
         # Path of the input validate schema
-        input_schema_path = '../../cli/input_schema/input-schema.json'
+        input_schema_path = os.path.join('..', '..', 'cli', 'input_schema', 'global-schema.json')
         absolute_input_schema_path = os.path.join(os.path.dirname(__file__), input_schema_path)
 
         # Read schema
@@ -90,7 +91,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             return
 
         # Validate schema
-        error, message = JSONGlobalModelParser.validate_input(input_object, schema_object)
+        resolver = jsonschema.RefResolver('file://%s/' % os.path.abspath(os.path.dirname(absolute_input_schema_path)),
+                                          None)
+        error, message = JSONGlobalModelParser.validate_input(input_object, schema_object, resolver)
 
         if error:
             self.label_status.setText("Status:" + message)
@@ -438,7 +441,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.label_status.setText("Status: Processing data")
 
         # Path of the input validate schema
-        input_schema_path = '../../cli/input_schema/input-schema.json'
+        input_schema_path = os.path.join('..', '..', 'cli', 'input_schema', 'global-schema.json')
         absolute_input_schema_path = os.path.join(os.path.dirname(__file__), input_schema_path)
 
         # Read schema
@@ -446,7 +449,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         if not error:
             # Validate schema
-            error, message = JSONGlobalModelParser.validate_input(input_object, schema_object)
+            resolver = jsonschema.RefResolver(
+                'file://%s/' % os.path.abspath(os.path.dirname(absolute_input_schema_path)), None)
+
+            error, message = JSONGlobalModelParser.validate_input(input_object, schema_object, resolver)
         else:
             self.label_status.setText("Status:" + message)
 

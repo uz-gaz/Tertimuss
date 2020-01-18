@@ -10,7 +10,7 @@ environment definition and variable CPU frequencies (the utilization of DVFS is 
 
 It has an easy interface to define a new scheduler and a set of pre-loaded schedulers.
 
-## Project componets
+## Project components
 ![Project components](./doc/diagrams/basic_components/SimulatorComponents.png)
 
 ## System requirements
@@ -29,12 +29,11 @@ The project needs the follow packages:
 - ffmpeg 4.1 or higher and all its dependencies
 - pyqt 5.9.2 or higher and all its dependencies
 - qt 5.9.2 or higher and all its dependencies (This package is necessary only if you want to modify the GUI)
-- nodejs 10.13.0 or higher and all its dependencies  (This package is necessary only if you want to modify the CLI JSON input)
 
 If you are using Miniconda or Anaconda the next few lines will create an environment called rt-scheduler-simulation-environment with all project dependencies installed in it.
 
 ```bash
-$ conda create -n rt-scheduler-simulation-environment python=3 scipy matplotlib jsonschema pyqt qt nodejs
+$ conda create -n rt-scheduler-simulation-environment python=3 scipy matplotlib jsonschema pyqt qt
 $ conda activate rt-scheduler-simulation-environment
 $ conda install -c conda-forge ffmpeg progress
 ```
@@ -46,8 +45,6 @@ There are two python Scripts, one for the Command Line Interface and other for t
 
 ### Command Line Interface
 To launch the Command Line Interface execute the script called cli_launcher.py.
-
-main/ui/cli/input_schema/global-schema.json
 
 This script takes two arguments
 - -f, --file: Path where find the JSON simulation description file
@@ -69,13 +66,6 @@ $ python gui_launcher.py
 ```
 
 ## For developers only
-### Modifications in the schema to validate the input of the CLI
-Each time you modify any file of the schema to validate the input, you must recompile it:
-```bash
-$ cd main/ui/common/json_ref_parser
-$ npm run parse-json ../../cli/input_schema/global-schema.json ../../cli/input_schema/input-schema.json
-```
-
 ### Modifications on the GUI
 To modify the GUI is recommended to use the Qt Designer.
 

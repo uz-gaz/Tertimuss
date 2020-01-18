@@ -1,6 +1,8 @@
 import os
 from typing import Optional
 
+import jsonschema
+
 from main.core.execution_simulator.system_modeling.GlobalModel import GlobalModel
 from main.core.execution_simulator.system_simulator.SystemSimulator import SystemSimulator
 from main.ui.cli.ProgressBarCli import ProgressBarCli
@@ -22,7 +24,7 @@ class CliController(object):
             progress_bar: Optional[AbstractProgressBar] = None
 
         # Path of the input validate schema
-        input_schema_path = './input_schema/input-schema.json'
+        input_schema_path = os.path.join('input_schema', 'global-schema.json')
         absolute_input_schema_path = os.path.join(os.path.dirname(__file__), input_schema_path)
 
         # Read schema for validation
@@ -44,7 +46,9 @@ class CliController(object):
             return 1
 
         # Validate schema
-        error, message = JSONGlobalModelParser.validate_input(input_object, schema_object)
+        resolver = jsonschema.RefResolver('file://%s/' % os.path.abspath(os.path.dirname(absolute_input_schema_path)),
+                                          None)
+        error, message = JSONGlobalModelParser.validate_input(input_object, schema_object, resolver)
 
         if error:
             print(message)

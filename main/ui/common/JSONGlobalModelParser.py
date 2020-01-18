@@ -49,17 +49,18 @@ class JSONGlobalModelParser(object):
             return True, "Error: Can't read the file " + input_path, None
 
     @staticmethod
-    def validate_input(input_json: Dict, schema_json: Dict) -> [bool, str]:
+    def validate_input(input_json: Dict, schema_json: Dict, resolver_schema) -> [bool, str]:
         """
         Check if input_json conforms to scheme schema_json
         :param input_json: JSON as a Dict object
         :param schema_json: JSON schema as a Dict object
+        :param resolver_schema
         :return: 1 -> True if there was an error
                  2 -> Error message
         """
         # Validate the input
         try:
-            jsonschema.validate(input_json, schema_json)
+            jsonschema.validate(input_json, schema_json, resolver=resolver_schema)
             return False, ""
         except ValidationError as ve:
             return True, 'Error: Wrong fields validation in ' + '/'.join(map(lambda x: str(x), ve.absolute_path)) + \

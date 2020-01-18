@@ -1,21 +1,15 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "cpu_specification.cpu_specification_no_thermal.scheduler.framework.tcpn.json",
   "title": "CPU specification specification schema",
   "description": "CPU specification",
   "type": "object",
   "properties": {
     "cores_specification": {
-      "$ref": "#/definitions/cores_specification_no_thermal"
+      "$ref": "core_group_specification_no_thermal_schema.json"
     }
   },
   "required": [
     "cores_specification"
   ],
-  "definitions": {
-    "cores_specification_no_thermal": {
-      "$ref": "core_group_specification_no_thermal_schema.json"
-    }
-  },
   "additionalProperties": false
 }

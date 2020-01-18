@@ -1,15 +1,14 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "core_group_specification.cpu_specification.scheduler.framework.tcpn.json",
   "title": "Group of cores with the same characteristics specification schema",
   "description": "Group of cores with the same characteristics specification",
   "type": "object",
   "properties": {
     "physical_properties": {
-      "$ref": "#/definitions/material_cuboid"
+      "$ref": "material_cuboid_schema.json"
     },
     "energy_consumption_properties": {
-      "$ref": "#/definitions/energy_consumption"
+      "$ref": "energy_consumption_properties_schema.json"
     },
     "available_frequencies": {
       "description": "Cores available frequencies in Hz",
@@ -34,7 +33,7 @@
         {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/origin"
+            "$ref": "origin_schema.json"
           }
         }
       ]
@@ -47,16 +46,5 @@
     "operating_frequencies",
     "cores_origins"
   ],
-  "definitions": {
-    "material_cuboid": {
-      "$ref": "material_cuboid_schema.json"
-    },
-    "energy_consumption": {
-      "$ref": "energy_consumption_properties_schema.json"
-    },
-    "origin": {
-      "$ref": "origin_schema.json"
-    }
-  },
   "additionalProperties": false
 }
