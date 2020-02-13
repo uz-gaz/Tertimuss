@@ -125,4 +125,6 @@ if __name__ == '__main__':
         RUNTask(9, 128, 1000)
     ]
 
+    run_tree = ReductionToUNiprocessorScheduler._create_tree(tasks)
+
     print(sum([i.c for i in tasks]))
