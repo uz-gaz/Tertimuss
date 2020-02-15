@@ -114,17 +114,17 @@ class ReductionToUNiprocessorScheduler(object):
 if __name__ == '__main__':
     tasks = [
         RUNTask(0, 77, 1000),
-        RUNTask(1, 300, 1000),
-        RUNTask(2, 288, 1000),
-        RUNTask(3, 296, 1000),
-        RUNTask(4, 175, 1000),
-        RUNTask(5, 115, 1000),
-        RUNTask(6, 145, 1000),
-        RUNTask(7, 279, 1000),
-        RUNTask(8, 197, 1000),
-        RUNTask(9, 128, 1000)
+        RUNTask(1, 300 * 3, 1000 * 3),
+        RUNTask(2, 288 * 4, 1000 * 4),
+        RUNTask(3, 296 * 5, 1000 * 5),
+        RUNTask(4, 175 * 5, 1000 * 5),
+        RUNTask(5, 115 * 3, 1000 * 3),
+        RUNTask(6, 145 * 4, 1000 * 4),
+        RUNTask(7, 279 * 2, 1000 * 2),
+        RUNTask(8, 197 * 3, 1000 * 3),
+        RUNTask(9, 128 * 5, 1000 * 5)
     ]
 
     run_tree = ReductionToUNiprocessorScheduler._create_tree(tasks)
 
-    print(sum([i.c for i in tasks]))
+    print(sum([i.c / i.d for i in tasks]))
