@@ -1,5 +1,6 @@
 import json
 import unittest
+from random import randrange
 from typing import List
 
 import scipy
@@ -37,7 +38,7 @@ class RUNJDEDSComparisionTest(unittest.TestCase):
 
     def test_one_comparision(self):
         name = "test_basic"
-        self.rec_comparision(name, 5, False)
+        self.rec_comparision(name, 2, False)
 
     def rec_comparision(self, name: str, number_of_cpus: int, automatic_generation=True):
         save_path = "out/experimentation/"
@@ -48,16 +49,22 @@ class RUNJDEDSComparisionTest(unittest.TestCase):
             u = UUniFast()
             x = u.generate(
                 {
-                    "min_period_interval": 2,
-                    "max_period_interval": 10,
-                    "hyperperiod": 10,
-                    "number_of_tasks": 10,
+                    "min_period_interval": 1,
+                    "max_period_interval": 1,
+                    "hyperperiod": 1,
+                    "number_of_tasks": 4,
                     "utilization": 2,
-                    "processor_frequency": 10,
+                    "processor_frequency": 100,
                 }
             )
 
-            x = [PeriodicTask(i.c * 100, i.t, i.d, i.e) for i in x]
+            for i in range(len(x)):
+                multiplier = randrange(1, 8)
+                x[i].d = x[i].d * multiplier
+                x[i].t = x[i].t * multiplier
+                x[i].c = x[i].c * multiplier * 10
+
+            # x = [PeriodicTask(i.c * randrange(1, 10), i.t, i.d, i.e) for i in x]
 
             tasks_definition_dict = []
 
@@ -78,8 +85,8 @@ class RUNJDEDSComparisionTest(unittest.TestCase):
                 x.append(PeriodicTask(i["worst_case_execution_time"], i["period"], i["period"], 0))
 
         schedulers = [
-            (GlobalJDEDSScheduler(), "jdeds"),
-            (RUNScheduler(), "run"),
+            # (GlobalJDEDSScheduler(), "jdeds"),
+                (RUNScheduler(), "run"),
         ]
 
         # schedulers = [

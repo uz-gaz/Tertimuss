@@ -1,6 +1,6 @@
 import math
 import random
-from random import randrange, uniform
+from random import uniform
 from typing import List, Dict
 
 from main.core.problem_specification.tasks_specification.PeriodicTask import PeriodicTask
@@ -20,8 +20,8 @@ class UUniFast(AbstractTaskGeneratorAlgorithm):
         :param options: parameter to the algorithm
                         number_of_tasks: int -> Number of tasks
                         utilization: float -> utilization
-                        min_period_interval: int -> min possible value of periods
-                        max_period_interval: int -> max possible value of periods
+                        min_period_interval: int -> min possible value of periods in cycles
+                        max_period_interval: int -> max possible value of periods in cycles
                         processor_frequency: int -> max processor frequency in Hz
                         hyperperiod: int -> hyperperiod in second
         :return: List of tasks

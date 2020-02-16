@@ -267,6 +267,8 @@ class GlobalJDEDSScheduler(AbstractScheduler):
         # Periodic tasks
         self.__periodic_tasks = periodic_tasks
 
+        print("Offline pasado")
+
         return self.__dt
 
     def aperiodic_arrive(self, time: float, aperiodic_tasks_arrived: List[SystemTask],
