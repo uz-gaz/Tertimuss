@@ -31,13 +31,13 @@ from main.plot_generator.implementations.UtilizationDrawer import UtilizationDra
 
 class RUNJDEDSComparisionTest(unittest.TestCase):
     def test_comparision(self):
-        for i in range(40):
+        for i in range(10):
             name = "test_" + str(i)
             print(name)
             self.rec_comparision(name, 2)
 
     def test_one_comparision(self):
-        name = "test_basic"
+        name = "test_1"
         self.rec_comparision(name, 2, False)
 
     def rec_comparision(self, name: str, number_of_cpus: int, automatic_generation=True):
@@ -53,7 +53,7 @@ class RUNJDEDSComparisionTest(unittest.TestCase):
                     "max_period_interval": 1,
                     "hyperperiod": 1,
                     "number_of_tasks": 4,
-                    "utilization": 2,
+                    "utilization": number_of_cpus,
                     "processor_frequency": 100,
                 }
             )
@@ -86,7 +86,7 @@ class RUNJDEDSComparisionTest(unittest.TestCase):
 
         schedulers = [
             # (GlobalJDEDSScheduler(), "jdeds"),
-                (RUNScheduler(), "run"),
+            (RUNScheduler(), "run"),
         ]
 
         # schedulers = [

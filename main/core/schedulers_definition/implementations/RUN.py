@@ -119,16 +119,16 @@ class RUNScheduler(AbstractScheduler):
             return tree_parents
 
     @classmethod
-    def _update_virtual_task_info(cls, children: List[RUNServer], actual_time: float):
+    def _update_virtual_task_info(cls, children: List[RUNServer], actual_time_cycles: int):
         for i in children:
-            if i.next_arrive <= actual_time:
+            if i.next_arrive <= actual_time_cycles:
                 # We need update the task info
                 i.pending_c = i.c
                 i.next_arrive = i.next_arrive + i.d
                 i.pending_laxity = i.laxity
 
             if isinstance(i, RUNPack):
-                cls._update_virtual_task_info(i.content, actual_time)
+                cls._update_virtual_task_info(i.content, actual_time_cycles)
 
     @classmethod
     def _create_tree(cls, tasks: List[RUNTask]) -> List[RUNPack]:
@@ -261,7 +261,7 @@ class RUNScheduler(AbstractScheduler):
     @classmethod
     def _select_tasks_to_execute(cls, parents: List[RUNPack], actual_time: float, dt: float,
                                  processor_frequency: int) -> List[RUNTask]:
-        cls._update_virtual_task_info(parents, actual_time)
+        cls._update_virtual_task_info(parents, int(actual_time * processor_frequency))
         tasks_to_execute = []
         for parent in parents:
             actual_tasks = cls._select_tasks_to_execute_one_parent(parent, actual_time, dt, processor_frequency)
@@ -339,15 +339,18 @@ class RUNScheduler(AbstractScheduler):
     def schedule_policy(self, time: float, executable_tasks: List[SystemTask], active_tasks: List[int],
                         actual_cores_frequency: List[int], cores_max_temperature: Optional[scipy.ndarray]) -> \
             [List[int], Optional[float], Optional[List[int]]]:
+
+        if time == 1.59:
+            iii = 0
+            pass
+            pass
+
         iteration_result = self._select_tasks_to_execute(self.__parents_of_tree, time, self.__dt,
                                                          actual_cores_frequency[0])
         iteration_result = self._assign_tasks_to_cpu(iteration_result, self.__last_tasks_assignation, self.__m)
         self.__last_tasks_assignation = iteration_result
 
-        # if time == 1.59:
-        #     iii = 0
-        #     pass
-        #     pass
+
         #
         # if len([i for i in iteration_result if i != -1]) < 2:
         #     ii = 0
