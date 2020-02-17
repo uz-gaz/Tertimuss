@@ -26,12 +26,11 @@ from main.core.schedulers_definition.implementations.RUN import RUNScheduler
 from main.core.schedulers_definition.templates.AbstractScheduler import AbstractScheduler
 from main.plot_generator.implementations.ContextSwitchStatistics import ContextSwitchStatistics
 from main.plot_generator.implementations.ExecutionPercentageStatistics import ExecutionPercentageStatistics
-from main.plot_generator.implementations.UtilizationDrawer import UtilizationDrawer
 
 
 class RUNJDEDSComparisionTest(unittest.TestCase):
     def test_comparision(self):
-        for i in range(10):
+        for i in range(40):
             name = "test_" + str(i)
             print(name)
             self.rec_comparision(name, 2)
@@ -59,12 +58,10 @@ class RUNJDEDSComparisionTest(unittest.TestCase):
             )
 
             for i in range(len(x)):
-                multiplier = randrange(1, 8)
+                multiplier = randrange(1, 9)
                 x[i].d = x[i].d * multiplier
                 x[i].t = x[i].t * multiplier
                 x[i].c = x[i].c * multiplier * 10
-
-            # x = [PeriodicTask(i.c * randrange(1, 10), i.t, i.d, i.e) for i in x]
 
             tasks_definition_dict = []
 
@@ -85,13 +82,9 @@ class RUNJDEDSComparisionTest(unittest.TestCase):
                 x.append(PeriodicTask(i["worst_case_execution_time"], i["period"], i["period"], 0))
 
         schedulers = [
-            # (GlobalJDEDSScheduler(), "jdeds"),
             (RUNScheduler(), "run"),
+            (GlobalJDEDSScheduler(), "jdeds"),
         ]
-
-        # schedulers = [
-        #     (RUNScheduler(), "run"),
-        # ]
 
         for scheduler_actual in schedulers:
             try:
@@ -102,6 +95,7 @@ class RUNJDEDSComparisionTest(unittest.TestCase):
 
                 if self._have_miss_deadline(global_specification, result):
                     print("Deadline perdido")
+                    break
                 else:
                     ExecutionPercentageStatistics.plot(global_specification, result,
                                                        {
@@ -114,12 +108,10 @@ class RUNJDEDSComparisionTest(unittest.TestCase):
                                                                   + result_save_path + "_context_switch_statics.json"
                                                  })
 
-                    UtilizationDrawer.plot(global_specification, result,
-                                           {"save_path": save_path + simulation_name
-                                                         + result_save_path + "_cpu_utilization.png"})
             except Exception as e:
                 print("Fail for " + scheduler_actual[1])
                 print(e.args)
+                break
 
     @staticmethod
     def _have_miss_deadline(global_specification: GlobalSpecification, scheduler_result: SchedulingResult) -> bool:
