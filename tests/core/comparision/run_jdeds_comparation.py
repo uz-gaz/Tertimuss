@@ -1,3 +1,4 @@
+import csv
 import json
 import unittest
 from random import randrange
@@ -29,8 +30,47 @@ from main.plot_generator.implementations.ExecutionPercentageStatistics import Ex
 
 
 class RUNJDEDSComparisionTest(unittest.TestCase):
+    def test_create_csv_from_comparision(self):
+        results_to_print = []
+        for i in range(10):
+            name = "test_" + str(i)
+            print(name)
+            try:
+                save_path = "out/experimentation/"
+                simulation_name = name + "_"
+                with open(save_path + simulation_name + "run_context_switch_statics.json", "r") as read_file:
+                    decoded_json = json.load(read_file)
+                    total_context_switch_number_run = decoded_json["statics"]["total_context_switch_number"]
+                    scheduler_produced_context_switch_number_run = decoded_json["statics"][
+                        "scheduler_produced_context_switch_number"]
+                    mandatory_context_switch_number_run = decoded_json["statics"]["mandatory_context_switch_number"]
+                    migrations_number_run = decoded_json["statics"]["migrations_number"]
+
+                with open(save_path + simulation_name + "jdeds_context_switch_statics.json", "r") as read_file:
+                    decoded_json = json.load(read_file)
+                    total_context_switch_number_jdeds = decoded_json["statics"]["total_context_switch_number"]
+                    scheduler_produced_context_switch_number_jdeds = decoded_json["statics"][
+                        "scheduler_produced_context_switch_number"]
+                    mandatory_context_switch_number_jdeds = decoded_json["statics"]["mandatory_context_switch_number"]
+                    migrations_number_jdeds = decoded_json["statics"]["migrations_number"]
+
+                results_to_print.append([name, total_context_switch_number_jdeds,
+                                         scheduler_produced_context_switch_number_jdeds,
+                                         mandatory_context_switch_number_jdeds, migrations_number_jdeds,
+                                         total_context_switch_number_run, scheduler_produced_context_switch_number_run,
+                                         mandatory_context_switch_number_run, migrations_number_run
+                                         ])
+            except Exception as e:
+                print("Ha fallado")
+                pass
+
+        with open('out/experimentation/results.csv', 'w+', newline='') as file:
+            for j in results_to_print:
+                writer = csv.writer(file)
+                writer.writerow(j)
+
     def test_comparision(self):
-        for i in range(40):
+        for i in range(10):
             name = "test_" + str(i)
             print(name)
             self.rec_comparision(name, 2)
