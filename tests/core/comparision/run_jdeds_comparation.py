@@ -64,7 +64,7 @@ class RUNJDEDSComparisionTest(unittest.TestCase):
                 print("Ha fallado")
                 pass
 
-        with open('out/experimentation/results.csv', 'w+', newline='') as file:
+        with open('out/experimentation/results.csv', 'w', newline='') as file:
             for j in results_to_print:
                 writer = csv.writer(file)
                 writer.writerow(j)
