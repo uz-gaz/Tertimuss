@@ -1,6 +1,6 @@
 from typing import List
 
-import scipy
+import numpy as np
 
 from main.core.problem_specification.tasks_specification.AperiodicTask import AperiodicTask
 from main.core.problem_specification.tasks_specification.PeriodicTask import PeriodicTask
@@ -22,5 +22,5 @@ class TasksSpecification(object):
         # minimize the error in integer conversion
         float_corrector = 2 ** 16
 
-        self.h = scipy.lcm.reduce(
+        self.h = np.lcm.reduce(
              list(map(lambda a: int(a.t * float_corrector), self.periodic_tasks))) / float_corrector  # Hyper period
