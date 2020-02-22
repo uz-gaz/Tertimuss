@@ -5,6 +5,7 @@ from typing import List, Optional
 import numpy
 import scipy.sparse
 import scipy.sparse.linalg
+import scipy.linalg
 
 from main.core.problem_specification.GlobalSpecification import GlobalSpecification
 from main.core.problem_specification.tasks_specification.TasksSpecification import TasksSpecification
@@ -158,7 +159,7 @@ class OLDTFSScheduler(AbstractScheduler):
 
         a_eq = numpy.tile(numpy.eye(n), m)
 
-        au = numpy.block_diag(
+        au = scipy.linalg.block_diag(
             *(m * [[i.c / global_specification.cpu_specification.cores_specification.available_frequencies[-1] for i in
                     global_specification.tasks_specification.periodic_tasks]])) / h
 

@@ -72,7 +72,7 @@ class AIECSScheduler(AbstractScheduler):
 
         # Restrictions
         # - Cpu utilization
-        aeq_1 = numpy.block_diag(*((number_of_interval - 1) * [numpy.ones(n)]))
+        aeq_1 = scipy.linalg.block_diag(*((number_of_interval - 1) * [numpy.ones(n)]))
         beq_1 = numpy.asarray([j * m for j in isd]).reshape((-1, 1))
 
         aeq_2 = numpy.zeros((v, v))
