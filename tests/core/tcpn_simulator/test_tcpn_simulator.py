@@ -1,6 +1,6 @@
 import unittest
 
-import scipy
+import numpy
 
 from main.core.problem_specification.GlobalSpecification import GlobalSpecification
 from main.core.problem_specification.cpu_specification.BoardSpecification import BoardSpecification
@@ -28,23 +28,23 @@ from main.core.tcpn_simulator.implementation.second_semantic.TcpnSimulatorAccura
 class TestPetriNets(unittest.TestCase):
 
     def test_petri_net_advance_conf_1(self):
-        pre = scipy.asarray([
+        pre = numpy.asarray([
             [1, 0, 0],
             [0, 1, 0],
             [0, 0, 1],
             [0, 0, 1]
         ])
 
-        post = scipy.asarray([
+        post = numpy.asarray([
             [0, 0, 1],
             [1, 0, 0],
             [0, 1, 0],
             [0, 1, 0]
         ])
 
-        lambda_vector = scipy.asarray([1, 1, 1])
+        lambda_vector = numpy.asarray([1, 1, 1])
 
-        mo = scipy.asarray([1, 0, 0, 0]).reshape((-1, 1))
+        mo = numpy.asarray([1, 0, 0, 0]).reshape((-1, 1))
 
         tcpn_simulator: AbstractTcpnSimulator = TcpnSimulatorAccurate(pre, post, None, lambda_vector, 1)
 
@@ -52,10 +52,10 @@ class TestPetriNets(unittest.TestCase):
             mo_next = tcpn_simulator.simulate_step(mo)
             mo = mo_next
 
-        assert (scipy.array_equal(mo.reshape(-1), [1, 0, 0, 0]))
+        assert (numpy.array_equal(mo.reshape(-1), [1, 0, 0, 0]))
 
     def test_petri_net_advance_conf_2(self):
-        pre = scipy.asarray([
+        pre = numpy.asarray([
             [1, 0, 0, 0],
             [0, 1, 0, 0],
             [0, 0, 0, 0],
@@ -65,7 +65,7 @@ class TestPetriNets(unittest.TestCase):
             [0, 0, 0, 0]
         ])
 
-        post = scipy.asarray([
+        post = numpy.asarray([
             [0, 0, 0, 0],
             [1, 0, 0, 0],
             [0, 1, 0, 0],
@@ -75,15 +75,15 @@ class TestPetriNets(unittest.TestCase):
             [0, 0, 0, 1]
         ])
 
-        lambda_vector = scipy.asarray([1, 1, 1, 1])
+        lambda_vector = numpy.asarray([1, 1, 1, 1])
 
-        mo = scipy.asarray([3, 0, 0, 1, 3, 0, 0]).reshape((-1, 1))
+        mo = numpy.asarray([3, 0, 0, 1, 3, 0, 0]).reshape((-1, 1))
 
         tcpn_simulator: AbstractTcpnSimulator = TcpnSimulatorAccurateOptimized(pre, post, lambda_vector, 1)
 
         for i in range(3):
             # 2 transitions for 1
-            control = scipy.asarray([1, 1, 0, 1])
+            control = numpy.asarray([1, 1, 0, 1])
             tcpn_simulator.set_control(control)
             mo_next = tcpn_simulator.simulate_step(mo)
             mo = mo_next
@@ -92,7 +92,7 @@ class TestPetriNets(unittest.TestCase):
             mo = mo_next
 
             # 2 transitions for 3
-            control = scipy.asarray([0, 1, 1, 1])
+            control = numpy.asarray([0, 1, 1, 1])
             tcpn_simulator.set_control(control)
             mo_next = tcpn_simulator.simulate_step(mo)
             mo = mo_next
@@ -100,12 +100,12 @@ class TestPetriNets(unittest.TestCase):
             mo_next = tcpn_simulator.simulate_step(mo)
             mo = mo_next
 
-        assert (scipy.array_equal(mo.reshape(-1), [0, 0, 3, 1, 0, 0, 3]))
+        assert (numpy.array_equal(mo.reshape(-1), [0, 0, 3, 1, 0, 0, 3]))
 
     def test_petri_net_advance_conf_3(self):
         eta = 100
 
-        pre = scipy.asarray([
+        pre = numpy.asarray([
             [1, 0, 0, 0],
             [0, 1, 0, 0],
             [0, 0, 0, 0],
@@ -115,7 +115,7 @@ class TestPetriNets(unittest.TestCase):
             [0, 0, 0, 0]
         ])
 
-        post = scipy.asarray([
+        post = numpy.asarray([
             [0, 0, 0, 0],
             [1, 0, 0, 0],
             [0, 1, 0, 0],
@@ -125,15 +125,15 @@ class TestPetriNets(unittest.TestCase):
             [0, 0, 0, 1]
         ])
 
-        lambda_vector = scipy.asarray([eta, 1, eta, 1])
+        lambda_vector = numpy.asarray([eta, 1, eta, 1])
 
-        mo = scipy.asarray([3, 0, 0, 1, 3, 0, 0]).reshape((-1, 1))
+        mo = numpy.asarray([3, 0, 0, 1, 3, 0, 0]).reshape((-1, 1))
 
         tcpn_simulator: AbstractTcpnSimulator = TcpnSimulatorAccurateOptimized(pre, post, lambda_vector, 1)
 
         for i in range(3):
             # 2 transitions for 1
-            control = scipy.asarray([1, 1, 0, 1])
+            control = numpy.asarray([1, 1, 0, 1])
             tcpn_simulator.set_control(control)
             mo_next = tcpn_simulator.simulate_step(mo)
             mo = mo_next
@@ -142,7 +142,7 @@ class TestPetriNets(unittest.TestCase):
             mo = mo_next
 
             # 2 transitions for 3
-            control = scipy.asarray([0, 1, 1, 1])
+            control = numpy.asarray([0, 1, 1, 1])
             tcpn_simulator.set_control(control)
             mo_next = tcpn_simulator.simulate_step(mo)
             mo = mo_next
@@ -209,15 +209,15 @@ class TestPetriNets(unittest.TestCase):
 
         mo_tcpn = []
 
-        control_task_proc = scipy.ones(len(global_model.lambda_vector_proc_tau))
+        control_task_proc = numpy.ones(len(global_model.lambda_vector_proc_tau))
         m = len(core_specification.operating_frequencies)
         n = len(tasks_specification.periodic_tasks)
 
         for w_alloc in control:
             # Create new control vector
-            new_control_processor = scipy.copy(control_task_proc)
+            new_control_processor = numpy.copy(control_task_proc)
             # Control over t_alloc
-            new_control_processor[n:n + n * m] = scipy.asarray(w_alloc)
+            new_control_processor[n:n + n * m] = numpy.asarray(w_alloc)
             # Control over t_exec
             new_control_processor[-n * m:] = 1
 
@@ -226,7 +226,7 @@ class TestPetriNets(unittest.TestCase):
             mo = mo_next
             mo_tcpn.append(mo)
 
-        result = scipy.concatenate(mo_tcpn, axis=1)
+        result = numpy.concatenate(mo_tcpn, axis=1)
 
     def test_petri_net_task_processor_one_cpu_one_task(self):
         tasks = [PeriodicTask(2000, 4, 4, 6.4)]
@@ -284,15 +284,15 @@ class TestPetriNets(unittest.TestCase):
 
         mo_tcpn = []
 
-        control_task_proc = scipy.ones(len(global_model.lambda_vector_proc_tau))
+        control_task_proc = numpy.ones(len(global_model.lambda_vector_proc_tau))
         m = len(core_specification.operating_frequencies)
         n = len(tasks_specification.periodic_tasks)
 
         for w_alloc in control:
             # Create new control vector
-            new_control_processor = scipy.copy(control_task_proc)
+            new_control_processor = numpy.copy(control_task_proc)
             # Control over t_alloc
-            new_control_processor[n:n + n * m] = scipy.asarray(w_alloc)
+            new_control_processor[n:n + n * m] = numpy.asarray(w_alloc)
             # Control over t_exec
             new_control_processor[-n * m:] = 1
 
@@ -301,7 +301,7 @@ class TestPetriNets(unittest.TestCase):
             mo = mo_next
             mo_tcpn.append(mo)
 
-        result = scipy.concatenate(mo_tcpn, axis=1)
+        result = numpy.concatenate(mo_tcpn, axis=1)
 
 
 if __name__ == '__main__':

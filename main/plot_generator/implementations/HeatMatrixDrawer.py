@@ -1,6 +1,6 @@
 from typing import Optional, Dict
 
-import scipy
+import numpy
 import matplotlib.pyplot as plt
 from matplotlib import animation
 
@@ -40,15 +40,15 @@ class HeatMatrixDrawer(AbstractResultDrawer):
         """
         temp = scheduler_result.temperature_map
 
-        temp = scipy.transpose(temp)
+        temp = numpy.transpose(temp)
 
         heat_map = []
         for actual_temp in temp:
             heat_map.append(cls.__get_heat_matrix(actual_temp, global_specification, show_board, show_cores))
 
         # Plot heat map
-        min_temp = min(map(lambda x: scipy.amin(x), heat_map)) - 0.5
-        max_temp = max(map(lambda x: scipy.amax(x), heat_map)) + 0.5
+        min_temp = min(map(lambda x: numpy.amin(x), heat_map)) - 0.5
+        max_temp = max(map(lambda x: numpy.amax(x), heat_map)) + 0.5
 
         fig, ax = plt.subplots()
         quad = ax.pcolormesh(heat_map[0], vmin=min_temp, vmax=max_temp)
@@ -73,7 +73,7 @@ class HeatMatrixDrawer(AbstractResultDrawer):
 
     @staticmethod
     def __get_heat_matrix(temp, global_specification: GlobalSpecification, show_board: Optional[bool],
-                          show_cores: Optional[bool]) -> scipy.ndarray:
+                          show_cores: Optional[bool]) -> numpy.ndarray:
         m = len(global_specification.cpu_specification.cores_specification.operating_frequencies)
 
         mx = round(
@@ -90,13 +90,13 @@ class HeatMatrixDrawer(AbstractResultDrawer):
             global_specification.cpu_specification.board_specification.physical_properties.y /
             global_specification.simulation_specification.mesh_step)
 
-        board_mat = scipy.asarray(
-            [temp[y * i:y * (i + 1)] if i % 2 == 0 else scipy.flip(temp[y * i:y * (i + 1)]) for i in
+        board_mat = numpy.asarray(
+            [temp[y * i:y * (i + 1)] if i % 2 == 0 else numpy.flip(temp[y * i:y * (i + 1)]) for i in
              range(x)]) if show_board \
-            else scipy.full((x, y), global_specification.environment_specification.t_env)
+            else numpy.full((x, y), global_specification.environment_specification.t_env)
 
         if show_cores:
-            cpus_mat = scipy.zeros((mx * m, my))
+            cpus_mat = numpy.zeros((mx * m, my))
             s = x * y
             for i in range(mx * m):
                 cpus_mat[i, :] = temp[s + my * i:s + my * (i + 1)]

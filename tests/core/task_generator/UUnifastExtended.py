@@ -1,6 +1,6 @@
 import unittest
 
-import scipy
+import numpy
 
 from main.core.problem_specification.automatic_task_generator.implementations.UUniFastExtended import UUniFastExtended
 
@@ -19,7 +19,7 @@ class UUnifastExtendedTest(unittest.TestCase):
             }
         )
 
-        assert (scipy.isclose(sum([i.c / i.t for i in x]), 6000))
+        assert (numpy.isclose(sum([i.c / i.t for i in x]), 6000))
         assert (len([0 for i in x if i.c == 0]) == 0)
 
 

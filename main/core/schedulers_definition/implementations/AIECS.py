@@ -1,7 +1,9 @@
 import math
 from typing import List, Optional
 
-import scipy
+import numpy
+import scipy.optimize
+import scipy.linalg
 
 from main.core.problem_specification.GlobalSpecification import GlobalSpecification
 from main.core.schedulers_definition.templates.AbstractScheduler import AbstractScheduler
@@ -9,13 +11,10 @@ from main.core.execution_simulator.system_simulator.SystemAperiodicTask import S
 from main.core.execution_simulator.system_simulator.SystemPeriodicTask import SystemPeriodicTask
 from main.core.execution_simulator.system_simulator.SystemTask import SystemTask
 
-import scipy.optimize
-import scipy.linalg
 
-
-class GlobalJDEDSScheduler(AbstractScheduler):
+class AIECSScheduler(AbstractScheduler):
     """
-    Implements the JDEDS scheduler
+    Implements the AIECS scheduler
     """
 
     def __init__(self) -> None:
@@ -35,7 +34,7 @@ class GlobalJDEDSScheduler(AbstractScheduler):
         self.__intervals_frequencies = None
 
     @staticmethod
-    def ilpp_dp(ci: List[int], ti: List[int], n: int, m: int) -> [scipy.ndarray, scipy.ndarray]:
+    def ilpp_dp(ci: List[int], ti: List[int], n: int, m: int) -> [numpy.ndarray, numpy.ndarray]:
         """
         Solves the linear programing problem
         :param ci: execution cycles of each task
@@ -45,41 +44,41 @@ class GlobalJDEDSScheduler(AbstractScheduler):
         :return: 1 -> tasks execution each interval
                  2 -> intervals
         """
-        hyperperiod = scipy.lcm.reduce(ti)
+        hyperperiod = numpy.lcm.reduce(ti)
 
         jobs = list(map(lambda task: int(hyperperiod / task), ti))
 
         t_star = list(map(lambda task: task[1] - task[0], zip(ci, ti)))
 
-        d = scipy.zeros((n, max(jobs)))
+        d = numpy.zeros((n, max(jobs)))
 
         for i in range(n):
-            d[i, :jobs[i]] = (scipy.arange(ti[i], hyperperiod, ti[i]).tolist() + [hyperperiod])
+            d[i, :jobs[i]] = (numpy.arange(ti[i], hyperperiod, ti[i]).tolist() + [hyperperiod])
 
         sd = d[0, 0:jobs[0]]
 
         for i in range(1, n):
-            sd = scipy.union1d(sd, d[i, 0:jobs[i]])
+            sd = numpy.union1d(sd, d[i, 0:jobs[i]])
 
-        sd = scipy.union1d(sd, [0])
+        sd = numpy.union1d(sd, [0])
 
         number_of_interval = len(sd)
 
         # Intervals length
-        isd = scipy.asarray([sd[j + 1] - sd[j] for j in range(number_of_interval - 1)])
+        isd = numpy.asarray([sd[j + 1] - sd[j] for j in range(number_of_interval - 1)])
 
         # Number of variables
         v = n * (number_of_interval - 1)
 
         # Restrictions
         # - Cpu utilization
-        aeq_1 = scipy.linalg.block_diag(*((number_of_interval - 1) * [scipy.ones(n)]))
-        beq_1 = scipy.asarray([j * m for j in isd]).reshape((-1, 1))
+        aeq_1 = numpy.block_diag(*((number_of_interval - 1) * [numpy.ones(n)]))
+        beq_1 = numpy.asarray([j * m for j in isd]).reshape((-1, 1))
 
-        aeq_2 = scipy.zeros((v, v))
-        a_1 = scipy.zeros((v, v))
-        beq_2 = scipy.zeros((v, 1))
-        b_1 = scipy.zeros((v, 1))
+        aeq_2 = numpy.zeros((v, v))
+        a_1 = numpy.zeros((v, v))
+        beq_2 = numpy.zeros((v, 1))
+        b_1 = numpy.zeros((v, 1))
 
         # - Temporal
         f1 = 0
@@ -106,8 +105,8 @@ class GlobalJDEDSScheduler(AbstractScheduler):
                     f2 = f2 + 1
 
         def select_non_zero_rows(array_to_filter):
-            return scipy.concatenate(list(map(lambda filtered_row: filtered_row.reshape(1, -1), (
-                filter(lambda actual_row: scipy.count_nonzero(actual_row) != 0, array_to_filter)))), axis=0)
+            return numpy.concatenate(list(map(lambda filtered_row: filtered_row.reshape(1, -1), (
+                filter(lambda actual_row: numpy.count_nonzero(actual_row) != 0, array_to_filter)))), axis=0)
 
         aeq_2 = select_non_zero_rows(aeq_2)
         a_1 = select_non_zero_rows(a_1)
@@ -115,20 +114,20 @@ class GlobalJDEDSScheduler(AbstractScheduler):
         b_1 = b_1[0:len(a_1), :]
 
         # Maximum utilization
-        a_2 = scipy.identity(v)
-        b_2 = scipy.zeros((v, 1))
+        a_2 = numpy.identity(v)
+        b_2 = numpy.zeros((v, 1))
         f1 = 0
         for j in range(number_of_interval - 1):
             b_2[f1:f1 + n, 0] = isd[j]
             f1 = f1 + n
 
-        a_eq = scipy.concatenate([aeq_1, aeq_2])
-        b_eq = scipy.concatenate([beq_1, beq_2])
+        a_eq = numpy.concatenate([aeq_1, aeq_2])
+        b_eq = numpy.concatenate([beq_1, beq_2])
 
-        a = scipy.concatenate([a_1, a_2])
-        b = scipy.concatenate([b_1, b_2])
+        a = numpy.concatenate([a_1, a_2])
+        b = numpy.concatenate([b_1, b_2])
 
-        f = scipy.full((v, 1), -1)
+        f = numpy.full((v, 1), -1)
 
         # WARNING: "Presolve = False" is a workaround to deal with an issue on the scipy.optimize.linprog library
         res = scipy.optimize.linprog(c=f, A_ub=a, b_ub=b, A_eq=a_eq,
@@ -141,7 +140,7 @@ class GlobalJDEDSScheduler(AbstractScheduler):
 
         # Partitioning
         i = 0
-        s = scipy.zeros((n, number_of_interval - 1))
+        s = numpy.zeros((n, number_of_interval - 1))
         for k in range(number_of_interval - 1):
             s[0:n, k] = x[i:i + n]
             i = i + n
@@ -270,7 +269,7 @@ class GlobalJDEDSScheduler(AbstractScheduler):
         return self.__dt
 
     def aperiodic_arrive(self, time: float, aperiodic_tasks_arrived: List[SystemTask],
-                         actual_cores_frequency: List[int], cores_max_temperature: Optional[scipy.ndarray]) -> bool:
+                         actual_cores_frequency: List[int], cores_max_temperature: Optional[numpy.ndarray]) -> bool:
         """
         Method to implement with the actual on aperiodic arrive scheduler police
         :param actual_cores_frequency: Frequencies of cores
@@ -282,7 +281,7 @@ class GlobalJDEDSScheduler(AbstractScheduler):
         for actual_task in aperiodic_tasks_arrived:
             # x in cycles
             x = self.__execution_by_intervals
-            cc = scipy.asarray([i[0] for i in self.__interval_cc_left])
+            cc = numpy.asarray([i[0] for i in self.__interval_cc_left])
 
             # Remaining time for aperiodic in the actual interval for each frequency
             remaining_actual = [self.__m * (self.__intervals_end[self.__actual_interval_index] - time) - sum(cc / i) for
@@ -346,12 +345,12 @@ class GlobalJDEDSScheduler(AbstractScheduler):
                 times_to_execute_cc[intervals_needed - 1] = times_to_execute_cc[
                                                                 intervals_needed - 1] + remaining_auxiliary
 
-                new_x_row = scipy.zeros((1, len(self.__intervals_end)))
+                new_x_row = numpy.zeros((1, len(self.__intervals_end)))
                 new_x_row[0,
                 self.__actual_interval_index: self.__actual_interval_index + intervals_needed] = times_to_execute_cc[
                                                                                                  :intervals_needed]
 
-                self.__execution_by_intervals = scipy.concatenate([self.__execution_by_intervals, new_x_row], axis=0)
+                self.__execution_by_intervals = numpy.concatenate([self.__execution_by_intervals, new_x_row], axis=0)
 
                 self.__interval_cc_left = self.__interval_cc_left + [
                     (self.__execution_by_intervals[-1, self.__actual_interval_index], actual_task.id)]
@@ -433,7 +432,7 @@ class GlobalJDEDSScheduler(AbstractScheduler):
         return tasks_to_execute[:self.__m]
 
     def schedule_policy(self, time: float, executable_tasks: List[SystemTask], active_tasks: List[int],
-                        actual_cores_frequency: List[int], cores_max_temperature: Optional[scipy.ndarray]) -> \
+                        actual_cores_frequency: List[int], cores_max_temperature: Optional[numpy.ndarray]) -> \
             [List[int], Optional[float], Optional[List[int]]]:
         """
         Method to implement with the actual scheduler police

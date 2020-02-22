@@ -1,6 +1,6 @@
 from enum import Enum
 
-import scipy
+import numpy
 
 
 class SimulationPrecision(Enum):
@@ -9,5 +9,5 @@ class SimulationPrecision(Enum):
 
     Higher precision implies more resources consumption and more simulation time
     """
-    HIGH_PRECISION = scipy.float64,
-    MIDDLE_PRECISION = scipy.float32
+    HIGH_PRECISION = numpy.float64,
+    MIDDLE_PRECISION = numpy.float32

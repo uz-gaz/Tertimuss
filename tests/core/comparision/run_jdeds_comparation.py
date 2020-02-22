@@ -4,7 +4,7 @@ import unittest
 from random import randrange
 from typing import List
 
-import scipy
+import numpy
 
 from main.core.execution_simulator.system_modeling.GlobalModel import GlobalModel
 from main.core.execution_simulator.system_modeling.ThermalModelSelector import ThermalModelSelector
@@ -22,7 +22,7 @@ from main.core.problem_specification.simulation_specification.SimulationSpecific
 from main.core.problem_specification.simulation_specification.TCPNModelSpecification import TCPNModelSpecification
 from main.core.problem_specification.tasks_specification.PeriodicTask import PeriodicTask
 from main.core.problem_specification.tasks_specification.TasksSpecification import TasksSpecification
-from main.core.schedulers_definition.implementations.JDEDS import GlobalJDEDSScheduler
+from main.core.schedulers_definition.implementations.AIECS import AIECSScheduler
 from main.core.schedulers_definition.implementations.RUN import RUNScheduler
 from main.core.schedulers_definition.templates.AbstractScheduler import AbstractScheduler
 from main.plot_generator.implementations.ContextSwitchStatistics import ContextSwitchStatistics
@@ -123,7 +123,7 @@ class RUNJDEDSComparisionTest(unittest.TestCase):
 
         schedulers = [
             (RUNScheduler(), "run"),
-            (GlobalJDEDSScheduler(), "jdeds"),
+            (AIECSScheduler(), "jdeds"),
         ]
 
         for scheduler_actual in schedulers:
@@ -169,8 +169,8 @@ class RUNJDEDSComparisionTest(unittest.TestCase):
         n_periodic = len(global_specification.tasks_specification.periodic_tasks)
         n_aperiodic = len(global_specification.tasks_specification.aperiodic_tasks)
 
-        frequencies_disc_f = scipy.concatenate(
-            [scipy.repeat(i.reshape(1, -1), n_periodic + n_aperiodic, axis=0) for i in frequencies],
+        frequencies_disc_f = numpy.concatenate(
+            [numpy.repeat(i.reshape(1, -1), n_periodic + n_aperiodic, axis=0) for i in frequencies],
             axis=0)
 
         i_tau_disc = i_tau_disc * frequencies_disc_f
@@ -195,7 +195,7 @@ class RUNJDEDSComparisionTest(unittest.TestCase):
         di_a_dt = [int(round(i.d / global_specification.simulation_specification.dt)) for i in
                    global_specification.tasks_specification.aperiodic_tasks]
 
-        i_tau_disc_accond = scipy.zeros((n_periodic + n_aperiodic, len(i_tau_disc[0])))
+        i_tau_disc_accond = numpy.zeros((n_periodic + n_aperiodic, len(i_tau_disc[0])))
 
         for i in range(m):
             i_tau_disc_accond = i_tau_disc_accond + i_tau_disc[

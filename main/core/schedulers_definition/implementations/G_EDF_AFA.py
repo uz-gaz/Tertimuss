@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-import scipy
+import numpy
 
 from main.core.problem_specification.GlobalSpecification import GlobalSpecification
 from main.core.schedulers_definition.templates.AbstractScheduler import AbstractScheduler
@@ -33,7 +33,7 @@ class GlobalEDFAffinityFrequencyAwareScheduler(AbstractScheduler):
         return super().offline_stage(global_specification, periodic_tasks, aperiodic_tasks)
 
     def aperiodic_arrive(self, time: float, aperiodic_tasks_arrived: List[SystemTask],
-                         actual_cores_frequency: List[int], cores_max_temperature: Optional[scipy.ndarray]) -> bool:
+                         actual_cores_frequency: List[int], cores_max_temperature: Optional[numpy.ndarray]) -> bool:
         """
         Method to implement with the actual on aperiodic arrive scheduler police
         :param actual_cores_frequency: Frequencies of cores
@@ -46,7 +46,7 @@ class GlobalEDFAffinityFrequencyAwareScheduler(AbstractScheduler):
         return False
 
     def schedule_policy(self, time: float, executable_tasks: List[SystemTask], active_tasks: List[int],
-                        actual_cores_frequency: List[int], cores_max_temperature: Optional[scipy.ndarray]) -> \
+                        actual_cores_frequency: List[int], cores_max_temperature: Optional[numpy.ndarray]) -> \
             [List[int], Optional[float], Optional[List[int]]]:
         """
         Method to implement with the actual scheduler police
@@ -61,7 +61,7 @@ class GlobalEDFAffinityFrequencyAwareScheduler(AbstractScheduler):
                   in the problem specification)
         """
         alive_tasks = [x for x in executable_tasks if x.next_arrival <= time]
-        task_order = scipy.argsort(list(map(lambda x: x.next_deadline, alive_tasks)))
+        task_order = numpy.argsort(list(map(lambda x: x.next_deadline, alive_tasks)))
         tasks_to_execute = ([alive_tasks[i].id for i in task_order] + (self.__m - len(alive_tasks)) * [-1])[0:self.__m]
 
         # Assign highest priority task to faster processor

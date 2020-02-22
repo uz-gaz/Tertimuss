@@ -1,6 +1,6 @@
 from typing import Optional
 
-import scipy
+import numpy
 
 from main.core.tcpn_simulator.template.AbstractTcpnSimulator import AbstractTcpnSimulator
 
@@ -12,8 +12,8 @@ class TcpnSimulatorAccurate(AbstractTcpnSimulator):
     simulation change
     """
 
-    def __init__(self, pre: scipy.ndarray, post: scipy.ndarray, pi: Optional[scipy.ndarray],
-                 lambda_vector: scipy.ndarray, step: float):
+    def __init__(self, pre: numpy.ndarray, post: numpy.ndarray, pi: Optional[numpy.ndarray],
+                 lambda_vector: numpy.ndarray, step: float):
         """
         Define the Petri net
         :param pre: pre
@@ -23,13 +23,13 @@ class TcpnSimulatorAccurate(AbstractTcpnSimulator):
         self.__pre = pre
         self.__post = post
         self.__lambda_vector = lambda_vector
-        self.__control = scipy.ones(len(lambda_vector))
+        self.__control = numpy.ones(len(lambda_vector))
         self.__pi = pi
         self.__c = self.__post - self.__pre
         self.__step = step
         self.__calculate_constant_values()
 
-    def set_pre(self, pre: scipy.ndarray):
+    def set_pre(self, pre: numpy.ndarray):
         """
         Change pre value
         :param pre: pre
@@ -37,7 +37,7 @@ class TcpnSimulatorAccurate(AbstractTcpnSimulator):
         self.__pre = pre
         self.__c = self.__post - self.__pre
 
-    def set_post(self, post: scipy.ndarray):
+    def set_post(self, post: numpy.ndarray):
         """
         Change post value
         :param post: post
@@ -45,7 +45,7 @@ class TcpnSimulatorAccurate(AbstractTcpnSimulator):
         self.__post = post
         self.__c = self.__post - self.__pre
 
-    def set_lambda(self, lambda_vector: scipy.ndarray):
+    def set_lambda(self, lambda_vector: numpy.ndarray):
         """
         Change lambda value
         :param lambda_vector: lambda
@@ -53,7 +53,7 @@ class TcpnSimulatorAccurate(AbstractTcpnSimulator):
         self.__lambda_vector = lambda_vector
         self.__calculate_constant_values()
 
-    def set_control(self, control: scipy.ndarray):
+    def set_control(self, control: numpy.ndarray):
         """
         Apply a control action over transitions firing in the Petri net
         :param control: control
@@ -61,7 +61,7 @@ class TcpnSimulatorAccurate(AbstractTcpnSimulator):
         self.__control = control
         self.__calculate_constant_values()
 
-    def set_pi(self, pi: scipy.ndarray):
+    def set_pi(self, pi: numpy.ndarray):
         """
         Set the PI
         :param pi: pi
@@ -76,21 +76,21 @@ class TcpnSimulatorAccurate(AbstractTcpnSimulator):
         self.__step = step
         self.__calculate_constant_values()
 
-    def calculate_and_set_pi(self, mo: scipy.ndarray):
+    def calculate_and_set_pi(self, mo: numpy.ndarray):
         """
         Calculate the Pi for the actual marking and set it
         :param mo: mo
         """
         self.__pi = self.__calculate_pi(mo)
 
-    def __calculate_pi(self, mo: scipy.ndarray):
+    def __calculate_pi(self, mo: numpy.ndarray):
         """
         Calculate pi
         :param mo: actual marking
         :return: pi
         """
         pre_transpose = self.__pre.transpose()
-        pi = scipy.zeros(pre_transpose.shape)
+        pi = numpy.zeros(pre_transpose.shape)
 
         for i in range(len(pre_transpose)):
             places = pre_transpose[i]
@@ -118,7 +118,7 @@ class TcpnSimulatorAccurate(AbstractTcpnSimulator):
         # Max number of activations for each transition (limited by the actual control, the lambda and the step)
         self.limitation_lambda = self.__lambda_vector * self.__control * self.__step
 
-    def simulate_step(self, mo: scipy.ndarray) -> scipy.ndarray:
+    def simulate_step(self, mo: numpy.ndarray) -> numpy.ndarray:
         """
         Simulate one step
 
@@ -131,7 +131,7 @@ class TcpnSimulatorAccurate(AbstractTcpnSimulator):
         limitation_marking = pi.dot(mo).reshape(-1)
 
         # Number of activations for each transition
-        flow = scipy.minimum(self.limitation_lambda, limitation_marking).reshape((-1, 1))
+        flow = numpy.minimum(self.limitation_lambda, limitation_marking).reshape((-1, 1))
 
         # Return the next marking
         return self.__c.dot(flow) + mo

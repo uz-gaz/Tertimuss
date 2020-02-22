@@ -2,11 +2,9 @@ import functools
 import operator
 from typing import List, Optional
 
-import scipy
+import numpy
 import scipy.sparse
 import scipy.sparse.linalg
-
-import scipy.optimize
 
 from main.core.problem_specification.GlobalSpecification import GlobalSpecification
 from main.core.problem_specification.tasks_specification.TasksSpecification import TasksSpecification
@@ -85,7 +83,7 @@ class OLDTFSScheduler(AbstractScheduler):
         del post_board_cond  # Recover memory space
         del post_micro_cond  # Recover memory space
 
-        lambda_vector_cond = scipy.concatenate(
+        lambda_vector_cond = numpy.concatenate(
             [lambda_board_cond] + m * [lambda_micro_cond])
         del lambda_board_cond  # Recover memory space
         del lambda_micro_cond  # Recover memory space
@@ -122,7 +120,7 @@ class OLDTFSScheduler(AbstractScheduler):
         post = scipy.sparse.hstack([post_cond, post_int])
 
         # Creation of lambda matrix
-        lambda_vector = scipy.concatenate([lambda_vector_cond, lambda_vector_int])
+        lambda_vector = numpy.concatenate([lambda_vector_cond, lambda_vector_int])
 
         # Creation of S_T
         s_t = scipy.sparse.lil_matrix((m, p_board + m * p_one_micro))
@@ -140,38 +138,38 @@ class OLDTFSScheduler(AbstractScheduler):
 
     @staticmethod
     def __solve_linear_programing_problem(global_specification: GlobalSpecification, is_thermal_simulation: bool) -> [
-        scipy.ndarray, scipy.ndarray, float, scipy.ndarray]:
+        numpy.ndarray, numpy.ndarray, float, numpy.ndarray]:
         """
         Solves the linear programing problem
         """
 
         h = global_specification.tasks_specification.h
-        ti = scipy.asarray([i.t for i in global_specification.tasks_specification.periodic_tasks])
+        ti = numpy.asarray([i.t for i in global_specification.tasks_specification.periodic_tasks])
         ia = h / ti
         n = len(global_specification.tasks_specification.periodic_tasks)
         m = len(global_specification.cpu_specification.cores_specification.operating_frequencies)
 
         # Inequality constraint
         # Create matrix diag([cc1/H ... ccn/H cc1/H .....]) of n*m
-        ch_vector = scipy.asarray(
+        ch_vector = numpy.asarray(
             m * [i.c / global_specification.cpu_specification.cores_specification.available_frequencies[-1] for i in
                  global_specification.tasks_specification.periodic_tasks]) / h
-        c_h = scipy.diag(ch_vector)
+        c_h = numpy.diag(ch_vector)
 
-        a_eq = scipy.tile(scipy.eye(n), m)
+        a_eq = numpy.tile(numpy.eye(n), m)
 
-        au = scipy.linalg.block_diag(
+        au = numpy.block_diag(
             *(m * [[i.c / global_specification.cpu_specification.cores_specification.available_frequencies[-1] for i in
                     global_specification.tasks_specification.periodic_tasks]])) / h
 
-        beq = scipy.transpose(ia)
-        bu = scipy.ones((m, 1))
+        beq = numpy.transpose(ia)
+        bu = numpy.ones((m, 1))
 
         # Variable bounds
         bounds = (n * m) * [(0, None)]
 
         # Objective function
-        objective = scipy.ones(n * m)
+        objective = numpy.ones(n * m)
 
         # Optimization
         if is_thermal_simulation:
@@ -188,13 +186,13 @@ class OLDTFSScheduler(AbstractScheduler):
             a_int = a_int.toarray()
 
             b_int = scipy.sparse.csr_matrix(
-                scipy.full((m, 1), global_specification.environment_specification.t_max)) + (s_t.dot(a_t_inv).dot(
+                numpy.full((m, 1), global_specification.environment_specification.t_max)) + (s_t.dot(a_t_inv).dot(
                 b_ta.reshape((-1, 1)))) * global_specification.environment_specification.t_env
 
             b_int = b_int.toarray()
 
-            a = scipy.concatenate((a_int, au))
-            b = scipy.concatenate((b_int.transpose(), bu.transpose()), axis=1)
+            a = numpy.concatenate((a_int, au))
+            b = numpy.concatenate((b_int.transpose(), bu.transpose()), axis=1)
         else:
             a = au
             b = bu
@@ -206,7 +204,7 @@ class OLDTFSScheduler(AbstractScheduler):
         res = None
         while lpp_method_index < len(methods_for_solving_the_lpp) and not lpp_solved:
             try:
-                res = scipy.optimize.linprog(c=objective, A_ub=a, b_ub=b, A_eq=a_eq, b_eq=beq, bounds=bounds,
+                res = numpy.optimize.linprog(c=objective, A_ub=a, b_ub=b, A_eq=a_eq, b_eq=beq, bounds=bounds,
                                              method=methods_for_solving_the_lpp[lpp_method_index])
 
                 if res.success:
@@ -229,8 +227,8 @@ class OLDTFSScheduler(AbstractScheduler):
         j_fsc_i = j_b_i * ch_vector
 
         # Quantum calc
-        sd = scipy.union1d(
-            functools.reduce(operator.add, [list(scipy.arange(ti[i], h + 1, ti[i])) for i in range(n)], []), 0)
+        sd = numpy.union1d(
+            functools.reduce(operator.add, [list(numpy.arange(ti[i], h + 1, ti[i])) for i in range(n)], []), 0)
 
         # Quantum precision
         # WARNING: This is a workaround to deal with float precision
@@ -242,7 +240,7 @@ class OLDTFSScheduler(AbstractScheduler):
                                          range(1, len(sd) - 1)])
         rounded_list = [int(i) for i in rounded_list]
 
-        quantum = scipy.gcd.reduce(rounded_list) / fraction_denominator
+        quantum = numpy.gcd.reduce(rounded_list) / fraction_denominator
 
         if quantum < global_specification.simulation_specification.dt:
             quantum = global_specification.simulation_specification.dt
@@ -278,8 +276,8 @@ class OLDTFSScheduler(AbstractScheduler):
     def __obtain_tasks_processors_tcpn_model(global_specification: GlobalSpecification) -> [scipy.sparse.csr_matrix,
                                                                                             scipy.sparse.csr_matrix,
                                                                                             scipy.sparse.csr_matrix,
-                                                                                            scipy.ndarray,
-                                                                                            scipy.ndarray]:
+                                                                                            numpy.ndarray,
+                                                                                            numpy.ndarray]:
         """
         Create a TCPN model for tasks and processors
         """
@@ -334,10 +332,10 @@ class OLDTFSScheduler(AbstractScheduler):
                 processor_model.pi_exec_proc])
         ]).transpose()
 
-        lambda_vector = scipy.block([tasks_model.lambda_vector_tau, processor_model.lambda_vector_alloc_proc,
+        lambda_vector = numpy.block([tasks_model.lambda_vector_tau, processor_model.lambda_vector_alloc_proc,
                                      processor_model.lambda_vector_exec_proc])
 
-        mo = scipy.block([[tasks_model.mo_tau], [processor_model.mo_proc]])
+        mo = numpy.block([[tasks_model.mo_tau], [processor_model.mo_proc]])
 
         return pre, post, pi, lambda_vector, mo
 
@@ -366,14 +364,14 @@ class OLDTFSScheduler(AbstractScheduler):
 
         jobs = [int(i) for i in global_specification.tasks_specification.h / ti]
 
-        d = scipy.zeros((n, scipy.amax(jobs)))
+        d = numpy.zeros((n, numpy.amax(jobs)))
 
         sd_u = []
         for i in range(n):
-            d[i, 0: jobs[i]] = list(scipy.arange(ti[i], global_specification.tasks_specification.h + 1, ti[i]))
-            sd_u = scipy.union1d(sd_u, d[i, 0: jobs[i]])
+            d[i, 0: jobs[i]] = list(numpy.arange(ti[i], global_specification.tasks_specification.h + 1, ti[i]))
+            sd_u = numpy.union1d(sd_u, d[i, 0: jobs[i]])
 
-        sd_u = scipy.union1d(sd_u, [0])
+        sd_u = numpy.union1d(sd_u, [0])
 
         # TCPN processor and tasks simulator that the scheduler needs to work
         tcpn_pre, tcpn_post, tcpn_pi, tcpn_lambda, tcpn_mo = self.__obtain_tasks_processors_tcpn_model(
@@ -391,7 +389,7 @@ class OLDTFSScheduler(AbstractScheduler):
         self.__set_of_deadlines = sd_u[1:]
 
         self.__j_fsc_i = j_fsc_i
-        self.__m_exec_accumulated = scipy.zeros(n * m)
+        self.__m_exec_accumulated = numpy.zeros(n * m)
         self.__quantum = quantum
 
         self.__tcpn_mo = tcpn_mo
@@ -404,7 +402,7 @@ class OLDTFSScheduler(AbstractScheduler):
         return quantum
 
     def aperiodic_arrive(self, time: float, aperiodic_tasks_arrived: List[SystemTask],
-                         actual_cores_frequency: List[float], cores_max_temperature: Optional[scipy.ndarray]) -> bool:
+                         actual_cores_frequency: List[float], cores_max_temperature: Optional[numpy.ndarray]) -> bool:
         """
         Method to implement with the actual on aperiodic arrive scheduler police
         :param actual_cores_frequency: Frequencies of cores
@@ -417,7 +415,7 @@ class OLDTFSScheduler(AbstractScheduler):
         return False
 
     def schedule_policy(self, time: float, executable_tasks: List[SystemTask], active_tasks: List[int],
-                        actual_cores_frequency: List[float], cores_max_temperature: Optional[scipy.ndarray]) -> \
+                        actual_cores_frequency: List[float], cores_max_temperature: Optional[numpy.ndarray]) -> \
             [List[int], Optional[float], Optional[List[float]]]:
         """
         Method to implement with the actual scheduler police
@@ -443,12 +441,12 @@ class OLDTFSScheduler(AbstractScheduler):
 
         for q_time in range(steps_in_quantum):
             # Obtain m_busy mark
-            m_busy = scipy.concatenate([
+            m_busy = numpy.concatenate([
                 self.__tcpn_mo[2 * self.__n + (2 * self.__n + 1) * i: 2 * self.__n + (2 * self.__n + 1) * i + self.__n,
                 0].reshape(-1) for i in range(self.__m)])
 
             # Obtain m_exec mark
-            m_exec = scipy.concatenate([
+            m_exec = numpy.concatenate([
                 self.__tcpn_mo[
                 2 * self.__n + (2 * self.__n + 1) * i + self.__n: 2 * self.__n + (2 * self.__n + 1) * i + 2 * self.__n,
                 0].reshape(-1) for i in range(self.__m)])
@@ -464,10 +462,10 @@ class OLDTFSScheduler(AbstractScheduler):
             s = x1 - x2 + self.__j_fsc_i
 
             # Control for each task-processor pair
-            w_alloc = (self.__j_fsc_i * scipy.asarray([scipy.sign(i) for i in s]) + self.__j_fsc_i) / 2
+            w_alloc = (self.__j_fsc_i * numpy.asarray([numpy.sign(i) for i in s]) + self.__j_fsc_i) / 2
 
             # Simulate TCPN
-            new_control = scipy.ones(self.__tcpn_lambda_len)
+            new_control = numpy.ones(self.__tcpn_lambda_len)
             new_control[self.__n:self.__n + self.__m * self.__n] = w_alloc
 
             self.__tcpn_simulator.set_control(new_control)
@@ -475,7 +473,7 @@ class OLDTFSScheduler(AbstractScheduler):
 
         # Discretization
         # Obtain m_exec mark
-        m_exec = scipy.concatenate([
+        m_exec = numpy.concatenate([
             self.__tcpn_mo[
             2 * self.__n + (2 * self.__n + 1) * i + self.__n: 2 * self.__n + (2 * self.__n + 1) * i + 2 * self.__n,
             0].reshape(-1) for i in range(self.__m)])
@@ -505,7 +503,7 @@ class OLDTFSScheduler(AbstractScheduler):
             # If exist at least one executable task
             if any(cpu_j_executable_tasks):
                 # Obtain the tasks priority order
-                ind_max_pr = scipy.flip(scipy.argsort(pr[self.__n * j: self.__n * j + self.__n]))
+                ind_max_pr = numpy.flip(numpy.argsort(pr[self.__n * j: self.__n * j + self.__n]))
 
                 # Only keep index of tasks that can be executed
                 ind_max_pr = [i for i in ind_max_pr if cpu_j_executable_tasks[i]]

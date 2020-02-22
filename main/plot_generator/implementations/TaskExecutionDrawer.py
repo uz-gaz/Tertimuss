@@ -1,6 +1,6 @@
 from typing import Optional, Dict
 
-import scipy
+import numpy
 
 from main.core.problem_specification.GlobalSpecification import GlobalSpecification
 from main.core.execution_simulator.system_simulator.SchedulingResult import SchedulingResult
@@ -41,12 +41,12 @@ class TaskExecutionDrawer(AbstractResultDrawer):
         n_aperiodic = len(global_specification.tasks_specification.aperiodic_tasks)
         m = len(global_specification.cpu_specification.cores_specification.operating_frequencies)
         f, axarr = plt.subplots(nrows=(n_periodic + n_aperiodic), num="Task execution")
-        utilization_by_task = scipy.zeros(((n_periodic + n_aperiodic), len(i_tau_disc[0])))
+        utilization_by_task = numpy.zeros(((n_periodic + n_aperiodic), len(i_tau_disc[0])))
 
         total_steps_number = int(
             global_specification.tasks_specification.h / global_specification.simulation_specification.dt)
-        deadline_by_task = scipy.zeros(((n_periodic + n_aperiodic), total_steps_number))
-        arrives_by_task = scipy.zeros((n_aperiodic, total_steps_number))
+        deadline_by_task = numpy.zeros(((n_periodic + n_aperiodic), total_steps_number))
+        arrives_by_task = numpy.zeros((n_aperiodic, total_steps_number))
         deadlines_time = [i * global_specification.simulation_specification.dt for i in range(total_steps_number)]
 
         # Periodic tasks execution and deadlines

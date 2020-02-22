@@ -1,6 +1,6 @@
 import abc
 
-import scipy
+import numpy
 
 
 class AbstractTcpnSimulator(object, metaclass=abc.ABCMeta):
@@ -9,14 +9,14 @@ class AbstractTcpnSimulator(object, metaclass=abc.ABCMeta):
     """
 
     @abc.abstractmethod
-    def set_control(self, control: scipy.ndarray):
+    def set_control(self, control: numpy.ndarray):
         """
         Apply a control action over transitions firing in the Petri net
         :param control: control
         """
 
     @abc.abstractmethod
-    def simulate_step(self, mo: scipy.ndarray) -> scipy.ndarray:
+    def simulate_step(self, mo: numpy.ndarray) -> numpy.ndarray:
         """
         Simulate one step
 
@@ -26,14 +26,14 @@ class AbstractTcpnSimulator(object, metaclass=abc.ABCMeta):
         pass
 
     @staticmethod
-    def _calculate_pi(pre: scipy.ndarray, mo: scipy.ndarray) -> scipy.ndarray:
+    def _calculate_pi(pre: numpy.ndarray, mo: numpy.ndarray) -> numpy.ndarray:
         """
         Calculate pi
         :param mo: actual marking
         :return: pi
         """
         pre_transpose = pre.transpose()
-        pi = scipy.zeros(pre_transpose.shape)
+        pi = numpy.zeros(pre_transpose.shape)
 
         for i in range(len(pre_transpose)):
             places = pre_transpose[i]

@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-import scipy
+import numpy
 
 from main.core.execution_simulator.system_simulator.SystemAperiodicTask import SystemAperiodicTask
 from main.core.execution_simulator.system_simulator.SystemPeriodicTask import SystemPeriodicTask
@@ -34,7 +34,7 @@ class RUNPack(RUNServer):
 
     def __init__(self, content: List[RUNServer]):
         self.content = content
-        d = scipy.gcd.reduce([i.d for i in content])
+        d = numpy.gcd.reduce([i.d for i in content])
         c = sum([(i.laxity if isinstance(i, RUNPack) else i.c) * (d / i.d) for i in content])
         super().__init__(c, d)
 
@@ -53,14 +53,14 @@ class PacksBin(object):
         self.packs = [pack]
 
     def can_add_server(self, pack: RUNServer) -> bool:
-        deadline = scipy.gcd.reduce([pack.d, self.d])
+        deadline = numpy.gcd.reduce([pack.d, self.d])
         bin_c = int(self.c / (self.d / deadline))
         ant_pack_c = pack.laxity if isinstance(pack, RUNPack) else pack.c
         pack_c = int(ant_pack_c / (pack.d / deadline))
         return bin_c + pack_c <= deadline
 
     def add_server(self, pack: RUNServer):
-        deadline = scipy.gcd.reduce([pack.d, self.d])
+        deadline = numpy.gcd.reduce([pack.d, self.d])
         bin_c = int(self.c / (self.d / deadline))
         ant_pack_c = pack.laxity if isinstance(pack, RUNPack) else pack.c
         pack_c = int(ant_pack_c / (pack.d / deadline))
@@ -91,7 +91,7 @@ class RUNScheduler(AbstractScheduler):
             emptiest_bin_index = None
 
             if len(started_bins) > 0:
-                emptiest_bin_index = scipy.argmin([x.c / x.d for x in started_bins])
+                emptiest_bin_index = numpy.argmin([x.c / x.d for x in started_bins])
 
             if emptiest_bin_index is not None and started_bins[emptiest_bin_index].can_add_server(pack):
                 started_bins[emptiest_bin_index].add_server(pack)
@@ -317,7 +317,7 @@ class RUNScheduler(AbstractScheduler):
         selected_frequency = max(global_specification.cpu_specification.cores_specification.available_frequencies)
 
         task_set = [RUNTask(i.id, i.c, int(i.d * selected_frequency)) for i in periodic_tasks]
-        h = scipy.lcm.reduce([int(i.d) for i in task_set])
+        h = numpy.lcm.reduce([int(i.d) for i in task_set])
 
         used_cycles = int(sum([i.c * (h / i.d) for i in task_set]))
 
@@ -337,7 +337,7 @@ class RUNScheduler(AbstractScheduler):
         return global_specification.simulation_specification.dt
 
     def schedule_policy(self, time: float, executable_tasks: List[SystemTask], active_tasks: List[int],
-                        actual_cores_frequency: List[int], cores_max_temperature: Optional[scipy.ndarray]) -> \
+                        actual_cores_frequency: List[int], cores_max_temperature: Optional[numpy.ndarray]) -> \
             [List[int], Optional[float], Optional[List[int]]]:
 
         if time == 1.59:
@@ -359,5 +359,5 @@ class RUNScheduler(AbstractScheduler):
         return iteration_result, self.__dt, self.__operating_frequency
 
     def aperiodic_arrive(self, time: float, aperiodic_tasks_arrived: List[SystemTask],
-                         actual_cores_frequency: List[int], cores_max_temperature: Optional[scipy.ndarray]) -> bool:
+                         actual_cores_frequency: List[int], cores_max_temperature: Optional[numpy.ndarray]) -> bool:
         return False

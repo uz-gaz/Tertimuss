@@ -1,6 +1,6 @@
 from typing import List
 
-import scipy
+import numpy
 
 from main.core.execution_simulator.system_modeling.ThermalModel import ThermalModel
 from main.core.problem_specification.cpu_specification.CpuSpecification import CpuSpecification
@@ -16,7 +16,7 @@ class ThermalModelEnergy(ThermalModel):
     @staticmethod
     def _get_dynamic_power_consumption(cpu_specification: CpuSpecification,
                                        tasks_specification: TasksSpecification,
-                                       clock_relative_frequencies: List[float]) -> scipy.ndarray:
+                                       clock_relative_frequencies: List[float]) -> numpy.ndarray:
         """
         Method to implement. Return an array with shape (m , n). Each place contains the weight in the
         arcs t_exec_n -> cpu_m
@@ -33,4 +33,4 @@ class ThermalModelEnergy(ThermalModel):
 
         m = len(cpu_specification.cores_specification.operating_frequencies)
 
-        return scipy.repeat(scipy.asarray(consumption_by_task).reshape((1, -1)), m, axis=0)
+        return numpy.repeat(numpy.asarray(consumption_by_task).reshape((1, -1)), m, axis=0)

@@ -1,6 +1,6 @@
 import abc
 
-import scipy
+import numpy
 
 from main.core.execution_simulator.system_simulator.SystemAperiodicTask import SystemAperiodicTask
 from main.core.execution_simulator.system_simulator.SystemPeriodicTask import SystemPeriodicTask
@@ -26,7 +26,7 @@ class AbstractScheduler(object, metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def schedule_policy(self, time: float, executable_tasks: List[SystemTask], active_tasks: List[int],
-                        actual_cores_frequency: List[int], cores_max_temperature: Optional[scipy.ndarray]) -> \
+                        actual_cores_frequency: List[int], cores_max_temperature: Optional[numpy.ndarray]) -> \
             [List[int], Optional[float], Optional[List[int]]]:
         """
         Method to implement with the actual scheduler police
@@ -44,7 +44,7 @@ class AbstractScheduler(object, metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def aperiodic_arrive(self, time: float, aperiodic_tasks_arrived: List[SystemTask],
-                         actual_cores_frequency: List[int], cores_max_temperature: Optional[scipy.ndarray]) -> bool:
+                         actual_cores_frequency: List[int], cores_max_temperature: Optional[numpy.ndarray]) -> bool:
         """
         Method to implement with the actual on aperiodic arrive scheduler police
         :param actual_cores_frequency: Frequencies of cores

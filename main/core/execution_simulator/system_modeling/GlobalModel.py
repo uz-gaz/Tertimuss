@@ -1,4 +1,4 @@
-import scipy
+import numpy
 import scipy.sparse
 
 from main.core.execution_simulator.system_modeling.ProcessorModel import ProcessorModel
@@ -64,16 +64,16 @@ class GlobalModel(object):
                 processor_model.pi_exec_proc])
         ]).transpose()
 
-        lambda_vector = scipy.block([tasks_model.lambda_vector_tau, processor_model.lambda_vector_alloc_proc,
+        lambda_vector = numpy.block([tasks_model.lambda_vector_tau, processor_model.lambda_vector_alloc_proc,
                                      processor_model.lambda_vector_exec_proc])
 
-        mo = scipy.block([[tasks_model.mo_tau], [processor_model.mo_proc]])
+        mo = numpy.block([[tasks_model.mo_tau], [processor_model.mo_proc]])
 
-        self.mo_proc_tau: scipy.ndarray = mo
+        self.mo_proc_tau: numpy.ndarray = mo
         self.pre_proc_tau: scipy.sparse.csr_matrix = pre
         self.post_proc_tau: scipy.sparse.csr_matrix = post
         self.pi_proc_tau: scipy.sparse.csr_matrix = pi
-        self.lambda_vector_proc_tau: scipy.ndarray = lambda_vector
+        self.lambda_vector_proc_tau: numpy.ndarray = lambda_vector
 
         # Create thermal model
         if self.enable_thermal_mode:
@@ -83,13 +83,13 @@ class GlobalModel(object):
                 global_specification.environment_specification,
                 global_specification.simulation_specification)
 
-            self.mo_thermal: scipy.ndarray = thermal_model.mo_sis
+            self.mo_thermal: numpy.ndarray = thermal_model.mo_sis
             self.pre_thermal: scipy.sparse.csr_matrix = thermal_model.pre_sis
             self.post_thermal: scipy.sparse.csr_matrix = thermal_model.post_sis
             self.pi_thermal: scipy.sparse.csr_matrix = thermal_model.pi_sis
-            self.lambda_vector_thermal: scipy.ndarray = thermal_model.lambda_vector_sis
+            self.lambda_vector_thermal: numpy.ndarray = thermal_model.lambda_vector_sis
             self.p_one_micro: int = thermal_model.p_one_micro
             self.p_board: int = thermal_model.p_board
             self.t_one_micro: int = thermal_model.t_one_micro
             self.t_board: int = thermal_model.t_board
-            self.power_consumption: scipy.ndarray = thermal_model.power_consumption
+            self.power_consumption: numpy.ndarray = thermal_model.power_consumption

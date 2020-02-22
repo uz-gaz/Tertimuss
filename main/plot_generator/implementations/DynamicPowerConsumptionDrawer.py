@@ -1,6 +1,6 @@
 from typing import Optional, Dict
 
-import scipy
+import numpy
 
 from main.core.problem_specification.GlobalSpecification import GlobalSpecification
 from main.core.execution_simulator.system_simulator.SchedulingResult import SchedulingResult
@@ -48,7 +48,7 @@ class DynamicPowerConsumptionDrawer(AbstractResultDrawer):
             axarr[i].set_xlabel('time (s)')
 
         axarr[-1].set_title("Total power consumed by dynamic power ")
-        axarr[-1].plot(time_temp, scipy.sum(energy_consumption, axis=0), drawstyle='default')
+        axarr[-1].plot(time_temp, numpy.sum(energy_consumption, axis=0), drawstyle='default')
         axarr[-1].set_ylabel('power (Watt)')
         axarr[-1].set_xlabel('time (s)')
 

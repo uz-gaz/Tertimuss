@@ -2,19 +2,19 @@ import sys
 import time
 import unittest
 
-import scipy
+import numpy
 
 
 class PerformanceTests(unittest.TestCase):
     def test_concatenate_performance(self):
         # Concatenate
-        where_concatenate = scipy.ndarray((1000, 0))
+        where_concatenate = numpy.ndarray((1000, 0))
 
         iterations = 300
 
         time1 = time.time()
         for i in range(iterations):
-            where_concatenate = scipy.concatenate([where_concatenate, scipy.ones((1000, 1000)) * i], axis=1)
+            where_concatenate = numpy.concatenate([where_concatenate, numpy.ones((1000, 1000)) * i], axis=1)
 
         time2 = time.time()
         size = (sys.getsizeof(where_concatenate)) / 10 ** 6
@@ -28,9 +28,9 @@ class PerformanceTests(unittest.TestCase):
 
         time1 = time.time()
         for i in range(iterations):
-            where_concatenate.append(scipy.ones((1000, 1000)) * i)
+            where_concatenate.append(numpy.ones((1000, 1000)) * i)
 
-        where_concatenate = scipy.concatenate(where_concatenate, axis=1)
+        where_concatenate = numpy.concatenate(where_concatenate, axis=1)
         time2 = time.time()
         size = (sys.getsizeof(where_concatenate)) / 10 ** 6
 

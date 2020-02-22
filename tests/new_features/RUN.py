@@ -1,6 +1,6 @@
 from typing import List
 
-import scipy
+import numpy
 
 
 class RUNServer(object):
@@ -25,7 +25,7 @@ class RUNPack(RUNServer):
 
     def __init__(self, content: List[RUNServer]):
         self.content = content
-        d = scipy.gcd.reduce([i.d for i in content])
+        d = numpy.gcd.reduce([i.d for i in content])
         c = sum([i.laxity * (d / i.d) for i in content])
         super().__init__(c, d)
 
@@ -56,7 +56,7 @@ def create_packs_from_virtual_tasks(packs: List[RUNServer]) -> List[RUNPack]:
         index_started_bins = 0
         while not assigned and index_started_bins < len(started_bins):
             actual_bin = started_bins[index_started_bins]
-            deadline = scipy.gcd(pack.d, actual_bin.d)
+            deadline = numpy.gcd(pack.d, actual_bin.d)
             actual_bin_c = actual_bin.c / (actual_bin.d / deadline)
             actual_pack_dual = pack.laxity / (pack.d / deadline)
 
@@ -245,7 +245,7 @@ def assign_tasks_to_cpu(task_set: List[RUNTask], last_tasks_cpu_assignation: Lis
 
 def run_algorithm(task_set: List[RUNTask], m: int) -> List[List[int]]:
     # Run algorithm
-    h = int(scipy.lcm.reduce([i.d for i in task_set]))
+    h = int(numpy.lcm.reduce([i.d for i in task_set]))
     parents_of_tree = create_tree(task_set)
 
     result_algorithm = []
@@ -321,4 +321,4 @@ if __name__ == '__main__':
 
     result = run_algorithm(set_of_tasks_6, 2)
 
-    result_as_array = scipy.asarray(result).transpose()
+    result_as_array = numpy.asarray(result).transpose()

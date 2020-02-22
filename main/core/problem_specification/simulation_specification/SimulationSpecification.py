@@ -1,4 +1,4 @@
-import scipy
+import numpy
 
 from main.core.problem_specification.simulation_specification.SimulationPrecision import SimulationPrecision
 
@@ -25,4 +25,4 @@ class SimulationSpecification(object):
         self.dt_fragmentation_processor_task: int = dt_fragmentation_processor_task
         self.dt_fragmentation_thermal: int = dt_fragmentation_thermal
         self.float_decimals_precision: int = float_decimals_precision
-        self.type_precision: scipy.dtype = type_precision.value[0]
+        self.type_precision: numpy.dtype = type_precision.value[0]

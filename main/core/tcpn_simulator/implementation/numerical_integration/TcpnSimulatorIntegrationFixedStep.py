@@ -1,6 +1,6 @@
 from typing import Optional
 
-import scipy
+import numpy
 
 from main.core.tcpn_simulator.template.AbstractTcpnSimulator import AbstractTcpnSimulator
 
@@ -12,8 +12,8 @@ class TcpnSimulatorIntegrationFixedStep(AbstractTcpnSimulator):
     simulation change
     """
 
-    def __init__(self, pre: scipy.ndarray, post: scipy.ndarray, pi: Optional[scipy.ndarray],
-                 lambda_vector: scipy.ndarray, number_of_steps: int, dt: float):
+    def __init__(self, pre: numpy.ndarray, post: numpy.ndarray, pi: Optional[numpy.ndarray],
+                 lambda_vector: numpy.ndarray, number_of_steps: int, dt: float):
         """
         Define the TCPN
         :param pre: pre matrix
@@ -26,7 +26,7 @@ class TcpnSimulatorIntegrationFixedStep(AbstractTcpnSimulator):
         self.__pre = pre
         self.__post = post
         self.__lambda_vector = lambda_vector
-        self.__control = scipy.ones(len(lambda_vector))
+        self.__control = numpy.ones(len(lambda_vector))
         self.__pi = pi
         self.__c = self.__post - self.__pre
         self.__dt = dt
@@ -34,7 +34,7 @@ class TcpnSimulatorIntegrationFixedStep(AbstractTcpnSimulator):
         self.__a = self.__calculate_a(self.__c, self.__lambda_vector, self.__pi,
                                       self.__dt / self.__number_of_steps) if self.__pi is not None else None
 
-    def set_control(self, control: scipy.ndarray):
+    def set_control(self, control: numpy.ndarray):
         """
         Apply a control action over transitions firing in the Petri net
         :param control: control
@@ -44,14 +44,14 @@ class TcpnSimulatorIntegrationFixedStep(AbstractTcpnSimulator):
                                       self.__dt / self.__number_of_steps) if self.__pi is not None else None
 
     @staticmethod
-    def __calculate_a(c: scipy.ndarray, lambda_vector: scipy.ndarray, pi: scipy.ndarray,
-                      fragmented_dt: float) -> scipy.ndarray:
+    def __calculate_a(c: numpy.ndarray, lambda_vector: numpy.ndarray, pi: numpy.ndarray,
+                      fragmented_dt: float) -> numpy.ndarray:
         """
         Calculate all constant values during the simulation
         """
         return (c * lambda_vector).dot(pi) * fragmented_dt
 
-    def simulate_step(self, mo: scipy.ndarray) -> scipy.ndarray:
+    def simulate_step(self, mo: numpy.ndarray) -> numpy.ndarray:
         """
         Simulate one step
 

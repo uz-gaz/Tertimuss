@@ -1,14 +1,14 @@
-import scipy
+import numpy
 
 
 class SchedulingResult(object):
-    def __init__(self, temperature_map: scipy.ndarray, max_temperature_cores: scipy.ndarray,
-                 time_steps: scipy.ndarray,
-                 execution_time_scheduler: scipy.ndarray,
-                 execution_time_tcpn: scipy.ndarray,
-                 scheduler_assignation: scipy.ndarray,
-                 frequencies: scipy.ndarray,
-                 energy_consumption: scipy.ndarray,
+    def __init__(self, temperature_map: numpy.ndarray, max_temperature_cores: numpy.ndarray,
+                 time_steps: numpy.ndarray,
+                 execution_time_scheduler: numpy.ndarray,
+                 execution_time_tcpn: numpy.ndarray,
+                 scheduler_assignation: numpy.ndarray,
+                 frequencies: numpy.ndarray,
+                 energy_consumption: numpy.ndarray,
                  quantum: float):
         """
         Result of the scheduler execution

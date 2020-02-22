@@ -2,7 +2,7 @@ import sys
 import time
 import unittest
 
-import scipy
+import numpy
 
 
 class PerformanceTests(unittest.TestCase):
@@ -11,14 +11,14 @@ class PerformanceTests(unittest.TestCase):
     """
 
     def dot_profile_memory_and_time(self, iterations: int, dimension: int, dtype_1, dtype_2) -> [float, float]:
-        def dot_timed(x: scipy.ndarray, y: scipy.ndarray):
+        def dot_timed(x: numpy.ndarray, y: numpy.ndarray):
             tim1 = time.time()
-            scipy.dot(x, y)
+            numpy.dot(x, y)
             tim2 = time.time()
             return tim2 - tim1
 
-        xx = scipy.ones((dimension, dimension), dtype=dtype_1)
-        yy = scipy.ones((dimension, dimension), dtype=dtype_2)
+        xx = numpy.ones((dimension, dimension), dtype=dtype_1)
+        yy = numpy.ones((dimension, dimension), dtype=dtype_2)
 
         # Size in MB
         size = (sys.getsizeof(xx) + sys.getsizeof(yy)) / 10 ** 6
@@ -30,11 +30,11 @@ class PerformanceTests(unittest.TestCase):
 
     def test_performance(self):
         types_to_test = [
-            #    [scipy.float64, scipy.float64],
-            #    [scipy.float32, scipy.float32],
-            #    [scipy.bool8, scipy.float64],
-            #    [scipy.bool8, scipy.float32],
-            [scipy.int8, scipy.float32]
+            #    [numpy.float64, numpy.float64],
+            #    [numpy.float32, numpy.float32],
+            #    [numpy.bool8, numpy.float64],
+            #    [numpy.bool8, numpy.float32],
+            [numpy.int8, numpy.float32]
         ]
         iterations = 5
         dimension = 5000
@@ -50,14 +50,14 @@ class PerformanceTests(unittest.TestCase):
          RAM: 2 * 4 GB 1600 Mhz (FSB bottle neck))
         
         types_to_test = [
-            [scipy.float64, scipy.float64],
-            [scipy.float32, scipy.float32],
-            [scipy.float16, scipy.float16],
-            [scipy.float128, scipy.float128],
-            [scipy.bool8, scipy.float64],
-            [scipy.int64, scipy.float64],
-            [scipy.int64, scipy.int64],
-            [scipy.int16, scipy.int16]
+            [numpy.float64, numpy.float64],
+            [numpy.float32, numpy.float32],
+            [numpy.float16, numpy.float16],
+            [numpy.float128, numpy.float128],
+            [numpy.bool8, numpy.float64],
+            [numpy.int64, numpy.float64],
+            [numpy.int64, numpy.int64],
+            [numpy.int16, numpy.int16]
         ]
         iterations = 10
         dimension = 4000
@@ -71,14 +71,14 @@ class PerformanceTests(unittest.TestCase):
         
         
         types_to_test = [
-            [scipy.float64, scipy.float64],
-            [scipy.float32, scipy.float32],
-            [scipy.float16, scipy.float16],
-            [scipy.float128, scipy.float128],
-            [scipy.bool8, scipy.float64],
-            [scipy.int64, scipy.float64],
-            [scipy.int64, scipy.int64],
-            [scipy.int16, scipy.int16]
+            [numpy.float64, numpy.float64],
+            [numpy.float32, numpy.float32],
+            [numpy.float16, numpy.float16],
+            [numpy.float128, numpy.float128],
+            [numpy.bool8, numpy.float64],
+            [numpy.int64, numpy.float64],
+            [numpy.int64, numpy.int64],
+            [numpy.int16, numpy.int16]
         ]
         iterations = 1
         dimension = 100
@@ -94,12 +94,12 @@ class PerformanceTests(unittest.TestCase):
         
         
         types_to_test = [
-            [scipy.float64, scipy.float64],
-            [scipy.float32, scipy.float32],
-            [scipy.bool8, scipy.float64],
-            [scipy.int64, scipy.float64],
-            [scipy.int64, scipy.int64],
-            [scipy.int32, scipy.int32]
+            [numpy.float64, numpy.float64],
+            [numpy.float32, numpy.float32],
+            [numpy.bool8, numpy.float64],
+            [numpy.int64, numpy.float64],
+            [numpy.int64, numpy.int64],
+            [numpy.int32, numpy.int32]
         ]
         iterations = 1
         dimension = 4000
@@ -118,11 +118,11 @@ class PerformanceTests(unittest.TestCase):
          float32, float64, complex64, y complex128
          
          types_to_test = [
-            [scipy.float64, scipy.float64],
-            [scipy.float32, scipy.float32],
-            [scipy.bool8, scipy.float64],
-            [scipy.bool8, scipy.float32],
-            [scipy.int8, scipy.float32]
+            [numpy.float64, numpy.float64],
+            [numpy.float32, numpy.float32],
+            [numpy.bool8, numpy.float64],
+            [numpy.bool8, numpy.float32],
+            [numpy.int8, numpy.float32]
         ]
         iterations = 1
         dimension = 5000

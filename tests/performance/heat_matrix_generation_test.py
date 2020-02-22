@@ -2,8 +2,8 @@ import sys
 import time
 import unittest
 
-import scipy
-import scipy.sparse
+import numpy
+import scipy.linalg
 
 from main.core.problem_specification.cpu_specification.BoardSpecification import BoardSpecification
 from main.core.problem_specification.cpu_specification.CoreGroupSpecification import CoreGroupSpecification
@@ -23,7 +23,7 @@ from main.core.problem_specification.tasks_specification.PeriodicTask import Per
 class HeatMatrixGeneration(unittest.TestCase):
     @staticmethod
     def __size_of_sparse(matrix_sparse):
-        if scipy.sparse.isspmatrix_coo(matrix_sparse):
+        if numpy.sparse.isspmatrix_coo(matrix_sparse):
             return matrix_sparse.data.nbytes + matrix_sparse.col.nbytes + matrix_sparse.row.nbytes
         else:
             return matrix_sparse.data.nbytes + matrix_sparse.indptr.nbytes + matrix_sparse.indices.nbytes
@@ -81,8 +81,8 @@ class HeatMatrixGeneration(unittest.TestCase):
         time_2 = time.time()
 
         print("Size of pre and post (each one):", sys.getsizeof(global_model.pre_thermal) / (1024 ** 3), "GB")
-        non_zeros_pre = scipy.count_nonzero(global_model.pre_thermal)
-        non_zeros_post = scipy.count_nonzero(global_model.post_thermal)
+        non_zeros_pre = numpy.count_nonzero(global_model.pre_thermal)
+        non_zeros_post = numpy.count_nonzero(global_model.post_thermal)
         places_matrix_pre = global_model.pre_thermal.shape[0] * global_model.pre_thermal.shape[1]
 
         print("Density of pre:", non_zeros_pre / places_matrix_pre)
@@ -119,7 +119,7 @@ class HeatMatrixGeneration(unittest.TestCase):
 
         print("Time taken creation of the TCPN solver:", time.time() - time_start)
 
-        print("Density of a:", scipy.count_nonzero(a) / (a.shape[0] * a.shape[1]))
+        print("Density of a:", numpy.count_nonzero(a) / (a.shape[0] * a.shape[1]))
         print("Size of a:", sys.getsizeof(a) / (1024 ** 3), "GB")
         print("Size of pre:", sys.getsizeof(pre) / (1024 ** 3), "GB")
         print("Size of c:", sys.getsizeof(c) / (1024 ** 3), "GB")
@@ -168,13 +168,13 @@ class HeatMatrixGeneration(unittest.TestCase):
 
         a = (c * lambda_vector).dot(pi) * (dt / dt_fragmentation)
 
-        a_multi_step = scipy.linalg.fractional_matrix_power(a + scipy.identity(len(a)), dt_fragmentation)
+        a_multi_step = scipy.linalg.fractional_matrix_power(a + numpy.identity(len(a)), dt_fragmentation)
 
         print("Time taken creation of the TCPN solver:", time.time() - time_start)
 
-        print("Density of a:", scipy.count_nonzero(a) / (a.shape[0] * a.shape[1]))
+        print("Density of a:", numpy.count_nonzero(a) / (a.shape[0] * a.shape[1]))
         print("Density of a multi step:",
-              (scipy.count_nonzero(a_multi_step)) / (a_multi_step.shape[0] * a_multi_step.shape[1]))
+              (numpy.count_nonzero(a_multi_step)) / (a_multi_step.shape[0] * a_multi_step.shape[1]))
 
         print("Size of a:", sys.getsizeof(a) / (1024 ** 3), "GB")
         print("Size of a multi step:", sys.getsizeof(a_multi_step) / (1024 ** 3), "GB")
@@ -226,7 +226,7 @@ class HeatMatrixGeneration(unittest.TestCase):
         lambda_vector = global_model.lambda_vector_thermal
         mo = sparse_matrix_type(global_model.mo_thermal)
 
-        a = (c.dot(scipy.sparse.diags(lambda_vector.reshape(-1)))).dot(pi) * (dt / dt_fragmentation)
+        a = (c.dot(numpy.sparse.diags(lambda_vector.reshape(-1)))).dot(pi) * (dt / dt_fragmentation)
 
         print("Time taken creation of the TCPN solver:", time.time() - time_start)
 
@@ -267,9 +267,9 @@ class HeatMatrixGeneration(unittest.TestCase):
         lambda_vector = global_model.lambda_vector_thermal
         mo = sparse_matrix_type(global_model.mo_thermal)
 
-        a = (c.dot(scipy.sparse.diags(lambda_vector.reshape(-1)))).dot(pi) * (dt / dt_fragmentation)
+        a = (c.dot(numpy.sparse.diags(lambda_vector.reshape(-1)))).dot(pi) * (dt / dt_fragmentation)
 
-        a_multi_step = cls.__elevate_sparse(a + scipy.sparse.identity(a.shape[1]), dt_fragmentation)
+        a_multi_step = cls.__elevate_sparse(a + numpy.sparse.identity(a.shape[1]), dt_fragmentation)
 
         print("Time taken creation of the TCPN solver:", time.time() - time_start)
 
@@ -297,7 +297,7 @@ class HeatMatrixGeneration(unittest.TestCase):
         :return:
         """
         print("")
-        sparse_matrix_type = scipy.sparse.csr_matrix
+        sparse_matrix_type = numpy.sparse.csr_matrix
         print("Simulation of execution with sparse csr_matrix")
         self.__heat_matrix_execution_performance_sparse_one_step(sparse_matrix_type)
         print("")
@@ -333,7 +333,7 @@ class HeatMatrixGeneration(unittest.TestCase):
         :return:
         """
         print("")
-        sparse_matrix_type = scipy.sparse.bsr_matrix
+        sparse_matrix_type = numpy.sparse.bsr_matrix
         print("Simulation of execution with sparse bsr_matrix")
         self.__heat_matrix_execution_performance_sparse_one_step(sparse_matrix_type)
         print("")
@@ -369,7 +369,7 @@ class HeatMatrixGeneration(unittest.TestCase):
         :return:
         """
         print("")
-        sparse_matrix_type = scipy.sparse.coo_matrix
+        sparse_matrix_type = numpy.sparse.coo_matrix
         print("Simulation of execution with sparse coo_matrix")
         self.__heat_matrix_execution_performance_sparse_one_step(sparse_matrix_type)
         print("")
@@ -405,7 +405,7 @@ class HeatMatrixGeneration(unittest.TestCase):
         :return:
         """
         print("")
-        sparse_matrix_type = scipy.sparse.csr_matrix
+        sparse_matrix_type = numpy.sparse.csr_matrix
         print("Simulation of execution with sparse csc_matrix")
         self.__heat_matrix_execution_performance_sparse_one_step(sparse_matrix_type)
         print("")
@@ -441,7 +441,7 @@ class HeatMatrixGeneration(unittest.TestCase):
         :return:
         """
         print("")
-        sparse_matrix_type = scipy.sparse.csr_matrix
+        sparse_matrix_type = numpy.sparse.csr_matrix
         print("Simulation of execution with sparse dia_matrix")
         self.__heat_matrix_execution_performance_sparse_one_step(sparse_matrix_type)
         print("")
@@ -477,7 +477,7 @@ class HeatMatrixGeneration(unittest.TestCase):
         :return:
         """
         print("")
-        sparse_matrix_type = scipy.sparse.csr_matrix
+        sparse_matrix_type = numpy.sparse.csr_matrix
         print("Simulation of execution with sparse dok_matrix")
         self.__heat_matrix_execution_performance_sparse_one_step(sparse_matrix_type)
         print("")
@@ -513,7 +513,7 @@ class HeatMatrixGeneration(unittest.TestCase):
         :return:
         """
         print("")
-        sparse_matrix_type = scipy.sparse.csr_matrix
+        sparse_matrix_type = numpy.sparse.csr_matrix
         print("Simulation of execution with sparse lil_matrix")
         self.__heat_matrix_execution_performance_sparse_one_step(sparse_matrix_type)
         print("")
@@ -551,7 +551,7 @@ class HeatMatrixGeneration(unittest.TestCase):
 
         global_model, dt, dt_fragmentation, num_simulations = self.__specification_and_creation_of_the_model()
 
-        sparse_matrix_type = scipy.sparse.csr_matrix
+        sparse_matrix_type = numpy.sparse.csr_matrix
 
         # TCPN simulator creation
         time_start = time.time()
@@ -564,10 +564,10 @@ class HeatMatrixGeneration(unittest.TestCase):
 
         del global_model
 
-        a = (c.dot(scipy.sparse.diags(lambda_vector.reshape(-1)))).dot(pi) * (dt / dt_fragmentation)
+        a = (c.dot(numpy.sparse.diags(lambda_vector.reshape(-1)))).dot(pi) * (dt / dt_fragmentation)
         a = a.toarray()
 
-        a_multi_step = scipy.linalg.fractional_matrix_power(a + scipy.identity(len(a)), dt_fragmentation)
+        a_multi_step = scipy.linalg.fractional_matrix_power(a + numpy.identity(len(a)), dt_fragmentation)
 
         print("Time taken creation of the TCPN solver:", time.time() - time_start)
 

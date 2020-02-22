@@ -1,7 +1,7 @@
 import math
 from typing import List
 
-import scipy
+import numpy
 
 
 def is_equal(number_a: float, number_b: float, rtol: float = 1e-03, atol: float = 1e-05):
@@ -32,5 +32,5 @@ def float_gcd(numbers: List[float], rtol=1e-03, atol=1e-05) -> float:
 
 
 def float_lcm(numbers: List[float], rtol=1e-03, atol=1e-05) -> float:
-    lcm = scipy.lcm.reduce([round(i / atol) for i in numbers])
+    lcm = numpy.lcm.reduce([round(i / atol) for i in numbers])
     return lcm * atol

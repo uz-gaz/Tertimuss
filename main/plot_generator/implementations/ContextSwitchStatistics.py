@@ -1,7 +1,7 @@
 import json
 from typing import Optional, Dict
 
-import scipy
+import numpy
 
 from main.core.problem_specification.GlobalSpecification import GlobalSpecification
 from main.core.execution_simulator.system_simulator.SchedulingResult import SchedulingResult
@@ -39,11 +39,11 @@ class ContextSwitchStatistics(AbstractResultDrawer):
         n_aperiodic = len(global_specification.tasks_specification.aperiodic_tasks)
         m = len(global_specification.cpu_specification.cores_specification.operating_frequencies)
 
-        last_executed_cpu = -1 * scipy.ones(n_periodic + n_aperiodic)
-        last_cycle_execution = -1 * scipy.ones(n_periodic + n_aperiodic)
+        last_executed_cpu = -1 * numpy.ones(n_periodic + n_aperiodic)
+        last_cycle_execution = -1 * numpy.ones(n_periodic + n_aperiodic)
 
-        context_changes_by_tasks = scipy.zeros(n_periodic + n_aperiodic)
-        migrations_changes_by_tasks = scipy.zeros(n_periodic + n_aperiodic)
+        context_changes_by_tasks = numpy.zeros(n_periodic + n_aperiodic)
+        migrations_changes_by_tasks = numpy.zeros(n_periodic + n_aperiodic)
 
         for i in range(len(i_tau_disc[0])):
             actual_step = i_tau_disc[:, i]

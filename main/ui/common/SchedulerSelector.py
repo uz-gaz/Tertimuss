@@ -2,7 +2,7 @@ from typing import List
 
 from main.core.schedulers_definition.implementations.G_EDF_AFA import GlobalEDFAffinityFrequencyAwareScheduler
 from main.core.schedulers_definition.implementations.G_LLF_AFA import GlobalLeastLaxityFirstAFAScheduler
-from main.core.schedulers_definition.implementations.JDEDS import GlobalJDEDSScheduler
+from main.core.schedulers_definition.implementations.AIECS import AIECSScheduler
 from main.core.schedulers_definition.implementations.OLDTFS import OLDTFSScheduler
 from main.core.schedulers_definition.implementations.RUN import RUNScheduler
 from main.core.schedulers_definition.templates import AbstractScheduler
@@ -23,7 +23,7 @@ class SchedulerSelector(object):
             "G-EDF-A": GlobalEDFAffinityScheduler(),
             "G-EDF-AFA": GlobalEDFAffinityFrequencyAwareScheduler(),
             "G-LLF-AFA": GlobalLeastLaxityFirstAFAScheduler(),
-            "JDEDS": GlobalJDEDSScheduler(),
+            "JDEDS": AIECSScheduler(),
             "OLDTFS": OLDTFSScheduler(),
             "RUN": RUNScheduler()
         }

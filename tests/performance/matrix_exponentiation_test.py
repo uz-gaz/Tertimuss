@@ -2,7 +2,6 @@ import time
 import unittest
 
 import numpy
-import scipy
 
 from main.core.problem_specification.cpu_specification.BoardSpecification import BoardSpecification
 from main.core.problem_specification.cpu_specification.CoreGroupSpecification import CoreGroupSpecification
@@ -19,7 +18,7 @@ import scipy.sparse
 
 class MatrixExponentiationTest(unittest.TestCase):
     @staticmethod
-    def __obtain_matrix_to_exponentiation(dt: float = 2, dt_fragmentation: int = 128) -> [scipy.ndarray]:
+    def __obtain_matrix_to_exponentiation(dt: float = 2, dt_fragmentation: int = 128) -> [numpy.ndarray]:
         """
         Generate global model
         :return: global model, step, simulations each step, number of steps

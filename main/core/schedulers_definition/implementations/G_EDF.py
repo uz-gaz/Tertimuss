@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-import scipy
+import numpy
 
 from main.core.problem_specification.GlobalSpecification import GlobalSpecification
 
@@ -33,7 +33,7 @@ class GlobalEDFScheduler(AbstractScheduler):
         return super().offline_stage(global_specification, periodic_tasks, aperiodic_tasks)
 
     def aperiodic_arrive(self, time: float, aperiodic_tasks_arrived: List[SystemTask],
-                         actual_cores_frequency: List[float], cores_max_temperature: Optional[scipy.ndarray]) -> bool:
+                         actual_cores_frequency: List[float], cores_max_temperature: Optional[numpy.ndarray]) -> bool:
         """
         Method to implement with the actual on aperiodic arrive scheduler police
         :param actual_cores_frequency: Frequencies of cores
@@ -46,7 +46,7 @@ class GlobalEDFScheduler(AbstractScheduler):
         return False
 
     def schedule_policy(self, time: float, executable_tasks: List[SystemTask], active_tasks: List[int],
-                        actual_cores_frequency: List[float], cores_max_temperature: Optional[scipy.ndarray]) -> \
+                        actual_cores_frequency: List[float], cores_max_temperature: Optional[numpy.ndarray]) -> \
             [List[int], Optional[float], Optional[List[int]]]:
         """
         Method to implement with the actual scheduler police
@@ -60,6 +60,6 @@ class GlobalEDFScheduler(AbstractScheduler):
                  3 - cores relatives frequencies for the next quantum (if None, will be taken the frequencies specified
                   in the problem specification)
         """
-        task_order = scipy.argsort(list(map(lambda x: x.next_deadline, executable_tasks)))
+        task_order = numpy.argsort(list(map(lambda x: x.next_deadline, executable_tasks)))
         return ([executable_tasks[i].id for i in task_order] + (self.__m - len(executable_tasks)) * [-1])[
                0:self.__m], None, None

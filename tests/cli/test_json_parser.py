@@ -1,9 +1,7 @@
 import os
 import unittest
-from typing import Dict
 
 import jsonschema
-from jsonschema import ValidationError
 
 from main.ui.common.JSONGlobalModelParser import JSONGlobalModelParser
 

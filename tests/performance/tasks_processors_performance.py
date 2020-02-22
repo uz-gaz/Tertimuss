@@ -1,7 +1,7 @@
 import time
 import unittest
 
-import scipy
+import numpy
 
 from main.core.problem_specification.GlobalSpecification import GlobalSpecification
 from main.core.problem_specification.cpu_specification.BoardSpecification import BoardSpecification
@@ -106,7 +106,7 @@ class TasksProcessorsPerformanceTest(unittest.TestCase):
 
         time_start = time.time()
 
-        control_to_apply = scipy.ones(lambda_vector.shape)
+        control_to_apply = numpy.ones(lambda_vector.shape)
 
         # Simulation of steps
         for i in range(number_of_control_changes):
@@ -158,7 +158,7 @@ class TasksProcessorsPerformanceTest(unittest.TestCase):
 
         time_start = time.time()
 
-        control_to_apply = scipy.ones(lambda_vector.shape)
+        control_to_apply = numpy.ones(lambda_vector.shape)
 
         # Simulation of steps
         for i in range(number_of_control_changes):

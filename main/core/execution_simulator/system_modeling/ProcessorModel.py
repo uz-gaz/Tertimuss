@@ -1,4 +1,4 @@
-import scipy
+import numpy
 import scipy.sparse
 
 from main.core.problem_specification.cpu_specification.CpuSpecification import CpuSpecification
@@ -27,19 +27,19 @@ class ProcessorModel(object):
         t_exec = n * m  # m processors * (n transition exec)
 
         # Model marking
-        mo = scipy.zeros((p, 1))
+        mo = numpy.zeros((p, 1))
 
         # Model for alloc transitions
         pre_alloc = scipy.sparse.lil_matrix((p, t_alloc), dtype=simulation_specification.type_precision)
         post_alloc = scipy.sparse.lil_matrix((p, t_alloc), dtype=simulation_specification.type_precision)
         pi_alloc = scipy.sparse.lil_matrix((p, t_alloc), dtype=simulation_specification.type_precision)
-        lambda_vector_alloc = scipy.zeros(t_alloc)
+        lambda_vector_alloc = numpy.zeros(t_alloc)
 
         # Model for exec transitions
         pre_exec = scipy.sparse.lil_matrix((p, t_exec), dtype=simulation_specification.type_precision)
         post_exec = scipy.sparse.lil_matrix((p, t_exec), dtype=simulation_specification.type_precision)
         pi_exec = scipy.sparse.lil_matrix((p, t_exec), dtype=simulation_specification.type_precision)
-        lambda_vector_exec = scipy.zeros(t_exec)
+        lambda_vector_exec = numpy.zeros(t_exec)
 
         # Construction of the model
         for k in range(m):

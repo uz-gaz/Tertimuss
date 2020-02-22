@@ -1,7 +1,6 @@
 from typing import List
 
-import scipy
-import scipy.integrate
+import numpy
 
 from main.core.execution_simulator.system_modeling.GlobalModel import GlobalModel
 from main.core.problem_specification.GlobalSpecification import GlobalSpecification
@@ -36,14 +35,14 @@ class GlobalModelSolver(object):
                                                                                        self.__fragmentation_of_step_task,
                                                                                        self.__step)
 
-        self.__control_task_proc = scipy.ones(len(global_model.lambda_vector_proc_tau))
+        self.__control_task_proc = numpy.ones(len(global_model.lambda_vector_proc_tau))
         self.__mo = global_model.mo_proc_tau
 
         # M exec of the previous step
-        self.__last_tcpn_m_exec = scipy.zeros(self.__n * self.__m)
+        self.__last_tcpn_m_exec = numpy.zeros(self.__n * self.__m)
 
         # Real accumulated execution time
-        self.__accumulated_m_exec = scipy.zeros(self.__n * self.__m)
+        self.__accumulated_m_exec = numpy.zeros(self.__n * self.__m)
 
         # T_alloc start index
         self.__t_alloc_start_index = len(global_specification.tasks_specification.periodic_tasks)
@@ -76,16 +75,13 @@ class GlobalModelSolver(object):
             clock_relative_frequencies = [i / base_frequency for i in
                                           global_specification.cpu_specification.cores_specification.available_frequencies]
 
-            self.__control_thermal = scipy.asarray(clock_relative_frequencies)
+            self.__control_thermal = numpy.asarray(clock_relative_frequencies)
             self.__power_consumption = global_model.power_consumption
 
-    def run_step(self, w_alloc: List[int], core_frequencies: List[float]) -> [scipy.ndarray,
-                                                                              scipy.ndarray,
-                                                                              scipy.ndarray,
-                                                                              scipy.ndarray,
-                                                                              scipy.ndarray,
-                                                                              scipy.ndarray,
-                                                                              scipy.ndarray]:
+    def run_step(self, w_alloc: List[int], core_frequencies: List[float]) -> [numpy.ndarray, numpy.ndarray,
+                                                                              numpy.ndarray, numpy.ndarray,
+                                                                              numpy.ndarray, numpy.ndarray,
+                                                                              numpy.ndarray]:
         """
         Run one simulation step
         :param w_alloc: allocation vector
@@ -96,17 +92,17 @@ class GlobalModelSolver(object):
 
         # Transform core frequencies to control action over t_alloc and t_exec
         core_frequencies_as_control = [self.__n * [i] for i in core_frequencies]
-        core_frequencies_as_control = scipy.concatenate(core_frequencies_as_control)
+        core_frequencies_as_control = numpy.concatenate(core_frequencies_as_control)
 
         # Create new control vector
-        new_control_processor = scipy.copy(self.__control_task_proc)
+        new_control_processor = numpy.copy(self.__control_task_proc)
         # Control over t_alloc
         new_control_processor[self.__t_alloc_start_index:self.__t_alloc_start_index + self.__n * self.__m] = \
-            scipy.asarray(w_alloc) * core_frequencies_as_control
+            numpy.asarray(w_alloc) * core_frequencies_as_control
         # Control over t_exec
         new_control_processor[-self.__n * self.__m:] = core_frequencies_as_control
 
-        if not scipy.array_equal(self.__control_task_proc, new_control_processor):
+        if not numpy.array_equal(self.__control_task_proc, new_control_processor):
             self.__control_task_proc = new_control_processor
             self.__tcpn_simulator_proc.set_control(new_control_processor)
 
@@ -117,9 +113,9 @@ class GlobalModelSolver(object):
 
         if self.enable_thermal_mode:
             # Create new control vector
-            new_control_thermal = scipy.asarray(core_frequencies)
+            new_control_thermal = numpy.asarray(core_frequencies)
 
-            if not scipy.array_equal(self.__control_thermal, new_control_thermal):
+            if not numpy.array_equal(self.__control_thermal, new_control_thermal):
                 self.__control_thermal = new_control_thermal
 
                 # Obtain post and lambda for the new frequency
@@ -146,12 +142,12 @@ class GlobalModelSolver(object):
                 self.__mo_thermal[self.__p_board + i * self.__p_one_micro + int(self.__p_one_micro / 2), 0]
                 for i in range(self.__m)]  # Take the temperature in the center of the core
 
-            cores_temperature = scipy.asarray(cores_temperature).reshape((-1, 1))
+            cores_temperature = numpy.asarray(cores_temperature).reshape((-1, 1))
 
         # As the m_exec computed by the tcpn is relative to the cycles executed, we need to transform it to a time
         # measurement
 
-        m_exec_this_step = scipy.concatenate([
+        m_exec_this_step = numpy.concatenate([
             self.__mo[
             self.__m_processor_start_index + i * (2 * self.__n + 1) +
             self.__n:self.__m_processor_start_index + i * (
@@ -166,8 +162,8 @@ class GlobalModelSolver(object):
         # Obtain energy consumption
         energy_consumption = None
         if self.enable_thermal_mode:
-            energy_consumption = scipy.sum(
-                scipy.asarray(w_alloc).reshape(self.__m, self.__n) * self.__power_consumption,
+            energy_consumption = numpy.sum(
+                numpy.asarray(w_alloc).reshape(self.__m, self.__n) * self.__power_consumption,
                 axis=1)
 
         return self.__accumulated_m_exec, board_temperature, cores_temperature, energy_consumption

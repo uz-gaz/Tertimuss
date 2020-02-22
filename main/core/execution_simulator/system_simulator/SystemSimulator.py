@@ -1,4 +1,4 @@
-import scipy
+import numpy
 
 from main.core.execution_simulator.system_simulator.SystemAperiodicTask import SystemAperiodicTask
 from main.core.execution_simulator.system_simulator.SystemPeriodicTask import SystemPeriodicTask
@@ -59,19 +59,19 @@ class SystemSimulator(object):
             global_specification.tasks_specification.h / global_specification.simulation_specification.dt)
 
         # Allocation of each task in each simulation step
-        i_tau_disc = scipy.ndarray((n * m, simulation_time_steps))
+        i_tau_disc = numpy.ndarray((n * m, simulation_time_steps))
 
         # Time of each simulation step
-        time_step = scipy.zeros(simulation_time_steps)
+        time_step = numpy.zeros(simulation_time_steps)
 
         # Accumulated execution time
-        m_exec = scipy.ndarray((n * m, simulation_time_steps))
+        m_exec = numpy.ndarray((n * m, simulation_time_steps))
 
         # Accumulated execution time tcpn
-        m_exec_tcpn = scipy.ndarray((n * m, simulation_time_steps))
+        m_exec_tcpn = numpy.ndarray((n * m, simulation_time_steps))
 
         # Core frequencies in each step
-        core_frequencies = scipy.ndarray((m, simulation_time_steps))
+        core_frequencies = numpy.ndarray((m, simulation_time_steps))
 
         # Max temperature of cores in each step
         max_temperature_cores = None
@@ -87,18 +87,18 @@ class SystemSimulator(object):
 
         if is_thermal_simulation:
             # Max temperature of cores in each step
-            max_temperature_cores = scipy.ndarray((m, simulation_time_steps))
+            max_temperature_cores = numpy.ndarray((m, simulation_time_steps))
 
             # Map with temperatures in each step
             board_places = global_model.p_board
             cpus_places = global_model.p_one_micro * m
-            temperature_map = scipy.ndarray((board_places + cpus_places, simulation_time_steps))
+            temperature_map = numpy.ndarray((board_places + cpus_places, simulation_time_steps))
 
             # Actual cores temperature in each step
-            cores_temperature = scipy.full(m, global_specification.environment_specification.t_env)
+            cores_temperature = numpy.full(m, global_specification.environment_specification.t_env)
 
             # Actual cores energy consumption in each step
-            energy_consumption = scipy.ndarray((m, simulation_time_steps))
+            energy_consumption = numpy.ndarray((m, simulation_time_steps))
 
         # Run offline stage
         quantum = scheduler.offline_stage(global_specification, periodic_tasks, aperiodic_tasks)
@@ -108,7 +108,7 @@ class SystemSimulator(object):
         simulation_quantum_steps = 1 if simulation_quantum_steps == 0 else simulation_quantum_steps
 
         # Accumulated execution time in each step
-        m_exec_step = scipy.zeros(n * m)
+        m_exec_step = numpy.zeros(n * m)
 
         # Number of steps until next quantum
         quantum_q = 0
@@ -184,13 +184,13 @@ class SystemSimulator(object):
                                                                                                 is_thermal_simulation
                                                                                                 else None)
                 # Tasks selected by the scheduler to execute
-                scheduler_selected_tasks = scipy.asarray(active_task_id)
+                scheduler_selected_tasks = numpy.asarray(active_task_id)
 
                 # Check if tasks returned are in available ones
                 active_task_id = [actual_task if actual_task in available_tasks_to_execute else -1 for actual_task in
                                   active_task_id]
 
-                if not scipy.array_equal(scheduler_selected_tasks, scipy.asarray(active_task_id)):
+                if not numpy.array_equal(scheduler_selected_tasks, numpy.asarray(active_task_id)):
                     print("Warning: At least one task selected on time", time, "is not available")
 
                 # Check if the processor frequencies returned are in available ones

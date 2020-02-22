@@ -1,4 +1,4 @@
-import scipy
+import numpy
 import scipy.sparse
 
 from main.core.tcpn_simulator.template.AbstractTcpnSimulator import AbstractTcpnSimulator
@@ -10,7 +10,7 @@ class TcpnSimulatorOptimizedTasksAndProcessorsIterative(AbstractTcpnSimulator):
     """
 
     def __init__(self, pre: scipy.sparse.csr_matrix, post: scipy.sparse.csr_matrix, pi: scipy.sparse.csr_matrix,
-                 lambda_vector: scipy.ndarray, number_of_steps: int, dt: float):
+                 lambda_vector: numpy.ndarray, number_of_steps: int, dt: float):
         """
         Define the TCPN
         :param pre: pre matrix
@@ -20,8 +20,8 @@ class TcpnSimulatorOptimizedTasksAndProcessorsIterative(AbstractTcpnSimulator):
         :param number_of_steps: number of steps in the integration
         :param dt: to solve the state equation, it will be integrated in the interval [0, dt]
         """
-        self.__lambda_vector: scipy.ndarray = lambda_vector
-        self.__control: scipy.ndarray = scipy.ones(len(lambda_vector))
+        self.__lambda_vector: numpy.ndarray = lambda_vector
+        self.__control: numpy.ndarray = numpy.ones(len(lambda_vector))
         self.__pi: scipy.sparse.csr_matrix = pi
         self.__c: scipy.sparse.csr_matrix = post - pre
         self.__dt: float = dt
@@ -31,7 +31,7 @@ class TcpnSimulatorOptimizedTasksAndProcessorsIterative(AbstractTcpnSimulator):
 
         self.__a_i = a + scipy.sparse.identity(a.shape[0])
 
-    def set_control(self, control: scipy.ndarray):
+    def set_control(self, control: numpy.ndarray):
         """
         Apply a control action over transitions firing in the TCPN
         :param control: control
@@ -43,14 +43,14 @@ class TcpnSimulatorOptimizedTasksAndProcessorsIterative(AbstractTcpnSimulator):
         self.__a_i = a + scipy.sparse.identity(a.shape[0])
 
     @staticmethod
-    def __calculate_a(c: scipy.sparse.csr_matrix, lambda_vector: scipy.ndarray, pi: scipy.sparse.csr_matrix,
+    def __calculate_a(c: scipy.sparse.csr_matrix, lambda_vector: numpy.ndarray, pi: scipy.sparse.csr_matrix,
                       fragmented_dt: float) -> scipy.sparse.csr_matrix:
         """
         Calculate a matrix
         """
         return (c.dot(scipy.sparse.diags(lambda_vector.reshape(-1)))).dot(pi) * fragmented_dt
 
-    def simulate_step(self, mo: scipy.ndarray) -> scipy.ndarray:
+    def simulate_step(self, mo: numpy.ndarray) -> numpy.ndarray:
         """
         Simulate one step
 

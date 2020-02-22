@@ -1,9 +1,9 @@
 import sys
 import time
 
-import scipy
+import numpy
 
-import scipy.linalg
+#import scipy.linalg
 
 from main.core.tcpn_simulator.template.AbstractTcpnSimulator import AbstractTcpnSimulator
 from main.core.tcpn_simulator.implementation.numerical_integration.TcpnSimulatorIntegrationFixedStep import TcpnSimulatorIntegrationFixedStep
@@ -29,47 +29,47 @@ def test_performance_petri_net_with_control():
     step_size = 0.1
 
     # Transitions to P1
-    pre_p1 = scipy.asarray(petri_net_size * [1, 0, 0]).reshape((1, -1))
-    post_p1 = scipy.asarray(petri_net_size * [1, 0, 0]).reshape((1, -1))
-    pi_p1 = scipy.asarray(petri_net_size * [0, 0, 0]).reshape((1, -1))
+    pre_p1 = numpy.asarray(petri_net_size * [1, 0, 0]).reshape((1, -1))
+    post_p1 = numpy.asarray(petri_net_size * [1, 0, 0]).reshape((1, -1))
+    pi_p1 = numpy.asarray(petri_net_size * [0, 0, 0]).reshape((1, -1))
 
     # Other transitions
-    pre = scipy.linalg.block_diag(
-        *(petri_net_size * [scipy.asarray([
+    pre = numpy.block_diag(
+        *(petri_net_size * [numpy.asarray([
             [1, 0, 0],
             [0, 1, 0],
             [0, 0, 1],
         ])]))
 
-    pre = scipy.concatenate([pre_p1, pre], axis=0)
+    pre = numpy.concatenate([pre_p1, pre], axis=0)
 
-    post = scipy.linalg.block_diag(
-        *(petri_net_size * [scipy.asarray([
+    post = numpy.block_diag(
+        *(petri_net_size * [numpy.asarray([
             [0, 0, 1],
             [1, 0, 0],
             [0, 1, 0],
         ])]))
 
-    post = scipy.concatenate([post_p1, post], axis=0)
+    post = numpy.concatenate([post_p1, post], axis=0)
 
-    pi = scipy.linalg.block_diag(
-        *(petri_net_size * [scipy.asarray([
+    pi = numpy.block_diag(
+        *(petri_net_size * [numpy.asarray([
             [1, 0, 0],
             [0, 1, 0],
             [0, 0, 1],
         ])]))
 
-    pi = scipy.concatenate([pi_p1, pi], axis=0).transpose()
+    pi = numpy.concatenate([pi_p1, pi], axis=0).transpose()
 
-    lambda_vector = scipy.asarray(petri_net_size * [1, 1, 1])
+    lambda_vector = numpy.asarray(petri_net_size * [1, 1, 1])
 
-    mo = scipy.asarray([1] + (petri_net_size * [3, 0, 0])).reshape((-1, 1))
+    mo = numpy.asarray([1] + (petri_net_size * [3, 0, 0])).reshape((-1, 1))
 
     tcpn_simulator: AbstractTcpnSimulator = TcpnSimulatorIntegrationFixedStep(pre, post, lambda_vector, step_size)
     tcpn_simulator.set_pi(pi)
 
     # Array where t 3*n + 1 are disabled
-    control_model_array = scipy.asarray(petri_net_size * [0, 1, 1])
+    control_model_array = numpy.asarray(petri_net_size * [0, 1, 1])
 
     # Actual transition enabled
     actual_transition_enabled = 0
@@ -77,7 +77,7 @@ def test_performance_petri_net_with_control():
     time1 = time.time()
     for _ in range(simulation_steps):
         # Apply control action
-        control = scipy.copy(control_model_array)
+        control = numpy.copy(control_model_array)
         control[3 * actual_transition_enabled] = 1
         tcpn_simulator.set_control(control)
 

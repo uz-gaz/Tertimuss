@@ -1,7 +1,6 @@
-import scipy
-import scipy.sparse
+import numpy
 import scipy.linalg
-
+import scipy.sparse
 
 class TcpnSimulatorAccurateOptimizedThermal(object):
     """
@@ -9,7 +8,7 @@ class TcpnSimulatorAccurateOptimizedThermal(object):
     """
 
     def __init__(self, pre: scipy.sparse.csr_matrix, post: scipy.sparse.csr_matrix, pi: scipy.sparse.csr_matrix,
-                 lambda_vector: scipy.ndarray, number_of_steps: int, dt: float):
+                 lambda_vector: numpy.ndarray, number_of_steps: int, dt: float):
         """
         Define the TCPN
         :param pre: pre matrix
@@ -29,11 +28,11 @@ class TcpnSimulatorAccurateOptimizedThermal(object):
         a = (self.__c.dot(scipy.sparse.diags(self.__lambda.reshape(-1)))).dot(self.__pi) * (
                     self.__step / self.__multi_step_number)
 
-        self.__a_multi_step: scipy.ndarray = scipy.linalg.fractional_matrix_power(
+        self.__a_multi_step: numpy.ndarray = scipy.linalg.fractional_matrix_power(
             (a + scipy.sparse.identity(a.shape[0], dtype=a.dtype, format="csr")).toarray(),
             self.__multi_step_number)
 
-    def set_post_and_lambda(self, post: scipy.ndarray, lambda_vector: scipy.ndarray):
+    def set_post_and_lambda(self, post: numpy.ndarray, lambda_vector: numpy.ndarray):
         """
         Change petri net post and lambda
         """
@@ -43,7 +42,7 @@ class TcpnSimulatorAccurateOptimizedThermal(object):
         a = (self.__c.dot(scipy.sparse.diags(self.__lambda.reshape(-1)))).dot(self.__pi) * (
                     self.__step / self.__multi_step_number)
 
-        self.__a_multi_step: scipy.ndarray = scipy.linalg.fractional_matrix_power(
+        self.__a_multi_step: numpy.ndarray = scipy.linalg.fractional_matrix_power(
             (a + scipy.sparse.identity(a.shape[0], dtype=a.dtype, format="csr")).toarray(),
             self.__multi_step_number)
 
@@ -68,7 +67,7 @@ class TcpnSimulatorAccurateOptimizedThermal(object):
         """
         return self.__a_multi_step
 
-    def simulate_multi_step(self, mo: scipy.ndarray) -> scipy.ndarray:
+    def simulate_multi_step(self, mo: numpy.ndarray) -> numpy.ndarray:
         """
         Simulate multi_step_number steps
 

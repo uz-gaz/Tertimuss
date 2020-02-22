@@ -1,7 +1,7 @@
 import json
 from typing import Optional, Dict
 
-import scipy
+import numpy
 
 from main.core.problem_specification.GlobalSpecification import GlobalSpecification
 from main.core.execution_simulator.system_simulator.SchedulingResult import SchedulingResult
@@ -45,8 +45,8 @@ class ExecutionPercentageStatistics(AbstractResultDrawer):
         n_periodic = len(global_specification.tasks_specification.periodic_tasks)
         n_aperiodic = len(global_specification.tasks_specification.aperiodic_tasks)
 
-        frequencies_disc_f = scipy.concatenate(
-            [scipy.repeat(i.reshape(1, -1), n_periodic + n_aperiodic, axis=0) for i in frequencies],
+        frequencies_disc_f = numpy.concatenate(
+            [numpy.repeat(i.reshape(1, -1), n_periodic + n_aperiodic, axis=0) for i in frequencies],
             axis=0)
 
         i_tau_disc = i_tau_disc * frequencies_disc_f
@@ -71,7 +71,7 @@ class ExecutionPercentageStatistics(AbstractResultDrawer):
         di_a_dt = [int(round(i.d / global_specification.simulation_specification.dt)) for i in
                    global_specification.tasks_specification.aperiodic_tasks]
 
-        i_tau_disc_accond = scipy.zeros((n_periodic + n_aperiodic, len(i_tau_disc[0])))
+        i_tau_disc_accond = numpy.zeros((n_periodic + n_aperiodic, len(i_tau_disc[0])))
 
         for i in range(m):
             i_tau_disc_accond = i_tau_disc_accond + i_tau_disc[
