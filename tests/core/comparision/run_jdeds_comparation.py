@@ -1,6 +1,7 @@
 import csv
 import json
 import unittest
+import random
 from random import randrange
 from typing import List
 
@@ -27,12 +28,14 @@ from main.core.schedulers_definition.implementations.RUN import RUNScheduler
 from main.core.schedulers_definition.templates.AbstractScheduler import AbstractScheduler
 from main.plot_generator.implementations.ContextSwitchStatistics import ContextSwitchStatistics
 from main.plot_generator.implementations.ExecutionPercentageStatistics import ExecutionPercentageStatistics
+from main.plot_generator.implementations.TaskExecutionDrawer import TaskExecutionDrawer
+from main.plot_generator.implementations.UtilizationDrawer import UtilizationDrawer
 
 
 class RUNJDEDSComparisionTest(unittest.TestCase):
     def test_create_csv_from_comparision(self):
         results_to_print = []
-        for i in range(10):
+        for i in range(500):
             name = "test_" + str(i)
             print(name)
             try:
@@ -70,14 +73,14 @@ class RUNJDEDSComparisionTest(unittest.TestCase):
                 writer.writerow(j)
 
     def test_comparision(self):
-        for i in range(10):
+        for i in range(300):
             name = "test_" + str(i)
             print(name)
-            self.rec_comparision(name, 2)
+            self.rec_comparision(name, 4)
 
     def test_one_comparision(self):
-        name = "test_1"
-        self.rec_comparision(name, 2, False)
+        name = "test_11"
+        self.rec_comparision(name, 3, False)
 
     def rec_comparision(self, name: str, number_of_cpus: int, automatic_generation=True):
         save_path = "out/experimentation/"
@@ -91,14 +94,14 @@ class RUNJDEDSComparisionTest(unittest.TestCase):
                     "min_period_interval": 1,
                     "max_period_interval": 1,
                     "hyperperiod": 1,
-                    "number_of_tasks": 4,
+                    "number_of_tasks": 20,
                     "utilization": number_of_cpus,
                     "processor_frequency": 100,
                 }
             )
 
             for i in range(len(x)):
-                multiplier = randrange(1, 9)
+                multiplier = random.choice([1, 2, 4, 5, 8, 10, 20, 40])  # randrange(1, 9)
                 x[i].d = x[i].d * multiplier
                 x[i].t = x[i].t * multiplier
                 x[i].c = x[i].c * multiplier * 10
@@ -122,8 +125,8 @@ class RUNJDEDSComparisionTest(unittest.TestCase):
                 x.append(PeriodicTask(i["worst_case_execution_time"], i["period"], i["period"], 0))
 
         schedulers = [
-            (RUNScheduler(), "run"),
             (AIECSScheduler(), "jdeds"),
+            (RUNScheduler(), "run"),
         ]
 
         for scheduler_actual in schedulers:
@@ -141,6 +144,16 @@ class RUNJDEDSComparisionTest(unittest.TestCase):
                                                        {
                                                            "save_path": save_path + simulation_name + result_save_path +
                                                                         "_execution_percentage_statics.json"})
+
+                    # TaskExecutionDrawer.plot(global_specification, result,
+                    #                          {
+                    #                              "save_path": save_path + simulation_name + result_save_path +
+                    #                                           "_task_execution_drawer.png"})
+                    #
+                    # UtilizationDrawer.plot(global_specification, result,
+                    #                          {
+                    #                              "save_path": save_path + simulation_name + result_save_path +
+                    #                                           "_utilization_drawer.png"})
 
                     ContextSwitchStatistics.plot(global_specification, result,
                                                  {
@@ -170,8 +183,7 @@ class RUNJDEDSComparisionTest(unittest.TestCase):
         n_aperiodic = len(global_specification.tasks_specification.aperiodic_tasks)
 
         frequencies_disc_f = numpy.concatenate(
-            [numpy.repeat(i.reshape(1, -1), n_periodic + n_aperiodic, axis=0) for i in frequencies],
-            axis=0)
+            [numpy.repeat(i.reshape(1, -1), n_periodic + n_aperiodic, axis=0) for i in frequencies], axis=0)
 
         i_tau_disc = i_tau_disc * frequencies_disc_f
 
@@ -186,8 +198,7 @@ class RUNJDEDSComparisionTest(unittest.TestCase):
         ti_p_dt = [int(round(i.t / global_specification.simulation_specification.dt)) for i in
                    global_specification.tasks_specification.periodic_tasks]
 
-        ci_a_dt = [i.c for i in
-                   global_specification.tasks_specification.aperiodic_tasks]
+        ci_a_dt = [i.c for i in global_specification.tasks_specification.aperiodic_tasks]
 
         ai_a_dt = [int(round(i.a / global_specification.simulation_specification.dt)) for i in
                    global_specification.tasks_specification.aperiodic_tasks]
