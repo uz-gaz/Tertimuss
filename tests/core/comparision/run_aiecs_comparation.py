@@ -32,10 +32,10 @@ from main.plot_generator.implementations.TaskExecutionDrawer import TaskExecutio
 from main.plot_generator.implementations.UtilizationDrawer import UtilizationDrawer
 
 
-class RUNJDEDSComparisionTest(unittest.TestCase):
+class RUNAIECSComparisionTest(unittest.TestCase):
     def test_create_csv_from_comparision(self):
         results_to_print = []
-        for i in range(500):
+        for i in range(88):
             name = "test_" + str(i)
             print(name)
             try:
@@ -49,17 +49,17 @@ class RUNJDEDSComparisionTest(unittest.TestCase):
                     mandatory_context_switch_number_run = decoded_json["statics"]["mandatory_context_switch_number"]
                     migrations_number_run = decoded_json["statics"]["migrations_number"]
 
-                with open(save_path + simulation_name + "jdeds_context_switch_statics.json", "r") as read_file:
+                with open(save_path + simulation_name + "aiecs_context_switch_statics.json", "r") as read_file:
                     decoded_json = json.load(read_file)
-                    total_context_switch_number_jdeds = decoded_json["statics"]["total_context_switch_number"]
-                    scheduler_produced_context_switch_number_jdeds = decoded_json["statics"][
+                    total_context_switch_number_aiecs = decoded_json["statics"]["total_context_switch_number"]
+                    scheduler_produced_context_switch_number_aiecs = decoded_json["statics"][
                         "scheduler_produced_context_switch_number"]
-                    mandatory_context_switch_number_jdeds = decoded_json["statics"]["mandatory_context_switch_number"]
-                    migrations_number_jdeds = decoded_json["statics"]["migrations_number"]
+                    mandatory_context_switch_number_aiecs = decoded_json["statics"]["mandatory_context_switch_number"]
+                    migrations_number_aiecs = decoded_json["statics"]["migrations_number"]
 
-                results_to_print.append([name, total_context_switch_number_jdeds,
-                                         scheduler_produced_context_switch_number_jdeds,
-                                         mandatory_context_switch_number_jdeds, migrations_number_jdeds,
+                results_to_print.append([name, total_context_switch_number_aiecs,
+                                         scheduler_produced_context_switch_number_aiecs,
+                                         mandatory_context_switch_number_aiecs, migrations_number_aiecs,
                                          total_context_switch_number_run, scheduler_produced_context_switch_number_run,
                                          mandatory_context_switch_number_run, migrations_number_run
                                          ])
@@ -73,18 +73,38 @@ class RUNJDEDSComparisionTest(unittest.TestCase):
                 writer.writerow(j)
 
     def test_comparision(self):
-        for i in range(300):
-            name = "test_" + str(i)
-            print(name)
-            self.rec_comparision(name, 4)
+        # [Number of CPUS, Number of tasks]
+        configurations_list = [
+            [2, 8],
+            [2, 12]
+        ]
+
+        number_of_iterations = 2
+
+        for actual_configuration in configurations_list:
+            number_of_cpus = actual_configuration[0]
+            number_of_tasks = actual_configuration[1]
+
+            save_path = "out/experimentation/new/" + str(number_of_cpus) + "/" + str(number_of_tasks) + "/"
+
+            for i in range(number_of_iterations):
+                name = "test_" + str(i)
+                print(str(number_of_cpus) + "/" + str(number_of_tasks) + "/" + name)
+                self.rec_comparision(name, number_of_cpus, number_of_tasks, save_path, True, False)
 
     def test_one_comparision(self):
-        name = "test_11"
-        self.rec_comparision(name, 3, False)
+        name = "analyze/4_2/test_313"
+        self.rec_comparision(name, 2, False)
 
-    def rec_comparision(self, name: str, number_of_cpus: int, automatic_generation=True):
-        save_path = "out/experimentation/"
-        simulation_name = name + "_"
+    """
+    Run a comparision between AIECS and RUN
+    """
+
+    def rec_comparision(self, experiment_name: str, number_of_cpus: int, number_of_tasks: int,
+                        save_path: str = "out/experimentation/", automatic_generation: bool = True,
+                        plot_charts: bool = False) -> bool:
+
+        simulation_name = experiment_name + "_"
         x = []
 
         if automatic_generation:
@@ -94,7 +114,7 @@ class RUNJDEDSComparisionTest(unittest.TestCase):
                     "min_period_interval": 1,
                     "max_period_interval": 1,
                     "hyperperiod": 1,
-                    "number_of_tasks": 20,
+                    "number_of_tasks": number_of_tasks,
                     "utilization": number_of_cpus,
                     "processor_frequency": 100,
                 }
@@ -125,9 +145,11 @@ class RUNJDEDSComparisionTest(unittest.TestCase):
                 x.append(PeriodicTask(i["worst_case_execution_time"], i["period"], i["period"], 0))
 
         schedulers = [
-            (AIECSScheduler(), "jdeds"),
+            (AIECSScheduler(), "aiecs"),
             (RUNScheduler(), "run"),
         ]
+
+        task_set_scheduled_by_all_schedulers: bool = True
 
         for scheduler_actual in schedulers:
             try:
@@ -145,26 +167,30 @@ class RUNJDEDSComparisionTest(unittest.TestCase):
                                                            "save_path": save_path + simulation_name + result_save_path +
                                                                         "_execution_percentage_statics.json"})
 
-                    # TaskExecutionDrawer.plot(global_specification, result,
-                    #                          {
-                    #                              "save_path": save_path + simulation_name + result_save_path +
-                    #                                           "_task_execution_drawer.png"})
-                    #
-                    # UtilizationDrawer.plot(global_specification, result,
-                    #                          {
-                    #                              "save_path": save_path + simulation_name + result_save_path +
-                    #                                           "_utilization_drawer.png"})
-
                     ContextSwitchStatistics.plot(global_specification, result,
                                                  {
                                                      "save_path": save_path + simulation_name
                                                                   + result_save_path + "_context_switch_statics.json"
                                                  })
 
+                    if plot_charts:
+                        TaskExecutionDrawer.plot(global_specification, result,
+                                                 {
+                                                     "save_path": save_path + simulation_name + result_save_path +
+                                                                  "_task_execution_drawer.png"})
+
+                        UtilizationDrawer.plot(global_specification, result,
+                                               {
+                                                   "save_path": save_path + simulation_name + result_save_path +
+                                                                "_utilization_drawer.png"})
+
             except Exception as e:
                 print("Fail for " + scheduler_actual[1])
                 print(e.args)
+                task_set_scheduled_by_all_schedulers = False
                 break
+
+        return task_set_scheduled_by_all_schedulers
 
     @staticmethod
     def _have_miss_deadline(global_specification: GlobalSpecification, scheduler_result: SchedulingResult) -> bool:
