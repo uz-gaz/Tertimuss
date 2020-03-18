@@ -76,10 +76,15 @@ class RUNAIECSComparisionTest(unittest.TestCase):
         # [Number of CPUS, Number of tasks]
         configurations_list = [
             [2, 8],
-            [2, 12]
+            [2, 12],
+            [2, 16],
+            [2, 20],
+            [4, 8],
+            [4, 12],
+            [4, 16]
         ]
 
-        number_of_iterations = 2
+        number_of_iterations = 100
 
         for actual_configuration in configurations_list:
             number_of_cpus = actual_configuration[0]
