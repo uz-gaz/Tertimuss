@@ -18,6 +18,7 @@ class SchedulerSelector(object):
         :param name: Name of the scheduler
         :return:
         """
+        # TODO: Substitute with AbstractScheduler.__subclasses__
         schedulers_definition = {
             "G-EDF": GlobalEDFScheduler(),
             "G-EDF-A": GlobalEDFAffinityScheduler(),
@@ -31,4 +32,5 @@ class SchedulerSelector(object):
 
     @staticmethod
     def get_scheduler_names() -> List[str]:
+        # TODO: Substitute with AbstractScheduler.__subclasses__
         return ["G-EDF", "G-EDF-A", "G-EDF-AFA", "G-LLF-AFA", "JDEDS", "OLDTFS", "RUN"]

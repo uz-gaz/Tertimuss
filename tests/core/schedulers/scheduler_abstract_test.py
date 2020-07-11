@@ -75,7 +75,7 @@ class SchedulerAbstractTest(unittest.TestCase):
         tasks = [PeriodicTask(2000000, 4, 4, 3.4), PeriodicTask(5000000, 8, 8, 8), PeriodicTask(6000000, 12, 12, 9.6)]
 
         if with_aperiodics:
-            tasks.append(AperiodicTask(2000000, 10, 20, 6))
+            tasks.append(AperiodicTask(1000000, 1, 20, 20))
 
         tasks_specification: TasksSpecification = TasksSpecification(tasks)
 
@@ -129,18 +129,18 @@ class SchedulerAbstractTest(unittest.TestCase):
                                                                                             is_thermal,
                                                                                             with_aperiodics)
 
-        # UtilizationDrawer.plot(global_specification, result, {"save_path": result_save_path + "_cpu_utilization.png"})
-        # TaskExecutionDrawer.plot(global_specification, result, {"save_path": result_save_path + "_task_execution.png"})
-        #
-        # AccumulatedExecutionTimeDrawer.plot(global_specification, result,
-        #                                     {"save_path": result_save_path + "_accumulated_execution_time.png"})
-        #
-        # FrequencyDrawer.plot(global_specification, result, {"save_path": result_save_path + "_frequency.png"})
-        # ExecutionPercentageDrawer.plot(global_specification, result,
-        #                                {"save_path": result_save_path + "_execution_percentage.png"})
+        UtilizationDrawer.plot(global_specification, result, {"save_path": result_save_path + "_cpu_utilization.png"})
+        TaskExecutionDrawer.plot(global_specification, result, {"save_path": result_save_path + "_task_execution.png"})
+
+        AccumulatedExecutionTimeDrawer.plot(global_specification, result,
+                                            {"save_path": result_save_path + "_accumulated_execution_time.png"})
+
+        FrequencyDrawer.plot(global_specification, result, {"save_path": result_save_path + "_frequency.png"})
+        ExecutionPercentageDrawer.plot(global_specification, result,
+                                       {"save_path": result_save_path + "_execution_percentage.png"})
 
         ExecutionPercentageStatistics.plot(global_specification, result,
-                                        {"save_path": result_save_path + "_execution_percentage_statics.json"})
+                                           {"save_path": result_save_path + "_execution_percentage_statics.json"})
 
         # if is_thermal:
         #     DynamicPowerConsumptionDrawer.plot(global_specification, result,
@@ -148,4 +148,4 @@ class SchedulerAbstractTest(unittest.TestCase):
         #     MaxCoreTemperatureDrawer.plot(global_specification, result,
         #                                   {"save_path": result_save_path + "_cpu_temperature.png"})
 
-            # HeatMatrixDrawer.plot(global_specification, result, {"save_path": result_save_path + "_heat_matrix.mp4"})
+        # HeatMatrixDrawer.plot(global_specification, result, {"save_path": result_save_path + "_heat_matrix.mp4"})
