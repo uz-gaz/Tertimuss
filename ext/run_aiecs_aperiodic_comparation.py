@@ -3,7 +3,7 @@ import json
 import os
 import random
 from multiprocessing.pool import Pool
-from typing import List
+from typing import List, Tuple
 
 import numpy
 
@@ -34,37 +34,29 @@ from main.plot_generator.implementations.TaskExecutionDrawer import TaskExecutio
 from main.plot_generator.implementations.UtilizationDrawer import UtilizationDrawer
 
 
-def run_comparision(number_of_iterations=100, initial_iteration_number=0):
-    # [Number of CPUS, Number of tasks]
-    configurations_list = [
-        [2, 8],
-        [2, 12],
-        [2, 16],
-        [2, 20],
-        # [4, 8],
-        # [4, 12],
-        [4, 16],
-        # [4, 20],
-        [4, 24],
-        # [4, 28],
-        [4, 32],
-        [4, 40]
-    ]
+def worker_function(local_work_to_do: Tuple[Tuple[int, int], int, int]):
+    print("New worker ", local_work_to_do)
+    number_of_cpus = local_work_to_do[0][0]
+    number_of_tasks = local_work_to_do[0][1]
 
-    for actual_configuration in configurations_list:
-        number_of_cpus = actual_configuration[0]
-        number_of_tasks = actual_configuration[1]
+    save_path = "out/" + str(number_of_cpus) + "/" + str(number_of_tasks) + "/"
+
+    for i in range(local_work_to_do[1], local_work_to_do[2] + 1):
+        name = "test_" + str(i)
+        print(str(number_of_cpus) + "/" + str(number_of_tasks) + "/" + name)
+        rec_comparision(name, number_of_cpus, number_of_tasks, save_path, True, False)
+
+
+def create_save_dir(processor_task_configurations: List[Tuple[int, int]]):
+    for processor_task_configuration in processor_task_configurations:
+        number_of_cpus = processor_task_configuration[0]
+        number_of_tasks = processor_task_configuration[1]
 
         save_path = "out/" + str(number_of_cpus) + "/" + str(number_of_tasks) + "/"
 
         # Create dir if not exist
         if not os.path.exists(save_path):
             os.makedirs(save_path)
-
-        for i in range(number_of_iterations):
-            name = "test_" + str(i + initial_iteration_number)
-            print(str(number_of_cpus) + "/" + str(number_of_tasks) + "/" + name)
-            rec_comparision(name, number_of_cpus, number_of_tasks, save_path, True, False)
 
 
 """
@@ -284,22 +276,47 @@ def create_problem_specification(tasks_set: List[Task], scheduler: AbstractSched
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Configure comparative scenario')
     parser.add_argument("-s", "--start_iteration", help="first iteration", required=True)
-    parser.add_argument("-n", "--number_iterations", help="number of iterations", required=True)
+    parser.add_argument("-cs", "--iterations_chunk_size", help="size of work chunk", required=True)
+    parser.add_argument("-n", "--number_of_iterations_chunks", help="number of work chunks", required=True)
     parser.add_argument("-j", "--parallel_level", help="level of parallelization", required=True)
     arguments = parser.parse_args()
 
-    total_number_of_iterations = int(arguments.number_iterations)
+    processor_task_pairs_list = [
+        # [2, 8],
+        # [2, 12],
+        # [2, 16],
+        # [2, 20],
+        # # [4, 8],
+        # # [4, 12],
+        # [4, 16],
+        # [4, 20],
+        # [4, 24],  # Iteration 49
+        # [4, 28],
+        (4, 32),
+        (4, 40)
+    ]
+
+    # Create dir to save
+    create_save_dir(processor_task_pairs_list)
+
+    iterations_chunk_size = int(arguments.iterations_chunk_size)
     global_start_iteration = int(arguments.start_iteration)
-    parallel_level = int(arguments.parallel_level)
+    number_of_iterations_chunks = int(arguments.number_of_iterations_chunks)
+    number_of_threads = int(arguments.parallel_level)
 
-    number_of_iterations = int(total_number_of_iterations / parallel_level)
+    work_to_do: List[Tuple[Tuple[int, int], int, int]] = []
 
+    # Create work packages
+    for processor_task_pairs in processor_task_pairs_list:
+        start_iteration = range(1 + global_start_iteration,
+                                number_of_iterations_chunks * iterations_chunk_size + global_start_iteration,
+                                iterations_chunk_size)
+        for actual_start_iteration in start_iteration:
+            work_to_do.append(
+                (processor_task_pairs, actual_start_iteration, actual_start_iteration + iterations_chunk_size - 1))
 
-    def caller_function(local_start_iteration: int):
-        run_comparision(number_of_iterations, local_start_iteration)
+    p = Pool(processes=number_of_threads)
+    p.map(worker_function, work_to_do)
 
-
-    start_iterations_list = [global_start_iteration + i * number_of_iterations for i in range(parallel_level)]
-
-    with Pool(processes=4) as pool:
-        pool.map(caller_function, start_iterations_list)
+    p.close()
+    p.join()
