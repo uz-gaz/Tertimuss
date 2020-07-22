@@ -77,8 +77,8 @@ def rec_comparision(experiment_name: str, number_of_cpus: int, number_of_tasks: 
 
     schedulers = [
         (SemiPartitionedAIECSScheduler(), "semipartitionedaiecs"),
-        (AIECSScheduler(), "aiecs"),
-        (RUNScheduler(), "run")
+        # (AIECSScheduler(), "aiecs"),
+        # (RUNScheduler(), "run")
     ]
 
     task_set_scheduled_by_all_schedulers: bool = True
