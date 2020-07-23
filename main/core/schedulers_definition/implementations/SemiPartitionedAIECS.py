@@ -61,10 +61,12 @@ class SemiPartitionedAIECSScheduler(RUNScheduler):
                                      partitioned_task_set]
 
         for task_set_loop, utilization in task_sets_and_utilization:
-            # TODO: In the case of AIECS it assumes id from 0 to number of tasks -1, so if we provide the original id it fill fail
+            # TODO: In the case of AIECS it assumes id from 0 to number of tasks -1, so if
+            #  we provide the original id it fill fail
             actual_scheduler = GlobalEDFScheduler() if (utilization == 1) else AIECSScheduler()
+            tasks_ids = [i.id for i in task_set_loop]
             self.__partitions_schedulers.append(
-                [actual_scheduler, [i.id for i in task_set_loop], utilization * [-1],
+                [actual_scheduler, tasks_ids, utilization * [-1],
                  utilization * [selected_frequency]])
 
             # Call on offline stage
@@ -86,7 +88,9 @@ class SemiPartitionedAIECSScheduler(RUNScheduler):
                 global_specification.environment_specification,
                 global_specification.simulation_specification,
                 global_specification.tcpn_model_specification)
-            actual_scheduler.offline_stage(local_global_specification, task_set_loop, [])
+            actual_scheduler.offline_stage(local_global_specification,
+                                           [SystemPeriodicTask(PeriodicTask(i.c, i.t, i.d, i.e), tasks_ids.index(i.id))
+                                            for i in task_set_loop], [])
         return global_specification.simulation_specification.dt
 
     def schedule_policy(self, time: float, executable_tasks: List[SystemTask], active_tasks: List[int],
@@ -98,13 +102,13 @@ class SemiPartitionedAIECSScheduler(RUNScheduler):
             local_scheduler, task_set, local_active_tasks, local_cores_frequency = scheduler_info
 
             local_tasks_to_execute, local_dt, local_frequencies = local_scheduler.schedule_policy(
-                time, [i for i in executable_tasks if i.id in task_set], local_active_tasks, local_cores_frequency,
-                None)
+                time, [SystemTask(i.next_deadline, i.next_arrival, i.pending_c, task_set.index(i.id)) for i in
+                       executable_tasks if i.id in task_set], local_active_tasks, local_cores_frequency, None)
 
             # Update local active tasks
             scheduler_info[2] = local_tasks_to_execute
             scheduler_info[3] = local_frequencies if (local_frequencies is not None) else local_cores_frequency
-            tasks_to_execute = tasks_to_execute + local_tasks_to_execute
+            tasks_to_execute = tasks_to_execute + [task_set[i] for i in local_tasks_to_execute]
             frequencies_to_set = frequencies_to_set + scheduler_info[3]
         return tasks_to_execute, None, frequencies_to_set
 

@@ -18,6 +18,7 @@ class GlobalEDFScheduler(AbstractScheduler):
     def __init__(self) -> None:
         super().__init__()
         self.__m = None
+        self.__h = None
 
     def offline_stage(self, global_specification: GlobalSpecification,
                       periodic_tasks: List[SystemPeriodicTask],
@@ -30,6 +31,7 @@ class GlobalEDFScheduler(AbstractScheduler):
         :return: 1 - Scheduling quantum (default will be the step specified in problem creation)
         """
         self.__m = len(global_specification.cpu_specification.cores_specification.operating_frequencies)
+        self.__h = global_specification.tasks_specification.h
         return super().offline_stage(global_specification, periodic_tasks, aperiodic_tasks)
 
     def aperiodic_arrive(self, time: float, aperiodic_tasks_arrived: List[SystemTask],
@@ -60,6 +62,10 @@ class GlobalEDFScheduler(AbstractScheduler):
                  3 - cores relatives frequencies for the next quantum (if None, will be taken the frequencies specified
                   in the problem specification)
         """
+        # Priorities
+        # 1 -> EDF
+        # 2 -> Less pending C
+
         task_order = numpy.argsort(list(map(lambda x: x.next_deadline, executable_tasks)))
         return ([executable_tasks[i].id for i in task_order] + (self.__m - len(executable_tasks)) * [-1])[
                0:self.__m], None, None
