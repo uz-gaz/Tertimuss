@@ -175,7 +175,11 @@ class AIECSScheduler(AbstractScheduler):
                 ((math.ceil(i.c / round(actual_frequency * dt)) * actual_frequency * dt), i.t * actual_frequency) for i
                 in periodic_tasks]
 
-            utilization_constraint = sum([i[0] / i[1] for i in tasks_real_cycles]) <= self.__m
+            # Avoid float errors
+            h_cycles = int(global_specification.tasks_specification.h * actual_frequency)
+            utilization_constraint = sum([i[0] * (h_cycles / i[1]) for i in tasks_real_cycles]) <= self.__m * h_cycles
+
+            # utilization_constraint = sum([i[0] / i[1] for i in tasks_real_cycles]) <= self.__m
 
             task_period_constraint = all([(i[0] / i[1]) <= 1 for i in tasks_real_cycles])
 

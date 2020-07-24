@@ -57,7 +57,7 @@ class SemiPartitionedAIECSScheduler(RUNScheduler):
         partitioned_task_set = [[next(x for x in periodic_tasks if x.id == i) for i in partition_tasks if (i != -1)]
                                 for partition_tasks in partitions]
 
-        task_sets_and_utilization = [(i, math.ceil(sum([j.c / (j.d * selected_frequency) for j in i]))) for i in
+        task_sets_and_utilization = [(i, round(sum([j.c / (j.d * selected_frequency) for j in i]))) for i in
                                      partitioned_task_set]
 
         for task_set_loop, utilization in task_sets_and_utilization:
