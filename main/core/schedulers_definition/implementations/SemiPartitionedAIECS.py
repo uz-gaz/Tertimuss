@@ -14,7 +14,7 @@ from main.core.problem_specification.cpu_specification.CpuSpecification import C
 from main.core.problem_specification.tasks_specification.PeriodicTask import PeriodicTask
 from main.core.problem_specification.tasks_specification.TasksSpecification import TasksSpecification
 from main.core.schedulers_definition.implementations.AIECS import AIECSScheduler
-from main.core.schedulers_definition.implementations.G_EDF import GlobalEDFScheduler
+from main.core.schedulers_definition.implementations.EDF import EDFScheduler
 from main.core.schedulers_definition.implementations.RUN import RUNTask, RUNScheduler, RUNPack
 
 
@@ -61,7 +61,7 @@ class SemiPartitionedAIECSScheduler(RUNScheduler):
                                      partitioned_task_set]
 
         for task_set_loop, utilization in task_sets_and_utilization:
-            actual_scheduler = GlobalEDFScheduler() if (utilization == 1) else AIECSScheduler()
+            actual_scheduler = EDFScheduler() if (utilization == 1) else AIECSScheduler()
             tasks_ids = [i.id for i in task_set_loop]
             self.__partitions_schedulers.append(
                 [actual_scheduler, tasks_ids, utilization * [-1],
@@ -106,7 +106,7 @@ class SemiPartitionedAIECSScheduler(RUNScheduler):
             # Update local active tasks
             scheduler_info[2] = local_tasks_to_execute
             scheduler_info[3] = local_frequencies if (local_frequencies is not None) else local_cores_frequency
-            tasks_to_execute = tasks_to_execute + [task_set[i] for i in local_tasks_to_execute]
+            tasks_to_execute = tasks_to_execute + [task_set[i] if i != -1 else -1 for i in local_tasks_to_execute]
             frequencies_to_set = frequencies_to_set + scheduler_info[3]
         return tasks_to_execute, None, frequencies_to_set
 

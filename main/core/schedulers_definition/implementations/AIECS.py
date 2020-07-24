@@ -130,8 +130,10 @@ class AIECSScheduler(AbstractScheduler):
         f = numpy.full((v, 1), -1)
 
         # WARNING: "Presolve = False" is a workaround to deal with an issue on the scipy.optimize.linprog library
-        res = scipy.optimize.linprog(c=f, A_ub=a, b_ub=b, A_eq=a_eq,
-                                     b_eq=b_eq, method='simplex', options={"presolve": False, "maxiter": 10000})
+        # res = scipy.optimize.linprog(c=f, A_ub=a, b_ub=b, A_eq=a_eq,
+        #                              b_eq=b_eq, method='simplex', options={"presolve": False, "maxiter": 10000})
+        res = scipy.optimize.linprog(c=f, A_ub=a, b_ub=b, A_eq=a_eq, b_eq=b_eq, method='revised simplex')
+
         if not res.success:
             # No solution found
             raise Exception("Error: No solution found when trying to solve the lineal programing problem")

@@ -176,6 +176,14 @@ class SystemSimulator(object):
 
                 available_tasks_to_execute = [actual_task.id for actual_task in executable_tasks] + [-1]
 
+                if zeta_q == 1489:
+                    pass
+                    pass
+                    pass
+                    pass
+                    iiii = 0
+                    iiiiii = 9
+
                 # Get active task in this step
                 active_task_id, next_quantum, next_core_frequencies = scheduler.schedule_policy(time, executable_tasks,
                                                                                                 active_task_id,
