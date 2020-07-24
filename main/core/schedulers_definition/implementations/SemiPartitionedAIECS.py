@@ -61,8 +61,6 @@ class SemiPartitionedAIECSScheduler(RUNScheduler):
                                      partitioned_task_set]
 
         for task_set_loop, utilization in task_sets_and_utilization:
-            # TODO: In the case of AIECS it assumes id from 0 to number of tasks -1, so if
-            #  we provide the original id it fill fail
             actual_scheduler = GlobalEDFScheduler() if (utilization == 1) else AIECSScheduler()
             tasks_ids = [i.id for i in task_set_loop]
             self.__partitions_schedulers.append(

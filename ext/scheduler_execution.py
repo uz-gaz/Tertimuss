@@ -76,9 +76,9 @@ def rec_comparision(experiment_name: str, number_of_cpus: int, number_of_tasks: 
             x.append(PeriodicTask(i["worst_case_execution_time"], i["period"], i["period"], 0))
 
     schedulers = [
-        (SemiPartitionedAIECSScheduler(), "semipartitionedaiecs"),
-        # (AIECSScheduler(), "aiecs"),
-        # (RUNScheduler(), "run")
+        # (SemiPartitionedAIECSScheduler(), "semipartitionedaiecs"),
+        (AIECSScheduler(), "aiecs"),
+        (RUNScheduler(), "run")
     ]
 
     task_set_scheduled_by_all_schedulers: bool = True
@@ -228,5 +228,5 @@ def create_problem_specification(tasks_set: List[PeriodicTask], scheduler: Abstr
 
 
 if __name__ == '__main__':
-    name = "reference_task_set"
-    rec_comparision(name, 4, 20, "", False, False)
+    name = "test_40"
+    rec_comparision(name, 4, 32, "", False, False)

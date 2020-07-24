@@ -1,0 +1,122 @@
+[
+    {
+        "type": "Periodic",
+        "worst_case_execution_time": 1680,
+        "period": 8
+    },
+    {
+        "type": "Periodic",
+        "worst_case_execution_time": 500,
+        "period": 5
+    },
+    {
+        "type": "Periodic",
+        "worst_case_execution_time": 20,
+        "period": 1
+    },
+    {
+        "type": "Periodic",
+        "worst_case_execution_time": 240,
+        "period": 8
+    },
+    {
+        "type": "Periodic",
+        "worst_case_execution_time": 1250,
+        "period": 5
+    },
+    {
+        "type": "Periodic",
+        "worst_case_execution_time": 1200,
+        "period": 5
+    },
+    {
+        "type": "Periodic",
+        "worst_case_execution_time": 1440,
+        "period": 8
+    },
+    {
+        "type": "Periodic",
+        "worst_case_execution_time": 1200,
+        "period": 20
+    },
+    {
+        "type": "Periodic",
+        "worst_case_execution_time": 5200,
+        "period": 40
+    },
+    {
+        "type": "Periodic",
+        "worst_case_execution_time": 380,
+        "period": 2
+    },
+    {
+        "type": "Periodic",
+        "worst_case_execution_time": 760,
+        "period": 4
+    },
+    {
+        "type": "Periodic",
+        "worst_case_execution_time": 80,
+        "period": 2
+    },
+    {
+        "type": "Periodic",
+        "worst_case_execution_time": 700,
+        "period": 5
+    },
+    {
+        "type": "Periodic",
+        "worst_case_execution_time": 540,
+        "period": 2
+    },
+    {
+        "type": "Periodic",
+        "worst_case_execution_time": 900,
+        "period": 10
+    },
+    {
+        "type": "Periodic",
+        "worst_case_execution_time": 120,
+        "period": 2
+    },
+    {
+        "type": "Periodic",
+        "worst_case_execution_time": 2000,
+        "period": 5
+    },
+    {
+        "type": "Periodic",
+        "worst_case_execution_time": 2800,
+        "period": 40
+    },
+    {
+        "type": "Periodic",
+        "worst_case_execution_time": 320,
+        "period": 2
+    },
+    {
+        "type": "Periodic",
+        "worst_case_execution_time": 200,
+        "period": 2
+    },
+    {
+        "type": "Periodic",
+        "worst_case_execution_time": 4000,
+        "period": 5
+    },
+    {
+        "type": "Periodic",
+        "worst_case_execution_time": 360,
+        "period": 2
+    },
+    {
+        "type": "Periodic",
+        "worst_case_execution_time": 60,
+        "period": 2
+    },
+    {
+        "type": "Periodic",
+        "worst_case_execution_time": 240,
+        "period": 4
+    }
+]
