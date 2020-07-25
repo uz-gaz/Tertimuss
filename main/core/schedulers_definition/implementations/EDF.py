@@ -10,7 +10,7 @@ from main.core.execution_simulator.system_simulator.SystemTask import SystemTask
 from main.core.schedulers_definition.templates.AbstractScheduler import AbstractScheduler
 
 
-class GlobalEDFScheduler(AbstractScheduler):
+class EDFScheduler(AbstractScheduler):
     """
     Implements global earliest deadline first scheduler
     """
@@ -66,6 +66,19 @@ class GlobalEDFScheduler(AbstractScheduler):
         # 1 -> EDF
         # 2 -> Less pending C
 
-        task_order = numpy.argsort(list(map(lambda x: x.next_deadline, executable_tasks)))
-        return ([executable_tasks[i].id for i in task_order] + (self.__m - len(executable_tasks)) * [-1])[
-               0:self.__m], None, None
+        if len(executable_tasks) == 0:
+            return self.__m * [-1], None, None
+        else:
+            # Obtain earliest deadline
+            less_deadline = min([i.next_deadline for i in executable_tasks])
+            less_deadline_tasks = [i for i in executable_tasks if less_deadline == i.next_deadline]
+
+            # If actual executed task has the earliest deadline, select it
+            if active_tasks[0] in [i.id for i in less_deadline_tasks]:
+                return [active_tasks[0]] + ((self.__m - 1) * [-1]), None, None
+
+            # Find less remaining cycles to execute
+            less_cycles = min([i.pending_c for i in less_deadline_tasks])
+            less_cycles_tasks = [i for i in less_deadline_tasks if less_cycles == i.pending_c]
+
+            return [less_cycles_tasks[0].id] + ((self.__m - 1) * [-1]), None, None

@@ -130,8 +130,10 @@ class AIECSScheduler(AbstractScheduler):
         f = numpy.full((v, 1), -1)
 
         # WARNING: "Presolve = False" is a workaround to deal with an issue on the scipy.optimize.linprog library
-        res = scipy.optimize.linprog(c=f, A_ub=a, b_ub=b, A_eq=a_eq,
-                                     b_eq=b_eq, method='simplex', options={"presolve": False, "maxiter": 10000})
+        # res = scipy.optimize.linprog(c=f, A_ub=a, b_ub=b, A_eq=a_eq,
+        #                              b_eq=b_eq, method='simplex', options={"presolve": False, "maxiter": 10000})
+        res = scipy.optimize.linprog(c=f, A_ub=a, b_ub=b, A_eq=a_eq, b_eq=b_eq, method='revised simplex')
+
         if not res.success:
             # No solution found
             raise Exception("Error: No solution found when trying to solve the lineal programing problem")
@@ -175,7 +177,11 @@ class AIECSScheduler(AbstractScheduler):
                 ((math.ceil(i.c / round(actual_frequency * dt)) * actual_frequency * dt), i.t * actual_frequency) for i
                 in periodic_tasks]
 
-            utilization_constraint = sum([i[0] / i[1] for i in tasks_real_cycles]) <= self.__m
+            # Avoid float errors
+            h_cycles = int(global_specification.tasks_specification.h * actual_frequency)
+            utilization_constraint = sum([i[0] * (h_cycles / i[1]) for i in tasks_real_cycles]) <= self.__m * h_cycles
+
+            # utilization_constraint = sum([i[0] / i[1] for i in tasks_real_cycles]) <= self.__m
 
             task_period_constraint = all([(i[0] / i[1]) <= 1 for i in tasks_real_cycles])
 
