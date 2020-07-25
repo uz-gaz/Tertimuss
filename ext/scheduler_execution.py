@@ -228,5 +228,5 @@ def create_problem_specification(tasks_set: List[PeriodicTask], scheduler: Abstr
 
 
 if __name__ == '__main__':
-    name = "partitioned"
+    name = "semipartitioned"
     rec_comparision(name, 4, 32, "", False, False)

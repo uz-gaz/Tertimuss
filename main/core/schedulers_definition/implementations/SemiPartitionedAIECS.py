@@ -23,7 +23,7 @@ class SemiPartitionedAIECSScheduler(RUNScheduler):
         super().__init__()
         self.__partitions_schedulers = []
 
-    def __obtain_tasks_from_tree_parent(self, pack_of_tasks: RUNPack):
+    def __obtain_tasks_from_tree_parent(self, pack_of_tasks: RUNPack) -> List[int]:
         content = []
         for i in pack_of_tasks.content:
             if type(i) is RUNTask:
@@ -51,7 +51,7 @@ class SemiPartitionedAIECSScheduler(RUNScheduler):
         parents_of_tree = self._create_tree(task_set)
 
         # Partitions done
-        partitions = [self.__obtain_tasks_from_tree_parent(i) for i in parents_of_tree]
+        partitions = [sorted(self.__obtain_tasks_from_tree_parent(i)) for i in parents_of_tree]
 
         # 1 - View the utilization of each partition
         partitioned_task_set = [[next(x for x in periodic_tasks if x.id == i) for i in partition_tasks if (i != -1)]
