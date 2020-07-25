@@ -69,6 +69,16 @@ class EDFScheduler(AbstractScheduler):
         if len(executable_tasks) == 0:
             return self.__m * [-1], None, None
         else:
-            task_order = executable_tasks.copy()
-            task_order.sort(key=lambda x: x.next_deadline * 2 + x.pending_c)
-            return [task_order[0].id] + ((self.__m - 1) * [-1]), None, None
+            # Obtain earliest deadline
+            less_deadline = min([i.next_deadline for i in executable_tasks])
+            less_deadline_tasks = [i for i in executable_tasks if less_deadline == i.next_deadline]
+
+            # If actual executed task has the earliest deadline, select it
+            if active_tasks[0] in [i.id for i in less_deadline_tasks]:
+                return [active_tasks[0]] + ((self.__m - 1) * [-1]), None, None
+
+            # Find less remaining cycles to execute
+            less_cycles = min([i.pending_c for i in less_deadline_tasks])
+            less_cycles_tasks = [i for i in less_deadline_tasks if less_cycles == i.pending_c]
+
+            return [less_cycles_tasks[0].id] + ((self.__m - 1) * [-1]), None, None
