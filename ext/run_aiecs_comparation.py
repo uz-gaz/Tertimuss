@@ -1,5 +1,4 @@
 import argparse
-import csv
 import json
 import random
 from multiprocessing.pool import Pool

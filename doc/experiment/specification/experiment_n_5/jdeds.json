@@ -1,5 +1,5 @@
 {
-  "$schema": "../../../../main/ui/cli/input_schema/global-schema.json",
+  "$schema": "../../../../tertimuss_cli/input_schema/global-schema.json",
   "$id": "scheduler.framework.TCPN.schema.experiment.n5_fb",
   "title": "Experiment specification",
   "description": "Experiment number 5 with frequency based thermal model specification. 100% utilization",

@@ -4,7 +4,6 @@ from main.core.problem_specification.tasks_specification.PeriodicTask import Per
 from main.core.schedulers_definition.implementations.RUNA import RUNAScheduler
 from main.core.schedulers_definition.templates.AbstractScheduler import AbstractScheduler
 
-from main.core.schedulers_definition.implementations.G_EDF_A import GlobalEDFAffinityScheduler
 from tests.core.schedulers.scheduler_abstract_test import SchedulerAbstractTest
 
 

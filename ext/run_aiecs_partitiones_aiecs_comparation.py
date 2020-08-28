@@ -21,13 +21,10 @@ from main.core.problem_specification.cpu_specification.MaterialCuboid import Mat
 from main.core.problem_specification.environment_specification.EnvironmentSpecification import EnvironmentSpecification
 from main.core.problem_specification.simulation_specification.SimulationSpecification import SimulationSpecification
 from main.core.problem_specification.simulation_specification.TCPNModelSpecification import TCPNModelSpecification
-from main.core.problem_specification.tasks_specification.AperiodicTask import AperiodicTask
-from main.core.problem_specification.tasks_specification.PeriodicTask import PeriodicTask
 from main.core.problem_specification.tasks_specification.Task import Task
 from main.core.problem_specification.tasks_specification.TasksSpecification import TasksSpecification
 from main.core.schedulers_definition.implementations.AIECS import AIECSScheduler
 from main.core.schedulers_definition.implementations.RUN import RUNScheduler
-from main.core.schedulers_definition.implementations.RUNA import RUNAScheduler
 from main.core.schedulers_definition.implementations.SemiPartitionedAIECS import SemiPartitionedAIECSScheduler
 from main.core.schedulers_definition.templates.AbstractScheduler import AbstractScheduler
 from main.plot_generator.implementations.ContextSwitchStatistics import ContextSwitchStatistics
