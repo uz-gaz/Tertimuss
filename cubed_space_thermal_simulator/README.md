@@ -26,7 +26,7 @@ Parameters definition
 - energyApplicationPoints: Points where the energy is applied. If the list is empty, none energy will be applied, however the energy transfer between cubes will be simulated. Each cube will have defined it's dimensions in unit units, it's position in units and the amount of energy to be applied.  
 - amountOfTime: Amount of time in seconds while the energy is being applied  
 
-### obtainTemperature(cubeSpace: CubedSpace, surroundedCube: Optional[LocatedCube], units: ThermalUnits): Array(Dim 2)[float]
+### obtainTemperature(cubeSpace: CubedSpace, surroundedCube: Optional[LocatedCube], units: ThermalUnits): ModelTemperatureArray
 This function return the temperature in each cube of unit edge that conform the cubedSpace
 Parameters definition
 - cubeSpace: Cube space to use.  
