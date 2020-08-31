@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
+from typing import Dict
 
 import numpy
 
@@ -45,7 +46,6 @@ class MaterialLocatedCube:
     dimensions: UnitDimensions
     location: UnitLocation
     material: Material
-    initialTemperature: float
 
 
 @dataclass
@@ -94,7 +94,7 @@ class ModelTemperatureMatrix:
     """
     Model temperature matrix
     """
-    temperatureMatrix: numpy.ndarray
+    temperatureMatrix: Dict[int, numpy.ndarray]
 
 
 @dataclass

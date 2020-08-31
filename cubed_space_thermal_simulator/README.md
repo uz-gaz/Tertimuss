@@ -8,7 +8,7 @@ It exposes the following functions
 
 
 ## Functions
-### cubedSpaceCreation(materialCubes: List[MaterialLocatedCube], cubeEdgeSize: float, environmentProperties: EnvironmentProperties, fixedEnergyApplicationPoints: Optional[List[EnergyLocatedCube]]) : CubedSpace 
+### cubedSpaceCreation(materialCubes: List[MaterialLocatedCube], cubeEdgeSize: float, environmentProperties: EnvironmentProperties, fixedEnergyApplicationPoints: Optional[List[EnergyLocatedCube]]) -> CubedSpace, List[int], List[int], List[int]  
 This function create a cubedSpace  
 Parameters definition
 - materialLocatedCubes: List of cubes that conform the space. Each cube will have defined it's dimensions in unit units, the position in units and the thermal properties of the cube. 
@@ -17,9 +17,14 @@ Parameters definition
 - fixedEnergyApplicationPoints: This parameter is only used with optimization purposes. If is not null, all of the elements of energyApplicationPoints in the function applyEnergy, must be in fixedEnergyApplicationPoints  
 
 Return definition
-- CubedSpace: Created mesh
+- CubedSpace: Created mesh  
+- List[int]: Id to refer to each material cube. It has the same size of materialCubes
+- List[int]: Id to refer to each material cube. It has the same size of materialCubes
+- List[int]: Id to refer to each material cube. It has the same size of materialCubes
 
-### applyEnergy(cubeSpace: CubedSpace, energyApplicationPoints: List[EnergyLocatedCube], amountOfTime: float): CubedSpace
+### createSimulationState() -> SimulationState
+
+### applyEnergy(cubeSpace: CubedSpace, energyApplicationPoints: List[EnergyLocatedCube], amountOfTime: float) -> CubedSpace
 This function apply energy over the cubedSpace and return the transformed cubedSpace.
 Parameters definition
 - cubeSpace: Cube space to use.  

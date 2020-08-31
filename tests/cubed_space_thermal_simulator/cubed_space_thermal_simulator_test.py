@@ -1,7 +1,8 @@
 import unittest
 
 from cubed_space_thermal_simulator import MaterialLocatedCube, UnitDimensions, UnitLocation, Material, \
-    EnvironmentProperties, ExternalEnergyLocatedCube, InternalEnergyLocatedCube, CubedSpace, ThermalUnits
+    EnvironmentProperties, ExternalEnergyLocatedCube, InternalEnergyLocatedCube, CubedSpace, ThermalUnits, \
+    create_cubed_space, create_initial_state
 
 
 class CubedSpaceThermalSimulator(unittest.TestCase):
@@ -38,34 +39,29 @@ class CubedSpaceThermalSimulator(unittest.TestCase):
             MaterialLocatedCube(
                 location=UnitLocation(x=1, y=2, z=1),
                 dimensions=core_dimensions,
-                material=core_material,
-                initialTemperature=core_initial_temperature
+                material=core_material
             ),
             MaterialLocatedCube(
                 location=UnitLocation(x=6, y=2, z=1),
                 dimensions=core_dimensions,
-                material=core_material,
-                initialTemperature=core_initial_temperature
+                material=core_material
             ),
             MaterialLocatedCube(
                 location=UnitLocation(x=1, y=2, z=6),
                 dimensions=core_dimensions,
-                material=core_material,
-                initialTemperature=core_initial_temperature
+                material=core_material
             ),
             MaterialLocatedCube(
                 location=UnitLocation(x=6, y=2, z=6),
                 dimensions=core_dimensions,
-                material=core_material,
-                initialTemperature=core_initial_temperature
+                material=core_material
             ),
 
             # Board
             MaterialLocatedCube(
                 location=UnitLocation(x=0, y=0, z=0),
                 dimensions=UnitDimensions(x=10, y=2, z=10),
-                material=board_material,
-                initialTemperature=board_initial_temperature
+                material=board_material
             )
         ]
 
@@ -154,24 +150,40 @@ class CubedSpaceThermalSimulator(unittest.TestCase):
         ]
 
         # Generate cubed space
-        cubed_space = CubedSpace(material_cubes=cpu_definition,
-                                 cube_edge_size=cube_edge_size,
-                                 fixed_external_energy_application_points=external_heat_generators,
-                                 fixed_internal_energy_application_points=internal_heat_generators,
-                                 environment_properties=environment_properties)
+
+        cubed_space, cubes_ids, external_heat_generators_ids, internal_heat_generators_ids = create_cubed_space(
+            material_cubes=cpu_definition,
+            cube_edge_size=cube_edge_size,
+            external_energy_application_points=external_heat_generators,
+            internal_energy_application_points=internal_heat_generators,
+            environment_properties=environment_properties)
+
+        initial_state = create_initial_state(
+            cubed_space=cubed_space,
+            default_temperature=core_initial_temperature,
+            material_cubes_temperatures=None
+        )
 
         # Initial temperatures
-        temperature_over_before_zero_seconds = cubed_space.obtain_temperature(surrounded_cube=None,
-                                                                              units=ThermalUnits.CELSIUS)
+        temperature_over_before_zero_seconds = cubed_space.obtain_temperature(
+            actual_state=initial_state,
+            surrounded_cube=None,
+            units=ThermalUnits.CELSIUS)
 
         # Apply energy over the cubed space
-        cubed_space.apply_energy(external_heat_generators, internal_heat_generators, 1)
-        temperature_over_before_one_second = cubed_space.obtain_temperature(surrounded_cube=None,
+        initial_state = cubed_space.apply_energy(actual_state=initial_state,
+                                                 external_heat_generators=external_heat_generators,
+                                                 internal_heat_generators=internal_heat_generators, amount_of_time=1)
+        temperature_over_before_one_second = cubed_space.obtain_temperature(actual_state=initial_state,
+                                                                            surrounded_cube=None,
                                                                             units=ThermalUnits.CELSIUS)
 
         # Apply energy over the cubed space
-        cubed_space.apply_energy(external_heat_generators, internal_heat_generators, 1)
-        temperature_over_before_two_seconds = cubed_space.obtain_temperature(surrounded_cube=None,
+        initial_state = cubed_space.apply_energy(actual_state=initial_state,
+                                                 external_heat_generators=external_heat_generators,
+                                                 internal_heat_generators=internal_heat_generators, amount_of_time=1)
+        temperature_over_before_two_seconds = cubed_space.obtain_temperature(actual_state=initial_state,
+                                                                             surrounded_cube=None,
                                                                              units=ThermalUnits.CELSIUS)
 
 
