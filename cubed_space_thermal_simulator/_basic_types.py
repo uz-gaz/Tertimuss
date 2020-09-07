@@ -26,7 +26,7 @@ class UnitDimensions:
 
 
 @dataclass
-class Material:
+class SolidMaterial:
     """
     Material definition
     density: Density(Kg / cm ^ 3)
@@ -39,46 +39,48 @@ class Material:
 
 
 @dataclass
-class MaterialLocatedCube:
-    """
-    Cube with material and location
-    """
-    dimensions: UnitDimensions
-    location: UnitLocation
-    material: Material
-
-
-@dataclass
-class ExternalEnergyLocatedCube:
-    """
-    Cube with location that generate energy. It generate (energy) amount of Joules in (period) seconds.
-    """
-    dimensions: UnitDimensions
-    location: UnitLocation
-    energy: float
-    period: float
-
-
-@dataclass
-class InternalEnergyLocatedCube:
-    """
-    Cube with location that generate energy that depends on the actual cube temperature.
-    It increases the temperature of the cube by the actual temperature multiplied by (temperatureFactor) every
-    (period) seconds.
-    """
-    dimensions: UnitDimensions
-    location: UnitLocation
-    temperatureFactor: float
-    period: float
-
-
-@dataclass
 class LocatedCube:
     """
     Cube with location
     """
     dimensions: UnitDimensions
     location: UnitLocation
+
+
+@dataclass
+class TemperatureLocatedCube(LocatedCube):
+    """
+    Cube with temperature and location
+    """
+    temperatureMatrix: numpy.ndarray
+
+
+@dataclass
+class SolidMaterialLocatedCube(LocatedCube):
+    """
+    Cube with material and location
+    """
+    solidMaterial: SolidMaterial
+
+
+@dataclass
+class ExternalEnergyLocatedCube(LocatedCube):
+    """
+    Cube with location that generate energy. It generate (energy) amount of Joules in (period) seconds.
+    """
+    energy: float
+    period: float
+
+
+@dataclass
+class InternalEnergyLocatedCube(LocatedCube):
+    """
+    Cube with location that generate energy that depends on the actual cube temperature.
+    It increases the temperature of the cube by the actual temperature multiplied by (temperatureFactor) every
+    (period) seconds.
+    """
+    temperatureFactor: float
+    period: float
 
 
 class ThermalUnits(Enum):
@@ -98,7 +100,7 @@ class ModelTemperatureMatrix:
 
 
 @dataclass
-class EnvironmentProperties:
+class FluidEnvironmentProperties:
     """
     Specification of the environment
 
@@ -107,3 +109,13 @@ class EnvironmentProperties:
     """
     environmentConvectionFactor: float
     environmentTemperature: float
+
+
+class SimulationPrecision(Enum):
+    """
+    Simulation precision.
+
+    Higher precision implies more resources consumption and more simulation time
+    """
+    HIGH_PRECISION = numpy.float64,
+    MIDDLE_PRECISION = numpy.float32

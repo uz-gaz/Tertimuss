@@ -2,8 +2,16 @@
 
 # Cubed space thermal simulator
 
+Note: 
+
 ## Definition
-This module provides a thermal simulator for a mesh defined by cubes. The simulation is done using the unit edge cube as the minimal simulation unit  
+This module provides a thermal simulator for a mesh defined by cubes. The simulation is done using the unit edge cube as the minimal simulation unit.  
+Each cube can be of a material in solid, liquid or gas state, however it assumes that state changes does not happens during the simulation.  
+Also, the following heat transfer rules are followed:  
+
+- Between two solid material cubes with a shared face only conduction happens
+- Between two liquid/gas material cubes with a shared face 
+
 It exposes the following functions  
 
 
@@ -41,3 +49,9 @@ Parameters definition
 ## References:
 For the thermal simulation is used the model proposed by:
 - Desirena, Gaddiel & Vazquez, Carlos & Ramirez-Trevino, Antonio & Gomez-Gutierrez, David. (2014). Thermal modelling for temperature control in MPSoC's using Timed Continuous Petri Nets. 2014 IEEE Conference on Control Applications, CCA 2014. 2135-2140. 10.1109/CCA.2014.6981618. 
+
+## TODOLIST: 
+- Simulate conduction (only with mesh)
+- Create visualization
+- Simulate convection (only with environment)
+- Simulate fluids
