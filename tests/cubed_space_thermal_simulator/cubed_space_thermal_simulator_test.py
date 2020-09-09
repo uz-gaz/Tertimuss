@@ -1,8 +1,9 @@
 import unittest
 
-from cubed_space_thermal_simulator import MaterialLocatedCube, UnitDimensions, UnitLocation, Material, \
-    EnvironmentProperties, ExternalEnergyLocatedCube, InternalEnergyLocatedCube, CubedSpace, ThermalUnits, \
-    create_cubed_space, create_initial_state
+from cubed_space_thermal_simulator import UnitDimensions, UnitLocation, \
+    ExternalEnergyLocatedCube, InternalEnergyLocatedCube, CubedSpace, ThermalUnits, SolidMaterial, SimulationPrecision, \
+    FluidEnvironmentProperties, SolidMaterialLocatedCube
+from cubed_space_thermal_simulator._result_plotter import plot_3d_heat_map_temperature_located_cube_list
 
 
 class CubedSpaceThermalSimulator(unittest.TestCase):
@@ -11,14 +12,14 @@ class CubedSpaceThermalSimulator(unittest.TestCase):
         core_dimensions = UnitDimensions(x=3, y=1, z=3)
 
         # Material of the core
-        core_material = Material(
+        core_material = SolidMaterial(
             density=2330,
             specificHeatCapacities=712,
             thermalConductivity=148
         )
 
         # Material of the board
-        board_material = Material(
+        board_material = SolidMaterial(
             density=8933,
             specificHeatCapacities=385,
             thermalConductivity=400
@@ -28,48 +29,48 @@ class CubedSpaceThermalSimulator(unittest.TestCase):
         core_initial_temperature = 273.15 + 25
 
         # Board initial temperature
-        board_initial_temperature = 273.15 + 25
+        board_initial_temperature = 273.15 + 45
 
         # Board initial temperature
         environment_temperature = 273.15 + 25
 
         # Definition of the CPU shape and materials
-        cpu_definition = [
+        cpu_definition = {
             # Cores
-            MaterialLocatedCube(
+            0: SolidMaterialLocatedCube(
                 location=UnitLocation(x=1, y=2, z=1),
                 dimensions=core_dimensions,
-                material=core_material
+                solidMaterial=core_material
             ),
-            MaterialLocatedCube(
+            1: SolidMaterialLocatedCube(
                 location=UnitLocation(x=6, y=2, z=1),
                 dimensions=core_dimensions,
-                material=core_material
+                solidMaterial=core_material
             ),
-            MaterialLocatedCube(
+            2: SolidMaterialLocatedCube(
                 location=UnitLocation(x=1, y=2, z=6),
                 dimensions=core_dimensions,
-                material=core_material
+                solidMaterial=core_material
             ),
-            MaterialLocatedCube(
+            3: SolidMaterialLocatedCube(
                 location=UnitLocation(x=6, y=2, z=6),
                 dimensions=core_dimensions,
-                material=core_material
+                solidMaterial=core_material
             ),
 
             # Board
-            MaterialLocatedCube(
+            4: SolidMaterialLocatedCube(
                 location=UnitLocation(x=0, y=0, z=0),
                 dimensions=UnitDimensions(x=10, y=2, z=10),
-                material=board_material
+                solidMaterial=board_material
             )
-        ]
+        }
 
         # Edge size pf 1 mm
         cube_edge_size = 0.001
 
         # Environment properties
-        environment_properties = EnvironmentProperties(
+        environment_properties = FluidEnvironmentProperties(
             environmentConvectionFactor=0.001,
             environmentTemperature=environment_temperature
         )
@@ -85,9 +86,9 @@ class CubedSpaceThermalSimulator(unittest.TestCase):
         cpu_frequency: float = 1000
 
         # External heat generators
-        external_heat_generators = [
+        external_heat_generators = {
             # Dynamic power
-            ExternalEnergyLocatedCube(
+            0: ExternalEnergyLocatedCube(
                 location=UnitLocation(x=1, y=2, z=1),
                 dimensions=core_dimensions,
                 energy=dynamic_alpha * (cpu_frequency ** 3) + dynamic_beta,
@@ -95,96 +96,101 @@ class CubedSpaceThermalSimulator(unittest.TestCase):
             ),
 
             # Leakage power
-            ExternalEnergyLocatedCube(
+            1: ExternalEnergyLocatedCube(
                 location=UnitLocation(x=1, y=2, z=1),
                 dimensions=core_dimensions,
                 energy=1,
                 period=leakage_alpha
             ),
-            ExternalEnergyLocatedCube(
+            2: ExternalEnergyLocatedCube(
                 location=UnitLocation(x=6, y=2, z=1),
                 dimensions=core_dimensions,
                 energy=1,
                 period=leakage_alpha
             ),
-            ExternalEnergyLocatedCube(
+            3: ExternalEnergyLocatedCube(
                 location=UnitLocation(x=1, y=2, z=6),
                 dimensions=core_dimensions,
                 energy=1,
                 period=leakage_alpha
             ),
-            ExternalEnergyLocatedCube(
+            4: ExternalEnergyLocatedCube(
                 location=UnitLocation(x=6, y=2, z=6),
                 dimensions=core_dimensions,
                 energy=1,
                 period=leakage_alpha
             )
-        ]
+        }
 
         # Internal heat generators
-        internal_heat_generators = [
-            InternalEnergyLocatedCube(
+        internal_heat_generators = {
+            0: InternalEnergyLocatedCube(
                 location=UnitLocation(x=1, y=2, z=1),
                 dimensions=core_dimensions,
                 temperatureFactor=2,
                 period=leakage_delta
             ),
-            InternalEnergyLocatedCube(
+            1: InternalEnergyLocatedCube(
                 location=UnitLocation(x=6, y=2, z=1),
                 dimensions=core_dimensions,
                 temperatureFactor=2,
                 period=leakage_delta
             ),
-            InternalEnergyLocatedCube(
+            2: InternalEnergyLocatedCube(
                 location=UnitLocation(x=1, y=2, z=6),
                 dimensions=core_dimensions,
                 temperatureFactor=2,
                 period=leakage_delta
             ),
-            InternalEnergyLocatedCube(
+            3: InternalEnergyLocatedCube(
                 location=UnitLocation(x=6, y=2, z=6),
                 dimensions=core_dimensions,
                 temperatureFactor=2,
                 period=leakage_delta
             )
-        ]
+        }
 
         # Generate cubed space
 
-        cubed_space, cubes_ids, external_heat_generators_ids, internal_heat_generators_ids = create_cubed_space(
+        cubed_space = CubedSpace(
             material_cubes=cpu_definition,
             cube_edge_size=cube_edge_size,
-            external_energy_application_points=external_heat_generators,
-            internal_energy_application_points=internal_heat_generators,
-            environment_properties=environment_properties)
+            fixed_external_energy_application_points=external_heat_generators,
+            fixed_internal_energy_application_points=internal_heat_generators,
+            environment_properties=environment_properties,
+            simulation_precision=SimulationPrecision.MIDDLE_PRECISION)
 
-        initial_state = create_initial_state(
-            cubed_space=cubed_space,
+        initial_state = cubed_space.create_initial_state(
             default_temperature=core_initial_temperature,
-            material_cubes_temperatures=None
+            material_cubes_temperatures={
+                0: core_initial_temperature,
+                1: core_initial_temperature,
+                2: core_initial_temperature,
+                3: core_initial_temperature,
+                4: board_initial_temperature
+            }
         )
 
         # Initial temperatures
         temperature_over_before_zero_seconds = cubed_space.obtain_temperature(
             actual_state=initial_state,
-            surrounded_cube=None,
             units=ThermalUnits.CELSIUS)
 
         # Apply energy over the cubed space
         initial_state = cubed_space.apply_energy(actual_state=initial_state,
-                                                 external_heat_generators=external_heat_generators,
-                                                 internal_heat_generators=internal_heat_generators, amount_of_time=1)
+                                                 external_energy_application_points=[0, 1, 2, 3, 4],
+                                                 internal_energy_application_points=[0, 1, 2, 3], amount_of_time=1)
         temperature_over_before_one_second = cubed_space.obtain_temperature(actual_state=initial_state,
-                                                                            surrounded_cube=None,
                                                                             units=ThermalUnits.CELSIUS)
 
         # Apply energy over the cubed space
         initial_state = cubed_space.apply_energy(actual_state=initial_state,
-                                                 external_heat_generators=external_heat_generators,
-                                                 internal_heat_generators=internal_heat_generators, amount_of_time=1)
+                                                 external_energy_application_points=[0, 1, 2, 3, 4],
+                                                 internal_energy_application_points=[0, 1, 2, 3], amount_of_time=1)
         temperature_over_before_two_seconds = cubed_space.obtain_temperature(actual_state=initial_state,
-                                                                             surrounded_cube=None,
                                                                              units=ThermalUnits.CELSIUS)
+
+        plot_3d_heat_map_temperature_located_cube_list(temperature_over_before_one_second)
 
 
 if __name__ == '__main__':
