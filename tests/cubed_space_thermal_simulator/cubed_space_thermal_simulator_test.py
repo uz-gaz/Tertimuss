@@ -9,7 +9,7 @@ from cubed_space_thermal_simulator._result_plotter import plot_3d_heat_map_tempe
 class CubedSpaceThermalSimulator(unittest.TestCase):
     def test_processor_heat_generation(self):
         # Dimensions of the core
-        core_dimensions = UnitDimensions(x=3, y=1, z=3)
+        core_dimensions = UnitDimensions(x=3, z=1, y=3)
 
         # Material of the core
         core_material = SolidMaterial(
@@ -38,30 +38,30 @@ class CubedSpaceThermalSimulator(unittest.TestCase):
         cpu_definition = {
             # Cores
             0: SolidMaterialLocatedCube(
-                location=UnitLocation(x=1, y=2, z=1),
+                location=UnitLocation(x=1, z=2, y=1),
                 dimensions=core_dimensions,
                 solidMaterial=core_material
             ),
             1: SolidMaterialLocatedCube(
-                location=UnitLocation(x=6, y=2, z=1),
+                location=UnitLocation(x=6, z=2, y=1),
                 dimensions=core_dimensions,
                 solidMaterial=core_material
             ),
             2: SolidMaterialLocatedCube(
-                location=UnitLocation(x=1, y=2, z=6),
+                location=UnitLocation(x=1, z=2, y=6),
                 dimensions=core_dimensions,
                 solidMaterial=core_material
             ),
             3: SolidMaterialLocatedCube(
-                location=UnitLocation(x=6, y=2, z=6),
+                location=UnitLocation(x=6, z=2, y=6),
                 dimensions=core_dimensions,
                 solidMaterial=core_material
             ),
 
             # Board
             4: SolidMaterialLocatedCube(
-                location=UnitLocation(x=0, y=0, z=0),
-                dimensions=UnitDimensions(x=10, y=2, z=10),
+                location=UnitLocation(x=0, z=0, y=0),
+                dimensions=UnitDimensions(x=10, z=2, y=10),
                 solidMaterial=board_material
             )
         }
@@ -89,7 +89,7 @@ class CubedSpaceThermalSimulator(unittest.TestCase):
         external_heat_generators = {
             # Dynamic power
             0: ExternalEnergyLocatedCube(
-                location=UnitLocation(x=1, y=2, z=1),
+                location=UnitLocation(x=1, z=2, y=1),
                 dimensions=core_dimensions,
                 energy=dynamic_alpha * (cpu_frequency ** 3) + dynamic_beta,
                 period=1
@@ -97,25 +97,25 @@ class CubedSpaceThermalSimulator(unittest.TestCase):
 
             # Leakage power
             1: ExternalEnergyLocatedCube(
-                location=UnitLocation(x=1, y=2, z=1),
+                location=UnitLocation(x=1, z=2, y=1),
                 dimensions=core_dimensions,
                 energy=1,
                 period=leakage_alpha
             ),
             2: ExternalEnergyLocatedCube(
-                location=UnitLocation(x=6, y=2, z=1),
+                location=UnitLocation(x=6, z=2, y=1),
                 dimensions=core_dimensions,
                 energy=1,
                 period=leakage_alpha
             ),
             3: ExternalEnergyLocatedCube(
-                location=UnitLocation(x=1, y=2, z=6),
+                location=UnitLocation(x=1, z=2, y=6),
                 dimensions=core_dimensions,
                 energy=1,
                 period=leakage_alpha
             ),
             4: ExternalEnergyLocatedCube(
-                location=UnitLocation(x=6, y=2, z=6),
+                location=UnitLocation(x=6, z=2, y=6),
                 dimensions=core_dimensions,
                 energy=1,
                 period=leakage_alpha
@@ -125,25 +125,25 @@ class CubedSpaceThermalSimulator(unittest.TestCase):
         # Internal heat generators
         internal_heat_generators = {
             0: InternalEnergyLocatedCube(
-                location=UnitLocation(x=1, y=2, z=1),
+                location=UnitLocation(x=1, z=2, y=1),
                 dimensions=core_dimensions,
                 temperatureFactor=2,
                 period=leakage_delta
             ),
             1: InternalEnergyLocatedCube(
-                location=UnitLocation(x=6, y=2, z=1),
+                location=UnitLocation(x=6, z=2, y=1),
                 dimensions=core_dimensions,
                 temperatureFactor=2,
                 period=leakage_delta
             ),
             2: InternalEnergyLocatedCube(
-                location=UnitLocation(x=1, y=2, z=6),
+                location=UnitLocation(x=1, z=2, y=6),
                 dimensions=core_dimensions,
                 temperatureFactor=2,
                 period=leakage_delta
             ),
             3: InternalEnergyLocatedCube(
-                location=UnitLocation(x=6, y=2, z=6),
+                location=UnitLocation(x=6, z=2, y=6),
                 dimensions=core_dimensions,
                 temperatureFactor=2,
                 period=leakage_delta

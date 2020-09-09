@@ -6,6 +6,9 @@ import matplotlib.pyplot as plt
 
 from cubed_space_thermal_simulator import TemperatureLocatedCube
 
+# This import registers the 3D projection, but is otherwise unused.
+from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
+
 
 def plot_3d_heat_map_temperature_located_cube_list(heatmap_cube_list: List[TemperatureLocatedCube]):
     # Obtain surrounded cube
@@ -52,20 +55,11 @@ def plot_3d_heat_map_temperature_located_cube_list(heatmap_cube_list: List[Tempe
                     # TODO: Only print if min != max
                     colors[local_x - min_x, local_y - min_y, local_z - min_z, 0] = 0.5
                     colors[local_x - min_x, local_y - min_y, local_z - min_z, 1] = (temperature - min_temperature) / (
-                                max_temperature - min_temperature)
+                            max_temperature - min_temperature)
                     colors[local_x - min_x, local_y - min_y, local_z - min_z, 2] = 0.5
 
     # combine the objects into a single boolean array
     voxels = functools.reduce(lambda a, b: a | b, voxels_list)
-    # set the colors of each object
-    # colors = numpy.empty(voxels.shape, dtype=object)
-    # colors[:, :, :, 0] = 0.5
-    # colors[:, :, :, 1] = 0.0
-    # colors[:, :, :, 2] = 0.5
-    # colors[cube1] = 'blue'
-    # colors[cube2] = 'green'
-
-    colors_mine = numpy.zeros((max_x - min_x, max_y - min_y, max_z - min_z, 3))
 
     # and plot everything
     fig = plt.figure()
