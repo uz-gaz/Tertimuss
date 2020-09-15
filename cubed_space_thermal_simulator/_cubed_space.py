@@ -139,7 +139,7 @@ class CubedSpace(object):
             internal_conductivity_post.append(post)
             internal_conductivity_lambda.append(lambda_vector)
 
-        # TODO: Add interaction between cuboids
+        # Add interaction between cuboids
         mo_size = sum(mo_cubes_size)
 
         external_conductivity_pre = []
@@ -157,20 +157,38 @@ class CubedSpace(object):
 
                         # Transition 1, from A -> B
                         pre[place_a, 0] = 1
-                        post[place_b, 0] = 1
+                        post[place_b, 0] = (material_cube_a.solidMaterial.density
+                                            * material_cube_a.solidMaterial.specificHeatCapacities) / \
+                                           (material_cube_b.solidMaterial.density
+                                            * material_cube_b.solidMaterial.specificHeatCapacities)
 
                         # Transition 2, from B -> A
                         pre[place_b, 1] = 1
-                        post[place_a, 1] = 1
+                        post[place_a, 1] = (material_cube_b.solidMaterial.density
+                                            * material_cube_b.solidMaterial.specificHeatCapacities) / \
+                                           (material_cube_a.solidMaterial.density
+                                            * material_cube_a.solidMaterial.specificHeatCapacities)
 
                         # All lambdas are equals
                         lambda_vector = numpy.zeros(shape=2, dtype=simulation_precision.value)
 
-                        # TODO: Calculate lambda from A -> B
-                        lambda_vector[0] = 1
+                        # Calculate lambda from A -> B
+                        lambda_vector[0] = (material_cube_a.solidMaterial.thermalConductivity
+                                            * material_cube_b.solidMaterial.thermalConductivity) / \
+                                           (material_cube_a.solidMaterial.density
+                                            * material_cube_a.solidMaterial.specificHeatCapacities
+                                            * (material_cube_a.solidMaterial.thermalConductivity
+                                               + material_cube_b.solidMaterial.thermalConductivity)
+                                            * (cube_edge_size ** 2))
 
-                        # TODO: Calculate lambda from B -> A
-                        lambda_vector[1] = 1
+                        # Calculate lambda from B -> A
+                        lambda_vector[1] = (material_cube_a.solidMaterial.thermalConductivity
+                                            * material_cube_b.solidMaterial.thermalConductivity) / \
+                                           (material_cube_b.solidMaterial.density
+                                            * material_cube_b.solidMaterial.specificHeatCapacities
+                                            * (material_cube_a.solidMaterial.thermalConductivity
+                                               + material_cube_b.solidMaterial.thermalConductivity)
+                                            * (cube_edge_size ** 2))
 
                         # Append to global values
                         external_conductivity_pre.append(pre)
@@ -178,10 +196,10 @@ class CubedSpace(object):
                         external_conductivity_lambda.append(lambda_vector)
 
         # TODO: Add energy generation
-        # TODO: Add interaction between cuboids
         # TODO: Add convection
 
         # Create global pre, post and lambda
+        # TODO: Add interaction matrix
         self.__pre = scipy.sparse.block_diag(internal_conductivity_pre)
         self.__post = scipy.sparse.block_diag(internal_conductivity_post)
         self.__lambda_vector = numpy.concatenate(internal_conductivity_lambda)
