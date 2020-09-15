@@ -157,6 +157,7 @@ class CubedSpace(object):
         """
         This function apply energy over the cubedSpace and return the transformed cubedSpace.
 
+        :param actual_state: 
         :param external_energy_application_points: Points where the energy is applied. If the list is empty, none energy
          will be applied, however the energy transfer between cubes will be simulated. Each cube will have defined it's
          dimensions in unit units, it's position in units and the amount of energy to be applied.
@@ -172,8 +173,7 @@ class CubedSpace(object):
         """
         This function return the temperature in each cube of unit edge that conform the cubedSpace
 
-        :param surrounded_cube: Only the temperature of the elements in this surrounded cube will be returned.
-         By default, this cube is calculated as the cube that surrounds the rest of the cubes.
+        :param actual_state:
         :param units: Units to receive the temperature.
         :return: List of temperature blocks
         """
