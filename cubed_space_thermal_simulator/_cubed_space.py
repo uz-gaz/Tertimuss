@@ -139,6 +139,44 @@ class CubedSpace(object):
             internal_conductivity_post.append(post)
             internal_conductivity_lambda.append(lambda_vector)
 
+        # TODO: Add interaction between cuboids
+        mo_size = sum(mo_cubes_size)
+
+        external_conductivity_pre = []
+        external_conductivity_post = []
+        external_conductivity_lambda = []
+
+        for material_cube_a_index, material_cube_a in material_cubes.items():
+            for material_cube_b_index, material_cube_b in material_cubes.items():
+                if material_cube_a_index != material_cube_b_index:
+                    places_in_touch = self.__obtain_places_in_touch(material_cube_a, mo_index[material_cube_a_index],
+                                                                    material_cube_b, mo_index[material_cube_b_index])
+                    for place_a, place_b in places_in_touch:
+                        pre = scipy.sparse.lil_matrix((mo_size, 2), dtype=simulation_precision.value)
+                        post = scipy.sparse.lil_matrix((mo_size, 2), dtype=simulation_precision.value)
+
+                        # Transition 1, from A -> B
+                        pre[place_a, 0] = 1
+                        post[place_b, 0] = 1
+
+                        # Transition 2, from B -> A
+                        pre[place_b, 1] = 1
+                        post[place_a, 1] = 1
+
+                        # All lambdas are equals
+                        lambda_vector = numpy.zeros(shape=2, dtype=simulation_precision.value)
+
+                        # TODO: Calculate lambda from A -> B
+                        lambda_vector[0] = 1
+
+                        # TODO: Calculate lambda from B -> A
+                        lambda_vector[1] = 1
+
+                        # Append to global values
+                        external_conductivity_pre.append(pre)
+                        external_conductivity_post.append(post)
+                        external_conductivity_lambda.append(lambda_vector)
+
         # TODO: Add energy generation
         # TODO: Add interaction between cuboids
         # TODO: Add convection
@@ -149,6 +187,13 @@ class CubedSpace(object):
         self.__lambda_vector = numpy.concatenate(internal_conductivity_lambda)
         self.__mo_index = mo_index
         self.__material_cubes_dict = material_cubes_dict
+
+    @staticmethod
+    def __obtain_places_in_touch(material_cube_a: SolidMaterialLocatedCube, material_cube_a_places_index: int,
+                                 material_cube_b: SolidMaterialLocatedCube, material_cube_b_places_index: int) \
+            -> List[Tuple[int, int]]:
+        # TODO: Complete
+        return [(0, 0)]
 
     def apply_energy(self, actual_state: CubedSpaceState,
                      external_energy_application_points: List[int],
