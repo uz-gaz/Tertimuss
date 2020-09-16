@@ -303,8 +303,21 @@ class CubedSpace(object):
     def __check_rectangles_collision(rectangle_a_position: Tuple[int, int], rectangle_a_dimensions: Tuple[int, int],
                                      rectangle_b_position: Tuple[int, int], rectangle_b_dimensions: Tuple[int, int]) \
             -> List[Tuple[int, int]]:
-        # TODO: Implement
-        pass
+        """
+        Calculate the collision between two rectangles
+        """
+        x0 = max(rectangle_a_position[0], rectangle_b_position[0])
+        x1 = min(rectangle_a_position[0] + rectangle_a_dimensions[0],
+                 rectangle_b_position[0] + rectangle_b_dimensions[0])
+
+        y0 = max(rectangle_a_position[1], rectangle_b_position[1])
+        y1 = min(rectangle_a_position[1] + rectangle_a_dimensions[1],
+                 rectangle_b_position[1] + rectangle_b_dimensions[1])
+
+        if x0 < x1 and y0 < y1:
+            return [(i, j) for i in range(x0, x1) for j in range(y0, y1)]
+        else:
+            return []
 
     def apply_energy(self, actual_state: CubedSpaceState,
                      external_energy_application_points: List[int],
