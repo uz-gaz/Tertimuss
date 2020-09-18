@@ -2,7 +2,7 @@ import unittest
 
 from cubed_space_thermal_simulator import UnitDimensions, UnitLocation, \
     ExternalEnergyLocatedCube, InternalEnergyLocatedCube, CubedSpace, ThermalUnits, SolidMaterial, SimulationPrecision, \
-    FluidEnvironmentProperties, SolidMaterialLocatedCube
+    FluidEnvironmentProperties, SolidMaterialLocatedCube, obtain_min_temperature, obtain_max_temperature
 from cubed_space_thermal_simulator._result_plotter import plot_3d_heat_map_temperature_located_cube_list
 
 
@@ -26,10 +26,14 @@ class CubedSpaceThermalSimulator(unittest.TestCase):
         )
 
         # Core initial temperature
-        core_initial_temperature = 273.15 + 25
+        # core_initial_temperature = 273.15 + 65
+        core_0_initial_temperature = 273.15 + 65
+        core_1_initial_temperature = 273.15 + 25
+        core_2_initial_temperature = 273.15 + 25
+        core_3_initial_temperature = 273.15 + 25
 
         # Board initial temperature
-        board_initial_temperature = 273.15 + 45
+        board_initial_temperature = 273.15 + 25
 
         # Board initial temperature
         environment_temperature = 273.15 + 25
@@ -161,12 +165,12 @@ class CubedSpaceThermalSimulator(unittest.TestCase):
             simulation_precision=SimulationPrecision.MIDDLE_PRECISION)
 
         initial_state = cubed_space.create_initial_state(
-            default_temperature=core_initial_temperature,
+            default_temperature=environment_temperature,
             material_cubes_temperatures={
-                0: core_initial_temperature,
-                1: core_initial_temperature,
-                2: core_initial_temperature,
-                3: core_initial_temperature,
+                0: core_0_initial_temperature,
+                1: core_1_initial_temperature,
+                2: core_2_initial_temperature,
+                3: core_3_initial_temperature,
                 4: board_initial_temperature
             }
         )
@@ -179,18 +183,41 @@ class CubedSpaceThermalSimulator(unittest.TestCase):
         # Apply energy over the cubed space
         initial_state = cubed_space.apply_energy(actual_state=initial_state,
                                                  external_energy_application_points=[0, 1, 2, 3, 4],
-                                                 internal_energy_application_points=[0, 1, 2, 3], amount_of_time=1)
-        temperature_over_before_one_second = cubed_space.obtain_temperature(actual_state=initial_state,
-                                                                            units=ThermalUnits.CELSIUS)
+                                                 internal_energy_application_points=[0, 1, 2, 3], amount_of_time=0.5)
+        temperature_over_before_half_second = cubed_space.obtain_temperature(actual_state=initial_state,
+                                                                             units=ThermalUnits.CELSIUS)
 
         # Apply energy over the cubed space
         initial_state = cubed_space.apply_energy(actual_state=initial_state,
                                                  external_energy_application_points=[0, 1, 2, 3, 4],
-                                                 internal_energy_application_points=[0, 1, 2, 3], amount_of_time=1)
-        temperature_over_before_two_seconds = cubed_space.obtain_temperature(actual_state=initial_state,
-                                                                             units=ThermalUnits.CELSIUS)
+                                                 internal_energy_application_points=[0, 1, 2, 3], amount_of_time=0.5)
+        temperature_over_before_one_second = cubed_space.obtain_temperature(actual_state=initial_state,
+                                                                            units=ThermalUnits.CELSIUS)
 
+        # Zero seconds
+        # plot_3d_heat_map_temperature_located_cube_list(temperature_over_before_zero_seconds,
+        #                                                board_initial_temperature, core_0_initial_temperature)
+
+        min_temperature = obtain_min_temperature(temperature_over_before_zero_seconds)
+        max_temperature = obtain_max_temperature(temperature_over_before_zero_seconds)
+
+        print("Temperature before 0 seconds: min", min_temperature, ", max", max_temperature)
+
+        # Half second
+        plot_3d_heat_map_temperature_located_cube_list(temperature_over_before_half_second)
+
+        min_temperature = obtain_min_temperature(temperature_over_before_half_second)
+        max_temperature = obtain_max_temperature(temperature_over_before_half_second)
+
+        print("Temperature before 0.5 seconds: min", min_temperature, ", max", max_temperature)
+
+        # One second
         plot_3d_heat_map_temperature_located_cube_list(temperature_over_before_one_second)
+
+        min_temperature = obtain_min_temperature(temperature_over_before_one_second)
+        max_temperature = obtain_max_temperature(temperature_over_before_one_second)
+
+        print("Temperature before 1 second: min", min_temperature, ", max", max_temperature)
 
 
 if __name__ == '__main__':

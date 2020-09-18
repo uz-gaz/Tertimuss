@@ -4,7 +4,7 @@ from typing import List, Optional
 import numpy
 import matplotlib.pyplot as plt
 
-from cubed_space_thermal_simulator import TemperatureLocatedCube
+from cubed_space_thermal_simulator import TemperatureLocatedCube, obtain_min_temperature, obtain_max_temperature
 
 # This import registers the 3D projection, but is otherwise unused.
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
@@ -48,10 +48,9 @@ def plot_3d_heat_map_temperature_located_cube_list(heatmap_cube_list: List[Tempe
     voxels_list = []
 
     # Min temperature
-    min_temperature = min(
-        [i.temperatureMatrix.min() for i in heatmap_cube_list]) if min_temperature is None else min_temperature
-    max_temperature = max(
-        [i.temperatureMatrix.max() for i in heatmap_cube_list]) if max_temperature is None else max_temperature
+
+    min_temperature = obtain_min_temperature(heatmap_cube_list) if min_temperature is None else min_temperature
+    max_temperature = obtain_max_temperature(heatmap_cube_list) if max_temperature is None else max_temperature
 
     for i in heatmap_cube_list:
         local_min_x = i.location.x

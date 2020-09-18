@@ -2,6 +2,7 @@ from typing import List, Optional, Tuple
 
 import scipy.sparse
 
+from tcpn_simulator import AbstractTCPNSimulator, TCPNSimulatorVariableStepEuler
 from ._basic_types import *
 
 
@@ -201,14 +202,20 @@ class CubedSpace(object):
         # Create global pre, post and lambda
         # TODO: Add interaction matrix
         self.__pre = scipy.sparse.hstack(
-            [scipy.sparse.block_diag(internal_conductivity_pre)] + external_conductivity_pre)
+            [scipy.sparse.block_diag(internal_conductivity_pre)] + external_conductivity_pre).tocsr()
 
         self.__post = scipy.sparse.hstack(
-            [scipy.sparse.block_diag(internal_conductivity_post)] + external_conductivity_post)
+            [scipy.sparse.block_diag(internal_conductivity_post)] + external_conductivity_post).tocsr()
+
+        self.__pi = self.__pre.copy().transpose()
 
         self.__lambda_vector = numpy.concatenate(internal_conductivity_lambda + external_conductivity_lambda)
         self.__mo_index = mo_index
         self.__material_cubes_dict = material_cubes_dict
+
+        self.__tcpn_simulator: TCPNSimulatorVariableStepEuler = TCPNSimulatorVariableStepEuler(self.__pre, self.__post,
+                                                                                               self.__lambda_vector,
+                                                                                               self.__pi, 64)
 
     @classmethod
     def __obtain_places_in_touch(cls, material_cube_a: SolidMaterialLocatedCube, material_cube_a_places_index: int,
@@ -336,7 +343,9 @@ class CubedSpace(object):
         :param amount_of_time: Amount of time in seconds while the energy is being applied
         """
         # TODO: Implement function
-        return actual_state
+        mo = actual_state.places_mo_vector
+        mo_next = self.__tcpn_simulator.simulate_step(mo, amount_of_time)
+        return CubedSpaceState(mo_next)
 
     def obtain_temperature(self, actual_state: CubedSpaceState, units: ThermalUnits) -> List[TemperatureLocatedCube]:
         """
@@ -370,3 +379,11 @@ class CubedSpace(object):
             else:
                 places_temperature.append(local_places_temperature * default_temperature)
         return CubedSpaceState(numpy.concatenate(places_temperature))
+
+
+def obtain_min_temperature(heatmap_cube_list: List[TemperatureLocatedCube]) -> float:
+    return min([i.temperatureMatrix.min() for i in heatmap_cube_list])
+
+
+def obtain_max_temperature(heatmap_cube_list: List[TemperatureLocatedCube]) -> float:
+    return max([i.temperatureMatrix.max() for i in heatmap_cube_list])
