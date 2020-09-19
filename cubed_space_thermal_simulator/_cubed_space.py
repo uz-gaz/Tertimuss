@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Set
 
 import scipy.sparse
 
@@ -149,7 +149,8 @@ class CubedSpace(object):
 
         for material_cube_a_index, material_cube_a in material_cubes.items():
             for material_cube_b_index, material_cube_b in material_cubes.items():
-                if material_cube_a_index != material_cube_b_index:
+                # Avoid duplicities
+                if material_cube_a_index < material_cube_b_index:
                     places_in_touch = self.__obtain_places_in_touch(material_cube_a, mo_index[material_cube_a_index],
                                                                     material_cube_b, mo_index[material_cube_b_index])
                     for place_a, place_b in places_in_touch:
@@ -212,6 +213,9 @@ class CubedSpace(object):
         self.__lambda_vector = numpy.concatenate(internal_conductivity_lambda + external_conductivity_lambda)
         self.__mo_index = mo_index
         self.__material_cubes_dict = material_cubes_dict
+
+        pre_dense = self.__pre.toarray()
+        post_dense = self.__post.toarray()
 
         self.__tcpn_simulator: TCPNSimulatorVariableStepEuler = TCPNSimulatorVariableStepEuler(self.__pre, self.__post,
                                                                                                self.__lambda_vector,
@@ -304,8 +308,8 @@ class CubedSpace(object):
             )
 
             return [(material_cube_a_places_index + (
-                        material_cube_b.dimensions.z - 1) * material_cube_b.dimensions.x * material_cube_b.dimensions.y + (
-                                 y - material_cube_a.location.y) * material_cube_a.dimensions.x + (
+                    material_cube_b.dimensions.z - 1) * material_cube_b.dimensions.x * material_cube_b.dimensions.y + (
+                             y - material_cube_a.location.y) * material_cube_a.dimensions.x + (
                              x - material_cube_a.location.x),
                      material_cube_b_places_index +
                      (y - material_cube_b.location.y) * material_cube_b.dimensions.x + material_cube_b.dimensions.x +
@@ -323,7 +327,7 @@ class CubedSpace(object):
                 material_cube_a_places_index +
                 (y - material_cube_a.location.y) * material_cube_a.dimensions.x + (x - material_cube_a.location.x),
                 material_cube_b_places_index + (
-                            material_cube_a.dimensions.z - 1) * material_cube_a.dimensions.x * material_cube_a.dimensions.y + (
+                        material_cube_a.dimensions.z - 1) * material_cube_a.dimensions.x * material_cube_a.dimensions.y + (
                         y - material_cube_b.location.y) * material_cube_b.dimensions.x + material_cube_b.dimensions.x +
                 (x - material_cube_b.location.x)) for x, y in collision]
 
