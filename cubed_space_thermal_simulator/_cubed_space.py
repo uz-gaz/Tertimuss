@@ -218,11 +218,19 @@ class CubedSpace(object):
                                                                                                self.__pi, 64)
 
     @classmethod
+    def obtain_places_in_touch_debug(cls, material_cube_a: SolidMaterialLocatedCube, material_cube_a_places_index: int,
+                                     material_cube_b: SolidMaterialLocatedCube, material_cube_b_places_index: int) \
+            -> List[Tuple[int, int]]:
+
+        return cls.__obtain_places_in_touch(material_cube_a, material_cube_a_places_index, material_cube_b,
+                                            material_cube_b_places_index)
+
+    @classmethod
     def __obtain_places_in_touch(cls, material_cube_a: SolidMaterialLocatedCube, material_cube_a_places_index: int,
                                  material_cube_b: SolidMaterialLocatedCube, material_cube_b_places_index: int) \
             -> List[Tuple[int, int]]:
         # Touch in axis y
-        if material_cube_a.location.y + material_cube_a.dimensions.y == material_cube_b.location.y - 1:
+        if material_cube_a.location.y + material_cube_a.dimensions.y == material_cube_b.location.y:
             collision = cls.__check_rectangles_collision(
                 (material_cube_a.location.x, material_cube_a.location.z),
                 (material_cube_a.dimensions.x, material_cube_a.dimensions.z),
@@ -230,12 +238,15 @@ class CubedSpace(object):
                 (material_cube_b.dimensions.x, material_cube_b.dimensions.z)
             )
 
-            return [((z - material_cube_a.location.z) * material_cube_a.dimensions.x * material_cube_a.dimensions.y +
-                     material_cube_a.dimensions.y * material_cube_a.dimensions.x + (x - material_cube_a.location.x),
-                     (z - material_cube_b.location.z) * material_cube_b.dimensions.x * material_cube_b.dimensions.y +
+            return [(material_cube_a_places_index + (z - material_cube_a.location.z) * material_cube_a.dimensions.x *
+                     material_cube_a.dimensions.y + (
+                             x - material_cube_a.location.x),
+                     material_cube_b_places_index + (
+                             z - material_cube_b.location.z) * material_cube_b.dimensions.x * material_cube_b.dimensions.y
+                     + (material_cube_a.dimensions.y - 1) * material_cube_a.dimensions.x +
                      (x - material_cube_b.location.x)) for x, z in collision]
 
-        elif material_cube_b.location.y + material_cube_b.dimensions.y == material_cube_a.location.y - 1:
+        elif material_cube_b.location.y + material_cube_b.dimensions.y == material_cube_a.location.y:
             collision = cls.__check_rectangles_collision(
                 (material_cube_a.location.x, material_cube_a.location.z),
                 (material_cube_a.dimensions.x, material_cube_a.dimensions.z),
@@ -243,13 +254,16 @@ class CubedSpace(object):
                 (material_cube_b.dimensions.x, material_cube_b.dimensions.z)
             )
 
-            return [((z - material_cube_a.location.z) * material_cube_a.dimensions.x * material_cube_a.dimensions.y +
-                     (x - material_cube_a.location.x), (z - material_cube_b.location.z) * material_cube_b.dimensions.x *
-                     material_cube_b.dimensions.y + material_cube_a.dimensions.y * material_cube_b.dimensions.x +
+            return [(material_cube_a_places_index + (
+                    z - material_cube_a.location.z) * material_cube_a.dimensions.x * material_cube_a.dimensions.y
+                     + (material_cube_a.dimensions.y - 1) * material_cube_b.dimensions.x +
+                     (x - material_cube_a.location.x),
+                     material_cube_b_places_index + (z - material_cube_b.location.z) * material_cube_b.dimensions.x *
+                     material_cube_b.dimensions.y +
                      (x - material_cube_b.location.x)) for x, z in collision]
 
         # Touch in axis x
-        elif material_cube_a.location.x + material_cube_a.dimensions.x == material_cube_b.location.x - 1:
+        elif material_cube_a.location.x + material_cube_a.dimensions.x == material_cube_b.location.x:
             collision = cls.__check_rectangles_collision(
                 (material_cube_a.location.y, material_cube_a.location.z),
                 (material_cube_a.dimensions.y, material_cube_a.dimensions.z),
@@ -257,12 +271,14 @@ class CubedSpace(object):
                 (material_cube_b.dimensions.y, material_cube_b.dimensions.z)
             )
 
-            return [((z - material_cube_a.location.z) * material_cube_a.dimensions.x * material_cube_a.dimensions.y +
-                     (y - material_cube_a.location.y) * material_cube_a.dimensions.x, (z - material_cube_b.location.z) *
+            return [(material_cube_a_places_index + (
+                    z - material_cube_a.location.z) * material_cube_a.dimensions.x * material_cube_a.dimensions.y +
+                     (y - material_cube_a.location.y) * material_cube_a.dimensions.x + material_cube_b.dimensions.x - 1,
+                     material_cube_b_places_index + (z - material_cube_b.location.z) *
                      material_cube_b.dimensions.x * material_cube_b.dimensions.y + (y - material_cube_b.location.y) *
-                     material_cube_b.dimensions.x + material_cube_b.dimensions.x) for y, z in collision]
+                     material_cube_b.dimensions.x) for y, z in collision]
 
-        elif material_cube_b.location.x + material_cube_b.dimensions.x == material_cube_a.location.x - 1:
+        elif material_cube_b.location.x + material_cube_b.dimensions.x == material_cube_a.location.x:
             collision = cls.__check_rectangles_collision(
                 (material_cube_a.location.y, material_cube_a.location.z),
                 (material_cube_a.dimensions.y, material_cube_a.dimensions.z),
@@ -270,13 +286,16 @@ class CubedSpace(object):
                 (material_cube_b.dimensions.y, material_cube_b.dimensions.z)
             )
 
-            return [((z - material_cube_a.location.z) * material_cube_a.dimensions.x * material_cube_a.dimensions.y +
-                     (y - material_cube_a.location.y) * material_cube_a.dimensions.x + material_cube_a.dimensions.x,
-                     (z - material_cube_b.location.z) * material_cube_b.dimensions.x * material_cube_b.dimensions.y +
-                     (y - material_cube_b.location.y) * material_cube_b.dimensions.x) for y, z in collision]
+            return [(material_cube_a_places_index + (
+                    z - material_cube_a.location.z) * material_cube_a.dimensions.x * material_cube_a.dimensions.y +
+                     (y - material_cube_a.location.y) * material_cube_a.dimensions.x,
+                     material_cube_b_places_index + (
+                             z - material_cube_b.location.z) * material_cube_b.dimensions.x * material_cube_b.dimensions.y +
+                     (y - material_cube_b.location.y) * material_cube_b.dimensions.x + material_cube_a.dimensions.x - 1)
+                    for y, z in collision]
 
             # Touch in axis z
-        elif material_cube_a.location.z + material_cube_a.dimensions.z == material_cube_b.location.z - 1:
+        elif material_cube_a.location.z + material_cube_a.dimensions.z == material_cube_b.location.z:
             collision = cls.__check_rectangles_collision(
                 (material_cube_a.location.x, material_cube_a.location.y),
                 (material_cube_a.dimensions.x, material_cube_a.dimensions.y),
@@ -284,12 +303,15 @@ class CubedSpace(object):
                 (material_cube_b.dimensions.x, material_cube_b.dimensions.y)
             )
 
-            return [((y - material_cube_a.location.y) * material_cube_a.dimensions.x + (x - material_cube_a.location.x),
-                     material_cube_b.dimensions.z * material_cube_b.dimensions.x * material_cube_b.dimensions.y +
+            return [(material_cube_a_places_index + (
+                        material_cube_b.dimensions.z - 1) * material_cube_b.dimensions.x * material_cube_b.dimensions.y + (
+                                 y - material_cube_a.location.y) * material_cube_a.dimensions.x + (
+                             x - material_cube_a.location.x),
+                     material_cube_b_places_index +
                      (y - material_cube_b.location.y) * material_cube_b.dimensions.x + material_cube_b.dimensions.x +
                      (x - material_cube_b.location.x)) for x, y in collision]
 
-        elif material_cube_b.location.z + material_cube_b.dimensions.z == material_cube_a.location.z - 1:
+        elif material_cube_b.location.z + material_cube_b.dimensions.z == material_cube_a.location.z:
             collision = cls.__check_rectangles_collision(
                 (material_cube_a.location.x, material_cube_a.location.y),
                 (material_cube_a.dimensions.x, material_cube_a.dimensions.y),
@@ -297,10 +319,13 @@ class CubedSpace(object):
                 (material_cube_b.dimensions.x, material_cube_b.dimensions.y)
             )
 
-            return [(material_cube_a.dimensions.z * material_cube_a.dimensions.x * material_cube_a.dimensions.y +
-                     (y - material_cube_a.location.y) * material_cube_a.dimensions.x + (x - material_cube_a.location.x),
-                     (y - material_cube_b.location.y) * material_cube_b.dimensions.x + material_cube_b.dimensions.x +
-                     (x - material_cube_b.location.x)) for x, y in collision]
+            return [(
+                material_cube_a_places_index +
+                (y - material_cube_a.location.y) * material_cube_a.dimensions.x + (x - material_cube_a.location.x),
+                material_cube_b_places_index + (
+                            material_cube_a.dimensions.z - 1) * material_cube_a.dimensions.x * material_cube_a.dimensions.y + (
+                        y - material_cube_b.location.y) * material_cube_b.dimensions.x + material_cube_b.dimensions.x +
+                (x - material_cube_b.location.x)) for x, y in collision]
 
         # No touch
         else:

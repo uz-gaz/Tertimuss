@@ -328,6 +328,44 @@ class CubedSpaceThermalSimulator(unittest.TestCase):
 
         print("Temperature before 1 second: min", min_temperature, ", max", max_temperature)
 
+    def test_places_in_touch(self):
+        # Dimensions of the cubes
+        cubes_dimensions = UnitDimensions(x=2, z=2, y=2)
+
+        # Cube 0 material
+        cube_0_material = SolidMaterial(
+            density=2330,
+            specificHeatCapacities=712,
+            thermalConductivity=148
+        )
+
+        # Cube 1 material
+        cube_1_material = SolidMaterial(
+            density=8933,
+            specificHeatCapacities=385,
+            thermalConductivity=400
+        )
+
+        # Definition of the CPU shape and materials
+        scene_definition = {
+            # Cores
+            0: SolidMaterialLocatedCube(
+                location=UnitLocation(x=0, z=0, y=0),
+                dimensions=cubes_dimensions,
+                solidMaterial=cube_0_material
+            ),
+            1: SolidMaterialLocatedCube(
+                location=UnitLocation(x=2, z=0, y=0),
+                dimensions=cubes_dimensions,
+                solidMaterial=cube_1_material
+            )
+        }
+
+        places_in_touch = CubedSpace.obtain_places_in_touch_debug(scene_definition[0], 0, scene_definition[1], 8)
+        pass
+        pass
+        i = 0
+
     def test_internal_conduction(self):
         # Dimensions of the cubes
         cubes_dimensions = UnitDimensions(x=2, z=2, y=2)
