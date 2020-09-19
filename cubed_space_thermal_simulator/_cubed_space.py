@@ -207,7 +207,7 @@ class CubedSpace(object):
         self.__post = scipy.sparse.hstack(
             [scipy.sparse.block_diag(internal_conductivity_post)] + external_conductivity_post).tocsr()
 
-        self.__pi = self.__pre.copy().transpose()
+        self.__pi: scipy.sparse.csr_matrix = self.__pre.copy().transpose()
 
         self.__lambda_vector = numpy.concatenate(internal_conductivity_lambda + external_conductivity_lambda)
         self.__mo_index = mo_index
