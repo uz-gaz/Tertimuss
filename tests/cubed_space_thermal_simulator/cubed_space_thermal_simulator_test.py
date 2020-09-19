@@ -219,6 +219,209 @@ class CubedSpaceThermalSimulator(unittest.TestCase):
 
         print("Temperature before 1 second: min", min_temperature, ", max", max_temperature)
 
+    def test_external_conduction(self):
+        # Dimensions of the cubes
+        cubes_dimensions = UnitDimensions(x=2, z=2, y=2)
+
+        # Cube 0 material
+        cube_0_material = SolidMaterial(
+            density=2330,
+            specificHeatCapacities=712,
+            thermalConductivity=148
+        )
+
+        # Cube 1 material
+        cube_1_material = SolidMaterial(
+            density=8933,
+            specificHeatCapacities=385,
+            thermalConductivity=400
+        )
+
+        # Core initial temperature
+        cube_0_initial_temperature = 273.15 + 65
+        cube_1_initial_temperature = 273.15 + 25
+
+        # Board initial temperature
+        environment_temperature = 273.15 + 25
+
+        # Definition of the CPU shape and materials
+        scene_definition = {
+            # Cores
+            0: SolidMaterialLocatedCube(
+                location=UnitLocation(x=0, z=0, y=0),
+                dimensions=cubes_dimensions,
+                solidMaterial=cube_0_material
+            ),
+            1: SolidMaterialLocatedCube(
+                location=UnitLocation(x=2, z=0, y=0),
+                dimensions=cubes_dimensions,
+                solidMaterial=cube_1_material
+            )
+        }
+
+        # Edge size pf 1 mm
+        cube_edge_size = 0.001
+
+        # Environment properties
+        environment_properties = FluidEnvironmentProperties(
+            environmentConvectionFactor=0.001,
+            environmentTemperature=environment_temperature
+        )
+
+        cubed_space = CubedSpace(
+            material_cubes=scene_definition,
+            cube_edge_size=cube_edge_size,
+            fixed_external_energy_application_points={},
+            fixed_internal_energy_application_points={},
+            environment_properties=environment_properties,
+            simulation_precision=SimulationPrecision.MIDDLE_PRECISION)
+
+        initial_state = cubed_space.create_initial_state(
+            default_temperature=environment_temperature,
+            material_cubes_temperatures={
+                0: cube_0_initial_temperature,
+                1: cube_1_initial_temperature
+            }
+        )
+
+        # Initial temperatures
+        temperature_over_before_zero_seconds = cubed_space.obtain_temperature(
+            actual_state=initial_state,
+            units=ThermalUnits.CELSIUS)
+
+        # Apply energy over the cubed space
+        initial_state = cubed_space.apply_energy(actual_state=initial_state,
+                                                 external_energy_application_points=[],
+                                                 internal_energy_application_points=[], amount_of_time=0.5)
+        temperature_over_before_half_second = cubed_space.obtain_temperature(actual_state=initial_state,
+                                                                             units=ThermalUnits.CELSIUS)
+
+        # Apply energy over the cubed space
+        initial_state = cubed_space.apply_energy(actual_state=initial_state,
+                                                 external_energy_application_points=[],
+                                                 internal_energy_application_points=[], amount_of_time=0.5)
+        temperature_over_before_one_second = cubed_space.obtain_temperature(actual_state=initial_state,
+                                                                            units=ThermalUnits.CELSIUS)
+
+        # Zero seconds
+        plot_3d_heat_map_temperature_located_cube_list(temperature_over_before_zero_seconds,
+                                                       cube_1_initial_temperature, cube_0_initial_temperature)
+
+        min_temperature = obtain_min_temperature(temperature_over_before_zero_seconds)
+        max_temperature = obtain_max_temperature(temperature_over_before_zero_seconds)
+
+        print("Temperature before 0 seconds: min", min_temperature, ", max", max_temperature)
+
+        # Half second
+        plot_3d_heat_map_temperature_located_cube_list(temperature_over_before_half_second)
+
+        min_temperature = obtain_min_temperature(temperature_over_before_half_second)
+        max_temperature = obtain_max_temperature(temperature_over_before_half_second)
+
+        print("Temperature before 0.5 seconds: min", min_temperature, ", max", max_temperature)
+
+        # One second
+        plot_3d_heat_map_temperature_located_cube_list(temperature_over_before_one_second)
+
+        min_temperature = obtain_min_temperature(temperature_over_before_one_second)
+        max_temperature = obtain_max_temperature(temperature_over_before_one_second)
+
+        print("Temperature before 1 second: min", min_temperature, ", max", max_temperature)
+
+    def test_internal_conduction(self):
+        # Dimensions of the cubes
+        cubes_dimensions = UnitDimensions(x=2, z=2, y=2)
+
+        # Cube 0 material
+        cube_0_material = SolidMaterial(
+            density=2330,
+            specificHeatCapacities=712,
+            thermalConductivity=148
+        )
+
+        # Core initial temperature
+        cube_0_initial_temperature = 273.15 + 65
+
+        # Board initial temperature
+        environment_temperature = 273.15 + 25
+
+        # Definition of the CPU shape and materials
+        scene_definition = {
+            # Cores
+            0: SolidMaterialLocatedCube(
+                location=UnitLocation(x=0, z=0, y=0),
+                dimensions=cubes_dimensions,
+                solidMaterial=cube_0_material
+            )
+        }
+
+        # Edge size pf 1 mm
+        cube_edge_size = 0.001
+
+        # Environment properties
+        environment_properties = FluidEnvironmentProperties(
+            environmentConvectionFactor=0.001,
+            environmentTemperature=environment_temperature
+        )
+
+        cubed_space = CubedSpace(
+            material_cubes=scene_definition,
+            cube_edge_size=cube_edge_size,
+            fixed_external_energy_application_points={},
+            fixed_internal_energy_application_points={},
+            environment_properties=environment_properties,
+            simulation_precision=SimulationPrecision.MIDDLE_PRECISION)
+
+        initial_state = cubed_space.create_initial_state(
+            default_temperature=environment_temperature,
+            material_cubes_temperatures={
+                0: cube_0_initial_temperature
+            }
+        )
+
+        # Initial temperatures
+        temperature_over_before_zero_seconds = cubed_space.obtain_temperature(
+            actual_state=initial_state,
+            units=ThermalUnits.CELSIUS)
+
+        # Apply energy over the cubed space
+        initial_state = cubed_space.apply_energy(actual_state=initial_state,
+                                                 external_energy_application_points=[],
+                                                 internal_energy_application_points=[], amount_of_time=0.5)
+        temperature_over_before_half_second = cubed_space.obtain_temperature(actual_state=initial_state,
+                                                                             units=ThermalUnits.CELSIUS)
+
+        # Apply energy over the cubed space
+        initial_state = cubed_space.apply_energy(actual_state=initial_state,
+                                                 external_energy_application_points=[],
+                                                 internal_energy_application_points=[], amount_of_time=0.5)
+        temperature_over_before_one_second = cubed_space.obtain_temperature(actual_state=initial_state,
+                                                                            units=ThermalUnits.CELSIUS)
+
+        # Zero seconds
+        plot_3d_heat_map_temperature_located_cube_list(temperature_over_before_zero_seconds)
+
+        min_temperature = obtain_min_temperature(temperature_over_before_zero_seconds)
+        max_temperature = obtain_max_temperature(temperature_over_before_zero_seconds)
+
+        print("Temperature before 0 seconds: min", min_temperature, ", max", max_temperature)
+
+        # Half second
+        plot_3d_heat_map_temperature_located_cube_list(temperature_over_before_half_second)
+
+        min_temperature = obtain_min_temperature(temperature_over_before_half_second)
+        max_temperature = obtain_max_temperature(temperature_over_before_half_second)
+
+        print("Temperature before 0.5 seconds: min", min_temperature, ", max", max_temperature)
+
+        # One second
+        plot_3d_heat_map_temperature_located_cube_list(temperature_over_before_one_second)
+
+        min_temperature = obtain_min_temperature(temperature_over_before_one_second)
+        max_temperature = obtain_max_temperature(temperature_over_before_one_second)
+
+        print("Temperature before 1 second: min", min_temperature, ", max", max_temperature)
+
 
 if __name__ == '__main__':
     unittest.main()
