@@ -83,16 +83,16 @@ class CubedSpace(object):
             for actual_z in range(z):
                 for actual_y in range(y):
                     for actual_x in range(x - 1):
-                        first_transition_index = 2 * (actual_z * y + actual_y * (x - 1) + actual_x)
+                        first_transition_index = 2 * (actual_z * y * (x - 1) + actual_y * (x - 1) + actual_x)
                         second_transition_index = first_transition_index + 1
 
                         # First transition
-                        pre[actual_z * y + actual_y * x + actual_x, first_transition_index] = 1
-                        post[actual_z * y + actual_y * x + actual_x + 1, first_transition_index] = 1
+                        pre[actual_z * y * x + actual_y * x + actual_x, first_transition_index] = 1
+                        post[actual_z * y * x + actual_y * x + actual_x + 1, first_transition_index] = 1
 
                         # Second transition
-                        pre[actual_z * y + actual_y * x + actual_x + 1, second_transition_index] = 1
-                        post[actual_z * y + actual_y * x + actual_x, second_transition_index] = 1
+                        pre[actual_z * y * x + actual_y * x + actual_x + 1, second_transition_index] = 1
+                        post[actual_z * y * x + actual_y * x + actual_x, second_transition_index] = 1
 
             # Base index for vertical transitions
             base_transition_index_vertical = 2 * (x - 1) * y * z
@@ -102,16 +102,16 @@ class CubedSpace(object):
                 for actual_y in range(y - 1):
                     for actual_x in range(x):
                         first_transition_index = base_transition_index_vertical + 2 * (
-                                actual_z * (y - 1) + actual_y * x + actual_x)
+                                actual_z * (y - 1) * x + actual_y * x + actual_x)
                         second_transition_index = first_transition_index + 1
 
                         # First transition
-                        pre[actual_z * y + actual_y * x + actual_x, first_transition_index] = 1
-                        post[actual_z * y + (actual_y + 1) * x + actual_x, first_transition_index] = 1
+                        pre[actual_z * y * x + actual_y * x + actual_x, first_transition_index] = 1
+                        post[actual_z * y * x + (actual_y + 1) * x + actual_x, first_transition_index] = 1
 
                         # Second transition
-                        pre[actual_z * y + (actual_y + 1) * x + actual_x, second_transition_index] = 1
-                        post[actual_z * y + actual_y * x + actual_x, second_transition_index] = 1
+                        pre[actual_z * y * x + (actual_y + 1) * x + actual_x, second_transition_index] = 1
+                        post[actual_z * y * x + actual_y * x + actual_x, second_transition_index] = 1
 
             # Base index for upper/lower transitions
             base_transition_index_upper_lower = 2 * (x - 1) * y * z + 2 * x * (y - 1) * z
@@ -121,16 +121,16 @@ class CubedSpace(object):
                 for actual_y in range(y):
                     for actual_x in range(x):
                         first_transition_index = base_transition_index_upper_lower + 2 * (
-                                actual_z * y + actual_y * x + actual_x)
+                                actual_z * y * x + actual_y * x + actual_x)
                         second_transition_index = first_transition_index + 1
 
                         # First transition
-                        pre[actual_z * y + actual_y * x + actual_x, first_transition_index] = 1
-                        post[(actual_z + 1) * y + actual_y * x + actual_x, first_transition_index] = 1
+                        pre[actual_z * y * x + actual_y * x + actual_x, first_transition_index] = 1
+                        post[(actual_z + 1) * y * x + actual_y * x + actual_x, first_transition_index] = 1
 
                         # Second transition
-                        pre[(actual_z + 1) * y + actual_y * x + actual_x, second_transition_index] = 1
-                        post[actual_z * y + actual_y * x + actual_x, second_transition_index] = 1
+                        pre[(actual_z + 1) * y * x + actual_y * x + actual_x, second_transition_index] = 1
+                        post[actual_z * y * x + actual_y * x + actual_x, second_transition_index] = 1
 
             # Save results
             mo_index[material_cube_index] = sum(mo_cubes_size)
