@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple, Set
+from typing import List, Optional, Tuple, Set, Literal
 
 import scipy.sparse
 
@@ -16,7 +16,7 @@ class CubedSpace(object):
                  environment_properties: FluidEnvironmentProperties,
                  fixed_external_energy_application_points: Dict[int, ExternalEnergyLocatedCube],
                  fixed_internal_energy_application_points: Dict[int, InternalEnergyLocatedCube],
-                 simulation_precision: SimulationPrecision):
+                 simulation_precision: Literal["MIDDLE", "HIGH"]):
         """
         This function create a cubedSpace
 
@@ -33,6 +33,10 @@ class CubedSpace(object):
          not null, all of the elements of internal_energy_application_points in the function apply_energy, must be in
          fixed_internal_energy_application_points.
         """
+        # Precision definition
+        dtype = numpy.float64 if (simulation_precision == "HIGH") else numpy.float32
+
+        # TCPN definition
         mo_index = {}
         material_cubes_dict = {}
         internal_conductivity_pre = []
@@ -73,11 +77,11 @@ class CubedSpace(object):
             # 1 2 3        10 11 12
             # 4 5 6        13 14 15
             # 7 8 9        16 17 18
-            pre = scipy.sparse.lil_matrix((p, t), dtype=simulation_precision.value)
-            post = scipy.sparse.lil_matrix((p, t), dtype=simulation_precision.value)
+            pre = scipy.sparse.lil_matrix((p, t), dtype=dtype)
+            post = scipy.sparse.lil_matrix((p, t), dtype=dtype)
 
             # All lambdas are equals
-            lambda_vector = numpy.full(t, lambda_side, dtype=simulation_precision.value)
+            lambda_vector = numpy.full(t, lambda_side, dtype=dtype)
 
             # Create conductivity with horizontal adjacent
             for actual_z in range(z):
@@ -154,8 +158,8 @@ class CubedSpace(object):
                     places_in_touch = self.__obtain_places_in_touch(material_cube_a, mo_index[material_cube_a_index],
                                                                     material_cube_b, mo_index[material_cube_b_index])
                     for place_a, place_b in places_in_touch:
-                        pre = scipy.sparse.lil_matrix((mo_size, 2), dtype=simulation_precision.value)
-                        post = scipy.sparse.lil_matrix((mo_size, 2), dtype=simulation_precision.value)
+                        pre = scipy.sparse.lil_matrix((mo_size, 2), dtype=dtype)
+                        post = scipy.sparse.lil_matrix((mo_size, 2), dtype=dtype)
 
                         # Transition 1, from A -> B
                         pre[place_a, 0] = 1
@@ -172,7 +176,7 @@ class CubedSpace(object):
                                             * material_cube_a.solidMaterial.specificHeatCapacities)
 
                         # All lambdas are equals
-                        lambda_vector = numpy.zeros(shape=2, dtype=simulation_precision.value)
+                        lambda_vector = numpy.zeros(shape=2, dtype=dtype)
 
                         # Calculate lambda from A -> B
                         lambda_vector[0] = (material_cube_a.solidMaterial.thermalConductivity
@@ -216,6 +220,8 @@ class CubedSpace(object):
 
         pre_dense = self.__pre.toarray()
         post_dense = self.__post.toarray()
+
+        self.__simulation_precision = dtype
 
         self.__tcpn_simulator: TCPNSimulatorVariableStepEuler = TCPNSimulatorVariableStepEuler(self.__pre, self.__post,
                                                                                                self.__lambda_vector,
@@ -401,7 +407,8 @@ class CubedSpace(object):
         for i, v in self.__mo_index.items():
             material_cube = self.__material_cubes_dict[i]
             number_of_occupied_places = material_cube.dimensions.x * material_cube.dimensions.y * material_cube.dimensions.z
-            local_places_temperature = numpy.ones(shape=(number_of_occupied_places))
+            local_places_temperature = numpy.ones(shape=(number_of_occupied_places),
+                                                  dtype=self.__simulation_precision)
 
             if material_cubes_temperatures is not None and material_cubes_temperatures.__contains__(i):
                 places_temperature.append(local_places_temperature * material_cubes_temperatures[i])

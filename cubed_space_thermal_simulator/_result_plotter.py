@@ -69,7 +69,7 @@ def plot_3d_heat_map_temperature_located_cube_list(heatmap_cube_list: List[Tempe
             for local_y in range(local_min_y, local_max_y):
                 for local_z in range(local_min_z, local_max_z):
                     temperature = i.temperatureMatrix[
-                        (local_x - local_min_x) + (local_y - local_min_y) * i.dimensions.y + (
+                        (local_x - local_min_x) + (local_y - local_min_y) * i.dimensions.x + (
                                 local_z - local_min_z) * i.dimensions.y * i.dimensions.x]
 
                     # Obtain normalized temperature

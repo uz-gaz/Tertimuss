@@ -6,7 +6,7 @@ from cubed_space_thermal_simulator import UnitDimensions, UnitLocation, \
 from cubed_space_thermal_simulator._result_plotter import plot_3d_heat_map_temperature_located_cube_list
 
 
-class CubedSpaceThermalSimulator(unittest.TestCase):
+class CubedSpaceThermalSimulatorTest(unittest.TestCase):
     def test_processor_heat_generation(self):
         # Dimensions of the core
         core_dimensions = UnitDimensions(x=3, z=1, y=3)
@@ -162,7 +162,7 @@ class CubedSpaceThermalSimulator(unittest.TestCase):
             fixed_external_energy_application_points=external_heat_generators,
             fixed_internal_energy_application_points=internal_heat_generators,
             environment_properties=environment_properties,
-            simulation_precision=SimulationPrecision.MIDDLE_PRECISION)
+            simulation_precision__=SimulationPrecision.MIDDLE_PRECISION)
 
         initial_state = cubed_space.create_initial_state(
             default_temperature=environment_temperature,
@@ -274,7 +274,7 @@ class CubedSpaceThermalSimulator(unittest.TestCase):
             fixed_external_energy_application_points={},
             fixed_internal_energy_application_points={},
             environment_properties=environment_properties,
-            simulation_precision=SimulationPrecision.MIDDLE_PRECISION)
+            simulation_precision__=SimulationPrecision.MIDDLE_PRECISION)
 
         initial_state = cubed_space.create_initial_state(
             default_temperature=environment_temperature,
@@ -368,7 +368,7 @@ class CubedSpaceThermalSimulator(unittest.TestCase):
 
     def test_internal_conduction(self):
         # Dimensions of the cubes
-        cubes_dimensions = UnitDimensions(x=2, z=2, y=2)
+        cubes_dimensions = UnitDimensions(x=3, z=3, y=3)
 
         # Cube 0 material
         cube_0_material = SolidMaterial(
@@ -408,7 +408,7 @@ class CubedSpaceThermalSimulator(unittest.TestCase):
             fixed_external_energy_application_points={},
             fixed_internal_energy_application_points={},
             environment_properties=environment_properties,
-            simulation_precision=SimulationPrecision.MIDDLE_PRECISION)
+            simulation_precision="MIDDLE")
 
         initial_state = cubed_space.create_initial_state(
             default_temperature=environment_temperature,
@@ -425,14 +425,14 @@ class CubedSpaceThermalSimulator(unittest.TestCase):
         # Apply energy over the cubed space
         initial_state = cubed_space.apply_energy(actual_state=initial_state,
                                                  external_energy_application_points=[],
-                                                 internal_energy_application_points=[], amount_of_time=0.5)
+                                                 internal_energy_application_points=[], amount_of_time=0.8)
         temperature_over_before_half_second = cubed_space.obtain_temperature(actual_state=initial_state,
                                                                              units=ThermalUnits.CELSIUS)
 
         # Apply energy over the cubed space
         initial_state = cubed_space.apply_energy(actual_state=initial_state,
                                                  external_energy_application_points=[],
-                                                 internal_energy_application_points=[], amount_of_time=0.5)
+                                                 internal_energy_application_points=[], amount_of_time=0.8)
         temperature_over_before_one_second = cubed_space.obtain_temperature(actual_state=initial_state,
                                                                             units=ThermalUnits.CELSIUS)
 

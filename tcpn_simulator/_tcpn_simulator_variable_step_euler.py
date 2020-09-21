@@ -53,6 +53,7 @@ class TCPNSimulatorVariableStepEuler(AbstractTCPNSimulatorVariableStep):
         :param dt:  time to advance
         :return: next marking
         """
+        # Real part
         pi = self.__pi if self.__pi is not None else self._calculate_pi(self.__pre, mo)
 
         if self.__constant_pi:
@@ -62,9 +63,11 @@ class TCPNSimulatorVariableStepEuler(AbstractTCPNSimulatorVariableStep):
             if self.__control is not None else self.__calculate_a(self.__c, self.__lambda_vector * self.__control,
                                                                   pi, dt / self.__number_of_steps)
 
-        a_i = a + scipy.sparse.identity(a.shape[0])
+        a_i = a + scipy.sparse.identity(a.shape[0], dtype=a.dtype)
+
+        mo_next = mo
 
         for i in range(self.__number_of_steps):
-            mo = a_i.dot(mo)
+            mo_next = a_i.dot(mo_next)
 
-        return mo
+        return mo_next
