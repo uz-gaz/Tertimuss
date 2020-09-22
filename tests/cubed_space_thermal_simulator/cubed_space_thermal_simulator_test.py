@@ -378,10 +378,10 @@ class CubedSpaceThermalSimulatorTest(unittest.TestCase):
         )
 
         # Core initial temperature
-        cube_0_initial_temperature = 273.15 + 65
+        cube_0_initial_temperature = 273.15 + 65 - 273.15 - 25 + 1 - 40
 
         # Board initial temperature
-        environment_temperature = 273.15 + 25
+        environment_temperature = 273.15 + 25 - 273.15 - 25 + 1 - 40
 
         # Definition of the CPU shape and materials
         scene_definition = {
@@ -425,14 +425,14 @@ class CubedSpaceThermalSimulatorTest(unittest.TestCase):
         # Apply energy over the cubed space
         initial_state = cubed_space.apply_energy(actual_state=initial_state,
                                                  external_energy_application_points=[],
-                                                 internal_energy_application_points=[], amount_of_time=0.8)
+                                                 internal_energy_application_points=[], amount_of_time=0.9)
         temperature_over_before_half_second = cubed_space.obtain_temperature(actual_state=initial_state,
                                                                              units=ThermalUnits.CELSIUS)
 
         # Apply energy over the cubed space
         initial_state = cubed_space.apply_energy(actual_state=initial_state,
                                                  external_energy_application_points=[],
-                                                 internal_energy_application_points=[], amount_of_time=0.8)
+                                                 internal_energy_application_points=[], amount_of_time=0.9)
         temperature_over_before_one_second = cubed_space.obtain_temperature(actual_state=initial_state,
                                                                             units=ThermalUnits.CELSIUS)
 
