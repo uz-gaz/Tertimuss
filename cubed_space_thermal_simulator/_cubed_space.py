@@ -3,6 +3,7 @@ from typing import List, Optional, Tuple, Set, Literal
 import scipy.sparse
 
 from tcpn_simulator import AbstractTCPNSimulator, TCPNSimulatorVariableStepEuler
+from tcpn_simulator._tcpn_simulator_variable_step_rk import TCPNSimulatorVariableStepRK
 from ._basic_types import *
 
 
@@ -16,7 +17,7 @@ class CubedSpace(object):
                  environment_properties: FluidEnvironmentProperties,
                  fixed_external_energy_application_points: Dict[int, ExternalEnergyLocatedCube],
                  fixed_internal_energy_application_points: Dict[int, InternalEnergyLocatedCube],
-                 simulation_precision: Literal["MIDDLE", "HIGH"]):
+                 simulation_precision: Literal["HIGH"]):
         """
         This function create a cubedSpace
 
@@ -34,7 +35,15 @@ class CubedSpace(object):
          fixed_internal_energy_application_points.
         """
         # Precision definition
-        dtype = numpy.float64 if (simulation_precision == "HIGH") else numpy.float32
+        dtype = numpy.float64  # if (simulation_precision == "HIGH") else numpy.float32
+
+        # TODO: Add different precisions
+        # When the float precision is changed, it must be reflected in the float dt
+        # VERY LOW: Euler and float32
+        # LOW: Euler and float64
+        # MIDDLE: RK and float32
+        # HIGH: RK and float64
+        # VERY HIGH: RK and float128
 
         # TCPN definition
         mo_index = {}
@@ -218,14 +227,11 @@ class CubedSpace(object):
         self.__mo_index = mo_index
         self.__material_cubes_dict = material_cubes_dict
 
-        pre_dense = self.__pre.toarray()
-        post_dense = self.__post.toarray()
-
         self.__simulation_precision = dtype
 
-        self.__tcpn_simulator: TCPNSimulatorVariableStepEuler = TCPNSimulatorVariableStepEuler(self.__pre, self.__post,
-                                                                                               self.__lambda_vector,
-                                                                                               self.__pi, 64)
+        self.__tcpn_simulator: TCPNSimulatorVariableStepRK = TCPNSimulatorVariableStepRK(self.__pre, self.__post,
+                                                                                         self.__lambda_vector,
+                                                                                         self.__pi)
 
     @classmethod
     def obtain_places_in_touch_debug(cls, material_cube_a: SolidMaterialLocatedCube, material_cube_a_places_index: int,

@@ -38,6 +38,10 @@ class CubedSpaceThermalSimulatorTest(unittest.TestCase):
         # Board initial temperature
         environment_temperature = 273.15 + 25
 
+        # Min simulation value
+        min_simulation_value = board_initial_temperature - 10
+        max_simulation_value = core_0_initial_temperature + 10
+
         # Definition of the CPU shape and materials
         cpu_definition = {
             # Cores
@@ -155,14 +159,13 @@ class CubedSpaceThermalSimulatorTest(unittest.TestCase):
         }
 
         # Generate cubed space
-
         cubed_space = CubedSpace(
             material_cubes=cpu_definition,
             cube_edge_size=cube_edge_size,
             fixed_external_energy_application_points=external_heat_generators,
             fixed_internal_energy_application_points=internal_heat_generators,
             environment_properties=environment_properties,
-            simulation_precision__=SimulationPrecision.MIDDLE_PRECISION)
+            simulation_precision="HIGH")
 
         initial_state = cubed_space.create_initial_state(
             default_temperature=environment_temperature,
@@ -195,8 +198,9 @@ class CubedSpaceThermalSimulatorTest(unittest.TestCase):
                                                                             units=ThermalUnits.CELSIUS)
 
         # Zero seconds
-        # plot_3d_heat_map_temperature_located_cube_list(temperature_over_before_zero_seconds,
-        #                                                board_initial_temperature, core_0_initial_temperature)
+        plot_3d_heat_map_temperature_located_cube_list(temperature_over_before_zero_seconds,
+                                                       min_temperature=min_simulation_value,
+                                                       max_temperature=max_simulation_value)
 
         min_temperature = obtain_min_temperature(temperature_over_before_zero_seconds)
         max_temperature = obtain_max_temperature(temperature_over_before_zero_seconds)
@@ -204,7 +208,9 @@ class CubedSpaceThermalSimulatorTest(unittest.TestCase):
         print("Temperature before 0 seconds: min", min_temperature, ", max", max_temperature)
 
         # Half second
-        plot_3d_heat_map_temperature_located_cube_list(temperature_over_before_half_second)
+        plot_3d_heat_map_temperature_located_cube_list(temperature_over_before_half_second,
+                                                       min_temperature=min_simulation_value,
+                                                       max_temperature=max_simulation_value)
 
         min_temperature = obtain_min_temperature(temperature_over_before_half_second)
         max_temperature = obtain_max_temperature(temperature_over_before_half_second)
@@ -212,7 +218,9 @@ class CubedSpaceThermalSimulatorTest(unittest.TestCase):
         print("Temperature before 0.5 seconds: min", min_temperature, ", max", max_temperature)
 
         # One second
-        plot_3d_heat_map_temperature_located_cube_list(temperature_over_before_one_second)
+        plot_3d_heat_map_temperature_located_cube_list(temperature_over_before_one_second,
+                                                       min_temperature=min_simulation_value,
+                                                       max_temperature=max_simulation_value)
 
         min_temperature = obtain_min_temperature(temperature_over_before_one_second)
         max_temperature = obtain_max_temperature(temperature_over_before_one_second)
@@ -244,6 +252,10 @@ class CubedSpaceThermalSimulatorTest(unittest.TestCase):
         # Board initial temperature
         environment_temperature = 273.15 + 25
 
+        # Min simulation value
+        min_simulation_value = cube_1_initial_temperature - 10
+        max_simulation_value = cube_0_initial_temperature + 10
+
         # Definition of the CPU shape and materials
         scene_definition = {
             # Cores
@@ -274,7 +286,7 @@ class CubedSpaceThermalSimulatorTest(unittest.TestCase):
             fixed_external_energy_application_points={},
             fixed_internal_energy_application_points={},
             environment_properties=environment_properties,
-            simulation_precision__=SimulationPrecision.MIDDLE_PRECISION)
+            simulation_precision="HIGH")
 
         initial_state = cubed_space.create_initial_state(
             default_temperature=environment_temperature,
@@ -292,20 +304,21 @@ class CubedSpaceThermalSimulatorTest(unittest.TestCase):
         # Apply energy over the cubed space
         initial_state = cubed_space.apply_energy(actual_state=initial_state,
                                                  external_energy_application_points=[],
-                                                 internal_energy_application_points=[], amount_of_time=0.5)
+                                                 internal_energy_application_points=[], amount_of_time=0.01)
         temperature_over_before_half_second = cubed_space.obtain_temperature(actual_state=initial_state,
                                                                              units=ThermalUnits.CELSIUS)
 
         # Apply energy over the cubed space
         initial_state = cubed_space.apply_energy(actual_state=initial_state,
                                                  external_energy_application_points=[],
-                                                 internal_energy_application_points=[], amount_of_time=0.5)
+                                                 internal_energy_application_points=[], amount_of_time=0.1)
         temperature_over_before_one_second = cubed_space.obtain_temperature(actual_state=initial_state,
                                                                             units=ThermalUnits.CELSIUS)
 
         # Zero seconds
         plot_3d_heat_map_temperature_located_cube_list(temperature_over_before_zero_seconds,
-                                                       cube_1_initial_temperature, cube_0_initial_temperature)
+                                                       min_temperature=min_simulation_value,
+                                                       max_temperature=max_simulation_value)
 
         min_temperature = obtain_min_temperature(temperature_over_before_zero_seconds)
         max_temperature = obtain_max_temperature(temperature_over_before_zero_seconds)
@@ -313,7 +326,9 @@ class CubedSpaceThermalSimulatorTest(unittest.TestCase):
         print("Temperature before 0 seconds: min", min_temperature, ", max", max_temperature)
 
         # Half second
-        plot_3d_heat_map_temperature_located_cube_list(temperature_over_before_half_second)
+        plot_3d_heat_map_temperature_located_cube_list(temperature_over_before_half_second,
+                                                       min_temperature=min_simulation_value,
+                                                       max_temperature=max_simulation_value)
 
         min_temperature = obtain_min_temperature(temperature_over_before_half_second)
         max_temperature = obtain_max_temperature(temperature_over_before_half_second)
@@ -321,7 +336,9 @@ class CubedSpaceThermalSimulatorTest(unittest.TestCase):
         print("Temperature before 0.5 seconds: min", min_temperature, ", max", max_temperature)
 
         # One second
-        plot_3d_heat_map_temperature_located_cube_list(temperature_over_before_one_second)
+        plot_3d_heat_map_temperature_located_cube_list(temperature_over_before_one_second,
+                                                       min_temperature=min_simulation_value,
+                                                       max_temperature=max_simulation_value)
 
         min_temperature = obtain_min_temperature(temperature_over_before_one_second)
         max_temperature = obtain_max_temperature(temperature_over_before_one_second)
@@ -362,13 +379,10 @@ class CubedSpaceThermalSimulatorTest(unittest.TestCase):
         }
 
         places_in_touch = CubedSpace.obtain_places_in_touch_debug(scene_definition[0], 0, scene_definition[1], 8)
-        pass
-        pass
-        i = 0
 
     def test_internal_conduction(self):
         # Dimensions of the cubes
-        cubes_dimensions = UnitDimensions(x=3, z=3, y=3)
+        cubes_dimensions = UnitDimensions(x=20, z=20, y=20)
 
         # Cube 0 material
         cube_0_material = SolidMaterial(
@@ -378,10 +392,14 @@ class CubedSpaceThermalSimulatorTest(unittest.TestCase):
         )
 
         # Core initial temperature
-        cube_0_initial_temperature = 273.15 + 65
+        cube_0_initial_temperature = 65
 
         # Board initial temperature
-        environment_temperature = 273.15 + 25
+        environment_temperature = 25
+
+        # Min simulation value
+        min_simulation_value = cube_0_initial_temperature - 10
+        max_simulation_value = cube_0_initial_temperature + 10
 
         # Definition of the CPU shape and materials
         scene_definition = {
@@ -408,7 +426,7 @@ class CubedSpaceThermalSimulatorTest(unittest.TestCase):
             fixed_external_energy_application_points={},
             fixed_internal_energy_application_points={},
             environment_properties=environment_properties,
-            simulation_precision="MIDDLE")
+            simulation_precision="HIGH")
 
         initial_state = cubed_space.create_initial_state(
             default_temperature=environment_temperature,
@@ -437,7 +455,9 @@ class CubedSpaceThermalSimulatorTest(unittest.TestCase):
                                                                             units=ThermalUnits.CELSIUS)
 
         # Zero seconds
-        plot_3d_heat_map_temperature_located_cube_list(temperature_over_before_zero_seconds)
+        plot_3d_heat_map_temperature_located_cube_list(temperature_over_before_zero_seconds,
+                                                       min_temperature=min_simulation_value,
+                                                       max_temperature=max_simulation_value)
 
         min_temperature = obtain_min_temperature(temperature_over_before_zero_seconds)
         max_temperature = obtain_max_temperature(temperature_over_before_zero_seconds)
@@ -445,7 +465,9 @@ class CubedSpaceThermalSimulatorTest(unittest.TestCase):
         print("Temperature before 0 seconds: min", min_temperature, ", max", max_temperature)
 
         # Half second
-        plot_3d_heat_map_temperature_located_cube_list(temperature_over_before_half_second)
+        plot_3d_heat_map_temperature_located_cube_list(temperature_over_before_half_second,
+                                                       min_temperature=min_simulation_value,
+                                                       max_temperature=max_simulation_value)
 
         min_temperature = obtain_min_temperature(temperature_over_before_half_second)
         max_temperature = obtain_max_temperature(temperature_over_before_half_second)
@@ -453,7 +475,9 @@ class CubedSpaceThermalSimulatorTest(unittest.TestCase):
         print("Temperature before 0.5 seconds: min", min_temperature, ", max", max_temperature)
 
         # One second
-        plot_3d_heat_map_temperature_located_cube_list(temperature_over_before_one_second)
+        plot_3d_heat_map_temperature_located_cube_list(temperature_over_before_one_second,
+                                                       min_temperature=min_simulation_value,
+                                                       max_temperature=max_simulation_value)
 
         min_temperature = obtain_min_temperature(temperature_over_before_one_second)
         max_temperature = obtain_max_temperature(temperature_over_before_one_second)

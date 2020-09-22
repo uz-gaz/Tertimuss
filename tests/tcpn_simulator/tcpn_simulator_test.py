@@ -5,6 +5,7 @@ import numpy
 import scipy.sparse
 
 from tcpn_simulator import TCPNSimulatorVariableStepEuler
+from tcpn_simulator._tcpn_simulator_variable_step_rk import TCPNSimulatorVariableStepRK
 
 
 class TCPNSimulatorTest(unittest.TestCase):
@@ -28,9 +29,13 @@ class TCPNSimulatorTest(unittest.TestCase):
 
         mo = numpy.asarray([1, 0, 0, 0]).reshape((-1, 1))
 
-        tcpn_simulator: TCPNSimulatorVariableStepEuler = TCPNSimulatorVariableStepEuler(scipy.sparse.csr_matrix(pre),
+        # tcpn_simulator: TCPNSimulatorVariableStepEuler = TCPNSimulatorVariableStepEuler(scipy.sparse.csr_matrix(pre),
+        #                                                                                 scipy.sparse.csr_matrix(post),
+        #                                                                                 lambda_vector, None, 64, True)
+
+        tcpn_simulator: TCPNSimulatorVariableStepRK = TCPNSimulatorVariableStepRK(scipy.sparse.csr_matrix(pre),
                                                                                         scipy.sparse.csr_matrix(post),
-                                                                                        lambda_vector, None, 64, True)
+                                                                                        lambda_vector, None, True)
 
         for i in range(6):
             mo_next = tcpn_simulator.simulate_step(mo, 1)
