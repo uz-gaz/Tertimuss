@@ -378,10 +378,10 @@ class CubedSpaceThermalSimulatorTest(unittest.TestCase):
         )
 
         # Core initial temperature
-        cube_0_initial_temperature = 273.15 + 65 - 273.15 - 25 + 1 - 40
+        cube_0_initial_temperature = 273.15 + 65
 
         # Board initial temperature
-        environment_temperature = 273.15 + 25 - 273.15 - 25 + 1 - 40
+        environment_temperature = 273.15 + 25
 
         # Definition of the CPU shape and materials
         scene_definition = {
