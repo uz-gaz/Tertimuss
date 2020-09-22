@@ -39,6 +39,8 @@ class CubedSpace(object):
 
         # TODO: Add different precisions
         # When the float precision is changed, it must be reflected in the float dt
+        # Maybe some of them can be implemented in the graphic card
+        #
         # VERY LOW: Euler and float32
         # LOW: Euler and float64
         # MIDDLE: RK and float32
