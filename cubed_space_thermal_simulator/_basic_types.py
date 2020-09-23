@@ -105,10 +105,8 @@ class FluidEnvironmentProperties:
     Specification of the environment
 
     environmentConvectionFactor: Convection factor (W / m^2 ºC)
-    environmentTemperature: Environment temperature (Kelvin)
     """
     environmentConvectionFactor: float
-    environmentTemperature: float
 
 
 class SimulationPrecision(Enum):

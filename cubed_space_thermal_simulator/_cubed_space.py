@@ -47,6 +47,23 @@ class CubedSpace(object):
         # HIGH: RK and float64
         # VERY HIGH: RK and float128
 
+        # Incidence matrix petri net structure
+        # +------------+------------+-----------------+----+-------+
+        # |            |            |                 |    |       |
+        # | Internal   | External   | Convection      |    |       |
+        # | cuboids    | cuboids    | heat extraction |    |       |
+        # | conduction | conduction | to environment  |    |       |
+        # |            |            |                 |    |       |
+        # +------------+------------+-----------------+    |       |
+        # |                                                |       |
+        # |Convection heat acquirement from environment    |       |
+        # |                                                |       |
+        # +------------------------------------------------+       |
+        # |                                                        |
+        # |Heat generation                                         |
+        # |                                                        |
+        # +--------------------------------------------------------+
+
         # TCPN definition
         mo_index = {}
         material_cubes_dict = {}
@@ -156,11 +173,14 @@ class CubedSpace(object):
             internal_conductivity_lambda.append(lambda_vector)
 
         # Add interaction between cuboids
-        mo_size = sum(mo_cubes_size)
+        mo_places_size = sum(mo_cubes_size)
 
         external_conductivity_pre = []
         external_conductivity_post = []
         external_conductivity_lambda = []
+
+        # Places that touch other place
+        places_with_contact: Set[int] = set()
 
         for material_cube_a_index, material_cube_a in material_cubes.items():
             for material_cube_b_index, material_cube_b in material_cubes.items():
@@ -169,8 +189,8 @@ class CubedSpace(object):
                     places_in_touch = self.__obtain_places_in_touch(material_cube_a, mo_index[material_cube_a_index],
                                                                     material_cube_b, mo_index[material_cube_b_index])
                     for place_a, place_b in places_in_touch:
-                        pre = scipy.sparse.lil_matrix((mo_size, 2), dtype=dtype)
-                        post = scipy.sparse.lil_matrix((mo_size, 2), dtype=dtype)
+                        pre = scipy.sparse.lil_matrix((mo_places_size, 2), dtype=dtype)
+                        post = scipy.sparse.lil_matrix((mo_places_size, 2), dtype=dtype)
 
                         # Transition 1, from A -> B
                         pre[place_a, 0] = 1
@@ -212,22 +232,72 @@ class CubedSpace(object):
                         external_conductivity_post.append(post)
                         external_conductivity_lambda.append(lambda_vector)
 
+                        # Add booth places to the set of places in contact
+                        places_with_contact.add(place_a)
+                        places_with_contact.add(place_b)
+
+        # Add convection
+        places_with_convection: Set[int] = set(range(mo_places_size)).difference(places_with_contact)
+
+        # This data structure store for each place in contact with the environment the heat extraction transition'
+        # lambda value (h/(side* rho_p1 * cp_p1))
+        conv_lambda_by_place: Dict[int, float] = {}
+
+        # This data structure store for each material the places that have this material and are in contact
+        # with the environment
+        conv_shared_material_places: Dict[int, Set[int]] = {}
+        conv_lambdas_by_material: Dict[int, float] = {}
+
+        # Heat extracted to the air
+        pre_conv_1 = scipy.sparse.lil_matrix((mo_places_size, len(places_with_convection)), dtype=dtype)
+        post_conv_1 = scipy.sparse.lil_matrix((mo_places_size, len(places_with_convection)), dtype=dtype)
+        lambda_vector_conv_1 = numpy.zeros(len(places_with_convection), dtype=dtype)
+
+        for place, transition_index in zip(places_with_convection, range(len(places_with_convection))):
+            pre_conv_1[place, transition_index] = 1
+            lambda_vector_conv_1[transition_index] = conv_lambda_by_place[place]
+
+        # Heat acquired from the air
+        pre_conv_2 = scipy.sparse.lil_matrix(
+            (mo_places_size + len(conv_shared_material_places), len(conv_shared_material_places)), dtype=dtype)
+        post_conv_2 = scipy.sparse.lil_matrix(
+            (mo_places_size + len(conv_shared_material_places), len(conv_shared_material_places)), dtype=dtype)
+        lambda_vector_conv_2 = numpy.zeros(len(conv_shared_material_places), dtype=dtype)
+
+        for (material_index, material_lambda), transition_index in \
+                zip(conv_lambdas_by_material, range(len(conv_lambdas_by_material))):
+            lambda_vector_conv_2[transition_index] = material_lambda
+            pre_conv_2[mo_places_size + transition_index, transition_index] = 1
+            post_conv_2[mo_places_size + transition_index, transition_index] = 1
+            for place in conv_shared_material_places[material_index]:
+                post_conv_2[place, transition_index] = 1
+
         # TODO: Add energy generation
-        # TODO: Add convection
 
         # Create global pre, post and lambda
-        # TODO: Add interaction matrix
-        self.__pre = scipy.sparse.hstack(
-            [scipy.sparse.block_diag(internal_conductivity_pre)] + external_conductivity_pre).tocsr()
+        # Add interaction matrix
+        pre = scipy.sparse.hstack(
+            [scipy.sparse.block_diag(internal_conductivity_pre)] + external_conductivity_pre + [pre_conv_1])
+        pre = scipy.sparse.vstack(
+            [pre, scipy.sparse.lil_matrix((pre.shape[1], len(conv_lambdas_by_material)), dtype=dtype)])
+        pre = scipy.sparse.hstack([pre, pre_conv_2])
+        self.__pre = pre.tocsr()
 
-        self.__post = scipy.sparse.hstack(
-            [scipy.sparse.block_diag(internal_conductivity_post)] + external_conductivity_post).tocsr()
+        post = scipy.sparse.hstack(
+            [scipy.sparse.block_diag(internal_conductivity_post)] + external_conductivity_post + [post_conv_1])
+        post = scipy.sparse.vstack(
+            [post, scipy.sparse.lil_matrix((post.shape[1], len(conv_lambdas_by_material)), dtype=dtype)])
+        post = scipy.sparse.hstack([post, post_conv_2])
+        self.__post = post.tocsr()
 
         self.__pi: scipy.sparse.csr_matrix = self.__pre.copy().transpose()
 
-        self.__lambda_vector = numpy.concatenate(internal_conductivity_lambda + external_conductivity_lambda)
+        self.__lambda_vector = numpy.concatenate(
+            internal_conductivity_lambda + external_conductivity_lambda + [lambda_vector_conv_1, lambda_vector_conv_2])
         self.__mo_index = mo_index
         self.__material_cubes_dict = material_cubes_dict
+
+        self.__environment_number_of_places = len(conv_lambdas_by_material)
 
         self.__simulation_precision = dtype
 
@@ -407,10 +477,20 @@ class CubedSpace(object):
             temperature_cubes.append(
                 TemperatureLocatedCube(material_cube.dimensions, material_cube.location, temperature_places))
 
+        # TODO: Implement unit conversion
+
         return temperature_cubes
 
     def create_initial_state(self, default_temperature: float,
-                             material_cubes_temperatures: Optional[Dict[int, float]]) -> CubedSpaceState:
+                             material_cubes_temperatures: Optional[Dict[int, float]],
+                             environment_temperature: float) -> CubedSpaceState:
+        """
+
+        :param default_temperature:
+        :param material_cubes_temperatures:
+        :param environment_temperature: Environment temperature (Kelvin)
+        :return:
+        """
         places_temperature = []
         for i, v in self.__mo_index.items():
             material_cube = self.__material_cubes_dict[i]
@@ -422,7 +502,8 @@ class CubedSpace(object):
                 places_temperature.append(local_places_temperature * material_cubes_temperatures[i])
             else:
                 places_temperature.append(local_places_temperature * default_temperature)
-        return CubedSpaceState(numpy.concatenate(places_temperature))
+        return CubedSpaceState(
+            numpy.concatenate(places_temperature + (self.__environment_number_of_places * [environment_temperature])))
 
 
 def obtain_min_temperature(heatmap_cube_list: List[TemperatureLocatedCube]) -> float:
