@@ -1,9 +1,9 @@
 import unittest
 
 from cubed_space_thermal_simulator import UnitDimensions, UnitLocation, \
-    ExternalEnergyLocatedCube, InternalEnergyLocatedCube, CubedSpace, ThermalUnits, SolidMaterial, SimulationPrecision, \
-    FluidEnvironmentProperties, SolidMaterialLocatedCube, obtain_min_temperature, obtain_max_temperature
-from cubed_space_thermal_simulator._result_plotter import plot_3d_heat_map_temperature_located_cube_list
+    ExternalEnergyLocatedCube, InternalEnergyLocatedCube, CubedSpace, ThermalUnits, SolidMaterial, \
+    FluidEnvironmentProperties, SolidMaterialLocatedCube, obtain_min_temperature, obtain_max_temperature, \
+    plot_3d_heat_map_temperature_located_cube_list
 
 
 class CubedSpaceThermalSimulatorTest(unittest.TestCase):
@@ -78,10 +78,7 @@ class CubedSpaceThermalSimulatorTest(unittest.TestCase):
         cube_edge_size = 0.001
 
         # Environment properties
-        environment_properties = FluidEnvironmentProperties(
-            environmentConvectionFactor=0.001,
-            environmentTemperature=environment_temperature
-        )
+        environment_properties = FluidEnvironmentProperties(environmentConvectionFactor=0.001)
 
         # CPU energy consumption configuration
         #  Dynamic power = dynamic_alpha * F^3 + dynamic_beta
@@ -175,7 +172,8 @@ class CubedSpaceThermalSimulatorTest(unittest.TestCase):
                 2: core_2_initial_temperature,
                 3: core_3_initial_temperature,
                 4: board_initial_temperature
-            }
+            },
+            environment_temperature=environment_temperature
         )
 
         # Initial temperatures
@@ -275,10 +273,7 @@ class CubedSpaceThermalSimulatorTest(unittest.TestCase):
         cube_edge_size = 0.001
 
         # Environment properties
-        environment_properties = FluidEnvironmentProperties(
-            environmentConvectionFactor=0.001,
-            environmentTemperature=environment_temperature
-        )
+        environment_properties = FluidEnvironmentProperties(environmentConvectionFactor=0.001)
 
         cubed_space = CubedSpace(
             material_cubes=scene_definition,
@@ -293,7 +288,8 @@ class CubedSpaceThermalSimulatorTest(unittest.TestCase):
             material_cubes_temperatures={
                 0: cube_0_initial_temperature,
                 1: cube_1_initial_temperature
-            }
+            },
+            environment_temperature=environment_temperature
         )
 
         # Initial temperatures
@@ -415,10 +411,7 @@ class CubedSpaceThermalSimulatorTest(unittest.TestCase):
         cube_edge_size = 0.001
 
         # Environment properties
-        environment_properties = FluidEnvironmentProperties(
-            environmentConvectionFactor=0.001,
-            environmentTemperature=environment_temperature
-        )
+        environment_properties = FluidEnvironmentProperties(environmentConvectionFactor=0.001)
 
         cubed_space = CubedSpace(
             material_cubes=scene_definition,
@@ -432,7 +425,8 @@ class CubedSpaceThermalSimulatorTest(unittest.TestCase):
             default_temperature=environment_temperature,
             material_cubes_temperatures={
                 0: cube_0_initial_temperature
-            }
+            },
+            environment_temperature=environment_temperature
         )
 
         # Initial temperatures

@@ -173,10 +173,14 @@ class CubedSpace(object):
             internal_conductivity_pre.append(pre)
             internal_conductivity_post.append(post)
             internal_conductivity_lambda.append(lambda_vector)
-            places_material_mapping[mo_index[material_cube_index]:mo_index[material_cube_index] +
-                                                                  material_cube.dimensions.x *
-                                                                  material_cube.dimensions.y *
-                                                                  material_cube.dimensions.z] = material_cube_index
+            places_material_mapping[mo_index[material_cube_index]:
+                                    mo_index[material_cube_index] +
+                                    material_cube.dimensions.x *
+                                    material_cube.dimensions.y *
+                                    material_cube.dimensions.z] = (material_cube.dimensions.x *
+                                                                   material_cube.dimensions.y *
+                                                                   material_cube.dimensions.z) * [
+                                                                      material_cube_index]
 
         # Add interaction between cuboids
         mo_places_size = sum(mo_cubes_size)
@@ -295,14 +299,14 @@ class CubedSpace(object):
         pre = scipy.sparse.hstack(
             [scipy.sparse.block_diag(internal_conductivity_pre)] + external_conductivity_pre + [pre_conv_1])
         pre = scipy.sparse.vstack(
-            [pre, scipy.sparse.lil_matrix((pre.shape[1], pre_conv_2.shape[0]), dtype=dtype)])
+            [pre, scipy.sparse.lil_matrix((len(conv_lambda_shared_material_places), pre.shape[1]), dtype=dtype)])
         pre = scipy.sparse.hstack([pre, pre_conv_2])
         self.__pre = pre.tocsr()
 
         post = scipy.sparse.hstack(
             [scipy.sparse.block_diag(internal_conductivity_post)] + external_conductivity_post + [post_conv_1])
         post = scipy.sparse.vstack(
-            [post, scipy.sparse.lil_matrix((post.shape[1], post_conv_2.shape[0]), dtype=dtype)])
+            [post, scipy.sparse.lil_matrix((len(conv_lambda_shared_material_places), post.shape[1]), dtype=dtype)])
         post = scipy.sparse.hstack([post, post_conv_2])
         self.__post = post.tocsr()
 
@@ -518,8 +522,12 @@ class CubedSpace(object):
                 places_temperature.append(local_places_temperature * material_cubes_temperatures[i])
             else:
                 places_temperature.append(local_places_temperature * default_temperature)
-        return CubedSpaceState(
-            numpy.concatenate(places_temperature + (self.__environment_number_of_places * [environment_temperature])))
+
+        # Append environment temperature
+        places_temperature.append(environment_temperature * numpy.ones(shape=(self.__environment_number_of_places),
+                                                                       dtype=self.__simulation_precision))
+
+        return CubedSpaceState(numpy.concatenate(places_temperature))
 
 
 def obtain_min_temperature(heatmap_cube_list: List[TemperatureLocatedCube]) -> float:
