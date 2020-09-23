@@ -15,7 +15,7 @@ class CubedSpaceState(object):
 
 class CubedSpace(object):
     def __init__(self, material_cubes: Dict[int, SolidMaterialLocatedCube], cube_edge_size: float,
-                 environment_properties: FluidEnvironmentProperties,
+                 environment_properties: Optional[FluidEnvironmentProperties],
                  fixed_external_energy_application_points: Dict[int, ExternalEnergyLocatedCube],
                  fixed_internal_energy_application_points: Dict[int, InternalEnergyLocatedCube],
                  simulation_precision: Literal["HIGH"]):
@@ -37,6 +37,9 @@ class CubedSpace(object):
         """
         # Precision definition
         dtype = numpy.float64  # if (simulation_precision == "HIGH") else numpy.float32
+
+        # TODO: Deal with None environment_properties
+        # TODO: Check error in the environment lambda
 
         # TODO: Add different precisions
         # When the float precision is changed, it must be reflected in the float dt
@@ -247,11 +250,12 @@ class CubedSpace(object):
                         places_with_contact.add(place_b)
 
         # Add convection
-        places_with_convection: Set[int] = set(range(mo_places_size)).difference(places_with_contact)
+        places_with_convection: Set[int] = set(range(mo_places_size)).difference(
+            places_with_contact) if environment_properties is not None else set()
 
         # Return the convection lambda of a material
         def _convection_lambda_of_material(_material_cube: SolidMaterialLocatedCube) -> float:
-            return _material_cube.solidMaterial.thermalConductivity / (
+            return environment_properties.environmentConvectionFactor / (
                     cube_edge_size * _material_cube.solidMaterial.density *
                     _material_cube.solidMaterial.specificHeatCapacities)
 
@@ -324,14 +328,6 @@ class CubedSpace(object):
         self.__tcpn_simulator: TCPNSimulatorVariableStepRK = TCPNSimulatorVariableStepRK(self.__pre, self.__post,
                                                                                          self.__lambda_vector,
                                                                                          self.__pi)
-
-    @classmethod
-    def obtain_places_in_touch_debug(cls, material_cube_a: SolidMaterialLocatedCube, material_cube_a_places_index: int,
-                                     material_cube_b: SolidMaterialLocatedCube, material_cube_b_places_index: int) \
-            -> List[Tuple[int, int]]:
-
-        return cls.__obtain_places_in_touch(material_cube_a, material_cube_a_places_index, material_cube_b,
-                                            material_cube_b_places_index)
 
     @classmethod
     def __obtain_places_in_touch(cls, material_cube_a: SolidMaterialLocatedCube, material_cube_a_places_index: int,
@@ -503,7 +499,7 @@ class CubedSpace(object):
 
     def create_initial_state(self, default_temperature: float,
                              material_cubes_temperatures: Optional[Dict[int, float]],
-                             environment_temperature: float) -> CubedSpaceState:
+                             environment_temperature: Optional[float]) -> CubedSpaceState:
         """
 
         :param default_temperature:
@@ -515,17 +511,21 @@ class CubedSpace(object):
         for i, v in self.__mo_index.items():
             material_cube = self.__material_cubes_dict[i]
             number_of_occupied_places = material_cube.dimensions.x * material_cube.dimensions.y * material_cube.dimensions.z
-            local_places_temperature = numpy.ones(shape=(number_of_occupied_places),
-                                                  dtype=self.__simulation_precision)
+            local_places_temperature = numpy.ones(shape=(number_of_occupied_places), dtype=self.__simulation_precision)
 
             if material_cubes_temperatures is not None and material_cubes_temperatures.__contains__(i):
                 places_temperature.append(local_places_temperature * material_cubes_temperatures[i])
             else:
                 places_temperature.append(local_places_temperature * default_temperature)
 
+        # Set environment temperature value
+        environment_temperature = environment_temperature if environment_temperature is not None \
+            else default_temperature
+
         # Append environment temperature
-        places_temperature.append(environment_temperature * numpy.ones(shape=(self.__environment_number_of_places),
-                                                                       dtype=self.__simulation_precision))
+        if self.__environment_number_of_places != 0:
+            places_temperature.append(environment_temperature * numpy.ones(shape=(self.__environment_number_of_places),
+                                                                           dtype=self.__simulation_precision))
 
         return CubedSpaceState(numpy.concatenate(places_temperature))
 
