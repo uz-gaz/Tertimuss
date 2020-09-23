@@ -1,3 +1,4 @@
+import itertools
 from typing import List, Optional, Tuple, Set, Literal
 
 import scipy.sparse
@@ -71,6 +72,7 @@ class CubedSpace(object):
         internal_conductivity_post = []
         internal_conductivity_lambda = []
         mo_cubes_size = []
+        places_material_mapping = []
 
         # First create internal conductivity for each material cube
         for material_cube_index, material_cube in material_cubes.items():
@@ -171,6 +173,10 @@ class CubedSpace(object):
             internal_conductivity_pre.append(pre)
             internal_conductivity_post.append(post)
             internal_conductivity_lambda.append(lambda_vector)
+            places_material_mapping[mo_index[material_cube_index]:mo_index[material_cube_index] +
+                                                                  material_cube.dimensions.x *
+                                                                  material_cube.dimensions.y *
+                                                                  material_cube.dimensions.z] = material_cube_index
 
         # Add interaction between cuboids
         mo_places_size = sum(mo_cubes_size)
@@ -239,37 +245,47 @@ class CubedSpace(object):
         # Add convection
         places_with_convection: Set[int] = set(range(mo_places_size)).difference(places_with_contact)
 
+        # Return the convection lambda of a material
+        def _convection_lambda_of_material(_material_cube: SolidMaterialLocatedCube) -> float:
+            return _material_cube.solidMaterial.thermalConductivity / (
+                    cube_edge_size * _material_cube.solidMaterial.density *
+                    _material_cube.solidMaterial.specificHeatCapacities)
+
         # This data structure store for each place in contact with the environment the heat extraction transition'
-        # lambda value (h/(side* rho_p1 * cp_p1))
-        conv_lambda_by_place: Dict[int, float] = {}
+        # lambda value
+        conv_lambda_by_place: List[Tuple[int, float]] = [
+            (i, _convection_lambda_of_material(material_cubes[places_material_mapping[i]])) for i in
+            places_with_convection]
 
         # This data structure store for each material the places that have this material and are in contact
-        # with the environment
-        conv_shared_material_places: Dict[int, Set[int]] = {}
-        conv_lambdas_by_material: Dict[int, float] = {}
+        # with the environment and the associated lambda
+        conv_lambda_shared_material_places: List[Tuple[float, List[int]]] = [(k, [j[0] for j in i]) for k, i in
+                                                                             itertools.groupby(conv_lambda_by_place,
+                                                                                               key=lambda j: j[1])]
 
         # Heat extracted to the air
         pre_conv_1 = scipy.sparse.lil_matrix((mo_places_size, len(places_with_convection)), dtype=dtype)
         post_conv_1 = scipy.sparse.lil_matrix((mo_places_size, len(places_with_convection)), dtype=dtype)
         lambda_vector_conv_1 = numpy.zeros(len(places_with_convection), dtype=dtype)
 
-        for place, transition_index in zip(places_with_convection, range(len(places_with_convection))):
+        for transition_index, (place, transition_lambda) in enumerate(conv_lambda_by_place):
             pre_conv_1[place, transition_index] = 1
-            lambda_vector_conv_1[transition_index] = conv_lambda_by_place[place]
+            lambda_vector_conv_1[transition_index] = transition_lambda
 
         # Heat acquired from the air
         pre_conv_2 = scipy.sparse.lil_matrix(
-            (mo_places_size + len(conv_shared_material_places), len(conv_shared_material_places)), dtype=dtype)
+            (mo_places_size + len(conv_lambda_shared_material_places), len(conv_lambda_shared_material_places)),
+            dtype=dtype)
         post_conv_2 = scipy.sparse.lil_matrix(
-            (mo_places_size + len(conv_shared_material_places), len(conv_shared_material_places)), dtype=dtype)
-        lambda_vector_conv_2 = numpy.zeros(len(conv_shared_material_places), dtype=dtype)
+            (mo_places_size + len(conv_lambda_shared_material_places), len(conv_lambda_shared_material_places)),
+            dtype=dtype)
+        lambda_vector_conv_2 = numpy.zeros(len(conv_lambda_shared_material_places), dtype=dtype)
 
-        for (material_index, material_lambda), transition_index in \
-                zip(conv_lambdas_by_material, range(len(conv_lambdas_by_material))):
+        for transition_index, (material_lambda, places) in enumerate(conv_lambda_shared_material_places):
             lambda_vector_conv_2[transition_index] = material_lambda
             pre_conv_2[mo_places_size + transition_index, transition_index] = 1
             post_conv_2[mo_places_size + transition_index, transition_index] = 1
-            for place in conv_shared_material_places[material_index]:
+            for place in places:
                 post_conv_2[place, transition_index] = 1
 
         # TODO: Add energy generation
@@ -279,14 +295,14 @@ class CubedSpace(object):
         pre = scipy.sparse.hstack(
             [scipy.sparse.block_diag(internal_conductivity_pre)] + external_conductivity_pre + [pre_conv_1])
         pre = scipy.sparse.vstack(
-            [pre, scipy.sparse.lil_matrix((pre.shape[1], len(conv_lambdas_by_material)), dtype=dtype)])
+            [pre, scipy.sparse.lil_matrix((pre.shape[1], pre_conv_2.shape[0]), dtype=dtype)])
         pre = scipy.sparse.hstack([pre, pre_conv_2])
         self.__pre = pre.tocsr()
 
         post = scipy.sparse.hstack(
             [scipy.sparse.block_diag(internal_conductivity_post)] + external_conductivity_post + [post_conv_1])
         post = scipy.sparse.vstack(
-            [post, scipy.sparse.lil_matrix((post.shape[1], len(conv_lambdas_by_material)), dtype=dtype)])
+            [post, scipy.sparse.lil_matrix((post.shape[1], post_conv_2.shape[0]), dtype=dtype)])
         post = scipy.sparse.hstack([post, post_conv_2])
         self.__post = post.tocsr()
 
@@ -297,7 +313,7 @@ class CubedSpace(object):
         self.__mo_index = mo_index
         self.__material_cubes_dict = material_cubes_dict
 
-        self.__environment_number_of_places = len(conv_lambdas_by_material)
+        self.__environment_number_of_places = len(conv_lambda_shared_material_places)
 
         self.__simulation_precision = dtype
 
