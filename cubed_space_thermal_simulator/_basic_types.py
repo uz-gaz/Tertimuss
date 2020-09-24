@@ -6,6 +6,29 @@ import numpy
 
 
 @dataclass
+class SolidMaterial:
+    """
+    Isotropic thermal properties
+    density: Density(Kg / cm ^ 3)
+    specificHeatCapacities: Specific heat capacities (J / Kg K)
+    thermalConductivity: Thermal conductivity(W / m ºC)
+    """
+    density: float
+    specificHeatCapacities: float
+    thermalConductivity: float
+
+
+@dataclass
+class FluidEnvironmentProperties:
+    """
+    Specification of the environment
+
+    environmentConvectionFactor: Convective Heat Transfer Coefficient (W / m^2 ºC)
+    """
+    heatTransferCoefficient: float
+
+
+@dataclass
 class UnitLocation:
     """
     Location in unit units
@@ -23,19 +46,6 @@ class UnitDimensions:
     x: int
     y: int
     z: int
-
-
-@dataclass
-class SolidMaterial:
-    """
-    Material definition
-    density: Density(Kg / cm ^ 3)
-    specificHeatCapacities: Specific heat capacities(J / Kg K)
-    thermalConductivity: Thermal conductivity(W / m ºC)
-    """
-    density: float
-    specificHeatCapacities: float
-    thermalConductivity: float
 
 
 @dataclass
@@ -97,23 +107,3 @@ class ModelTemperatureMatrix:
     Model temperature matrix
     """
     temperatureMatrix: Dict[int, numpy.ndarray]
-
-
-@dataclass
-class FluidEnvironmentProperties:
-    """
-    Specification of the environment
-
-    environmentConvectionFactor: Convection factor (W / m^2 ºC)
-    """
-    environmentConvectionFactor: float
-
-
-class SimulationPrecision(Enum):
-    """
-    Simulation precision.
-
-    Higher precision implies more resources consumption and more simulation time
-    """
-    HIGH_PRECISION = numpy.float64,
-    MIDDLE_PRECISION = numpy.float32

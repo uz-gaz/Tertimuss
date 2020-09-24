@@ -255,7 +255,7 @@ class CubedSpace(object):
 
         # Return the convection lambda of a material
         def _convection_lambda_of_material(_material_cube: SolidMaterialLocatedCube) -> float:
-            return environment_properties.environmentConvectionFactor / (
+            return environment_properties.heatTransferCoefficient / (
                     cube_edge_size * _material_cube.solidMaterial.density *
                     _material_cube.solidMaterial.specificHeatCapacities)
 
