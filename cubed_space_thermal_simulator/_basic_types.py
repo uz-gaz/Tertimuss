@@ -9,12 +9,12 @@ import numpy
 class SolidMaterial:
     """
     Isotropic thermal properties
-    density: Density(Kg / cm ^ 3)
-    specificHeatCapacities: Specific heat capacities (J / Kg K)
+    density: Density(Kg / m ^ 3)
+    specificHeatCapacity: Specific heat capacity (J / Kg K)
     thermalConductivity: Thermal conductivity(W / m ºC)
     """
     density: float
-    specificHeatCapacities: float
+    specificHeatCapacity: float
     thermalConductivity: float
 
 
@@ -74,23 +74,25 @@ class SolidMaterialLocatedCube(LocatedCube):
 
 
 @dataclass
-class ExternalEnergyLocatedCube(LocatedCube):
+class ExternalTemperatureBoosterLocatedCube(LocatedCube):
     """
-    Cube with location that generate energy. It generate (energy) amount of Joules in (period) seconds.
+    Increase the temperature of all the cubes that are located inside the locatedCube by a rate of
+    boostRate kelvin / second
+
+    The integral of the cube temperature will be boostRate
     """
-    energy: float
-    period: float
+    boostRate: float
 
 
 @dataclass
-class InternalEnergyLocatedCube(LocatedCube):
+class InternalTemperatureBoosterLocatedCube(LocatedCube):
     """
-    Cube with location that generate energy that depends on the actual cube temperature.
-    It increases the temperature of the cube by the actual temperature multiplied by (temperatureFactor) every
-    (period) seconds.
+    Increases the temperature of all cubes located in the locatedCube by a rate of
+    (boostRateMultiplier * cube temperature) kelvin/second
+
+    The integral of the cube temperature will be (boostRateMultiplier * cube temperature)
     """
-    temperatureFactor: float
-    period: float
+    boostRateMultiplier: float
 
 
 class ThermalUnits(Enum):

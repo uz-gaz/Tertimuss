@@ -3,8 +3,7 @@ from typing import List, Optional, Tuple, Set, Literal
 
 import scipy.sparse
 
-from tcpn_simulator import AbstractTCPNSimulator, TCPNSimulatorVariableStepEuler
-from tcpn_simulator._tcpn_simulator_variable_step_rk import TCPNSimulatorVariableStepRK
+from tcpn_simulator import TCPNSimulatorVariableStepRK
 from ._basic_types import *
 
 
@@ -16,8 +15,8 @@ class CubedSpaceState(object):
 class CubedSpace(object):
     def __init__(self, material_cubes: Dict[int, SolidMaterialLocatedCube], cube_edge_size: float,
                  environment_properties: Optional[FluidEnvironmentProperties],
-                 fixed_external_energy_application_points: Dict[int, ExternalEnergyLocatedCube],
-                 fixed_internal_energy_application_points: Dict[int, InternalEnergyLocatedCube],
+                 external_temperature_booster_points: Dict[int, ExternalTemperatureBoosterLocatedCube],
+                 internal_temperature_booster_points: Dict[int, InternalTemperatureBoosterLocatedCube],
                  simulation_precision: Literal["HIGH"]):
         """
         This function create a cubedSpace
@@ -28,18 +27,15 @@ class CubedSpace(object):
         :param cube_edge_size: Cubes' edge size in m (each cube will have the same edge size).
         :param environment_properties: The material that will be surrounded the cube will have these properties.
          This material won't change him temperature, however it will affect to the mesh temperature.
-        :param fixed_external_energy_application_points: This parameter is only used with optimization purposes. If is
+        :param external_temperature_booster_points: This parameter is only used with optimization purposes. If is
          not null, all of the elements of external_energy_application_points in the function apply_energy, must be in
          fixed_external_energy_application_points.
-        :param fixed_internal_energy_application_points: This parameter is only used with optimization purposes. If is
+        :param internal_temperature_booster_points: This parameter is only used with optimization purposes. If is
          not null, all of the elements of internal_energy_application_points in the function apply_energy, must be in
          fixed_internal_energy_application_points.
         """
         # Precision definition
         dtype = numpy.float64  # if (simulation_precision == "HIGH") else numpy.float32
-
-        # TODO: Deal with None environment_properties
-        # TODO: Check error in the environment lambda
 
         # TODO: Add different precisions
         # When the float precision is changed, it must be reflected in the float dt
@@ -86,7 +82,7 @@ class CubedSpace(object):
 
             rho: float = material_cube.solidMaterial.density
             k: float = material_cube.solidMaterial.thermalConductivity
-            cp: float = material_cube.solidMaterial.specificHeatCapacities
+            cp: float = material_cube.solidMaterial.specificHeatCapacity
 
             # Horizontal lambda and vertical lambda was refactored to achieve more precision
             # Horizontal lambda is equal to vertical lambda because sides are equals
@@ -208,16 +204,16 @@ class CubedSpace(object):
                         # Transition 1, from A -> B
                         pre[place_a, 0] = 1
                         post[place_b, 0] = (material_cube_a.solidMaterial.density
-                                            * material_cube_a.solidMaterial.specificHeatCapacities) / \
+                                            * material_cube_a.solidMaterial.specificHeatCapacity) / \
                                            (material_cube_b.solidMaterial.density
-                                            * material_cube_b.solidMaterial.specificHeatCapacities)
+                                            * material_cube_b.solidMaterial.specificHeatCapacity)
 
                         # Transition 2, from B -> A
                         pre[place_b, 1] = 1
                         post[place_a, 1] = (material_cube_b.solidMaterial.density
-                                            * material_cube_b.solidMaterial.specificHeatCapacities) / \
+                                            * material_cube_b.solidMaterial.specificHeatCapacity) / \
                                            (material_cube_a.solidMaterial.density
-                                            * material_cube_a.solidMaterial.specificHeatCapacities)
+                                            * material_cube_a.solidMaterial.specificHeatCapacity)
 
                         # All lambdas are equals
                         lambda_vector = numpy.zeros(shape=2, dtype=dtype)
@@ -226,7 +222,7 @@ class CubedSpace(object):
                         lambda_vector[0] = (material_cube_a.solidMaterial.thermalConductivity
                                             * material_cube_b.solidMaterial.thermalConductivity) / \
                                            (material_cube_a.solidMaterial.density
-                                            * material_cube_a.solidMaterial.specificHeatCapacities
+                                            * material_cube_a.solidMaterial.specificHeatCapacity
                                             * (material_cube_a.solidMaterial.thermalConductivity
                                                + material_cube_b.solidMaterial.thermalConductivity)
                                             * (cube_edge_size ** 2))
@@ -235,7 +231,7 @@ class CubedSpace(object):
                         lambda_vector[1] = (material_cube_a.solidMaterial.thermalConductivity
                                             * material_cube_b.solidMaterial.thermalConductivity) / \
                                            (material_cube_b.solidMaterial.density
-                                            * material_cube_b.solidMaterial.specificHeatCapacities
+                                            * material_cube_b.solidMaterial.specificHeatCapacity
                                             * (material_cube_a.solidMaterial.thermalConductivity
                                                + material_cube_b.solidMaterial.thermalConductivity)
                                             * (cube_edge_size ** 2))
@@ -257,7 +253,7 @@ class CubedSpace(object):
         def _convection_lambda_of_material(_material_cube: SolidMaterialLocatedCube) -> float:
             return environment_properties.heatTransferCoefficient / (
                     cube_edge_size * _material_cube.solidMaterial.density *
-                    _material_cube.solidMaterial.specificHeatCapacities)
+                    _material_cube.solidMaterial.specificHeatCapacity)
 
         # This data structure store for each place in contact with the environment the heat extraction transition'
         # lambda value
