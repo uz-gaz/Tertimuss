@@ -79,7 +79,7 @@ class ExternalTemperatureBoosterLocatedCube(LocatedCube):
     Increase the temperature of all the cubes that are located inside the locatedCube by a rate of
     boostRate kelvin / second
 
-    The integral of the cube temperature will be boostRate
+    The derivative of the cube temperature will be boostRate
     """
     boostRate: float
 
@@ -90,7 +90,7 @@ class InternalTemperatureBoosterLocatedCube(LocatedCube):
     Increases the temperature of all cubes located in the locatedCube by a rate of
     (boostRateMultiplier * cube temperature) kelvin/second
 
-    The integral of the cube temperature will be (boostRateMultiplier * cube temperature)
+    The derivative of the cube temperature will be (boostRateMultiplier * cube temperature)
     """
     boostRateMultiplier: float
 

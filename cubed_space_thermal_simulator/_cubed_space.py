@@ -72,6 +72,7 @@ class CubedSpace(object):
         internal_conductivity_lambda = []
         mo_cubes_size = []
         places_material_mapping = []
+        location_places_mapping: Dict[Tuple[int, int, int], int] = {}
 
         # First create internal conductivity for each material cube
         for material_cube_index, material_cube in material_cubes.items():
@@ -180,6 +181,16 @@ class CubedSpace(object):
                                                                    material_cube.dimensions.y *
                                                                    material_cube.dimensions.z) * [
                                                                       material_cube_index]
+
+            # Fill location to place mapping dict
+            for actual_z in range(z):
+                for actual_y in range(y):
+                    for actual_x in range(x):
+                        local_place = actual_z * y * x + actual_y * x + actual_x
+                        global_place = mo_index[material_cube_index] + local_place
+                        location_places_mapping[(material_cube.location.x + actual_x,
+                                                 material_cube.location.y + actual_y,
+                                                 material_cube.location.z + actual_z)] = global_place
 
         # Add interaction between cuboids
         mo_places_size = sum(mo_cubes_size)
@@ -292,7 +303,75 @@ class CubedSpace(object):
             for place in places:
                 post_conv_2[place, transition_index] = 1
 
-        # TODO: Add energy generation
+        # Internal temperature boost
+        # Store for each internal temperature boost, the first transition index and the number of transitions related
+        internal_temperature_boost_transitions: Dict[int, Tuple[int, int, float]] = {}
+        pre_internal_gen = []
+        post_internal_gen = []
+        lambda_vector_internal_gen = []
+
+        for internal_temperature_booster_point_index, internal_temperature_booster_point in \
+                internal_temperature_booster_points.items():
+            places = []
+            for actual_z in range(internal_temperature_booster_point.dimensions.z):
+                for actual_y in range(internal_temperature_booster_point.dimensions.y):
+                    for actual_x in range(internal_temperature_booster_point.dimensions.x):
+                        global_z = actual_z + internal_temperature_booster_point.location.z
+                        global_y = actual_y + internal_temperature_booster_point.location.y
+                        global_x = actual_x + internal_temperature_booster_point.location.x
+
+                        if location_places_mapping.__contains__((global_x, global_y, global_z)):
+                            places.append(location_places_mapping[(global_x, global_y, global_z)])
+
+            pre = scipy.sparse.lil_matrix((pre_conv_2.shape[0], len(places)), dtype=dtype)
+            post = scipy.sparse.lil_matrix((post_conv_2.shape[0], len(places)), dtype=dtype)
+            lambda_vector = numpy.zeros(len(places))
+
+            for place_index, place in enumerate(places):
+                pre[place, place_index] = 1
+                post[place, place_index] = 2
+                lambda_vector[place_index] = internal_temperature_booster_point.boostRateMultiplier
+
+            # Store matrix
+            internal_temperature_boost_transition_start = sum(
+                [i[1] for _, i in internal_temperature_boost_transitions.items()])
+
+            internal_temperature_boost_transitions[internal_temperature_booster_point_index] = \
+                (internal_temperature_boost_transition_start, len(places),
+                 internal_temperature_booster_point.boostRateMultiplier)
+
+            pre_internal_gen.append(pre)
+            post_internal_gen.append(post)
+            lambda_vector_internal_gen.append(lambda_vector)
+
+        # External temperature boost
+        external_temperature_boost_places: Dict[int, int] = {}
+        pre_external_gen_1 = scipy.sparse.lil_matrix((post_conv_2.shape[0], len(external_temperature_booster_points)),
+                                                     dtype=dtype)
+        post_external_gen_1 = scipy.sparse.lil_matrix((post_conv_2.shape[0], len(external_temperature_booster_points)),
+                                                      dtype=dtype)
+        lambda_vector_external_gen = numpy.zeros(len(external_temperature_booster_points), dtype=dtype)
+
+        for transition_index, (external_temperature_booster_point_index, external_temperature_booster_point) in \
+                enumerate(external_temperature_booster_points.items()):
+            places = []
+            for actual_z in range(external_temperature_booster_point.dimensions.z):
+                for actual_y in range(external_temperature_booster_point.dimensions.y):
+                    for actual_x in range(external_temperature_booster_point.dimensions.x):
+                        global_z = actual_z + external_temperature_booster_point.location.z
+                        global_y = actual_y + external_temperature_booster_point.location.y
+                        global_x = actual_x + external_temperature_booster_point.location.x
+
+                        if location_places_mapping.__contains__((global_x, global_y, global_z)):
+                            places.append(location_places_mapping[(global_x, global_y, global_z)])
+
+            for place_index, place in enumerate(places):
+                post_external_gen_1[place, transition_index] = 1
+
+            lambda_vector_external_gen[transition_index] = external_temperature_booster_point.boostRate
+
+            external_temperature_boost_places[external_temperature_booster_point_index] = len(
+                external_temperature_boost_places)
 
         # Create global pre, post and lambda
         # Add interaction matrix
@@ -301,6 +380,12 @@ class CubedSpace(object):
         pre = scipy.sparse.vstack(
             [pre, scipy.sparse.lil_matrix((len(conv_lambda_shared_material_places), pre.shape[1]), dtype=dtype)])
         pre = scipy.sparse.hstack([pre, pre_conv_2])
+        pre = scipy.sparse.hstack([pre] + pre_internal_gen)
+        pre = scipy.sparse.vstack(
+            [pre, scipy.sparse.lil_matrix((len(external_temperature_booster_points), pre.shape[1]), dtype=dtype)])
+        pre = scipy.sparse.hstack(
+            [pre, scipy.sparse.vstack([pre_external_gen_1, scipy.sparse.eye(len(external_temperature_booster_points))])]
+        )
         self.__pre = pre.tocsr()
 
         post = scipy.sparse.hstack(
@@ -308,12 +393,21 @@ class CubedSpace(object):
         post = scipy.sparse.vstack(
             [post, scipy.sparse.lil_matrix((len(conv_lambda_shared_material_places), post.shape[1]), dtype=dtype)])
         post = scipy.sparse.hstack([post, post_conv_2])
+        post = scipy.sparse.hstack([post] + post_internal_gen)
+        post = scipy.sparse.vstack(
+            [post, scipy.sparse.lil_matrix((len(external_temperature_booster_points), post.shape[1]), dtype=dtype)])
+        post = scipy.sparse.hstack(
+            [post,
+             scipy.sparse.vstack([post_external_gen_1, scipy.sparse.eye(len(external_temperature_booster_points))])]
+        )
         self.__post = post.tocsr()
 
         self.__pi: scipy.sparse.csr_matrix = self.__pre.copy().transpose()
 
         self.__lambda_vector = numpy.concatenate(
-            internal_conductivity_lambda + external_conductivity_lambda + [lambda_vector_conv_1, lambda_vector_conv_2])
+            internal_conductivity_lambda + external_conductivity_lambda + [lambda_vector_conv_1, lambda_vector_conv_2]
+            + lambda_vector_internal_gen + [lambda_vector_external_gen])
+
         self.__mo_index = mo_index
         self.__material_cubes_dict = material_cubes_dict
 
@@ -324,6 +418,9 @@ class CubedSpace(object):
         self.__tcpn_simulator: TCPNSimulatorVariableStepRK = TCPNSimulatorVariableStepRK(self.__pre, self.__post,
                                                                                          self.__lambda_vector,
                                                                                          self.__pi)
+
+        self.__internal_temperature_boost_transitions = internal_temperature_boost_transitions
+        self.__external_temperature_boost_places = external_temperature_boost_places
 
     @classmethod
     def __obtain_places_in_touch(cls, material_cube_a: SolidMaterialLocatedCube, material_cube_a_places_index: int,
@@ -523,7 +620,8 @@ class CubedSpace(object):
             places_temperature.append(environment_temperature * numpy.ones(shape=(self.__environment_number_of_places),
                                                                            dtype=self.__simulation_precision))
 
-        return CubedSpaceState(numpy.concatenate(places_temperature))
+        return CubedSpaceState(
+            numpy.concatenate(places_temperature + [numpy.zeros(len(self.__external_temperature_boost_places))]))
 
 
 def obtain_min_temperature(heatmap_cube_list: List[TemperatureLocatedCube]) -> float:
