@@ -1,17 +1,19 @@
 import unittest
 
 from cubed_space_thermal_simulator import UnitDimensions, UnitLocation, \
-    ExternalEnergyLocatedCube, InternalEnergyLocatedCube, CubedSpace, ThermalUnits, SolidMaterialLocatedCube, \
-    obtain_min_temperature, obtain_max_temperature, plot_3d_heat_map_temperature_located_cube_list
+    CubedSpace, ThermalUnits, SolidMaterialLocatedCube, \
+    obtain_min_temperature, obtain_max_temperature, plot_3d_heat_map_temperature_located_cube_list, \
+    InternalTemperatureBoosterLocatedCube
 
 from cubed_space_thermal_simulator.materials_pack import CooperSolidMaterial, SiliconSolidMaterial, \
     AirFreeEnvironmentProperties, AirForcedEnvironmentProperties
+from cubed_space_thermal_simulator.physics_utils import create_energy_applicator
 
 
 class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
     def test_processor_heat_generation_plot(self):
         # Dimensions of the core
-        core_dimensions = UnitDimensions(x=3, z=1, y=3)
+        core_dimensions = UnitDimensions(x=10, z=2, y=10)
 
         # Material of the core
         core_material = SiliconSolidMaterial()
@@ -21,7 +23,7 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
 
         # Core initial temperature
         # core_initial_temperature = 273.15 + 65
-        core_0_initial_temperature = 273.15 + 65
+        core_0_initial_temperature = 273.15 + 25
         core_1_initial_temperature = 273.15 + 25
         core_2_initial_temperature = 273.15 + 25
         core_3_initial_temperature = 273.15 + 25
@@ -33,29 +35,29 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
         environment_temperature = 273.15 + 25
 
         # Min simulation value
-        min_simulation_value = board_initial_temperature - 10
-        max_simulation_value = core_0_initial_temperature + 10
+        max_simulation_value = 273.15 + 40
+        min_simulation_value = 273.15 + 20
 
         # Definition of the CPU shape and materials
         cpu_definition = {
             # Cores
             0: SolidMaterialLocatedCube(
-                location=UnitLocation(x=1, z=2, y=1),
+                location=UnitLocation(x=10, z=2, y=10),
                 dimensions=core_dimensions,
                 solidMaterial=core_material
             ),
             1: SolidMaterialLocatedCube(
-                location=UnitLocation(x=6, z=2, y=1),
+                location=UnitLocation(x=30, z=2, y=10),
                 dimensions=core_dimensions,
                 solidMaterial=core_material
             ),
             2: SolidMaterialLocatedCube(
-                location=UnitLocation(x=1, z=2, y=6),
+                location=UnitLocation(x=10, z=2, y=30),
                 dimensions=core_dimensions,
                 solidMaterial=core_material
             ),
             3: SolidMaterialLocatedCube(
-                location=UnitLocation(x=6, z=2, y=6),
+                location=UnitLocation(x=30, z=2, y=30),
                 dimensions=core_dimensions,
                 solidMaterial=core_material
             ),
@@ -63,7 +65,7 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
             # Board
             4: SolidMaterialLocatedCube(
                 location=UnitLocation(x=0, z=0, y=0),
-                dimensions=UnitDimensions(x=10, z=2, y=10),
+                dimensions=UnitDimensions(x=50, z=2, y=50),
                 solidMaterial=board_material
             )
         }
@@ -87,65 +89,66 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
         # External heat generators
         external_heat_generators = {
             # Dynamic power
-            0: ExternalEnergyLocatedCube(
-                location=UnitLocation(x=1, z=2, y=1),
+            0: create_energy_applicator(SolidMaterialLocatedCube(
+                location=UnitLocation(x=10, z=2, y=10),
                 dimensions=core_dimensions,
-                energy=dynamic_alpha * (cpu_frequency ** 3) + dynamic_beta,
-                period=1
+                solidMaterial=board_material),
+                watts_to_apply=30,
+                cube_edge_size=cube_edge_size
             ),
 
             # Leakage power
-            1: ExternalEnergyLocatedCube(
-                location=UnitLocation(x=1, z=2, y=1),
+            1: create_energy_applicator(SolidMaterialLocatedCube(
+                location=UnitLocation(x=10, z=2, y=10),
                 dimensions=core_dimensions,
-                energy=1,
-                period=leakage_alpha
+                solidMaterial=board_material),
+                watts_to_apply=leakage_alpha,
+                cube_edge_size=cube_edge_size
             ),
-            2: ExternalEnergyLocatedCube(
-                location=UnitLocation(x=6, z=2, y=1),
+            2: create_energy_applicator(SolidMaterialLocatedCube(
+                location=UnitLocation(x=30, z=2, y=10),
                 dimensions=core_dimensions,
-                energy=1,
-                period=leakage_alpha
+                solidMaterial=board_material),
+                watts_to_apply=leakage_alpha,
+                cube_edge_size=cube_edge_size
             ),
-            3: ExternalEnergyLocatedCube(
-                location=UnitLocation(x=1, z=2, y=6),
+            3: create_energy_applicator(SolidMaterialLocatedCube(
+                location=UnitLocation(x=10, z=2, y=30),
                 dimensions=core_dimensions,
-                energy=1,
-                period=leakage_alpha
+                solidMaterial=board_material),
+                watts_to_apply=leakage_alpha,
+                cube_edge_size=cube_edge_size
             ),
-            4: ExternalEnergyLocatedCube(
-                location=UnitLocation(x=6, z=2, y=6),
+            4: create_energy_applicator(SolidMaterialLocatedCube(
+                location=UnitLocation(x=30, z=2, y=30),
                 dimensions=core_dimensions,
-                energy=1,
-                period=leakage_alpha
+                solidMaterial=board_material),
+                watts_to_apply=leakage_alpha,
+                cube_edge_size=cube_edge_size
             )
         }
 
         # Internal heat generators
         internal_heat_generators = {
-            0: InternalEnergyLocatedCube(
-                location=UnitLocation(x=1, z=2, y=1),
+            0: InternalTemperatureBoosterLocatedCube(
+                location=UnitLocation(x=10, z=2, y=10),
                 dimensions=core_dimensions,
-                temperatureFactor=2,
-                period=leakage_delta
+                boostRateMultiplier=leakage_delta
             ),
-            1: InternalEnergyLocatedCube(
-                location=UnitLocation(x=6, z=2, y=1),
+            1: InternalTemperatureBoosterLocatedCube(
+                location=UnitLocation(x=30, z=2, y=10),
                 dimensions=core_dimensions,
-                temperatureFactor=2,
-                period=leakage_delta
+                boostRateMultiplier=leakage_delta
             ),
-            2: InternalEnergyLocatedCube(
-                location=UnitLocation(x=1, z=2, y=6),
+            2: InternalTemperatureBoosterLocatedCube(
+                location=UnitLocation(x=10, z=2, y=30),
                 dimensions=core_dimensions,
-                temperatureFactor=2,
-                period=leakage_delta
+                boostRateMultiplier=leakage_delta
             ),
-            3: InternalEnergyLocatedCube(
-                location=UnitLocation(x=6, z=2, y=6),
+            3: InternalTemperatureBoosterLocatedCube(
+                location=UnitLocation(x=30, z=2, y=30),
                 dimensions=core_dimensions,
-                temperatureFactor=2,
-                period=leakage_delta
+                boostRateMultiplier=leakage_delta
             )
         }
 
@@ -153,8 +156,8 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
         cubed_space = CubedSpace(
             material_cubes=cpu_definition,
             cube_edge_size=cube_edge_size,
-            fixed_external_energy_application_points=external_heat_generators,
-            fixed_internal_energy_application_points=internal_heat_generators,
+            external_temperature_booster_points=external_heat_generators,
+            internal_temperature_booster_points=internal_heat_generators,
             environment_properties=environment_properties,
             simulation_precision="HIGH")
 
@@ -170,54 +173,37 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
             environment_temperature=environment_temperature
         )
 
+        temperatures_vector = []
+
         # Initial temperatures
         temperature_over_before_zero_seconds = cubed_space.obtain_temperature(
             actual_state=initial_state,
             units=ThermalUnits.CELSIUS)
 
-        # Apply energy over the cubed space
-        initial_state = cubed_space.apply_energy(actual_state=initial_state,
-                                                 external_energy_application_points=[0, 1, 2, 3, 4],
-                                                 internal_energy_application_points=[0, 1, 2, 3], amount_of_time=0.5)
-        temperature_over_before_half_second = cubed_space.obtain_temperature(actual_state=initial_state,
-                                                                             units=ThermalUnits.CELSIUS)
+        temperatures_vector.append(temperature_over_before_zero_seconds)
 
         # Apply energy over the cubed space
-        initial_state = cubed_space.apply_energy(actual_state=initial_state,
-                                                 external_energy_application_points=[0, 1, 2, 3, 4],
-                                                 internal_energy_application_points=[0, 1, 2, 3], amount_of_time=0.5)
-        temperature_over_before_one_second = cubed_space.obtain_temperature(actual_state=initial_state,
-                                                                            units=ThermalUnits.CELSIUS)
+        number_of_iterations = 10
+        for i in range(number_of_iterations):
+            initial_state = cubed_space.apply_energy(actual_state=initial_state,
+                                                     external_energy_application_points={0},  # {0, 1, 2, 3, 4},
+                                                     # internal_energy_application_points={0, 1, 2, 3},
+                                                     amount_of_time=0.5)
+            temperature = cubed_space.obtain_temperature(actual_state=initial_state,
+                                                         units=ThermalUnits.CELSIUS)
 
-        # Zero seconds
-        plot_3d_heat_map_temperature_located_cube_list(temperature_over_before_zero_seconds,
-                                                       min_temperature=min_simulation_value,
-                                                       max_temperature=max_simulation_value)
+            temperatures_vector.append(temperature)
 
-        min_temperature = obtain_min_temperature(temperature_over_before_zero_seconds)
-        max_temperature = obtain_max_temperature(temperature_over_before_zero_seconds)
+        for i, temperature in enumerate(temperatures_vector):
+            # Zero seconds
+            plot_3d_heat_map_temperature_located_cube_list(temperature,
+                                                           min_temperature=min_simulation_value,
+                                                           max_temperature=max_simulation_value)
 
-        print("Temperature before 0 seconds: min", min_temperature, ", max", max_temperature)
+            min_temperature = obtain_min_temperature(temperature)
+            max_temperature = obtain_max_temperature(temperature)
 
-        # Half second
-        plot_3d_heat_map_temperature_located_cube_list(temperature_over_before_half_second,
-                                                       min_temperature=min_simulation_value,
-                                                       max_temperature=max_simulation_value)
-
-        min_temperature = obtain_min_temperature(temperature_over_before_half_second)
-        max_temperature = obtain_max_temperature(temperature_over_before_half_second)
-
-        print("Temperature before 0.5 seconds: min", min_temperature, ", max", max_temperature)
-
-        # One second
-        plot_3d_heat_map_temperature_located_cube_list(temperature_over_before_one_second,
-                                                       min_temperature=min_simulation_value,
-                                                       max_temperature=max_simulation_value)
-
-        min_temperature = obtain_min_temperature(temperature_over_before_one_second)
-        max_temperature = obtain_max_temperature(temperature_over_before_one_second)
-
-        print("Temperature before 1 second: min", min_temperature, ", max", max_temperature)
+            print("Temperature before", i * 0.5, "seconds: min", min_temperature, ", max", max_temperature)
 
     def test_external_conduction_plot(self):
         # Dimensions of the cubes
@@ -264,8 +250,6 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
         cubed_space = CubedSpace(
             material_cubes=scene_definition,
             cube_edge_size=cube_edge_size,
-            fixed_external_energy_application_points={},
-            fixed_internal_energy_application_points={},
             environment_properties=environment_properties,
             simulation_precision="HIGH")
 
@@ -284,16 +268,12 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
             units=ThermalUnits.CELSIUS)
 
         # Apply energy over the cubed space
-        initial_state = cubed_space.apply_energy(actual_state=initial_state,
-                                                 external_energy_application_points=[],
-                                                 internal_energy_application_points=[], amount_of_time=0.1)
+        initial_state = cubed_space.apply_energy(actual_state=initial_state, amount_of_time=0.1)
         temperature_over_before_point_one_seconds = cubed_space.obtain_temperature(actual_state=initial_state,
                                                                                    units=ThermalUnits.CELSIUS)
 
         # Apply energy over the cubed space
-        initial_state = cubed_space.apply_energy(actual_state=initial_state,
-                                                 external_energy_application_points=[],
-                                                 internal_energy_application_points=[], amount_of_time=0.1)
+        initial_state = cubed_space.apply_energy(actual_state=initial_state, amount_of_time=0.1)
         temperature_over_before_point_two_seconds = cubed_space.obtain_temperature(actual_state=initial_state,
                                                                                    units=ThermalUnits.CELSIUS)
 
@@ -363,8 +343,6 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
         cubed_space = CubedSpace(
             material_cubes=scene_definition,
             cube_edge_size=cube_edge_size,
-            fixed_external_energy_application_points={},
-            fixed_internal_energy_application_points={},
             environment_properties=environment_properties,
             simulation_precision="HIGH")
 
@@ -382,16 +360,12 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
             units=ThermalUnits.CELSIUS)
 
         # Apply energy over the cubed space
-        initial_state = cubed_space.apply_energy(actual_state=initial_state,
-                                                 external_energy_application_points=[],
-                                                 internal_energy_application_points=[], amount_of_time=0.9)
+        initial_state = cubed_space.apply_energy(actual_state=initial_state, amount_of_time=0.9)
         temperature_over_before_half_second = cubed_space.obtain_temperature(actual_state=initial_state,
                                                                              units=ThermalUnits.CELSIUS)
 
         # Apply energy over the cubed space
-        initial_state = cubed_space.apply_energy(actual_state=initial_state,
-                                                 external_energy_application_points=[],
-                                                 internal_energy_application_points=[], amount_of_time=0.9)
+        initial_state = cubed_space.apply_energy(actual_state=initial_state, amount_of_time=0.9)
         temperature_over_before_one_second = cubed_space.obtain_temperature(actual_state=initial_state,
                                                                             units=ThermalUnits.CELSIUS)
 

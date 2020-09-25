@@ -28,7 +28,7 @@ class CooperSolidMaterial(SolidMaterial):
     """
 
     def __init__(self):
-        super().__init__(density=8933, specificHeatCapacities=385, thermalConductivity=400)
+        super().__init__(density=8933, specificHeatCapacity=385, thermalConductivity=400)
 
 
 class SiliconSolidMaterial(SolidMaterial):
@@ -38,4 +38,4 @@ class SiliconSolidMaterial(SolidMaterial):
     """
 
     def __init__(self):
-        super().__init__(density=2330, specificHeatCapacities=712, thermalConductivity=148)
+        super().__init__(density=2330, specificHeatCapacity=712, thermalConductivity=148)

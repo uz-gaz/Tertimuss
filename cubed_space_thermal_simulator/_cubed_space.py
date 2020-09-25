@@ -14,10 +14,10 @@ class CubedSpaceState(object):
 
 class CubedSpace(object):
     def __init__(self, material_cubes: Dict[int, SolidMaterialLocatedCube], cube_edge_size: float,
-                 environment_properties: Optional[FluidEnvironmentProperties],
-                 external_temperature_booster_points: Dict[int, ExternalTemperatureBoosterLocatedCube],
-                 internal_temperature_booster_points: Dict[int, InternalTemperatureBoosterLocatedCube],
-                 simulation_precision: Literal["HIGH"]):
+                 environment_properties: Optional[FluidEnvironmentProperties] = None,
+                 external_temperature_booster_points: Optional[Dict[int, ExternalTemperatureBoosterLocatedCube]] = None,
+                 internal_temperature_booster_points: Optional[Dict[int, InternalTemperatureBoosterLocatedCube]] = None,
+                 simulation_precision: Literal["HIGH"] = "HIGH"):
         """
         This function create a cubedSpace
 
@@ -36,6 +36,12 @@ class CubedSpace(object):
         """
         # Precision definition
         dtype = numpy.float64  # if (simulation_precision == "HIGH") else numpy.float32
+
+        # Fill fields if are empty
+        external_temperature_booster_points = external_temperature_booster_points \
+            if external_temperature_booster_points is not None else dict()
+        internal_temperature_booster_points = internal_temperature_booster_points \
+            if internal_temperature_booster_points is not None else dict()
 
         # TODO: Add different precisions
         # When the float precision is changed, it must be reflected in the float dt
@@ -420,12 +426,13 @@ class CubedSpace(object):
 
         self.__internal_temperature_boost_transitions: Dict[
             int, Tuple[int, int]] = internal_temperature_boost_transitions
+
         self.__external_temperature_boost_places = external_temperature_boost_places
 
         self.__activated_internal_temperature_boost_transitions: Set[int] = \
             {i for i, _ in internal_temperature_booster_points.items()}
         self.__activated_external_temperature_boost_transitions: Set[int] = \
-            {i for i, _ in external_temperature_booster_points}
+            {i for i, _ in external_temperature_booster_points.items()}
 
     @classmethod
     def __obtain_places_in_touch(cls, material_cube_a: SolidMaterialLocatedCube, material_cube_a_places_index: int,
@@ -444,9 +451,9 @@ class CubedSpace(object):
                      material_cube_a.dimensions.y + (
                              x - material_cube_a.location.x),
                      material_cube_b_places_index + (
-                             z - material_cube_b.location.z) * material_cube_b.dimensions.x * material_cube_b.dimensions.y
-                     + (material_cube_a.dimensions.y - 1) * material_cube_a.dimensions.x +
-                     (x - material_cube_b.location.x)) for x, z in collision]
+                             z - material_cube_b.location.z) * material_cube_b.dimensions.x
+                     * material_cube_b.dimensions.y + (material_cube_a.dimensions.y - 1)
+                     * material_cube_a.dimensions.x + (x - material_cube_b.location.x)) for x, z in collision]
 
         elif material_cube_b.location.y + material_cube_b.dimensions.y == material_cube_a.location.y:
             collision = cls.__check_rectangles_collision(
@@ -553,10 +560,9 @@ class CubedSpace(object):
         else:
             return []
 
-    def apply_energy(self, actual_state: CubedSpaceState,
-                     external_energy_application_points: Set[int],
-                     internal_energy_application_points: Set[int],
-                     amount_of_time: float) -> CubedSpaceState:
+    def apply_energy(self, actual_state: CubedSpaceState, amount_of_time: float,
+                     external_energy_application_points: Optional[Set[int]] = None,
+                     internal_energy_application_points: Optional[Set[int]] = None) -> CubedSpaceState:
         """
         This function apply energy over the cubedSpace and return the transformed cubedSpace.
 
@@ -569,6 +575,12 @@ class CubedSpace(object):
          dimensions in unit units, it's position in units and the amount of energy to be applied.
         :param amount_of_time: Amount of time in seconds while the energy is being applied
         """
+        # Fill fields if null
+        external_energy_application_points = external_energy_application_points \
+            if external_energy_application_points is not None else set()
+        internal_energy_application_points = internal_energy_application_points \
+            if internal_energy_application_points is not None else set()
+
         mo = actual_state.places_mo_vector
 
         if self.__activated_external_temperature_boost_transitions != external_energy_application_points:
@@ -583,6 +595,7 @@ class CubedSpace(object):
 
         if self.__activated_internal_temperature_boost_transitions != internal_energy_application_points:
             # Modify control for internal points
+            number_of_external_temperature_boost_places = len(self.__external_temperature_boost_places)
             number_of_internal_temperature_boost_places = sum(
                 [i for _, (_, i) in self.__internal_temperature_boost_transitions.items()])
             self.__activated_internal_temperature_boost_transitions = internal_energy_application_points
@@ -591,12 +604,16 @@ class CubedSpace(object):
                 if self.__internal_temperature_boost_transitions.__contains__(i):
                     (start_transition, number_of_transitions) = self.__internal_temperature_boost_transitions[i]
                     control[start_transition: start_transition + number_of_transitions] = 1.0
-            self.__tcpn_simulator.set_control(control)
+            self.__tcpn_simulator.set_control(
+                numpy.concatenate(
+                    [numpy.ones(self.__pre.shape[1] - len(control) - number_of_external_temperature_boost_places),
+                     control, numpy.ones(number_of_external_temperature_boost_places)]))
 
         mo_next = self.__tcpn_simulator.simulate_step(mo, amount_of_time)
         return CubedSpaceState(mo_next)
 
-    def obtain_temperature(self, actual_state: CubedSpaceState, units: ThermalUnits) -> List[TemperatureLocatedCube]:
+    def obtain_temperature(self, actual_state: CubedSpaceState, units: ThermalUnits = ThermalUnits.KELVIN) -> List[
+        TemperatureLocatedCube]:
         """
         This function return the temperature in each cube of unit edge that conform the cubedSpace
 
@@ -618,8 +635,8 @@ class CubedSpace(object):
         return temperature_cubes
 
     def create_initial_state(self, default_temperature: float,
-                             material_cubes_temperatures: Optional[Dict[int, float]],
-                             environment_temperature: Optional[float]) -> CubedSpaceState:
+                             material_cubes_temperatures: Optional[Dict[int, float]] = None,
+                             environment_temperature: Optional[float] = None) -> CubedSpaceState:
         """
 
         :param default_temperature:

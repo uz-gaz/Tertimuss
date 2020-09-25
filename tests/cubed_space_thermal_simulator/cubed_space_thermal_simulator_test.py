@@ -38,8 +38,6 @@ class CubedSpaceThermalSimulatorTest(unittest.TestCase):
         cubed_space = CubedSpace(
             material_cubes=scene_definition,
             cube_edge_size=cube_edge_size,
-            fixed_external_energy_application_points={},
-            fixed_internal_energy_application_points={},
             environment_properties=None,
             simulation_precision="HIGH")
 
@@ -51,16 +49,12 @@ class CubedSpaceThermalSimulatorTest(unittest.TestCase):
             environment_temperature=None
         )
         # Apply energy over the cubed space
-        initial_state = cubed_space.apply_energy(actual_state=initial_state,
-                                                 external_energy_application_points=[],
-                                                 internal_energy_application_points=[], amount_of_time=0.5)
+        initial_state = cubed_space.apply_energy(actual_state=initial_state, amount_of_time=0.5)
         temperature_over_before_half_second = cubed_space.obtain_temperature(actual_state=initial_state,
                                                                              units=ThermalUnits.CELSIUS)
 
         # Apply energy over the cubed space
-        initial_state = cubed_space.apply_energy(actual_state=initial_state,
-                                                 external_energy_application_points=[],
-                                                 internal_energy_application_points=[], amount_of_time=0.5)
+        initial_state = cubed_space.apply_energy(actual_state=initial_state, amount_of_time=0.5)
         temperature_over_before_one_second = cubed_space.obtain_temperature(actual_state=initial_state,
                                                                             units=ThermalUnits.CELSIUS)
 
@@ -109,8 +103,6 @@ class CubedSpaceThermalSimulatorTest(unittest.TestCase):
         cubed_space = CubedSpace(
             material_cubes=scene_definition,
             cube_edge_size=cube_edge_size,
-            fixed_external_energy_application_points={},
-            fixed_internal_energy_application_points={},
             environment_properties=environment_properties,
             simulation_precision="HIGH")
 
@@ -123,16 +115,12 @@ class CubedSpaceThermalSimulatorTest(unittest.TestCase):
         )
 
         # Apply energy over the cubed space
-        initial_state = cubed_space.apply_energy(actual_state=initial_state,
-                                                 external_energy_application_points=[],
-                                                 internal_energy_application_points=[], amount_of_time=0.5)
+        initial_state = cubed_space.apply_energy(actual_state=initial_state, amount_of_time=0.5)
         temperature_over_before_half_second = cubed_space.obtain_temperature(actual_state=initial_state,
                                                                              units=ThermalUnits.CELSIUS)
 
         # Apply energy over the cubed space
-        initial_state = cubed_space.apply_energy(actual_state=initial_state,
-                                                 external_energy_application_points=[],
-                                                 internal_energy_application_points=[], amount_of_time=0.5)
+        initial_state = cubed_space.apply_energy(actual_state=initial_state, amount_of_time=0.5)
         temperature_over_before_one_second = cubed_space.obtain_temperature(actual_state=initial_state,
                                                                             units=ThermalUnits.CELSIUS)
 
@@ -194,8 +182,6 @@ class CubedSpaceThermalSimulatorTest(unittest.TestCase):
         cubed_space = CubedSpace(
             material_cubes=scene_definition,
             cube_edge_size=cube_edge_size,
-            fixed_external_energy_application_points={},
-            fixed_internal_energy_application_points={},
             environment_properties=environment_properties,
             simulation_precision="HIGH")
 
@@ -209,9 +195,7 @@ class CubedSpaceThermalSimulatorTest(unittest.TestCase):
         )
 
         # Apply energy over the cubed space
-        initial_state = cubed_space.apply_energy(actual_state=initial_state,
-                                                 external_energy_application_points=[],
-                                                 internal_energy_application_points=[], amount_of_time=2)
+        initial_state = cubed_space.apply_energy(actual_state=initial_state, amount_of_time=2)
         temperature_over_before_point_one_seconds = cubed_space.obtain_temperature(actual_state=initial_state,
                                                                                    units=ThermalUnits.CELSIUS)
 

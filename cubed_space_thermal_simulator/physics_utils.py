@@ -10,7 +10,8 @@ def create_energy_applicator(located_cube: SolidMaterialLocatedCube, cube_edge_s
     :param located_cube: cube where the energy will be applied
     :return:
     """
-    volume = cube_edge_size * (located_cube.dimensions.x * located_cube.dimensions.y * located_cube.dimensions.z)
+    volume = (cube_edge_size ** 3) * (
+                located_cube.dimensions.x * located_cube.dimensions.y * located_cube.dimensions.z)
     mass = located_cube.solidMaterial.density * volume
     specific_heat_capacity = located_cube.solidMaterial.specificHeatCapacity
     temperature_boost = watts_to_apply / (specific_heat_capacity * mass)
