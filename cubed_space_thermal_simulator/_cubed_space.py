@@ -305,7 +305,7 @@ class CubedSpace(object):
 
         # Internal temperature boost
         # Store for each internal temperature boost, the first transition index and the number of transitions related
-        internal_temperature_boost_transitions: Dict[int, Tuple[int, int, float]] = {}
+        internal_temperature_boost_transitions: Dict[int, Tuple[int, int]] = {}
         pre_internal_gen = []
         post_internal_gen = []
         lambda_vector_internal_gen = []
@@ -337,8 +337,7 @@ class CubedSpace(object):
                 [i[1] for _, i in internal_temperature_boost_transitions.items()])
 
             internal_temperature_boost_transitions[internal_temperature_booster_point_index] = \
-                (internal_temperature_boost_transition_start, len(places),
-                 internal_temperature_booster_point.boostRateMultiplier)
+                (internal_temperature_boost_transition_start, len(places))
 
             pre_internal_gen.append(pre)
             post_internal_gen.append(post)
@@ -419,8 +418,14 @@ class CubedSpace(object):
                                                                                          self.__lambda_vector,
                                                                                          self.__pi)
 
-        self.__internal_temperature_boost_transitions = internal_temperature_boost_transitions
+        self.__internal_temperature_boost_transitions: Dict[
+            int, Tuple[int, int]] = internal_temperature_boost_transitions
         self.__external_temperature_boost_places = external_temperature_boost_places
+
+        self.__activated_internal_temperature_boost_transitions: Set[int] = \
+            {i for i, _ in internal_temperature_booster_points.items()}
+        self.__activated_external_temperature_boost_transitions: Set[int] = \
+            {i for i, _ in external_temperature_booster_points}
 
     @classmethod
     def __obtain_places_in_touch(cls, material_cube_a: SolidMaterialLocatedCube, material_cube_a_places_index: int,
@@ -549,8 +554,8 @@ class CubedSpace(object):
             return []
 
     def apply_energy(self, actual_state: CubedSpaceState,
-                     external_energy_application_points: List[int],
-                     internal_energy_application_points: List[int],
+                     external_energy_application_points: Set[int],
+                     internal_energy_application_points: Set[int],
                      amount_of_time: float) -> CubedSpaceState:
         """
         This function apply energy over the cubedSpace and return the transformed cubedSpace.
@@ -564,8 +569,30 @@ class CubedSpace(object):
          dimensions in unit units, it's position in units and the amount of energy to be applied.
         :param amount_of_time: Amount of time in seconds while the energy is being applied
         """
-        # TODO: Implement function
         mo = actual_state.places_mo_vector
+
+        if self.__activated_external_temperature_boost_transitions != external_energy_application_points:
+            # Modify control for external points
+            number_of_external_temperature_boost_places = len(self.__external_temperature_boost_places)
+            self.__activated_external_temperature_boost_transitions = external_energy_application_points
+            control = numpy.zeros(number_of_external_temperature_boost_places)
+            for i in external_energy_application_points:
+                if self.__external_temperature_boost_places.__contains__(i):
+                    control[self.__external_temperature_boost_places[i]] = 1.0
+            mo[-number_of_external_temperature_boost_places:] = control
+
+        if self.__activated_internal_temperature_boost_transitions != internal_energy_application_points:
+            # Modify control for internal points
+            number_of_internal_temperature_boost_places = sum(
+                [i for _, (_, i) in self.__internal_temperature_boost_transitions.items()])
+            self.__activated_internal_temperature_boost_transitions = internal_energy_application_points
+            control = numpy.zeros(number_of_internal_temperature_boost_places)
+            for i in internal_energy_application_points:
+                if self.__internal_temperature_boost_transitions.__contains__(i):
+                    (start_transition, number_of_transitions) = self.__internal_temperature_boost_transitions[i]
+                    control[start_transition: start_transition + number_of_transitions] = 1.0
+            self.__tcpn_simulator.set_control(control)
+
         mo_next = self.__tcpn_simulator.simulate_step(mo, amount_of_time)
         return CubedSpaceState(mo_next)
 
@@ -621,7 +648,7 @@ class CubedSpace(object):
                                                                            dtype=self.__simulation_precision))
 
         return CubedSpaceState(
-            numpy.concatenate(places_temperature + [numpy.zeros(len(self.__external_temperature_boost_places))]))
+            numpy.concatenate(places_temperature + [numpy.ones(len(self.__external_temperature_boost_places))]))
 
 
 def obtain_min_temperature(heatmap_cube_list: List[TemperatureLocatedCube]) -> float:
