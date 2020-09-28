@@ -9,7 +9,7 @@ def create_csv_from_comparision():
                              "context switch number run", "migrations number run",
                              "context switch number semipartitioned aiecs", "migrations number semipartitioned aiecs"
                              ])
-    tests_base_name = "out/4/24/"
+    tests_base_name = "JDEDS_4_24/"
     for i in range(500):
         name = "test_" + str(i)
         print(name)

@@ -150,10 +150,6 @@ class SystemSimulator(object):
             # Update time
             time = zeta_q * global_specification.simulation_specification.dt
 
-            if float_operations.is_equal(time, 0.5):
-                iii = 0
-                pass
-
             # Manage aperiodic tasks
             if any([round_i(x.next_arrival / global_specification.simulation_specification.dt) == zeta_q for
                     x in aperiodic_tasks]):
@@ -165,6 +161,13 @@ class SystemSimulator(object):
                 if need_scheduled:
                     # If scheduler need to be call
                     quantum_q = 0
+
+            #
+            if time == 3.98:
+                iii = 0.0
+                iii = 0.0
+                pass
+                pass
 
             # Manage periodic tasks
             if quantum_q <= 0:
