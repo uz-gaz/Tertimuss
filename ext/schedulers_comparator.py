@@ -25,6 +25,7 @@ from main.core.problem_specification.tasks_specification.PeriodicTask import Per
 from main.core.problem_specification.tasks_specification.TasksSpecification import TasksSpecification
 from main.core.schedulers_definition.implementations.AIECS import AIECSScheduler
 from main.core.schedulers_definition.implementations.RUN import RUNScheduler
+from main.core.schedulers_definition.implementations.SemiPartitionedAIECS import SemiPartitionedAIECSScheduler
 from main.core.schedulers_definition.templates.AbstractScheduler import AbstractScheduler
 from main.plot_generator.implementations.ContextSwitchStatistics import ContextSwitchStatistics
 from main.plot_generator.implementations.ExecutionPercentageStatistics import ExecutionPercentageStatistics
@@ -58,18 +59,18 @@ def run_comparison(experiment_full_name: str, number_of_cpus: int, schedulers: D
 
     for scheduler_actual_name, scheduler_actual in schedulers.items():
         if not record_on_success or all([i[1] for i in success_list.items()]):
-            #try:
-            result, global_specification, simulation_kernel = create_problem_specification(task_set,
-                                                                                           scheduler_actual,
-                                                                                           number_of_cpus)
-            result_list[scheduler_actual_name] = (result, global_specification)
+            try:
+                result, global_specification, simulation_kernel = create_problem_specification(task_set,
+                                                                                               scheduler_actual,
+                                                                                               number_of_cpus)
+                result_list[scheduler_actual_name] = (result, global_specification)
 
-            success_list[scheduler_actual_name] = not _have_miss_deadline(global_specification, result)
+                success_list[scheduler_actual_name] = not _have_miss_deadline(global_specification, result)
 
-            # except Exception as e:
-            #     print("Fail for " + scheduler_actual_name)
-            #     print(e.args)
-            #     success_list[scheduler_actual_name] = False
+            except Exception as e:
+                print("Fail for " + scheduler_actual_name)
+                print(e.args)
+                success_list[scheduler_actual_name] = False
         else:
             success_list[scheduler_actual_name] = None
 
@@ -226,84 +227,84 @@ def generate_task_set(full_experiment_name: str, number_of_cpus: int, number_of_
         json.dump(tasks_definition_dict, f, indent=4)
 
 
-# if __name__ == '__main__':
-#     total_number_of_experiments = 40
-#     parallel_level = 4
-#
-#     first_experiment_numeration = 0
-#
-#     task_number_processors: List[Tuple[int, int]] = [
-#         (4, 24)
-#     ]
-#
-#     experiments_base_folder = "out_2/"
-#
-#     # Create dir if not exist
-#     if not os.path.exists(experiments_base_folder):
-#         os.makedirs(experiments_base_folder)
-#
-#     task_set_names: List[Tuple[str, int]] = []
-#
-#     # Generate task sets
-#     for number_of_cpus, number_of_tasks in task_number_processors:
-#         base_folder = experiments_base_folder + str(number_of_cpus) + "/" + str(number_of_tasks) + "/"
-#         # Create dir if not exist
-#         if not os.path.exists(base_folder):
-#             os.makedirs(base_folder)
-#
-#         for i in range(first_experiment_numeration, first_experiment_numeration + total_number_of_experiments):
-#             experiment_name = base_folder + "test_" + str(i)
-#             # generate_task_set(experiment_name, number_of_cpus, number_of_tasks)
-#             task_set_names.append((experiment_name, number_of_cpus))
-#
-#     work_to_do: List[Tuple[str, int, Dict[str, AbstractScheduler], Dict[str, AbstractResultDrawer], bool]] = []
-#
-#     # Fill work to do
-#     for (experiment_name, number_of_cpus) in task_set_names:
-#         work_to_do.append(
-#             (experiment_name,
-#              number_of_cpus,
-#              {
-#                  # "semipartitionedaiecs": SemiPartitionedAIECSScheduler(),
-#                  "aiecs": AIECSScheduler()  # ,
-#                  # "run": RUNScheduler()
-#              },
-#              {
-#                  "execution_percentage_statics.json": ExecutionPercentageStatistics(),
-#                  "context_switch_statics.json": ContextSwitchStatistics()
-#              },
-#              False
-#              )
-#         )
-#
-#
-#     def caller_function(
-#             arguments: Tuple[str, int, Dict[str, AbstractScheduler], Dict[str, AbstractResultDrawer], bool]):
-#         # run_comparison
-#         return run_comparison(arguments[0], arguments[1], arguments[2], arguments[3], arguments[4])
-#
-#
-#     # Create work packages
-#     p = Pool(processes=parallel_level)
-#     success_result = p.map(caller_function, work_to_do)
-#
-#     p.close()
-#     p.join()
-#
-#     aiecs_success = sum([1 for i in success_result if i.__contains__("aiecs") and i["aiecs"]])
-#     # run_success = sum([1 for i in success_result if i.__contains__("run") and i["run"]])
-#
-#     print("AIECS SUCCESS:", aiecs_success, "/", total_number_of_experiments * len(task_number_processors))
-#     # print("RUN SUCCESS:", run_success, "/", total_number_of_experiments * len(task_number_processors))
-
 if __name__ == '__main__':
-    run_comparison("out_3/4/24/test_1",
-                   4,
-                   {
-                       "aiecs2": AIECSScheduler()
-                   },
-                   {
-                       "execution_percentage_statics.json": ExecutionPercentageStatistics(),
-                       "context_switch_statics.json": ContextSwitchStatistics()
-                   },
-                   False)
+    total_number_of_experiments = 200
+    parallel_level = 4
+
+    first_experiment_numeration = 0
+
+    task_number_processors: List[Tuple[int, int]] = [
+        (4, 24)
+    ]
+
+    experiments_base_folder = "out/out_2/"
+
+    # Create dir if not exist
+    if not os.path.exists(experiments_base_folder):
+        os.makedirs(experiments_base_folder)
+
+    task_set_names: List[Tuple[str, int]] = []
+
+    # Generate task sets
+    for number_of_cpus, number_of_tasks in task_number_processors:
+        base_folder = experiments_base_folder + str(number_of_cpus) + "/" + str(number_of_tasks) + "/"
+        # Create dir if not exist
+        if not os.path.exists(base_folder):
+            os.makedirs(base_folder)
+
+        for i in range(first_experiment_numeration, first_experiment_numeration + total_number_of_experiments):
+            experiment_name = base_folder + "test_" + str(i)
+            # generate_task_set(experiment_name, number_of_cpus, number_of_tasks)
+            task_set_names.append((experiment_name, number_of_cpus))
+
+    work_to_do: List[Tuple[str, int, Dict[str, AbstractScheduler], Dict[str, AbstractResultDrawer], bool]] = []
+
+    # Fill work to do
+    for (experiment_name, number_of_cpus) in task_set_names:
+        work_to_do.append(
+            (experiment_name,
+             number_of_cpus,
+             {
+                 "semipartitionedaiecs": SemiPartitionedAIECSScheduler(),
+                 "aiecs": AIECSScheduler(),
+                 "run": RUNScheduler()
+             },
+             {
+                 "execution_percentage_statics.json": ExecutionPercentageStatistics(),
+                 "context_switch_statics.json": ContextSwitchStatistics()
+             },
+             False
+             )
+        )
+
+
+    def caller_function(
+            arguments: Tuple[str, int, Dict[str, AbstractScheduler], Dict[str, AbstractResultDrawer], bool]):
+        # run_comparison
+        return run_comparison(arguments[0], arguments[1], arguments[2], arguments[3], arguments[4])
+
+
+    # Create work packages
+    p = Pool(processes=parallel_level)
+    success_result = p.map(caller_function, work_to_do)
+
+    p.close()
+    p.join()
+
+    aiecs_success = sum([1 for i in success_result if i.__contains__("aiecs") and i["aiecs"]])
+    run_success = sum([1 for i in success_result if i.__contains__("run") and i["run"]])
+
+    print("AIECS SUCCESS:", aiecs_success, "/", total_number_of_experiments * len(task_number_processors))
+    print("RUN SUCCESS:", run_success, "/", total_number_of_experiments * len(task_number_processors))
+
+# if __name__ == '__main__':
+#     run_comparison("out_3/4/24/test_1",
+#                    4,
+#                    {
+#                        "aiecs2": AIECSScheduler()
+#                    },
+#                    {
+#                        "execution_percentage_statics.json": ExecutionPercentageStatistics(),
+#                        "context_switch_statics.json": ContextSwitchStatistics()
+#                    },
+#                    False)
