@@ -138,4 +138,4 @@ dmypy.json
 # Node JS
 node_modules/
 package-lock.json
-/out_2
+/ext/out_2

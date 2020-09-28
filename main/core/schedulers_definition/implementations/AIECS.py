@@ -359,7 +359,7 @@ class AIECSScheduler(AbstractScheduler):
                 self.__execution_by_intervals = numpy.concatenate([self.__execution_by_intervals, new_x_row], axis=0)
 
                 self.__interval_cc_left = self.__interval_cc_left + [
-                    (int(self.__execution_by_intervals[-1, self.__actual_interval_index]), actual_task.id)]
+                    (round(self.__execution_by_intervals[-1, self.__actual_interval_index]), actual_task.id)]
 
                 self.__intervals_frequencies[self.__actual_interval_index:
                                              self.__actual_interval_index + intervals_needed] = intervals_needed * [
@@ -386,7 +386,7 @@ class AIECSScheduler(AbstractScheduler):
         actual_interval_end = self.__intervals_end[self.__actual_interval_index]
 
         tasks_laxity_zero = any(
-            [int((actual_interval_end - time - (
+            [round((actual_interval_end - time - (
                     i[0] / self.__intervals_frequencies[self.__actual_interval_index])) / self.__dt) <= 0
              and i[1] not in active_tasks for i in executable_tasks_interval])
 
@@ -469,7 +469,7 @@ class AIECSScheduler(AbstractScheduler):
 
         # Update cc in tasks being executed
         self.__interval_cc_left = [
-            round((i[0] - (self.__intervals_frequencies[self.__actual_interval_index] *
+            (round(i[0] - (self.__intervals_frequencies[self.__actual_interval_index] *
                            self.__dt)), i[1]) if i[1] in tasks_to_execute else i
             for i in self.__interval_cc_left]
 

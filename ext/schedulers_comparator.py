@@ -58,16 +58,18 @@ def run_comparison(experiment_full_name: str, number_of_cpus: int, schedulers: D
 
     for scheduler_actual_name, scheduler_actual in schedulers.items():
         if not record_on_success or all([i[1] for i in success_list.items()]):
-            try:
-                result, global_specification, simulation_kernel = create_problem_specification(task_set,
-                                                                                               scheduler_actual,
-                                                                                               number_of_cpus)
-                result_list[scheduler_actual_name] = (result, global_specification)
+            #try:
+            result, global_specification, simulation_kernel = create_problem_specification(task_set,
+                                                                                           scheduler_actual,
+                                                                                           number_of_cpus)
+            result_list[scheduler_actual_name] = (result, global_specification)
 
-                success_list[scheduler_actual_name] = not _have_miss_deadline(global_specification, result)
+            success_list[scheduler_actual_name] = not _have_miss_deadline(global_specification, result)
 
-            except Exception as _:
-                success_list[scheduler_actual_name] = False
+            # except Exception as e:
+            #     print("Fail for " + scheduler_actual_name)
+            #     print(e.args)
+            #     success_list[scheduler_actual_name] = False
         else:
             success_list[scheduler_actual_name] = None
 
@@ -295,7 +297,7 @@ def generate_task_set(full_experiment_name: str, number_of_cpus: int, number_of_
 #     # print("RUN SUCCESS:", run_success, "/", total_number_of_experiments * len(task_number_processors))
 
 if __name__ == '__main__':
-    run_comparison("out_2/4/24/test_1",
+    run_comparison("out_3/4/24/test_1",
                    4,
                    {
                        "aiecs2": AIECSScheduler()
