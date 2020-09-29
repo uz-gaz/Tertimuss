@@ -459,7 +459,7 @@ class AIECSScheduler(AbstractScheduler):
         if new_interval_start:
             self.__actual_interval_index += 1
             self.__interval_cc_left = [
-                (i[0], i[1][1]) for i in zip(self.__execution_by_intervals[:, self.__actual_interval_index],
+                (round(i[0]), i[1][1]) for i in zip(self.__execution_by_intervals[:, self.__actual_interval_index],
                                              self.__interval_cc_left)]
 
         # Obtain new tasks to execute

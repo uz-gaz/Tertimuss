@@ -162,13 +162,6 @@ class SystemSimulator(object):
                     # If scheduler need to be call
                     quantum_q = 0
 
-            #
-            if time == 3.98:
-                iii = 0.0
-                iii = 0.0
-                pass
-                pass
-
             # Manage periodic tasks
             if quantum_q <= 0:
                 # Get executable tasks in this interval
