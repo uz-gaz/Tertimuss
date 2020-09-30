@@ -252,7 +252,7 @@ class AIECSScheduler(AbstractScheduler):
         self.__execution_by_intervals = x
 
         # [(cc left in the interval, task id)]
-        self.__interval_cc_left = [(int(i[0]), i[1].id) for i in zip((x[:, 0]).reshape(-1), periodic_tasks)]
+        self.__interval_cc_left = [(round(i[0]), i[1].id) for i in zip((x[:, 0]).reshape(-1), periodic_tasks)]
 
         # Index of the actual interval
         self.__actual_interval_index = 0
@@ -460,12 +460,17 @@ class AIECSScheduler(AbstractScheduler):
             self.__actual_interval_index += 1
             self.__interval_cc_left = [
                 (round(i[0]), i[1][1]) for i in zip(self.__execution_by_intervals[:, self.__actual_interval_index],
-                                             self.__interval_cc_left)]
+                                                    self.__interval_cc_left)]
 
         # Obtain new tasks to execute
         tasks_to_execute = active_tasks
         if self.__sp_interrupt(active_tasks, time):
             tasks_to_execute = self.__schedule_policy_imp(time, active_tasks, [i.id for i in executable_tasks])
+
+        if -1 in tasks_to_execute:
+            i = 0
+            i = 0
+            i = 0
 
         # Update cc in tasks being executed
         self.__interval_cc_left = [
@@ -482,5 +487,10 @@ class AIECSScheduler(AbstractScheduler):
             for j in range(self.__m):
                 if tasks_to_execute[j] == actual and j != i:
                     tasks_to_execute[j], tasks_to_execute[i] = tasks_to_execute[i], tasks_to_execute[j]
+
+        if -1 in tasks_to_execute:
+            i = 0
+            i = 0
+            i = 0
 
         return tasks_to_execute, None, self.__m * [self.__intervals_frequencies[self.__actual_interval_index]]

@@ -9,8 +9,8 @@ def create_csv_from_comparision():
                              "context switch number run", "migrations number run", "-",
                              "missed deadlines aiecs", "missed deadlines run"
                              ])
-    tests_base_name = "out/out_2/4/24/"
-    for i in range(200):
+    tests_base_name = "out/out_4/2/8/"
+    for i in range(100):
         name = "test_" + str(i)
         print(name)
         try:
@@ -42,6 +42,11 @@ def create_csv_from_comparision():
                                      number_of_missed_deadlines_aiecs,
                                      number_of_missed_deadlines_run
                                      ])
+            # results_to_print.append([name,
+            #                          total_context_switch_number_run, migrations_number_run,
+            #                          "-",
+            #                          number_of_missed_deadlines_run
+            #                          ])
         except Exception as e:
             print("Ha fallado")
             pass

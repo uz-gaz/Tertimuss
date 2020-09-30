@@ -162,14 +162,15 @@ def create_problem_specification(tasks_set: List[PeriodicTask], scheduler: Abstr
 
     core_specification = CoreGroupSpecification(MaterialCuboid(x=10, y=10, z=2, p=2330, c_p=712, k=148),
                                                 EnergyConsumptionProperties(),
-                                                [150, 400, 600, 850, 1000],
+                                                # [150, 400, 600, 850, 1000],
+                                                [1000],
                                                 number_of_cpus * [1000])
 
     board_specification = BoardSpecification(MaterialCuboid(x=50, y=50, z=1, p=8933, c_p=385, k=400))
 
     environment_specification: EnvironmentSpecification = EnvironmentSpecification(0.001, 45, 110)
 
-    simulation_specification: SimulationSpecification = SimulationSpecification(2, 0.01, False)
+    simulation_specification: SimulationSpecification = SimulationSpecification(2, 0.001, False)
 
     tcpn_model_specification: TCPNModelSpecification = TCPNModelSpecification(
         ThermalModelSelector.THERMAL_MODEL_FREQUENCY_BASED)
@@ -204,7 +205,7 @@ def generate_task_set(full_experiment_name: str, number_of_cpus: int, number_of_
             "hyperperiod": 1,
             "number_of_tasks": number_of_tasks,
             "utilization": number_of_cpus,
-            "processor_frequency": 100,
+            "processor_frequency": 1000,
         }
     )
 
@@ -212,7 +213,7 @@ def generate_task_set(full_experiment_name: str, number_of_cpus: int, number_of_
         multiplier = random.choice([1, 2, 4, 5, 8, 10, 20, 40])  # randrange(1, 9)
         x[i].d = x[i].d * multiplier
         x[i].t = x[i].t * multiplier
-        x[i].c = x[i].c * multiplier * 10
+        x[i].c = x[i].c * multiplier  # * 10
 
     tasks_definition_dict = []
 
@@ -228,16 +229,16 @@ def generate_task_set(full_experiment_name: str, number_of_cpus: int, number_of_
 
 
 # if __name__ == '__main__':
-#     total_number_of_experiments = 200
+#     total_number_of_experiments = 100
 #     parallel_level = 4
 #
 #     first_experiment_numeration = 0
 #
 #     task_number_processors: List[Tuple[int, int]] = [
-#         (4, 24)
+#         (2, 8)
 #     ]
 #
-#     experiments_base_folder = "out/out_2/"
+#     experiments_base_folder = "out/out_4/"
 #
 #     # Create dir if not exist
 #     if not os.path.exists(experiments_base_folder):
@@ -254,7 +255,7 @@ def generate_task_set(full_experiment_name: str, number_of_cpus: int, number_of_
 #
 #         for i in range(first_experiment_numeration, first_experiment_numeration + total_number_of_experiments):
 #             experiment_name = base_folder + "test_" + str(i)
-#             # generate_task_set(experiment_name, number_of_cpus, number_of_tasks)
+#             generate_task_set(experiment_name, number_of_cpus, number_of_tasks)
 #             task_set_names.append((experiment_name, number_of_cpus))
 #
 #     work_to_do: List[Tuple[str, int, Dict[str, AbstractScheduler], Dict[str, AbstractResultDrawer], bool]] = []
@@ -265,9 +266,9 @@ def generate_task_set(full_experiment_name: str, number_of_cpus: int, number_of_
 #             (experiment_name,
 #              number_of_cpus,
 #              {
-#                  "semipartitionedaiecs": SemiPartitionedAIECSScheduler(),
-#                  "aiecs": AIECSScheduler(),
-#                  "run": RUNScheduler()
+#                  # "semipartitionedaiecs": SemiPartitionedAIECSScheduler(),
+#                  "aiecs": AIECSScheduler()  # ,
+#                  # "run": RUNScheduler()
 #              },
 #              {
 #                  "execution_percentage_statics.json": ExecutionPercentageStatistics(),
@@ -298,10 +299,10 @@ def generate_task_set(full_experiment_name: str, number_of_cpus: int, number_of_
 #     print("RUN SUCCESS:", run_success, "/", total_number_of_experiments * len(task_number_processors))
 
 if __name__ == '__main__':
-    run_comparison("out/out_2/4/24/test_150",
-                   4,
+    run_comparison("out/out_4/2/8/test_74",
+                   2,
                    {
-                       "aiecs2": AIECSScheduler()
+                       "aiecs": AIECSScheduler()
                    },
                    {
                        "execution_percentage_statics.json": ExecutionPercentageStatistics(),
