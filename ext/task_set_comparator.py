@@ -39,7 +39,7 @@ if __name__ == '__main__':
     num_ok_experiments = 0
 
     for j in range(200):
-        experiment_name = "./comparison_results/out/out10/4/32/test_" + str(j)
+        experiment_name = "./run_aiecs_comparation_results/4/32/test_" + str(j)
         num_cpus = 4
         frequency_actual = 1000
         hyperperiod_actual = 40

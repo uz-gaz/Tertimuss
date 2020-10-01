@@ -9,7 +9,7 @@ def create_csv_from_comparision():
                              "context switch number run", "migrations number run",
                              "context switch number semipartitioned aiecs", "migrations number semipartitioned aiecs"
                              ])
-    tests_base_name = "out/out_2/4/24/"
+    tests_base_name = "run_aiecs_comparation_results/4/24/"
     for i in range(200):
         name = "test_" + str(i)
         print(name)
@@ -53,7 +53,7 @@ def create_csv_from_comparision():
             print("Ha fallado")
             pass
 
-    with open(tests_base_name + 'results.csv', 'w', newline='') as file:
+    with open(tests_base_name + 'results_p_aiecs.csv', 'w', newline='') as file:
         for j in results_to_print:
             writer = csv.writer(file)
             writer.writerow(j)
