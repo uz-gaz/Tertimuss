@@ -1,0 +1,202 @@
+{
+    "statics": {
+        "total_context_switch_number": 298,
+        "scheduler_produced_context_switch_number": 108,
+        "mandatory_context_switch_number": 190,
+        "migrations_number": 91
+    },
+    "details": [
+        {
+            "task_0": {
+                "total_context_switch_number": 5,
+                "mandatory_context_switch_number": 1,
+                "scheduler_produced_context_switch_number": 4,
+                "migrations_number": 3
+            }
+        },
+        {
+            "task_1": {
+                "total_context_switch_number": 13,
+                "mandatory_context_switch_number": 5,
+                "scheduler_produced_context_switch_number": 8,
+                "migrations_number": 4
+            }
+        },
+        {
+            "task_2": {
+                "total_context_switch_number": 2,
+                "mandatory_context_switch_number": 1,
+                "scheduler_produced_context_switch_number": 1,
+                "migrations_number": 1
+            }
+        },
+        {
+            "task_3": {
+                "total_context_switch_number": 11,
+                "mandatory_context_switch_number": 4,
+                "scheduler_produced_context_switch_number": 7,
+                "migrations_number": 4
+            }
+        },
+        {
+            "task_4": {
+                "total_context_switch_number": 2,
+                "mandatory_context_switch_number": 1,
+                "scheduler_produced_context_switch_number": 1,
+                "migrations_number": 1
+            }
+        },
+        {
+            "task_5": {
+                "total_context_switch_number": 5,
+                "mandatory_context_switch_number": 1,
+                "scheduler_produced_context_switch_number": 4,
+                "migrations_number": 4
+            }
+        },
+        {
+            "task_6": {
+                "total_context_switch_number": 3,
+                "mandatory_context_switch_number": 2,
+                "scheduler_produced_context_switch_number": 1,
+                "migrations_number": 1
+            }
+        },
+        {
+            "task_7": {
+                "total_context_switch_number": 9,
+                "mandatory_context_switch_number": 8,
+                "scheduler_produced_context_switch_number": 1,
+                "migrations_number": 1
+            }
+        },
+        {
+            "task_8": {
+                "total_context_switch_number": 11,
+                "mandatory_context_switch_number": 4,
+                "scheduler_produced_context_switch_number": 7,
+                "migrations_number": 6
+            }
+        },
+        {
+            "task_9": {
+                "total_context_switch_number": 29,
+                "mandatory_context_switch_number": 20,
+                "scheduler_produced_context_switch_number": 9,
+                "migrations_number": 9
+            }
+        },
+        {
+            "task_10": {
+                "total_context_switch_number": 13,
+                "mandatory_context_switch_number": 8,
+                "scheduler_produced_context_switch_number": 5,
+                "migrations_number": 4
+            }
+        },
+        {
+            "task_11": {
+                "total_context_switch_number": 5,
+                "mandatory_context_switch_number": 5,
+                "scheduler_produced_context_switch_number": 0,
+                "migrations_number": 0
+            }
+        },
+        {
+            "task_12": {
+                "total_context_switch_number": 15,
+                "mandatory_context_switch_number": 8,
+                "scheduler_produced_context_switch_number": 7,
+                "migrations_number": 7
+            }
+        },
+        {
+            "task_13": {
+                "total_context_switch_number": 6,
+                "mandatory_context_switch_number": 1,
+                "scheduler_produced_context_switch_number": 5,
+                "migrations_number": 4
+            }
+        },
+        {
+            "task_14": {
+                "total_context_switch_number": 13,
+                "mandatory_context_switch_number": 10,
+                "scheduler_produced_context_switch_number": 3,
+                "migrations_number": 2
+            }
+        },
+        {
+            "task_15": {
+                "total_context_switch_number": 10,
+                "mandatory_context_switch_number": 2,
+                "scheduler_produced_context_switch_number": 8,
+                "migrations_number": 8
+            }
+        },
+        {
+            "task_16": {
+                "total_context_switch_number": 15,
+                "mandatory_context_switch_number": 10,
+                "scheduler_produced_context_switch_number": 5,
+                "migrations_number": 4
+            }
+        },
+        {
+            "task_17": {
+                "total_context_switch_number": 45,
+                "mandatory_context_switch_number": 40,
+                "scheduler_produced_context_switch_number": 5,
+                "migrations_number": 5
+            }
+        },
+        {
+            "task_18": {
+                "total_context_switch_number": 2,
+                "mandatory_context_switch_number": 1,
+                "scheduler_produced_context_switch_number": 1,
+                "migrations_number": 1
+            }
+        },
+        {
+            "task_19": {
+                "total_context_switch_number": 10,
+                "mandatory_context_switch_number": 4,
+                "scheduler_produced_context_switch_number": 6,
+                "migrations_number": 4
+            }
+        },
+        {
+            "task_20": {
+                "total_context_switch_number": 9,
+                "mandatory_context_switch_number": 2,
+                "scheduler_produced_context_switch_number": 7,
+                "migrations_number": 5
+            }
+        },
+        {
+            "task_21": {
+                "total_context_switch_number": 46,
+                "mandatory_context_switch_number": 40,
+                "scheduler_produced_context_switch_number": 6,
+                "migrations_number": 6
+            }
+        },
+        {
+            "task_22": {
+                "total_context_switch_number": 2,
+                "mandatory_context_switch_number": 2,
+                "scheduler_produced_context_switch_number": 0,
+                "migrations_number": 0
+            }
+        },
+        {
+            "task_23": {
+                "total_context_switch_number": 17,
+                "mandatory_context_switch_number": 10,
+                "scheduler_produced_context_switch_number": 7,
+                "migrations_number": 7
+            }
+        }
+    ]
+}

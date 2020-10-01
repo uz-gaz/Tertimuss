@@ -206,8 +206,7 @@ def generate_task_set(full_experiment_name: str, number_of_cpus: int, number_of_
             "min_period_interval": 1,
             "max_period_interval": 1,
             "number_of_tasks": number_of_tasks,
-            "utilization": 1,
-            "number_of_cpus": number_of_cpus,
+            "utilization": number_of_cpus,
             "processor_frequency": 1000,
         }
 
@@ -217,7 +216,7 @@ def generate_task_set(full_experiment_name: str, number_of_cpus: int, number_of_
         multiplier = random.choice([1, 2, 4, 5, 8, 10, 20, 40])  # randrange(1, 9)
         x[i].d = x[i].d * multiplier
         x[i].t = x[i].t * multiplier
-        x[i].c = x[i].c * multiplier * 10
+        x[i].c = x[i].c * multiplier
 
     # u = UUniFastExtended()
     # x = u.generate(
