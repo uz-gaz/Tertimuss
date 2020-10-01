@@ -3,7 +3,8 @@ import json
 from main.core.problem_specification.tasks_specification.PeriodicTask import PeriodicTask
 
 
-def check_if_has_full_utilization(experiment_full_name: str, frequency: int, num_of_cpus: int, hyperperiod: float):
+def check_if_has_full_utilization(experiment_full_name: str, frequency: int, num_of_cpus: int,
+                                  hyperperiod: float) -> bool:
     task_set = []
 
     with open(experiment_full_name + "_tasks_specification.json", "r") as read_file:
@@ -23,16 +24,27 @@ def check_if_has_full_utilization(experiment_full_name: str, frequency: int, num
 
     if task_utilization_excess:
         print("Excess of utilization of task in task-set", experiment_full_name)
+        return False
     elif total_utilized_cycles < max_cycles * num_of_cpus:
         print("Infra-utilized task-set", experiment_full_name)
+        return False
     elif total_utilized_cycles > max_cycles * num_of_cpus:
         print("Excess of utilization in task-set", experiment_full_name)
+        return False
+    else:
+        return True
 
 
 if __name__ == '__main__':
+    num_ok_experiments = 0
+
     for j in range(200):
-        experiment_name = "./comparison_results/out/out9/4/16/test_"+str(j)
-        num_cpus = 2
+        experiment_name = "./comparison_results/out/out10/4/32/test_" + str(j)
+        num_cpus = 4
         frequency_actual = 1000
         hyperperiod_actual = 40
-        check_if_has_full_utilization(experiment_name, frequency_actual, num_cpus, hyperperiod_actual)
+        result = check_if_has_full_utilization(experiment_name, frequency_actual, num_cpus, hyperperiod_actual)
+        if result:
+            num_ok_experiments = num_ok_experiments + 1
+
+    print("Num ok experiments", num_ok_experiments, "/", 200)
