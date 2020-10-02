@@ -3,7 +3,7 @@ import json
 
 
 def compare_results():
-    tests_base_name = "run_aiecs_comparation_results/2/16/"
+    tests_base_name = "out5/4/24/"
 
     better_run_in_cs = 0
     better_aiecs_in_cs = 0
@@ -14,6 +14,8 @@ def compare_results():
     number_of_tests = 200
 
     number_of_test_analyzed = 0
+
+    partitioned_by_run = 0
 
     for i in range(number_of_tests):
         name = "test_" + str(i)
@@ -65,6 +67,9 @@ def compare_results():
                 better_aiecs_in_m += 1
                 better_run_in_m += 1
 
+            if migrations_number_run == 0:
+                partitioned_by_run += 1
+
             number_of_test_analyzed += 1
         except Exception as e:
             print("Ha fallado")
@@ -75,6 +80,8 @@ def compare_results():
 
     print("Better aiecs in context switch", better_aiecs_in_cs)
     print("Better aiecs in migrations", better_aiecs_in_m)
+
+    print("Partitioned by RUN ", partitioned_by_run)
 
     print("Analyzed", number_of_test_analyzed, "of", number_of_tests, "tests")
 
