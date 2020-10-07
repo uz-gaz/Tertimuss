@@ -1,9 +1,11 @@
+import functools
 import math
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 import numpy
 import scipy.optimize
 import scipy.linalg
+from ortools.linear_solver import pywraplp
 
 from main.core.problem_specification.GlobalSpecification import GlobalSpecification
 from main.core.schedulers_definition.templates.AbstractScheduler import AbstractScheduler
@@ -34,7 +36,115 @@ class AIECSScheduler(AbstractScheduler):
         self.__intervals_frequencies = None
 
     @staticmethod
-    def ilpp_dp(ci: List[int], ti: List[int], n: int, m: int) -> [numpy.ndarray, numpy.ndarray]:
+    def __list_lcm(values: List[int]) -> int:
+        return functools.reduce(lambda a, b: abs(a * b) // math.gcd(a, b), values)
+
+    @classmethod
+    def aiecs_periods_lpp_glop(cls, ci: List[int], ti: List[int], number_of_cpus: int) -> Optional[
+        Tuple[List[int], List[List[int]]]]:
+        """
+        Solves the linear programing problem
+        :param ci: execution cycles of each task
+        :param ti: period in cycles of each task
+        :param number_of_cpus: number of cpus
+        :return: 1 -> tasks execution each interval
+                 2 -> intervals
+        """
+        # Check number of tasks
+        if len(ci) != len(ti):
+            return None
+
+        number_of_tasks = len(ci)
+
+        # Hyper-period creation
+        hyper_period = cls.__list_lcm(ti)
+
+        # Check task set utilization
+        utilization = sum([i * (hyper_period // j) for i, j in zip(ci, ti)])
+
+        # Check utilization
+        if utilization != number_of_cpus * hyper_period:
+            return None
+
+        # Create deadlines list
+        deadline_list = sorted(set([j for i in ti for j in range(i, hyper_period + i, i)]))
+        partitions_size = [i - j for i, j in zip(deadline_list, [0] + deadline_list[:-1])]
+
+        # Number of partitions
+        number_of_partitions = len(partitions_size)
+
+        # Create solver
+        solver = pywraplp.Solver.CreateSolver('linear_programming_examples', 'GLOP')
+
+        # Create variables [task, period]
+        variables_list = [
+            [solver.NumVar(0, solver.infinity(), "x_" + str(i) + "_" + str(j)) for j in range(number_of_partitions)] for
+            i
+            in range(number_of_tasks)]
+
+        # Utilization constraint
+        for partition_index, partition_size in enumerate(partitions_size):
+            utilization_constraint = solver.Constraint(partition_size * number_of_cpus, partition_size * number_of_cpus)
+            for task_index in range(number_of_tasks):
+                utilization_constraint.SetCoefficient(variables_list[task_index][partition_index], 1)
+
+        # # Store the partitions that use each job [task][job][partition index]
+        jobs_used_partitions = [
+            [[partition_index for partition_index, deadline in enumerate(deadline_list) if
+              job_start < deadline <= job_end]
+             for job_start, job_end in zip(range(0, hyper_period, t), range(t, hyper_period + t, t))] for t in ti]
+
+        # Execution constraint
+        for task_index, (task_jobs, task_ci) in enumerate(zip(jobs_used_partitions, ci)):
+            for job_partitions_indexes in task_jobs:
+                execution_constraint = solver.Constraint(task_ci, task_ci)
+                for partition_index in job_partitions_indexes:
+                    execution_constraint.SetCoefficient(variables_list[task_index][partition_index], 1)
+
+        # Laxity constraint
+        for task_index, (task_jobs, task_ci) in enumerate(zip(jobs_used_partitions, ci)):
+            for job_partitions_indexes in task_jobs:
+                for partition_index_index, partition_index_k in enumerate(job_partitions_indexes[:-1]):
+                    time_to_deadline = sum(
+                        [partitions_size[i] for i in job_partitions_indexes[partition_index_index + 1:]])
+                    laxity_constraint = solver.Constraint(max(0, task_ci - time_to_deadline), solver.infinity())
+                    for partition_index_mu in job_partitions_indexes[:partition_index_index + 1]:
+                        laxity_constraint.SetCoefficient(variables_list[task_index][partition_index_mu], 1)
+
+        # Sequential constraint
+        for partition_index, partition_size in enumerate(partitions_size):
+            for task_index in range(number_of_tasks):
+                sequential_constraint = solver.Constraint(-solver.infinity(), partition_size)
+                sequential_constraint.SetCoefficient(variables_list[task_index][partition_index], 1)
+
+        # Objective
+        objective = solver.Objective()
+        for partition_index, partition_size in enumerate(partitions_size):
+            for task_index in range(number_of_tasks):
+                objective.SetCoefficient(variables_list[task_index][partition_index], 1)
+        objective.SetMaximization()
+
+        # print(solver.ExportModelAsLpFormat(False))
+
+        # Solve the system
+        status = solver.Solve()
+
+        # Debug info
+        if status == solver.OPTIMAL:
+            return ([0] + deadline_list), [
+                [round(variables_list[i][j].solution_value()) for j in range(number_of_partitions)] for
+                i in range(number_of_tasks)]
+        elif status == solver.FEASIBLE:
+            print('A potentially suboptimal solution was found.')
+            return ([0] + deadline_list), [
+                [round(variables_list[i][j].solution_value()) for j in range(number_of_partitions)] for
+                i in range(number_of_tasks)]
+        else:
+            print('The solver could not solve the problem.')
+            return None
+
+    @staticmethod
+    def __ilpp_dp_scipy(ci: List[int], ti: List[int], n: int, m: int) -> [numpy.ndarray, numpy.ndarray]:
         """
         Solves the linear programing problem
         :param ci: execution cycles of each task
@@ -149,6 +259,23 @@ class AIECSScheduler(AbstractScheduler):
 
         return s, sd
 
+    @classmethod
+    def aiecs_periods_lpp_scipy(cls, ci: List[int], ti: List[int], n: int, m: int) -> Optional[
+        Tuple[List[int], List[List[int]]]]:
+        """
+        Solves the linear programing problem
+        :param ci: execution cycles of each task
+        :param ti: period in cycles of each task
+        :param n: number of tasks
+        :param m: number of cpus
+        :return: 1 -> tasks execution each interval
+                 2 -> intervals
+        """
+        s, sd = cls.__ilpp_dp_scipy(ci, ti, n, m)
+        s_as_integer = [list(map(lambda x: round(x), i)) for i in s.tolist()]
+        sd_as_integer = list(map(lambda x: round(x), sd.tolist()))
+        return sd_as_integer, s_as_integer
+
     def offline_stage(self, global_specification: GlobalSpecification,
                       periodic_tasks: List[SystemPeriodicTask],
                       aperiodic_tasks: List[SystemAperiodicTask]) -> float:
@@ -216,7 +343,9 @@ class AIECSScheduler(AbstractScheduler):
             tci_in_quantums.append(hyperperiod_in_quantums)
 
         # Linear programing problem
-        x, sd = self.ilpp_dp(cci_in_quantums, tci_in_quantums, len(cci_in_quantums), self.__m)
+        sd, x = self.aiecs_periods_lpp_glop(cci_in_quantums, tci_in_quantums, self.__m)
+        sd = numpy.array(sd)
+        x = numpy.array(x)
 
         # Transform from quantums to cycles
         x = x * round(f_star_hz * dt)
@@ -467,11 +596,6 @@ class AIECSScheduler(AbstractScheduler):
         if self.__sp_interrupt(active_tasks, time):
             tasks_to_execute = self.__schedule_policy_imp(time, active_tasks, [i.id for i in executable_tasks])
 
-        if -1 in tasks_to_execute:
-            i = 0
-            i = 0
-            i = 0
-
         # Update cc in tasks being executed
         self.__interval_cc_left = [
             (round(i[0] - (self.__intervals_frequencies[self.__actual_interval_index] *
@@ -487,10 +611,5 @@ class AIECSScheduler(AbstractScheduler):
             for j in range(self.__m):
                 if tasks_to_execute[j] == actual and j != i:
                     tasks_to_execute[j], tasks_to_execute[i] = tasks_to_execute[i], tasks_to_execute[j]
-
-        if -1 in tasks_to_execute:
-            i = 0
-            i = 0
-            i = 0
 
         return tasks_to_execute, None, self.__m * [self.__intervals_frequencies[self.__actual_interval_index]]

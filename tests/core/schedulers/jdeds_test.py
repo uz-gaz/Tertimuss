@@ -1,9 +1,9 @@
 import functools
 import hashlib
 import math
+import time
 import unittest
 from typing import List
-import numpy
 
 from main.core.schedulers_definition.implementations.AIECS import AIECSScheduler
 from main.core.schedulers_definition.templates.AbstractScheduler import AbstractScheduler
@@ -34,36 +34,124 @@ class TestJDEDSScheduler(SchedulerAbstractTest):
 
         return True
 
-    def test_lpp(self):
+    def test_lpp_scipy(self):
         ci = [9, 9, 8]
         ti = [10, 10, 40]
-        s, sd = AIECSScheduler.ilpp_dp(ci, ti, 3, 2)
+        s, sd = AIECSScheduler.aiecs_periods_lpp_scipy(ci, ti, len(ti), 2)
+        assert (self.check_constraints_lpp(ci, ti, sd, s))
 
-        s_as_integer = [list(map(lambda x: round(x), i)) for i in s.tolist()]
-        sd_as_integer = list(map(lambda x: round(x), sd.tolist()))
+    def test_lpp_glop(self):
+        ci = [9, 9, 8]
+        ti = [10, 10, 40]
+        s, sd = AIECSScheduler.aiecs_periods_lpp(ci, ti, 2)
+        assert (self.check_constraints_lpp(ci, ti, sd, s))
 
-        assert (self.check_constraints_lpp(ci, ti, s_as_integer, sd_as_integer))
+    def test_lpp_scipy_performance_4_24(self):
+        start_time = time.perf_counter()
+        ci = [570, 1880, 166, 1416, 2160, 36, 112, 780, 1430, 1044, 720, 436, 1940, 239, 1388, 2480, 1705, 4480, 820,
+              5820, 956, 220, 600, 254]
+        ti = [10000, 40000, 2000, 8000, 40000, 2000, 1000, 4000, 5000, 4000, 8000, 4000, 20000, 1000, 2000, 10000, 5000,
+              40000, 10000, 20000, 4000, 20000, 20000, 2000]
+        s, sd = AIECSScheduler.aiecs_periods_lpp_scipy(ci, ti, len(ti), 4)
+        end_time = time.perf_counter()
+        assert (self.check_constraints_lpp(ci, ti, sd, s))
+        print("Elapsed time:", end_time - start_time)
+        # Elapsed time: 67.22464067200008
 
-    def test_lpp_2(self):
-        ci = [2000, 5000, 6000, 1800]
-        ti = [3400, 6800, 10200, 20400]
-        s, sd = AIECSScheduler.ilpp_dp(ci, ti, 4, 2)
+    def test_lpp_glop_performance_4_24(self):
+        start_time = time.perf_counter()
+        ci = [570, 1880, 166, 1416, 2160, 36, 112, 780, 1430, 1044, 720, 436, 1940, 239, 1388, 2480, 1705, 4480, 820,
+              5820, 956, 220, 600, 254]
+        ti = [10000, 40000, 2000, 8000, 40000, 2000, 1000, 4000, 5000, 4000, 8000, 4000, 20000, 1000, 2000, 10000,
+              5000,
+              40000, 10000, 20000, 4000, 20000, 20000, 2000]
+        s, sd = AIECSScheduler.aiecs_periods_lpp_glop(ci, ti, 4)
+        end_time = time.perf_counter()
+        assert (self.check_constraints_lpp(ci, ti, sd, s))
+        print("Elapsed time:", end_time - start_time)
+        # Elapsed time: 0.04560911099997611 s
 
-        s_as_integer = [list(map(lambda x: round(x), i)) for i in s.tolist()]
-        sd_as_integer = list(map(lambda x: round(x), sd.tolist()))
+    def test_lpp_scipy_performance_4_32(self):
+        start_time = time.perf_counter()
+        ci = [1380, 2320, 888, 139, 768, 1050, 740, 920, 1600, 152, 760, 5820, 1016, 91, 2880, 1820, 53, 2990, 77, 3520,
+              596, 84, 3260, 2340, 652, 24, 486, 464, 730, 460, 67, 136]
+        ti = [20000, 40000, 4000, 1000, 8000, 10000, 10000, 10000, 20000, 1000, 40000, 20000, 8000, 1000, 40000, 20000,
+              1000, 10000, 1000, 40000, 4000, 1000, 20000, 10000, 4000, 4000, 1000, 8000, 5000, 4000, 1000, 4000]
 
-        assert (self.check_constraints_lpp(ci, ti, s_as_integer, sd_as_integer))
+        s, sd = AIECSScheduler.aiecs_periods_lpp_scipy(ci, ti, len(ti), 4)
+        end_time = time.perf_counter()
+        assert (self.check_constraints_lpp(ci, ti, sd, s))
+        print("Elapsed time:", end_time - start_time)
+        # Elapsed time: 157.7277492809999 s
 
-    def test_lpp_3(self):
-        ci = [2, 2, 11, 14]
-        ti = [8, 8, 12, 24]
+    def test_lpp_glop_performance_4_32(self):
+        start_time = time.perf_counter()
+        ci = [1380, 2320, 888, 139, 768, 1050, 740, 920, 1600, 152, 760, 5820, 1016, 91, 2880, 1820, 53, 2990, 77, 3520,
+              596, 84, 3260, 2340, 652, 24, 486, 464, 730, 460, 67, 136]
+        ti = [20000, 40000, 4000, 1000, 8000, 10000, 10000, 10000, 20000, 1000, 40000, 20000, 8000, 1000, 40000, 20000,
+              1000, 10000, 1000, 40000, 4000, 1000, 20000, 10000, 4000, 4000, 1000, 8000, 5000, 4000, 1000, 4000]
 
-        s, sd = AIECSScheduler.ilpp_dp(ci, ti, 4, 2)
+        s, sd = AIECSScheduler.aiecs_periods_lpp_glop(ci, ti, 4)
+        end_time = time.perf_counter()
+        assert (self.check_constraints_lpp(ci, ti, sd, s))
+        print("Elapsed time:", end_time - start_time)
+        # Elapsed time: 0.06159063300037815 s
 
-        s_as_integer = [list(map(lambda x: round(x), i)) for i in s.tolist()]
-        sd_as_integer = list(map(lambda x: round(x), sd.tolist()))
+    def test_lpp_scipy_performance_4_40(self):
+        start_time = time.perf_counter()
+        ci = [24, 480, 210, 156, 440, 3640, 72, 7280, 365, 1064, 264, 1180, 775, 1380, 6120, 7060, 84, 568, 7440, 66,
+              400, 335, 172, 135, 45, 305, 2010, 4420, 152, 344, 1480, 348, 60, 698, 104, 1420, 460, 6880, 1260, 98]
+        ti = [2000, 8000, 10000, 2000, 20000, 20000, 8000, 40000, 5000, 8000, 4000, 20000, 5000, 20000, 40000, 20000,
+              1000, 8000, 40000, 1000, 40000, 5000, 4000, 5000, 5000, 5000, 10000, 20000, 2000, 8000, 40000, 1000, 1000,
+              2000, 8000, 20000, 10000, 40000, 20000, 2000]
+        s, sd = AIECSScheduler.aiecs_periods_lpp_scipy(ci, ti, len(ti), 4)
+        end_time = time.perf_counter()
+        assert (self.check_constraints_lpp(ci, ti, sd, s))
+        print("Elapsed time:", end_time - start_time)
+        # Elapsed time: 345.6934918320003 s
 
-        assert (self.check_constraints_lpp(ci, ti, s_as_integer, sd_as_integer))
+    def test_lpp_glop_performance_4_40(self):
+        start_time = time.perf_counter()
+        ci = [24, 480, 210, 156, 440, 3640, 72, 7280, 365, 1064, 264, 1180, 775, 1380, 6120, 7060, 84, 568, 7440, 66,
+              400, 335, 172, 135, 45, 305, 2010, 4420, 152, 344, 1480, 348, 60, 698, 104, 1420, 460, 6880, 1260, 98]
+        ti = [2000, 8000, 10000, 2000, 20000, 20000, 8000, 40000, 5000, 8000, 4000, 20000, 5000, 20000, 40000, 20000,
+              1000, 8000, 40000, 1000, 40000, 5000, 4000, 5000, 5000, 5000, 10000, 20000, 2000, 8000, 40000, 1000, 1000,
+              2000, 8000, 20000, 10000, 40000, 20000, 2000]
+        s, sd = AIECSScheduler.aiecs_periods_lpp_glop(ci, ti, 4)
+        end_time = time.perf_counter()
+        assert (self.check_constraints_lpp(ci, ti, sd, s))
+        print("Elapsed time:", end_time - start_time)
+        # Elapsed time: 0.07723052999972424 s
+
+    def test_lpp_scipy_performance_8_48(self):
+        start_time = time.perf_counter()
+        ci = [287, 950, 430, 245, 930, 4840, 3920, 419, 486, 250, 260, 4488, 3380, 345, 4820, 605, 422, 1780, 368, 44,
+              1110, 16880, 395, 416, 780, 134, 45, 6040, 11760, 1420, 425, 330, 672, 2700, 250, 840, 40, 960, 415, 716,
+              3232, 3400, 255, 4680, 350, 404, 38, 70]
+        ti = [1000, 10000, 5000, 1000, 10000, 40000, 20000, 1000, 2000, 10000, 20000, 8000, 20000, 5000, 20000, 5000,
+              2000, 20000, 8000, 1000, 5000, 40000, 5000, 8000, 5000, 2000, 5000, 40000, 20000, 10000, 5000, 5000, 4000,
+              20000, 2000, 10000, 2000, 20000, 1000, 4000, 8000, 10000, 5000, 20000, 2000, 4000, 1000, 1000]
+
+        s, sd = AIECSScheduler.aiecs_periods_lpp_scipy(ci, ti, len(ti), 8)
+        end_time = time.perf_counter()
+        assert (self.check_constraints_lpp(ci, ti, sd, s))
+        print("Elapsed time:", end_time - start_time)
+        # Elapsed time: 638.5175364530005 s
+
+    def test_lpp_glop_performance_8_48(self):
+        start_time = time.perf_counter()
+        ci = [287, 950, 430, 245, 930, 4840, 3920, 419, 486, 250, 260, 4488, 3380, 345, 4820, 605, 422, 1780, 368, 44,
+              1110, 16880, 395, 416, 780, 134, 45, 6040, 11760, 1420, 425, 330, 672, 2700, 250, 840, 40, 960, 415, 716,
+              3232, 3400, 255, 4680, 350, 404, 38, 70]
+        ti = [1000, 10000, 5000, 1000, 10000, 40000, 20000, 1000, 2000, 10000, 20000, 8000, 20000, 5000, 20000, 5000,
+              2000, 20000, 8000, 1000, 5000, 40000, 5000, 8000, 5000, 2000, 5000, 40000, 20000, 10000, 5000, 5000, 4000,
+              20000, 2000, 10000, 2000, 20000, 1000, 4000, 8000, 10000, 5000, 20000, 2000, 4000, 1000, 1000]
+
+        s, sd = AIECSScheduler.aiecs_periods_lpp_glop(ci, ti, 8)
+        end_time = time.perf_counter()
+        assert (self.check_constraints_lpp(ci, ti, sd, s))
+        print("Elapsed time:", end_time - start_time)
+        # Elapsed time: 0.09485625300021638 s
 
     @staticmethod
     def get_global_variables() -> [AbstractScheduler, str]:
