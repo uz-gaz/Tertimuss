@@ -19,7 +19,7 @@ class SystemSimulator(object):
     """
 
     @staticmethod
-    def simulate(global_specification: GlobalSpecification, global_model: GlobalModel,
+    def simulate(global_specification: GlobalSpecification, global_model: Optional[GlobalModel],
                  scheduler: AbstractScheduler, progress_bar: Optional[AbstractProgressBar]) -> SchedulingResult:
         """
         Simulate problem
@@ -30,7 +30,7 @@ class SystemSimulator(object):
         :return:
         """
         # True if simulation must save the temperature map
-        is_thermal_simulation = global_model.enable_thermal_mode
+        is_thermal_simulation = global_model is not None and global_model.enable_thermal_mode
 
         # Round a value and transform it to int
         def round_i(x: float) -> int:
@@ -114,8 +114,9 @@ class SystemSimulator(object):
         quantum_q = 0
 
         # Global model solver
-        global_model_solver = GlobalModelSolver(global_model, global_specification)
-        del global_model
+        if is_thermal_simulation:
+            global_model_solver = GlobalModelSolver(global_model, global_specification)
+        # del global_model
 
         # Actual set clock frequencies
         cores_operating_frequencies = global_specification.cpu_specification.cores_specification.operating_frequencies
@@ -219,20 +220,21 @@ class SystemSimulator(object):
                     w_alloc[active_task_id[j] + j * n] = 1
                     m_exec_step[active_task_id[j] + j * n] += global_specification.simulation_specification.dt
 
-            m_exec_step_tcpn, board_temperature, cores_temperature, energy_consumption_actual = \
-                global_model_solver.run_step(w_alloc, [i / clock_base_frequency for i in cores_operating_frequencies])
-
             i_tau_disc[:, zeta_q] = w_alloc
 
             m_exec[:, zeta_q] = m_exec_step
-
-            m_exec_tcpn[:, zeta_q] = m_exec_step_tcpn
 
             time_step[zeta_q] = time
 
             core_frequencies[:, zeta_q] = cores_operating_frequencies
 
             if is_thermal_simulation:
+                m_exec_step_tcpn, board_temperature, cores_temperature, energy_consumption_actual = \
+                    global_model_solver.run_step(w_alloc,
+                                                 [i / clock_base_frequency for i in cores_operating_frequencies])
+
+                m_exec_tcpn[:, zeta_q] = m_exec_step_tcpn
+
                 max_temperature_cores[:, zeta_q] = cores_temperature.reshape(-1)
                 temperature_map[:, zeta_q] = board_temperature.reshape(-1)
                 energy_consumption[:, zeta_q] = energy_consumption_actual

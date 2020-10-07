@@ -61,9 +61,9 @@ def run_comparison(experiment_full_name: str, number_of_cpus: int, schedulers: D
     for scheduler_actual_name, scheduler_actual in schedulers.items():
         if not record_on_success or all([i[1] for i in success_list.items()]):
             try:
-                result, global_specification, simulation_kernel = create_problem_specification(task_set,
-                                                                                               scheduler_actual,
-                                                                                               number_of_cpus)
+                result, global_specification, _ = create_problem_specification(task_set,
+                                                                               scheduler_actual,
+                                                                               number_of_cpus)
                 result_list[scheduler_actual_name] = (result, global_specification)
 
                 success_list[scheduler_actual_name] = not _have_miss_deadline(global_specification, result)
@@ -183,7 +183,8 @@ def create_problem_specification(tasks_set: List[PeriodicTask], scheduler: Abstr
                                                                     simulation_specification,
                                                                     tcpn_model_specification)
 
-    global_model = GlobalModel(global_specification)
+    # global_model = GlobalModel(global_specification)
+    global_model = None
 
     return SystemSimulator.simulate(global_specification, global_model, scheduler,
                                     None), global_specification, global_model
@@ -247,7 +248,7 @@ def generate_task_set(full_experiment_name: str, number_of_cpus: int, number_of_
 #     first_experiment_numeration = 178
 #
 #     task_number_processors: List[Tuple[int, int]] = [
-#         (8, 48)
+#         (4, 24)
 #     ]
 #
 #     experiments_base_folder = "out/out5/"
@@ -270,45 +271,45 @@ def generate_task_set(full_experiment_name: str, number_of_cpus: int, number_of_
 #             generate_task_set(experiment_name, number_of_cpus, number_of_tasks)
 #             task_set_names.append((experiment_name, number_of_cpus))
 
-    # work_to_do: List[Tuple[str, int, Dict[str, AbstractScheduler], Dict[str, AbstractResultDrawer], bool]] = []
-    #
-    # # Fill work to do
-    # for (experiment_name, number_of_cpus) in task_set_names:
-    #     work_to_do.append(
-    #         (experiment_name,
-    #          number_of_cpus,
-    #          {
-    #              # "semipartitionedaiecs": SemiPartitionedAIECSScheduler(),
-    #              "aiecs": AIECSScheduler(),
-    #              "run": RUNScheduler()
-    #          },
-    #          {
-    #              "execution_percentage_statics.json": ExecutionPercentageStatistics(),
-    #              "context_switch_statics.json": ContextSwitchStatistics()
-    #          },
-    #          False
-    #          )
-    #     )
-    #
-    #
-    # def caller_function(
-    #         arguments: Tuple[str, int, Dict[str, AbstractScheduler], Dict[str, AbstractResultDrawer], bool]):
-    #     # run_comparison
-    #     return run_comparison(arguments[0], arguments[1], arguments[2], arguments[3], arguments[4])
-    #
-    #
-    # # Create work packages
-    # p = Pool(processes=parallel_level)
-    # success_result = p.map(caller_function, work_to_do)
-    #
-    # p.close()
-    # p.join()
-    #
-    # aiecs_success = sum([1 for i in success_result if i.__contains__("aiecs") and i["aiecs"]])
-    # run_success = sum([1 for i in success_result if i.__contains__("run") and i["run"]])
-    #
-    # print("AIECS SUCCESS:", aiecs_success, "/", total_number_of_experiments * len(task_number_processors))
-    # print("RUN SUCCESS:", run_success, "/", total_number_of_experiments * len(task_number_processors))
+# work_to_do: List[Tuple[str, int, Dict[str, AbstractScheduler], Dict[str, AbstractResultDrawer], bool]] = []
+#
+# # Fill work to do
+# for (experiment_name, number_of_cpus) in task_set_names:
+#     work_to_do.append(
+#         (experiment_name,
+#          number_of_cpus,
+#          {
+#              # "semipartitionedaiecs": SemiPartitionedAIECSScheduler(),
+#              "aiecs": AIECSScheduler(),
+#              "run": RUNScheduler()
+#          },
+#          {
+#              "execution_percentage_statics.json": ExecutionPercentageStatistics(),
+#              "context_switch_statics.json": ContextSwitchStatistics()
+#          },
+#          False
+#          )
+#     )
+#
+#
+# def caller_function(
+#         arguments: Tuple[str, int, Dict[str, AbstractScheduler], Dict[str, AbstractResultDrawer], bool]):
+#     # run_comparison
+#     return run_comparison(arguments[0], arguments[1], arguments[2], arguments[3], arguments[4])
+#
+#
+# # Create work packages
+# p = Pool(processes=parallel_level)
+# success_result = p.map(caller_function, work_to_do)
+#
+# p.close()
+# p.join()
+#
+# aiecs_success = sum([1 for i in success_result if i.__contains__("aiecs") and i["aiecs"]])
+# run_success = sum([1 for i in success_result if i.__contains__("run") and i["run"]])
+#
+# print("AIECS SUCCESS:", aiecs_success, "/", total_number_of_experiments * len(task_number_processors))
+# print("RUN SUCCESS:", run_success, "/", total_number_of_experiments * len(task_number_processors))
 
 if __name__ == '__main__':
     run_comparison("out/out5/4/24/test_178",
