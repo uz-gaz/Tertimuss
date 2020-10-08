@@ -92,6 +92,25 @@ def plot_3d_heat_map_temperature(heatmap_cube_list: List[TemperatureLocatedCube]
 
     ax.set(xlabel='x', ylabel='y', zlabel='z')
 
+    max_range = max([max_x - min_x, max_y - min_y, max_z - min_z])
+
+    # Calculate limits
+    x_lim_min = min_x - ((max_range - (max_x - min_x)) / 2)
+    x_lim_max = max_x + ((max_range - (max_x - min_x)) / 2)
+
+    y_lim_min = min_y - ((max_range - (max_y - min_y)) / 2)
+    y_lim_max = max_y + ((max_range - (max_y - min_y)) / 2)
+
+    z_lim_min = min_z - ((max_range - (max_z - min_z)) / 2)
+    z_lim_max = max_z + ((max_range - (max_z - min_z)) / 2)
+
+    ax.set_xlim(x_lim_min, x_lim_max)
+    ax.set_ylim(y_lim_min, y_lim_max)
+    ax.set_zlim(z_lim_min, z_lim_max)
+
+    # Hide grid lines
+    ax.grid(b=None)
+    plt.axis('off')
     plt.show()
 
 
