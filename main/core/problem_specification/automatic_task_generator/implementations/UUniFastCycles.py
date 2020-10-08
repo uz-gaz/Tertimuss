@@ -1,20 +1,22 @@
+import functools
 import math
 import random
 from random import uniform
 from typing import List, Dict
 
-import numpy
-
 from main.core.problem_specification.tasks_specification.PeriodicTask import PeriodicTask
 from main.core.problem_specification.automatic_task_generator.template.AbstractTaskGeneratorAlgorithm import \
     AbstractTaskGeneratorAlgorithm
-from main.core.problem_specification.tasks_specification.TasksSpecification import TasksSpecification
 
 
 class UUniFastCycles(AbstractTaskGeneratorAlgorithm):
     """
     UUniFast task generation algorithm
     """
+
+    @staticmethod
+    def list_lcm(values: List[int]) -> int:
+        return functools.reduce(lambda a, b: abs(a * b) // math.gcd(a, b), values)
 
     def generate(self, options: Dict) -> List[PeriodicTask]:
         """
@@ -34,25 +36,25 @@ class UUniFastCycles(AbstractTaskGeneratorAlgorithm):
         max_period_interval = options["max_period_interval"]
         processor_frequency = options["processor_frequency"]
 
-        # Divisors of hyperperiod
+        # Divisors of major cycle
         t_i = random.choices(list(range(min_period_interval, max_period_interval + 1)), k=number_of_tasks)
 
-        # Hyperperiod cycles
-        hyperperiod = round(numpy.lcm.reduce(t_i))
+        # Major cycle
+        major_cycle = round(self.list_lcm(t_i))
 
-        total_cycles = round(hyperperiod * utilization * processor_frequency)
+        total_cycles = round(major_cycle * utilization * processor_frequency)
 
         # Utilization
         sum_u = utilization  # the sum of n uniform random variables
 
-        cc_i = []
+        cc_i: List[int] = []
 
         for i in range(number_of_tasks - 1):
             next_sum_u = sum_u * (uniform(0, 1) ** (1 / (number_of_tasks - 1 - i)))
             task_cycles_actual = round(processor_frequency * (sum_u - next_sum_u) * t_i[i])
             cc_i.append(task_cycles_actual)
             sum_u = next_sum_u
-            total_cycles = total_cycles - (task_cycles_actual * (hyperperiod / t_i[i]))
+            total_cycles = total_cycles - (task_cycles_actual * (major_cycle / t_i[i]))
 
         cc_i.append(total_cycles)
 

@@ -246,13 +246,21 @@ if __name__ == '__main__':
     total_number_of_experiments = 4
     parallel_level = 4
 
-    first_experiment_numeration = 200
+    first_experiment_numeration = 300
 
     task_number_processors: List[Tuple[int, int]] = [
-        (4, 64)
+        (2, 2 * 8),
+        (2, 2 * 16),
+        (2, 2 * 24),
+        (2, 2 * 32),
+
+        (4, 4 * 8),
+        (4, 4 * 16),
+        (4, 4 * 24),
+        (4, 4 * 32)
     ]
 
-    experiments_base_folder = "out/out6/"
+    experiments_base_folder = "out/"
 
     # Create dir if not exist
     if not os.path.exists(experiments_base_folder):
@@ -280,7 +288,7 @@ if __name__ == '__main__':
             (experiment_name,
              number_of_cpus,
              {
-                 "semipartitionedaiecs": SemiPartitionedAIECSScheduler(),
+                 # "semipartitionedaiecs": SemiPartitionedAIECSScheduler(),
                  "aiecs": AIECSScheduler(),
                  "run": RUNScheduler()
              },
@@ -314,11 +322,11 @@ if __name__ == '__main__':
 
 # if __name__ == '__main__':
 #     start_time = time.perf_counter()
-#     run_comparison("out/out6/4/64/test_178",
-#                    4,
+#     run_comparison("comparison_results/out/2/32/test_25",
+#                    2,
 #                    {
-#                        "aiecs": AIECSScheduler(),
-#                        "run": RUNScheduler()
+#                        "aiecs": AIECSScheduler()
+#                        # "run": RUNScheduler()
 #                    },
 #                    {
 #                        "execution_percentage_statics.json": ExecutionPercentageStatistics(),

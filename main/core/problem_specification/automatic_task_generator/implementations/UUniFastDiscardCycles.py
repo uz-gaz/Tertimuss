@@ -23,6 +23,6 @@ class UUniFastDiscardCycles(UUniFastCycles):
         while have_to_be_discarded:
             task_set = super().generate(options)
             processor_frequency = options["processor_frequency"]
-            have_to_be_discarded = any([round(i.d * processor_frequency) < i.c for i in task_set])
+            have_to_be_discarded = any([round(i.d * processor_frequency) < i.c or i.c <= 0 for i in task_set])
 
         return task_set

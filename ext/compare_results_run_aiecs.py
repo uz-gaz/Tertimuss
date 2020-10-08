@@ -3,7 +3,7 @@ import json
 
 
 def compare_results():
-    tests_base_name = "out_total_partitioned/4/24/"
+    tests_base_name = "comparison_results/out/2/32/"
 
     better_run_in_cs = 0
     better_aiecs_in_cs = 0
@@ -72,7 +72,7 @@ def compare_results():
 
             number_of_test_analyzed += 1
         except Exception as e:
-            print("Ha fallado")
+            print("Ha fallado", name)
             pass
 
     print("Better run in context switch", better_run_in_cs)

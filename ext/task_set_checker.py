@@ -22,6 +22,8 @@ def check_if_has_full_utilization(experiment_full_name: str, frequency: int, num
 
     total_utilized_cycles = sum(total_cycles)
 
+    zero_or_negative_cycles_in_task_set = any([i.c <= 0 for i in task_set])
+
     if task_utilization_excess:
         print("Excess of utilization of task in task-set", experiment_full_name)
         return False
@@ -31,6 +33,9 @@ def check_if_has_full_utilization(experiment_full_name: str, frequency: int, num
     elif total_utilized_cycles > max_cycles * num_of_cpus:
         print("Excess of utilization in task-set", experiment_full_name)
         return False
+    elif zero_or_negative_cycles_in_task_set:
+        print("Task set have some task with zero or negative cycles number", experiment_full_name)
+        return False
     else:
         return True
 
@@ -39,7 +44,7 @@ if __name__ == '__main__':
     num_ok_experiments = 0
 
     for j in range(200):
-        experiment_name = "./run_aiecs_comparation_results/4/32/test_" + str(j)
+        experiment_name = "./out/out_total_partitioned/4/24/test_" + str(j)
         num_cpus = 4
         frequency_actual = 1000
         hyperperiod_actual = 40
