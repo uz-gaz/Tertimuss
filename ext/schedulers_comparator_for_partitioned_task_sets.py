@@ -185,7 +185,8 @@ def create_problem_specification(tasks_set: List[PeriodicTask], scheduler: Abstr
                                                                     simulation_specification,
                                                                     tcpn_model_specification)
 
-    global_model = GlobalModel(global_specification)
+    # global_model = GlobalModel(global_specification)
+    global_model = None
 
     return SystemSimulator.simulate(global_specification, global_model, scheduler,
                                     None), global_specification, global_model
@@ -229,16 +230,17 @@ def generate_partitioned_task_set(full_experiment_name: str, partition_descripti
 
 
 if __name__ == '__main__':
-    total_number_of_experiments = 4
+    total_number_of_experiments = 200
     parallel_level = 4
 
     first_experiment_numeration = 0
 
     task_number_processors: List[Tuple[List[int], List[int]]] = [
-        ([2, 2], [12, 12])
+        ([1, 1, 1, 1], [6, 6, 6, 6]),
+        ([1, 1, 1, 1], [8, 8, 8, 8])
     ]
 
-    experiments_base_folder = "out_partitioned/"
+    experiments_base_folder = "out_total_partitioned/"
 
     # Create dir if not exist
     if not os.path.exists(experiments_base_folder):
@@ -305,7 +307,7 @@ if __name__ == '__main__':
 #     run_comparison("out/oo/test_71",
 #                    4,
 #                    {
-#                        "semipartitionedaiecs": SemiPartitionedAIECSScheduler()
+#                        "aiecs": AIECSScheduler()
 #                    },
 #                    {
 #                        "execution_percentage_statics.json": ExecutionPercentageStatistics(),
