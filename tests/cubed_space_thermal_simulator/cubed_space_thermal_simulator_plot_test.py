@@ -93,7 +93,7 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
                 location=UnitLocation(x=10, z=2, y=10),
                 dimensions=core_dimensions,
                 solidMaterial=board_material),
-                watts_to_apply=30,
+                watts_to_apply=20,
                 cube_edge_size=cube_edge_size
             ),
 

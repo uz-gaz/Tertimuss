@@ -1,5 +1,5 @@
 import functools
-from typing import List, Optional
+from typing import List, Optional, Tuple, Literal
 
 import numpy
 import matplotlib.pyplot as plt
@@ -27,9 +27,9 @@ def __obtain_rgb_heatmap_2_color_gradient(normalized_value: float) -> [float, fl
     return [red, green, blue]
 
 
-def plot_3d_heat_map_temperature_located_cube_list(heatmap_cube_list: List[TemperatureLocatedCube],
-                                                   min_temperature: Optional[float] = None,
-                                                   max_temperature: Optional[float] = None):
+def plot_3d_heat_map_temperature(heatmap_cube_list: List[TemperatureLocatedCube],
+                                 min_temperature: Optional[float] = None,
+                                 max_temperature: Optional[float] = None):
     # Obtain surrounded cube
     min_x = min([i.location.x for i in heatmap_cube_list])
     min_y = min([i.location.y for i in heatmap_cube_list])
@@ -93,3 +93,31 @@ def plot_3d_heat_map_temperature_located_cube_list(heatmap_cube_list: List[Tempe
     ax.set(xlabel='x', ylabel='y', zlabel='z')
 
     plt.show()
+
+
+def generate_video_3d_heat_map(
+        heatmap_cube_list: List[Tuple[float, List[TemperatureLocatedCube]]],
+        min_temperature: Optional[float] = None,
+        max_temperature: Optional[float] = None):
+    pass
+
+
+def plot_2d_heat_map(heatmap_cube_list: List[TemperatureLocatedCube],
+                     axis: Literal["X", "Y", "Z"],
+                     location_in_axis: int,
+                     min_temperature: Optional[float] = None,
+                     max_temperature: Optional[float] = None):
+    # Obtain surrounded cube
+    min_x = min([i.location.x for i in heatmap_cube_list])
+    min_y = min([i.location.y for i in heatmap_cube_list])
+    min_z = min([i.location.z for i in heatmap_cube_list])
+
+    max_x = max([i.location.x + i.dimensions.x for i in heatmap_cube_list])
+    max_y = max([i.location.y + i.dimensions.y for i in heatmap_cube_list])
+    max_z = max([i.location.z + i.dimensions.z for i in heatmap_cube_list])
+
+    is_location_correct: bool = (axis == "X" and min_x <= location_in_axis <= max_x) or (
+                axis == "Y" and min_y <= location_in_axis <= max_y) or (
+                                            axis == "Z" and min_z <= location_in_axis <= max_z)
+
+
