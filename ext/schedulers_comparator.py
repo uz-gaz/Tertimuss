@@ -2,12 +2,12 @@ import json
 import os
 import random
 import time
+
 from multiprocessing.pool import Pool
 from typing import List, Tuple, Dict, Optional
 
 import numpy
 
-from main.core.execution_simulator.system_modeling.GlobalModel import GlobalModel
 from main.core.execution_simulator.system_modeling.ThermalModelSelector import ThermalModelSelector
 from main.core.execution_simulator.system_simulator.SchedulingResult import SchedulingResult
 from main.core.execution_simulator.system_simulator.SystemSimulator import SystemSimulator
@@ -191,13 +191,17 @@ def create_problem_specification(tasks_set: List[PeriodicTask], scheduler: Abstr
                                     None), global_specification, global_model
 
 
-def generate_task_set(full_experiment_name: str, number_of_cpus: int, number_of_tasks: int):
+def get_number_divisors(number: int):
+    return [actual_divisor for actual_divisor in range(1, number + 1) if number % actual_divisor == 0]
+
+
+def generate_task_set(full_experiment_name: str, number_of_cpus: int, number_of_tasks: int, major_cycle: int):
     """
     Generate a random task set from the requirements and return the experiment full name
-    :param experiment_name:
+    :param full_experiment_name:
     :param number_of_cpus:
     :param number_of_tasks:
-    :param save_path:
+    :param major_cycle:
     :return:
     """
     u = UUniFastDiscardCycles()
@@ -212,8 +216,10 @@ def generate_task_set(full_experiment_name: str, number_of_cpus: int, number_of_
 
     )
 
+    major_cycle_divisors = get_number_divisors(major_cycle)
+
     for i in range(len(x)):
-        multiplier = random.choice([1, 2, 4, 5, 8, 10, 20, 40])  # randrange(1, 9)
+        multiplier = random.choice(major_cycle_divisors)  # randrange(1, 9)
         x[i].d = x[i].d * multiplier
         x[i].t = x[i].t * multiplier
         x[i].c = x[i].c * multiplier
@@ -243,21 +249,23 @@ def generate_task_set(full_experiment_name: str, number_of_cpus: int, number_of_
 
 
 if __name__ == '__main__':
-    total_number_of_experiments = 4
+    total_number_of_experiments = 200
     parallel_level = 4
 
-    first_experiment_numeration = 300
+    first_experiment_numeration = 0
 
     task_number_processors: List[Tuple[int, int]] = [
-        (2, 2 * 8),
-        (2, 2 * 16),
-        (2, 2 * 24),
-        (2, 2 * 32),
+        # (2, 2 * 4),
+        # (2, 2 * 8),
+        # (2, 2 * 12),
+        # (2, 2 * 16),
+        # (2, 2 * 20),
 
+        (4, 4 * 4),
         (4, 4 * 8),
+        (4, 4 * 12),
         (4, 4 * 16),
-        (4, 4 * 24),
-        (4, 4 * 32)
+        (4, 4 * 20)
     ]
 
     experiments_base_folder = "out/"
@@ -269,28 +277,28 @@ if __name__ == '__main__':
     task_set_names: List[Tuple[str, int]] = []
 
     # Generate task sets
-    for number_of_cpus, number_of_tasks in task_number_processors:
-        base_folder = experiments_base_folder + str(number_of_cpus) + "/" + str(number_of_tasks) + "/"
+    for number_of_cpus_actual, number_of_tasks_actual in task_number_processors:
+        base_folder = experiments_base_folder + str(number_of_cpus_actual) + "/" + str(number_of_tasks_actual) + "/"
         # Create dir if not exist
         if not os.path.exists(base_folder):
             os.makedirs(base_folder)
 
         for i in range(first_experiment_numeration, first_experiment_numeration + total_number_of_experiments):
             experiment_name = base_folder + "test_" + str(i)
-            generate_task_set(experiment_name, number_of_cpus, number_of_tasks)
-            task_set_names.append((experiment_name, number_of_cpus))
+            # generate_task_set(experiment_name, number_of_cpus_actual, number_of_tasks_actual, 2 * 2 * 3 * 5)
+            task_set_names.append((experiment_name, number_of_cpus_actual))
 
     work_to_do: List[Tuple[str, int, Dict[str, AbstractScheduler], Dict[str, AbstractResultDrawer], bool]] = []
 
     # Fill work to do
-    for (experiment_name, number_of_cpus) in task_set_names:
+    for (experiment_name, number_of_cpus_actual) in task_set_names:
         work_to_do.append(
             (experiment_name,
-             number_of_cpus,
+             number_of_cpus_actual,
              {
-                 # "semipartitionedaiecs": SemiPartitionedAIECSScheduler(),
-                 "aiecs": AIECSScheduler(),
-                 "run": RUNScheduler()
+                 "semipartitionedaiecs": SemiPartitionedAIECSScheduler()
+                 # "aiecs": AIECSScheduler(),
+                 # "run": RUNScheduler()
              },
              {
                  "execution_percentage_statics.json": ExecutionPercentageStatistics(),
@@ -314,19 +322,19 @@ if __name__ == '__main__':
     p.close()
     p.join()
 
-    aiecs_success = sum([1 for i in success_result if i.__contains__("aiecs") and i["aiecs"]])
-    run_success = sum([1 for i in success_result if i.__contains__("run") and i["run"]])
-
-    print("AIECS SUCCESS:", aiecs_success, "/", total_number_of_experiments * len(task_number_processors))
-    print("RUN SUCCESS:", run_success, "/", total_number_of_experiments * len(task_number_processors))
+    # aiecs_success = sum([1 for i in success_result if i.__contains__("aiecs") and i["aiecs"]])
+    # run_success = sum([1 for i in success_result if i.__contains__("run") and i["run"]])
+    #
+    # print("AIECS SUCCESS:", aiecs_success, "/", total_number_of_experiments * len(task_number_processors))
+    # print("RUN SUCCESS:", run_success, "/", total_number_of_experiments * len(task_number_processors))
 
 # if __name__ == '__main__':
 #     start_time = time.perf_counter()
-#     run_comparison("comparison_results/out/2/32/test_25",
+#     run_comparison("out/2/32/test_25",
 #                    2,
 #                    {
-#                        "aiecs": AIECSScheduler()
-#                        # "run": RUNScheduler()
+#                        "aiecs": AIECSScheduler(),
+#                        "run": RUNScheduler()
 #                    },
 #                    {
 #                        "execution_percentage_statics.json": ExecutionPercentageStatistics(),

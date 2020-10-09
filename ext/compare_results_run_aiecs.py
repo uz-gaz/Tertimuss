@@ -3,7 +3,7 @@ import json
 
 
 def compare_results():
-    tests_base_name = "comparison_results/out/2/32/"
+    tests_base_name = "out/4/80/"
 
     better_run_in_cs = 0
     better_aiecs_in_cs = 0

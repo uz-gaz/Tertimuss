@@ -44,10 +44,10 @@ if __name__ == '__main__':
     num_ok_experiments = 0
 
     for j in range(200):
-        experiment_name = "./out/out_total_partitioned/4/24/test_" + str(j)
+        experiment_name = "./out/4/80/test_" + str(j)
         num_cpus = 4
         frequency_actual = 1000
-        hyperperiod_actual = 40
+        hyperperiod_actual = 60
         result = check_if_has_full_utilization(experiment_name, frequency_actual, num_cpus, hyperperiod_actual)
         if result:
             num_ok_experiments = num_ok_experiments + 1

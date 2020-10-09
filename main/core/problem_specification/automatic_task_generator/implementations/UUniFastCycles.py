@@ -54,7 +54,7 @@ class UUniFastCycles(AbstractTaskGeneratorAlgorithm):
             task_cycles_actual = round(processor_frequency * (sum_u - next_sum_u) * t_i[i])
             cc_i.append(task_cycles_actual)
             sum_u = next_sum_u
-            total_cycles = total_cycles - (task_cycles_actual * (major_cycle / t_i[i]))
+            total_cycles = total_cycles - (task_cycles_actual * (major_cycle // t_i[i]))
 
         cc_i.append(total_cycles)
 
