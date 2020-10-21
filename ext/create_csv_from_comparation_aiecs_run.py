@@ -9,7 +9,7 @@ def create_csv_from_comparision():
                              "context switch number run", "migrations number run", "-",
                              "missed deadlines aiecs", "missed deadlines run"
                              ])
-    tests_base_name = "out5/4/24/"
+    tests_base_name = "out/4/24/"
     for i in range(200):
         name = "test_" + str(i)
         print(name)

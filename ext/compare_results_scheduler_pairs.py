@@ -7,9 +7,9 @@ import matplotlib.pyplot as plt
 
 
 def compare_results():
-    tests_base_name = "out/4/80/"
-    scheduler_1_name = "aiecs"
-    scheduler_2_name = "run"
+    tests_base_name = "out/4/16/"
+    scheduler_1_name = "run"
+    scheduler_2_name = "run_improved"
 
     better_scheduler_1_in_cs = 0
     better_scheduler_2_in_cs = 0
@@ -102,24 +102,24 @@ def compare_results():
     # shapiro_result_4 = scipy.stats.shapiro(data_to_obtain_statics_cs_4)
     # shapiro_result_5 = scipy.stats.shapiro(data_to_obtain_statics_cs_5)
 
-    fig1, ax1 = plt.subplots()
-    ax1.set_title(
-        "Context switch Boxplot " + tests_base_name + " " + "(" + scheduler_2_name + "-"
-        + scheduler_1_name + ") / Mandatory")
-    ax1.boxplot(data_to_obtain_statics_cs_1)
-    plt.show()
-
-    fig1, ax1 = plt.subplots()
-    ax1.set_title(
-        "Context switch Boxplot " + tests_base_name + " " + "(" + scheduler_2_name + "/" + scheduler_1_name + ")")
-    ax1.boxplot(data_to_obtain_statics_cs_2)
-    plt.show()
-
-    fig1, ax1 = plt.subplots()
-    ax1.set_title(
-        "Context switch Boxplot " + tests_base_name + " " + "(" + scheduler_2_name + "-" + scheduler_1_name + ")")
-    ax1.boxplot(data_to_obtain_statics_cs_3)
-    plt.show()
+    # fig1, ax1 = plt.subplots()
+    # ax1.set_title(
+    #     "Context switch Boxplot " + tests_base_name + " " + "(" + scheduler_2_name + "-"
+    #     + scheduler_1_name + ") / Mandatory")
+    # ax1.boxplot(data_to_obtain_statics_cs_1)
+    # plt.show()
+    #
+    # fig1, ax1 = plt.subplots()
+    # ax1.set_title(
+    #     "Context switch Boxplot " + tests_base_name + " " + "(" + scheduler_2_name + "/" + scheduler_1_name + ")")
+    # ax1.boxplot(data_to_obtain_statics_cs_2)
+    # plt.show()
+    #
+    # fig1, ax1 = plt.subplots()
+    # ax1.set_title(
+    #     "Context switch Boxplot " + tests_base_name + " " + "(" + scheduler_2_name + "-" + scheduler_1_name + ")")
+    # ax1.boxplot(data_to_obtain_statics_cs_3)
+    # plt.show()
 
     fig1, ax1 = plt.subplots()
     ax1.set_title("Context switch Boxplot " + tests_base_name + " " + "(" + scheduler_1_name + ") / Mandatory")

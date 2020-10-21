@@ -37,7 +37,7 @@ class UUniFastCycles(AbstractTaskGeneratorAlgorithm):
         processor_frequency = options["processor_frequency"]
 
         # Divisors of major cycle
-        t_i = random.choices(list(range(min_period_interval, max_period_interval + 1)), k=number_of_tasks)
+        t_i = random.choices(list(range(min_period_interval, max_period_interval + 1)), k=number_of_tasks - 1)
 
         # Major cycle
         major_cycle = round(self.list_lcm(t_i))
@@ -57,6 +57,7 @@ class UUniFastCycles(AbstractTaskGeneratorAlgorithm):
             total_cycles = total_cycles - (task_cycles_actual * (major_cycle // t_i[i]))
 
         cc_i.append(total_cycles)
+        t_i.append(major_cycle)
 
         return [PeriodicTask(cc, float(t), float(t), 1.0) for (cc, t) in zip(cc_i, t_i)]
 

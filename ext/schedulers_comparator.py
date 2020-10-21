@@ -250,16 +250,16 @@ def generate_task_set(full_experiment_name: str, number_of_cpus: int, number_of_
 
 if __name__ == '__main__':
     total_number_of_experiments = 200
-    parallel_level = 4
+    parallel_level = 2
 
     first_experiment_numeration = 0
 
     task_number_processors: List[Tuple[int, int]] = [
-        # (2, 2 * 4),
-        # (2, 2 * 8),
-        # (2, 2 * 12),
-        # (2, 2 * 16),
-        # (2, 2 * 20),
+        (2, 2 * 4),
+        (2, 2 * 8),
+        (2, 2 * 12),
+        (2, 2 * 16),
+        (2, 2 * 20),
 
         (4, 4 * 4),
         (4, 4 * 8),
@@ -296,9 +296,9 @@ if __name__ == '__main__':
             (experiment_name,
              number_of_cpus_actual,
              {
-                 "semipartitionedaiecs": SemiPartitionedAIECSScheduler()
+                 # "semipartitionedaiecs": SemiPartitionedAIECSScheduler()
                  # "aiecs": AIECSScheduler(),
-                 # "run": RUNScheduler()
+                 "run_improved": RUNScheduler()
              },
              {
                  "execution_percentage_statics.json": ExecutionPercentageStatistics(),
