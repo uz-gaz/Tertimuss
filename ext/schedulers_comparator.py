@@ -1,7 +1,6 @@
 import json
 import os
 import random
-import time
 
 from multiprocessing.pool import Pool
 from typing import List, Tuple, Dict, Optional
@@ -25,9 +24,7 @@ from main.core.problem_specification.simulation_specification.SimulationSpecific
 from main.core.problem_specification.simulation_specification.TCPNModelSpecification import TCPNModelSpecification
 from main.core.problem_specification.tasks_specification.PeriodicTask import PeriodicTask
 from main.core.problem_specification.tasks_specification.TasksSpecification import TasksSpecification
-from main.core.schedulers_definition.implementations.AIECS import AIECSScheduler
-from main.core.schedulers_definition.implementations.RUN import RUNScheduler
-from main.core.schedulers_definition.implementations.SemiPartitionedAIECS import SemiPartitionedAIECSScheduler
+from main.core.schedulers_definition.implementations.ClusteredAIECS import ClusteredAIECSScheduler
 from main.core.schedulers_definition.templates.AbstractScheduler import AbstractScheduler
 from main.plot_generator.implementations.ContextSwitchStatistics import ContextSwitchStatistics
 from main.plot_generator.implementations.ExecutionPercentageStatistics import ExecutionPercentageStatistics
@@ -61,18 +58,18 @@ def run_comparison(experiment_full_name: str, number_of_cpus: int, schedulers: D
 
     for scheduler_actual_name, scheduler_actual in schedulers.items():
         if not record_on_success or all([i[1] for i in success_list.items()]):
-            try:
-                result, global_specification, _ = create_problem_specification(task_set,
-                                                                               scheduler_actual,
-                                                                               number_of_cpus)
-                result_list[scheduler_actual_name] = (result, global_specification)
+            # try:
+            result, global_specification, _ = create_problem_specification(task_set,
+                                                                           scheduler_actual,
+                                                                           number_of_cpus)
+            result_list[scheduler_actual_name] = (result, global_specification)
 
-                success_list[scheduler_actual_name] = not _have_miss_deadline(global_specification, result)
+            success_list[scheduler_actual_name] = not _have_miss_deadline(global_specification, result)
 
-            except Exception as e:
-                print("Fail for " + scheduler_actual_name)
-                print(e.args)
-                success_list[scheduler_actual_name] = False
+            # except Exception as e:
+            #     print("Fail for " + scheduler_actual_name)
+            #     print(e.args)
+            #     success_list[scheduler_actual_name] = False
         else:
             success_list[scheduler_actual_name] = None
 
@@ -298,7 +295,8 @@ if __name__ == '__main__':
              {
                  # "semipartitionedaiecs": SemiPartitionedAIECSScheduler()
                  # "aiecs": AIECSScheduler(),
-                 "run_improved": RUNScheduler()
+                 # "run_improved": RUNScheduler(),
+                 "clustered_aiecs": ClusteredAIECSScheduler()
              },
              {
                  "execution_percentage_statics.json": ExecutionPercentageStatistics(),
@@ -333,8 +331,7 @@ if __name__ == '__main__':
 #     run_comparison("out/2/32/test_25",
 #                    2,
 #                    {
-#                        "aiecs": AIECSScheduler(),
-#                        "run": RUNScheduler()
+#                        "clustered_aiecs": ClusteredAIECSScheduler()
 #                    },
 #                    {
 #                        "execution_percentage_statics.json": ExecutionPercentageStatistics(),
