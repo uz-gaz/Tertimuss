@@ -29,7 +29,7 @@ The project needs the follow packages:
 - ffmpeg 4.1 or higher and all its dependencies
 - pyqt 5.9.2 or higher and all its dependencies
 - qt 5.9.2 or higher and all its dependencies (This package is necessary only if you want to modify the GUI)
-- ortools 7.8 or higher and all its dependencies
+- ortools 7.8.7959 and all its dependencies
 
 If you are using Miniconda or Anaconda the next few lines will create an environment called rt-scheduler-simulation-environment with all project dependencies installed in it.
 

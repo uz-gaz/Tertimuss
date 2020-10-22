@@ -5,11 +5,20 @@ from typing import List, Tuple
 import scipy.stats
 import matplotlib.pyplot as plt
 
-import seaborn as sns
-
 
 def do_plots():
-    tests_base_names = ["out/2/8/", "out/2/16/", "out/2/24/", "out/2/32/", "out/2/40/", "out/4/16/", "out/4/32/", "out/4/48/", "out/4/64/", "out/4/80/"]
+    tests_base_names: List[Tuple[str, str]] = [("out/2/8/", "2/8"),
+                                               ("out/2/16/", "2/16"),
+                                               ("out/2/24/", "2/24"),
+                                               ("out/2/32/", "2/32"),
+                                               ("out/2/40/", "2/40"),
+
+                                               ("out/4/16/", "4/16"),
+                                               ("out/4/32/", "4/32"),
+                                               ("out/4/48/", "4/48"),
+                                               ("out/4/64/", "4/64"),
+                                               ("out/4/80/", "4/80"),
+                                               ]
     scheduler_1_name = "aiecs"
     scheduler_2_name = "run"
 
@@ -18,7 +27,7 @@ def do_plots():
     # [CS ALG1, CS ALG2, CS MANDATORY, M ALG1, M ALG2]
     grouped_info: List[List[Tuple[int, int, int, int, int]]] = []
 
-    for tests_base_name in tests_base_names:
+    for tests_base_name, _ in tests_base_names:
         # [CS ALG1, CS ALG2, CS MANDATORY, M ALG1, M ALG2]
         local_grouped_info: List[Tuple[int, int, int, int, int]] = []
 
@@ -72,7 +81,7 @@ def do_plots():
     ax1.set_title("Boxplot " + scheduler_1_name + " produced (extra) context switch / JOB")
     ax1.boxplot(algorithm_1_cs_ratio)
 
-    ax1.set_xticklabels(tests_base_names)
+    ax1.set_xticklabels([i[1] for i in tests_base_names])
 
     plt.show()
 
@@ -80,7 +89,7 @@ def do_plots():
     ax1.set_title("Boxplot " + scheduler_2_name + " produced (extra) context switch / JOB")
     ax1.boxplot(algorithm_2_cs_ratio)
 
-    ax1.set_xticklabels(tests_base_names)
+    ax1.set_xticklabels([i[1] for i in tests_base_names])
 
     plt.show()
 
@@ -89,7 +98,7 @@ def do_plots():
     ax1.set_title("Boxplot " + scheduler_1_name + " produced (extra) migrations / JOB")
     ax1.boxplot(algorithm_1_m_ratio)
 
-    ax1.set_xticklabels(tests_base_names)
+    ax1.set_xticklabels([i[1] for i in tests_base_names])
 
     plt.show()
 
@@ -97,7 +106,7 @@ def do_plots():
     ax1.set_title("Boxplot " + scheduler_2_name + " produced (extra) migrations / JOB")
     ax1.boxplot(algorithm_2_m_ratio)
 
-    ax1.set_xticklabels(tests_base_names)
+    ax1.set_xticklabels([i[1] for i in tests_base_names])
 
     plt.show()
 
