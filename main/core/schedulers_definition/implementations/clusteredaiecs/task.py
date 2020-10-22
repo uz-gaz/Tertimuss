@@ -1,11 +1,11 @@
+# from dataclasses import dataclass
 
-from dataclasses import dataclass
 
-
-@dataclass
+# @dataclass
 class ImplicitDeadlineTask:
-    # Task worst case execution time in cycles
-    c: int
+    def __init__(self, c: int, d: int):
+        # Task worst case execution time in cycles
+        self.c: int = c
 
-    # Task deadline in cycles
-    d: int
+        # Task deadline in cycles
+        self.d: int = d

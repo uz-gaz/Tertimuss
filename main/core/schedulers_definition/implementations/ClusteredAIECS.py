@@ -54,8 +54,10 @@ class ClusteredAIECSScheduler(AbstractScheduler):
         for utilization, task_set_loop in partitions_obtained:
             major_cycle_local = round(reduce(numpy.lcm, [int(periodic_tasks_dict[i].d) for i in task_set_loop]))
 
+            number_of_major_cycles = round(global_specification.tasks_specification.h / major_cycle_local)
+
             actual_scheduler = EDFScheduler() if (utilization == 1) else AIECSMultipleMajorCyclesScheduler(
-                major_cycle_local)
+                number_of_major_cycles)
 
             self.__partitions_schedulers.append(
                 (actual_scheduler, task_set_loop, utilization, sum([i[2] for i in self.__partitions_schedulers])))
@@ -102,7 +104,8 @@ class ClusteredAIECSScheduler(AbstractScheduler):
 
             # Update local active tasks
             tasks_to_execute = tasks_to_execute + local_tasks_to_execute
-            frequencies_to_set = frequencies_to_set + (local_frequencies if local_frequencies is not None else local_cores_frequency)
+            frequencies_to_set = frequencies_to_set + (
+                local_frequencies if local_frequencies is not None else local_cores_frequency)
         return tasks_to_execute, None, frequencies_to_set
 
     def aperiodic_arrive(self, time: float, aperiodic_tasks_arrived: List[SystemTask],

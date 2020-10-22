@@ -459,14 +459,14 @@ class AIECSMultipleMajorCyclesScheduler(AbstractScheduler):
                 (round(i[0]), i[1][1]) for i in zip(self.__execution_by_intervals[:, self.__actual_interval_index],
                                                     self.__interval_cc_left)]
 
-        active_tasks_index = [self.__id_to_index[i] for i in active_tasks]
+        active_tasks_index = [self.__id_to_index[i] if i != -1 else -1 for i in active_tasks]
         executable_tasks_index = [self.__id_to_index[i.id] for i in executable_tasks]
 
         # Obtain new tasks to execute
         tasks_to_execute = active_tasks_index
         if self.__sp_interrupt(active_tasks_index, time):
             tasks_to_execute = self.__schedule_policy_imp(time, active_tasks_index,
-                                                          [i.id for i in executable_tasks_index])
+                                                          [i for i in executable_tasks_index])
 
         # Update cc in tasks being executed
         self.__interval_cc_left = [
@@ -484,5 +484,5 @@ class AIECSMultipleMajorCyclesScheduler(AbstractScheduler):
                 if tasks_to_execute[j] == actual and j != i:
                     tasks_to_execute[j], tasks_to_execute[i] = tasks_to_execute[i], tasks_to_execute[j]
 
-        return [self.__index_to_id[i] for i in tasks_to_execute], None, self.__m * [
+        return [self.__index_to_id[i] if i != -1 else -1 for i in tasks_to_execute], None, self.__m * [
             self.__intervals_frequencies[self.__actual_interval_index]]
