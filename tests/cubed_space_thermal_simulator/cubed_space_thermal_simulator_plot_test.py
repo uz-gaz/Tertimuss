@@ -198,7 +198,12 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
             # Zero seconds
             plot_3d_heat_map_temperature(temperature,
                                          min_temperature=min_simulation_value,
-                                         max_temperature=max_simulation_value)
+                                         max_temperature=max_simulation_value).show()
+
+            plot_2d_heat_map(temperature_over_before_zero_seconds,
+                             min_temperature=min_simulation_value,
+                             max_temperature=max_simulation_value,
+                             axis="Z", location_in_axis=1).show()
 
             min_temperature = obtain_min_temperature(temperature)
             max_temperature = obtain_max_temperature(temperature)
@@ -280,11 +285,11 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
         # Zero seconds
         plot_3d_heat_map_temperature(temperature_over_before_zero_seconds,
                                      min_temperature=min_simulation_value,
-                                     max_temperature=max_simulation_value)
+                                     max_temperature=max_simulation_value).show()
 
         plot_2d_heat_map(temperature_over_before_zero_seconds,
                          min_temperature=min_simulation_value,
-                         max_temperature=max_simulation_value, axis="Z", location_in_axis=2)
+                         max_temperature=max_simulation_value, axis="Z", location_in_axis=2).show()
 
         min_temperature = obtain_min_temperature(temperature_over_before_zero_seconds)
         max_temperature = obtain_max_temperature(temperature_over_before_zero_seconds)
@@ -294,7 +299,11 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
         # Half second
         plot_3d_heat_map_temperature(temperature_over_before_point_one_seconds,
                                      min_temperature=min_simulation_value,
-                                     max_temperature=max_simulation_value)
+                                     max_temperature=max_simulation_value).show()
+
+        plot_2d_heat_map(temperature_over_before_point_one_seconds,
+                         min_temperature=min_simulation_value,
+                         max_temperature=max_simulation_value, axis="Z", location_in_axis=2).show()
 
         min_temperature = obtain_min_temperature(temperature_over_before_point_one_seconds)
         max_temperature = obtain_max_temperature(temperature_over_before_point_one_seconds)
@@ -304,7 +313,11 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
         # One second
         plot_3d_heat_map_temperature(temperature_over_before_point_two_seconds,
                                      min_temperature=min_simulation_value,
-                                     max_temperature=max_simulation_value)
+                                     max_temperature=max_simulation_value).show()
+
+        plot_2d_heat_map(temperature_over_before_point_two_seconds,
+                         min_temperature=min_simulation_value,
+                         max_temperature=max_simulation_value, axis="Z", location_in_axis=2).show()
 
         min_temperature = obtain_min_temperature(temperature_over_before_point_two_seconds)
         max_temperature = obtain_max_temperature(temperature_over_before_point_two_seconds)

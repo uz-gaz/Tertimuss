@@ -3,13 +3,12 @@ from typing import List, Optional, Tuple, Literal
 
 import numpy
 import matplotlib.pyplot as plt
+from matplotlib.figure import Figure
 
 from cubed_space_thermal_simulator import TemperatureLocatedCube, obtain_min_temperature, obtain_max_temperature
 
 # This import registers the 3D projection, but is otherwise unused.
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
-
-import seaborn as sns
 
 
 def __obtain_rgb_heatmap_2_color_gradient(normalized_value: float) -> [float, float, float]:
@@ -31,7 +30,7 @@ def __obtain_rgb_heatmap_2_color_gradient(normalized_value: float) -> [float, fl
 
 def plot_3d_heat_map_temperature(heatmap_cube_list: List[TemperatureLocatedCube],
                                  min_temperature: Optional[float] = None,
-                                 max_temperature: Optional[float] = None):
+                                 max_temperature: Optional[float] = None) -> Figure:
     # Obtain surrounded cube
     min_x = min([i.location.x for i in heatmap_cube_list])
     min_y = min([i.location.y for i in heatmap_cube_list])
@@ -112,8 +111,9 @@ def plot_3d_heat_map_temperature(heatmap_cube_list: List[TemperatureLocatedCube]
 
     # Hide grid lines
     ax.grid(b=None)
-    plt.axis('off')
-    plt.show()
+    ax.set_axis_off()
+
+    return fig
 
 
 def generate_video_3d_heat_map(
@@ -127,7 +127,7 @@ def plot_2d_heat_map(heatmap_cube_list: List[TemperatureLocatedCube],
                      axis: Literal["X", "Y", "Z"],
                      location_in_axis: int,
                      min_temperature: Optional[float] = None,
-                     max_temperature: Optional[float] = None):
+                     max_temperature: Optional[float] = None) -> Figure:
     # Obtain surrounded cube
     min_x = min([i.location.x for i in heatmap_cube_list])
     min_y = min([i.location.y for i in heatmap_cube_list])
@@ -150,7 +150,7 @@ def plot_2d_heat_map(heatmap_cube_list: List[TemperatureLocatedCube],
             (min_y, max_y) if axis == "Z" else (min_z, max_z))
 
         # Array where the heat matrix will be stored
-        heat_matrix: numpy.ndarray = numpy.empty((plane_max_y - plane_min_y, plane_max_x - plane_min_x))
+        heat_matrix: numpy.ndarray = numpy.full((plane_max_y - plane_min_y, plane_max_x - plane_min_x), numpy.NaN)
         mask = numpy.ones((plane_max_y - plane_min_y, plane_max_x - plane_min_x))
 
         for i in heatmap_cube_list:
@@ -166,46 +166,41 @@ def plot_2d_heat_map(heatmap_cube_list: List[TemperatureLocatedCube],
             representation_y_offset = i.location.y - min_y
             representation_z_offset = i.location.z - min_z
 
-            if axis == "X" and local_min_x <= location_in_axis <= local_max_x:
+            if axis == "X" and local_min_x <= location_in_axis < local_max_x:
                 local_x = location_in_axis - i.location.x
                 for local_z in range(0, i.dimensions.z):
                     for local_y in range(0, i.dimensions.y):
                         temperature_value = i.temperatureMatrix[
-                            (local_x - local_min_x) + (local_y - local_min_y) * i.dimensions.x + (
-                                    local_z - local_min_z) * i.dimensions.y * i.dimensions.x]
+                            local_x + local_y * i.dimensions.x + local_z * i.dimensions.y * i.dimensions.x]
 
                         heat_matrix[
                             representation_z_offset + local_z, representation_y_offset + local_y] = temperature_value
 
                         mask[representation_z_offset + local_z, representation_y_offset + local_y] = False
 
-            elif axis == "Y" and local_min_y <= location_in_axis <= local_max_y:
+            elif axis == "Y" and local_min_y <= location_in_axis < local_max_y:
                 local_y = location_in_axis - i.location.y
                 for local_z in range(0, i.dimensions.z):
                     for local_x in range(0, i.dimensions.x):
                         temperature_value = i.temperatureMatrix[
-                            (local_x - local_min_x) + (local_y - local_min_y) * i.dimensions.x + (
-                                    local_z - local_min_z) * i.dimensions.y * i.dimensions.x]
+                            local_x + local_y * i.dimensions.x + local_z * i.dimensions.y * i.dimensions.x]
 
                         heat_matrix[
                             representation_z_offset + local_z, representation_x_offset + local_x] = temperature_value
 
                         mask[representation_z_offset + local_z, representation_x_offset + local_x] = False
 
-            elif axis == "Z" and local_min_z <= location_in_axis <= local_max_z:
+            elif axis == "Z" and local_min_z <= location_in_axis < local_max_z:
                 local_z = location_in_axis - i.location.z
                 for local_y in range(0, i.dimensions.y):
                     for local_x in range(0, i.dimensions.x):
                         temperature_value = i.temperatureMatrix[
-                            (local_x - local_min_x) + (local_y - local_min_y) * i.dimensions.x + (
-                                    local_z - local_min_z) * i.dimensions.y * i.dimensions.x]
+                            local_x + local_y * i.dimensions.x + local_z * i.dimensions.y * i.dimensions.x]
 
                         heat_matrix[
                             representation_y_offset + local_y, representation_x_offset + local_x] = temperature_value
 
-                        mask[representation_y_offset + local_y, representation_x_offset + local_x] = False
-
         # Draw
-        sns.set_theme()
-        ax = sns.heatmap(heat_matrix, mask=mask, cmap="plasma", vmin=min_temperature, vmax=max_temperature)
-        plt.show()
+        fig, ax = plt.subplots()
+        quad = ax.pcolormesh(heat_matrix, vmin=min_temperature, vmax=max_temperature, cmap="plasma")
+        return fig
