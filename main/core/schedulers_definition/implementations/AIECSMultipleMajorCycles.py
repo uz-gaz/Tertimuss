@@ -239,6 +239,10 @@ class AIECSMultipleMajorCyclesScheduler(AbstractScheduler):
                     number_of_extra_cycles = (dt * f_star_hz) - (cci[task] % int(round(dt * f_star_hz)))
                     x[task, last_interval_of_execution] = x[task, last_interval_of_execution] - number_of_extra_cycles
 
+        # Index to id
+        self.__index_to_id = {i: j.id for i, j in enumerate(periodic_tasks)}
+        self.__id_to_index = {j.id: i for i, j in enumerate(periodic_tasks)}
+
         # All intervals
         self.__intervals_end = numpy.hstack(
             [sd + (i * global_specification.tasks_specification.h) for i in range(self.__number_of_major_cycles)])
@@ -247,7 +251,8 @@ class AIECSMultipleMajorCyclesScheduler(AbstractScheduler):
         self.__execution_by_intervals = numpy.hstack(self.__number_of_major_cycles * [x])
 
         # [(cc left in the interval, task id)]
-        self.__interval_cc_left = [(round(i[0]), i[1].id) for i in zip((x[:, 0]).reshape(-1), periodic_tasks)]
+        self.__interval_cc_left = [(round(i[0]), self.__id_to_index[i[1].id]) for i in
+                                   zip((x[:, 0]).reshape(-1), periodic_tasks)]
 
         # Index of the actual interval
         self.__actual_interval_index = 0
@@ -263,10 +268,6 @@ class AIECSMultipleMajorCyclesScheduler(AbstractScheduler):
 
         # True if new aperiodic has arrive
         self.__aperiodic_arrive = False
-
-        # Index to id
-        self.__index_to_id = {i: j.id for i, j in enumerate(periodic_tasks)}
-        self.__id_to_index = {j.id: i for i, j in enumerate(periodic_tasks)}
 
         return self.__dt
 
