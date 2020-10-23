@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 def compare_results():
     tests_base_names = ["out/2/8/", "out/2/16/", "out/2/24/", "out/2/32/", "out/2/40/", "out/4/16/", "out/4/32/",
                         "out/4/48/", "out/4/64/", "out/4/80/"]
-    scheduler_1_name = "aiecs"
+    scheduler_1_name = "clustered_aiecs"
     scheduler_2_name = "run"
 
     for tests_base_name in tests_base_names:
