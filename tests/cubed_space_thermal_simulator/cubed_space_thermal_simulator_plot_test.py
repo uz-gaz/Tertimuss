@@ -2,8 +2,8 @@ import unittest
 
 from cubed_space_thermal_simulator import UnitDimensions, UnitLocation, \
     CubedSpace, ThermalUnits, SolidMaterialLocatedCube, \
-    obtain_min_temperature, obtain_max_temperature, plot_3d_heat_map_temperature_located_cube_list, \
-    InternalTemperatureBoosterLocatedCube
+    obtain_min_temperature, obtain_max_temperature, plot_3d_heat_map_temperature, \
+    InternalTemperatureBoosterLocatedCube, plot_2d_heat_map
 
 from cubed_space_thermal_simulator.materials_pack import CooperSolidMaterial, SiliconSolidMaterial, \
     AirFreeEnvironmentProperties, AirForcedEnvironmentProperties
@@ -196,9 +196,9 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
 
         for i, temperature in enumerate(temperatures_vector):
             # Zero seconds
-            plot_3d_heat_map_temperature_located_cube_list(temperature,
-                                                           min_temperature=min_simulation_value,
-                                                           max_temperature=max_simulation_value)
+            plot_3d_heat_map_temperature(temperature,
+                                         min_temperature=min_simulation_value,
+                                         max_temperature=max_simulation_value)
 
             min_temperature = obtain_min_temperature(temperature)
             max_temperature = obtain_max_temperature(temperature)
@@ -278,9 +278,13 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
                                                                                    units=ThermalUnits.CELSIUS)
 
         # Zero seconds
-        plot_3d_heat_map_temperature_located_cube_list(temperature_over_before_zero_seconds,
-                                                       min_temperature=min_simulation_value,
-                                                       max_temperature=max_simulation_value)
+        plot_3d_heat_map_temperature(temperature_over_before_zero_seconds,
+                                     min_temperature=min_simulation_value,
+                                     max_temperature=max_simulation_value)
+
+        plot_2d_heat_map(temperature_over_before_zero_seconds,
+                         min_temperature=min_simulation_value,
+                         max_temperature=max_simulation_value, axis="Z", location_in_axis=2)
 
         min_temperature = obtain_min_temperature(temperature_over_before_zero_seconds)
         max_temperature = obtain_max_temperature(temperature_over_before_zero_seconds)
@@ -288,9 +292,9 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
         print("Temperature before 0 seconds: min", min_temperature, ", max", max_temperature)
 
         # Half second
-        plot_3d_heat_map_temperature_located_cube_list(temperature_over_before_point_one_seconds,
-                                                       min_temperature=min_simulation_value,
-                                                       max_temperature=max_simulation_value)
+        plot_3d_heat_map_temperature(temperature_over_before_point_one_seconds,
+                                     min_temperature=min_simulation_value,
+                                     max_temperature=max_simulation_value)
 
         min_temperature = obtain_min_temperature(temperature_over_before_point_one_seconds)
         max_temperature = obtain_max_temperature(temperature_over_before_point_one_seconds)
@@ -298,9 +302,9 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
         print("Temperature before 0.1 seconds: min", min_temperature, ", max", max_temperature)
 
         # One second
-        plot_3d_heat_map_temperature_located_cube_list(temperature_over_before_point_two_seconds,
-                                                       min_temperature=min_simulation_value,
-                                                       max_temperature=max_simulation_value)
+        plot_3d_heat_map_temperature(temperature_over_before_point_two_seconds,
+                                     min_temperature=min_simulation_value,
+                                     max_temperature=max_simulation_value)
 
         min_temperature = obtain_min_temperature(temperature_over_before_point_two_seconds)
         max_temperature = obtain_max_temperature(temperature_over_before_point_two_seconds)
@@ -370,9 +374,9 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
                                                                             units=ThermalUnits.CELSIUS)
 
         # Zero seconds
-        plot_3d_heat_map_temperature_located_cube_list(temperature_over_before_zero_seconds,
-                                                       min_temperature=min_simulation_value,
-                                                       max_temperature=max_simulation_value)
+        plot_3d_heat_map_temperature(temperature_over_before_zero_seconds,
+                                     min_temperature=min_simulation_value,
+                                     max_temperature=max_simulation_value)
 
         min_temperature = obtain_min_temperature(temperature_over_before_zero_seconds)
         max_temperature = obtain_max_temperature(temperature_over_before_zero_seconds)
@@ -380,9 +384,9 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
         print("Temperature before 0 seconds: min", min_temperature, ", max", max_temperature)
 
         # Half second
-        plot_3d_heat_map_temperature_located_cube_list(temperature_over_before_half_second,
-                                                       min_temperature=min_simulation_value,
-                                                       max_temperature=max_simulation_value)
+        plot_3d_heat_map_temperature(temperature_over_before_half_second,
+                                     min_temperature=min_simulation_value,
+                                     max_temperature=max_simulation_value)
 
         min_temperature = obtain_min_temperature(temperature_over_before_half_second)
         max_temperature = obtain_max_temperature(temperature_over_before_half_second)
@@ -390,9 +394,9 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
         print("Temperature before 0.5 seconds: min", min_temperature, ", max", max_temperature)
 
         # One second
-        plot_3d_heat_map_temperature_located_cube_list(temperature_over_before_one_second,
-                                                       min_temperature=min_simulation_value,
-                                                       max_temperature=max_simulation_value)
+        plot_3d_heat_map_temperature(temperature_over_before_one_second,
+                                     min_temperature=min_simulation_value,
+                                     max_temperature=max_simulation_value)
 
         min_temperature = obtain_min_temperature(temperature_over_before_one_second)
         max_temperature = obtain_max_temperature(temperature_over_before_one_second)
