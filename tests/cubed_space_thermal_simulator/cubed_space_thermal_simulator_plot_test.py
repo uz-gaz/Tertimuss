@@ -1,7 +1,7 @@
 import unittest
 
 from cubed_space_thermal_simulator import UnitDimensions, UnitLocation, \
-    CubedSpace, ThermalUnits, SolidMaterialLocatedCube, \
+    CubedSpace, SolidMaterialLocatedCube, \
     obtain_min_temperature, obtain_max_temperature, plot_3d_heat_map_temperature, \
     InternalTemperatureBoosterLocatedCube, plot_2d_heat_map
 
@@ -178,8 +178,7 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
 
         # Initial temperatures
         temperature_over_before_zero_seconds = cubed_space.obtain_temperature(
-            actual_state=initial_state,
-            units=ThermalUnits.CELSIUS)
+            actual_state=initial_state)
 
         temperatures_vector.append(temperature_over_before_zero_seconds)
 
@@ -190,8 +189,7 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
                                                      external_energy_application_points={0},  # {0, 1, 2, 3, 4},
                                                      # internal_energy_application_points={0, 1, 2, 3},
                                                      amount_of_time=0.5)
-            temperature = cubed_space.obtain_temperature(actual_state=initial_state,
-                                                         units=ThermalUnits.CELSIUS)
+            temperature = cubed_space.obtain_temperature(actual_state=initial_state)
 
             temperatures_vector.append(temperature)
 
@@ -270,19 +268,15 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
         )
 
         # Initial temperatures
-        temperature_over_before_zero_seconds = cubed_space.obtain_temperature(
-            actual_state=initial_state,
-            units=ThermalUnits.CELSIUS)
+        temperature_over_before_zero_seconds = cubed_space.obtain_temperature(actual_state=initial_state)
 
         # Apply energy over the cubed space
         initial_state = cubed_space.apply_energy(actual_state=initial_state, amount_of_time=0.1)
-        temperature_over_before_point_one_seconds = cubed_space.obtain_temperature(actual_state=initial_state,
-                                                                                   units=ThermalUnits.CELSIUS)
+        temperature_over_before_point_one_seconds = cubed_space.obtain_temperature(actual_state=initial_state)
 
         # Apply energy over the cubed space
         initial_state = cubed_space.apply_energy(actual_state=initial_state, amount_of_time=0.1)
-        temperature_over_before_point_two_seconds = cubed_space.obtain_temperature(actual_state=initial_state,
-                                                                                   units=ThermalUnits.CELSIUS)
+        temperature_over_before_point_two_seconds = cubed_space.obtain_temperature(actual_state=initial_state)
 
         # Zero seconds
         plot_3d_heat_map_temperature(temperature_over_before_zero_seconds,
@@ -375,19 +369,15 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
         )
 
         # Initial temperatures
-        temperature_over_before_zero_seconds = cubed_space.obtain_temperature(
-            actual_state=initial_state,
-            units=ThermalUnits.CELSIUS)
+        temperature_over_before_zero_seconds = cubed_space.obtain_temperature(actual_state=initial_state)
 
         # Apply energy over the cubed space
         initial_state = cubed_space.apply_energy(actual_state=initial_state, amount_of_time=0.9)
-        temperature_over_before_half_second = cubed_space.obtain_temperature(actual_state=initial_state,
-                                                                             units=ThermalUnits.CELSIUS)
+        temperature_over_before_half_second = cubed_space.obtain_temperature(actual_state=initial_state)
 
         # Apply energy over the cubed space
         initial_state = cubed_space.apply_energy(actual_state=initial_state, amount_of_time=0.9)
-        temperature_over_before_one_second = cubed_space.obtain_temperature(actual_state=initial_state,
-                                                                            units=ThermalUnits.CELSIUS)
+        temperature_over_before_one_second = cubed_space.obtain_temperature(actual_state=initial_state)
 
         # Zero seconds
         plot_3d_heat_map_temperature(temperature_over_before_zero_seconds,

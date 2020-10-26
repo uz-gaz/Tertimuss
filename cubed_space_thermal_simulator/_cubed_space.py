@@ -612,14 +612,12 @@ class CubedSpace(object):
         mo_next = self.__tcpn_simulator.simulate_step(mo, amount_of_time)
         return CubedSpaceState(mo_next)
 
-    def obtain_temperature(self, actual_state: CubedSpaceState, units: ThermalUnits = ThermalUnits.KELVIN) -> List[
-        TemperatureLocatedCube]:
+    def obtain_temperature(self, actual_state: CubedSpaceState) -> List[TemperatureLocatedCube]:
         """
         This function return the temperature in each cube of unit edge that conform the cubedSpace
 
         :param actual_state:
-        :param units: Units to receive the temperature.
-        :return: List of temperature blocks
+        :return: List of temperature blocks in kelvin
         """
         temperature_cubes = []
 
@@ -630,8 +628,6 @@ class CubedSpace(object):
             temperature_cubes.append(
                 TemperatureLocatedCube(material_cube.dimensions, material_cube.location, temperature_places))
 
-        # TODO: Implement unit conversion
-
         return temperature_cubes
 
     def create_initial_state(self, default_temperature: float,
@@ -640,7 +636,7 @@ class CubedSpace(object):
         """
 
         :param default_temperature:
-        :param material_cubes_temperatures:
+        :param material_cubes_temperatures: List of [material cube id, material cube temperature (Kelvin)]
         :param environment_temperature: Environment temperature (Kelvin)
         :return:
         """

@@ -3,34 +3,31 @@ from typing import List, Optional, Tuple, Literal
 
 import numpy
 import matplotlib.pyplot as plt
+from matplotlib import cm, colors
 from matplotlib.figure import Figure
 
-from cubed_space_thermal_simulator import TemperatureLocatedCube, obtain_min_temperature, obtain_max_temperature
+from cubed_space_thermal_simulator import TemperatureLocatedCube, obtain_min_temperature, obtain_max_temperature, \
+    ThermalUnits
 
 # This import registers the 3D projection, but is otherwise unused.
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
 
 
-def __obtain_rgb_heatmap_2_color_gradient(normalized_value: float) -> [float, float, float]:
-    """
-    Obtain color for heatmap
-    Based on http://www.andrewnoske.com/wiki/Code_-_heatmaps_and_color_gradients
-
-    :param normalized_value: temperature value in the range [0, 1]
-    :return: RGB representation
-    """
-    cold_r, cold_g, cold_b = [0.0, 0.0, 1.0]
-    hot_r, hot_g, hot_b = [1.0, 0.0, 0.0]
-
-    red = (hot_r - cold_r) * normalized_value + cold_r
-    green = (hot_g - cold_g) * normalized_value + cold_g
-    blue = (hot_b - cold_b) * normalized_value + cold_b
-    return [red, green, blue]
-
-
 def plot_3d_heat_map_temperature(heatmap_cube_list: List[TemperatureLocatedCube],
                                  min_temperature: Optional[float] = None,
-                                 max_temperature: Optional[float] = None) -> Figure:
+                                 max_temperature: Optional[float] = None,
+                                 color_map: str = "plasma",
+                                 units: ThermalUnits = ThermalUnits.KELVIN) -> Figure:
+    """
+    Plot 3d heat map of the model
+
+    :param heatmap_cube_list: List with model temperature
+    :param min_temperature: Min temperature in the model
+    :param max_temperature: Max temperature in the model
+    :param color_map: Model color map
+    :param units: Thermal units
+    :return: Resultant figure
+    """
     # Obtain surrounded cube
     min_x = min([i.location.x for i in heatmap_cube_list])
     min_y = min([i.location.y for i in heatmap_cube_list])
@@ -44,7 +41,7 @@ def plot_3d_heat_map_temperature(heatmap_cube_list: List[TemperatureLocatedCube]
     x, y, z = numpy.indices((max_x - min_x, max_y - min_y, max_z - min_z))
 
     # Colors array
-    colors = numpy.zeros((max_x - min_x, max_y - min_y, max_z - min_z, 3))
+    voxels_colors = numpy.zeros((max_x - min_x, max_y - min_y, max_z - min_z, 3))
 
     voxels_list = []
 
@@ -52,6 +49,9 @@ def plot_3d_heat_map_temperature(heatmap_cube_list: List[TemperatureLocatedCube]
 
     min_temperature = obtain_min_temperature(heatmap_cube_list) if min_temperature is None else min_temperature
     max_temperature = obtain_max_temperature(heatmap_cube_list) if max_temperature is None else max_temperature
+
+    # Color transformer
+    color_mappable = cm.ScalarMappable(norm=colors.Normalize(min_temperature, max_temperature), cmap=color_map)
 
     for i in heatmap_cube_list:
         local_min_x = i.location.x
@@ -78,10 +78,10 @@ def plot_3d_heat_map_temperature(heatmap_cube_list: List[TemperatureLocatedCube]
                             max_temperature - min_temperature) if min_temperature != max_temperature else 0.5
 
                     # Obtain color
-                    colors[local_x - min_x, local_y - min_y, local_z - min_z, 0], colors[
-                        local_x - min_x, local_y - min_y, local_z - min_z, 1], colors[
-                        local_x - min_x, local_y - min_y, local_z - min_z, 2] = __obtain_rgb_heatmap_2_color_gradient(
-                        normalized_temperature)
+                    rgb_color = color_mappable.to_rgba(temperature)
+                    voxels_colors[local_x - min_x, local_y - min_y, local_z - min_z, 0], voxels_colors[
+                        local_x - min_x, local_y - min_y, local_z - min_z, 1], voxels_colors[
+                        local_x - min_x, local_y - min_y, local_z - min_z, 2] = rgb_color[0], rgb_color[1], rgb_color[2]
 
     # combine the objects into a single boolean array
     voxels = functools.reduce(lambda a, b: a | b, voxels_list)
@@ -89,7 +89,7 @@ def plot_3d_heat_map_temperature(heatmap_cube_list: List[TemperatureLocatedCube]
     # and plot everything
     fig = plt.figure()
     ax = fig.gca(projection='3d')
-    ax.voxels(voxels, facecolors=colors)
+    ax.voxels(voxels, facecolors=voxels_colors)
 
     ax.set(xlabel='x', ylabel='y', zlabel='z')
 
@@ -111,8 +111,11 @@ def plot_3d_heat_map_temperature(heatmap_cube_list: List[TemperatureLocatedCube]
 
     # Hide grid lines
     ax.grid(b=None)
-    ax.set_axis_off()
+    # ax.set_axis_off()
 
+    cbar = fig.colorbar(cm.ScalarMappable(norm=colors.Normalize(min_temperature, max_temperature), cmap=color_map),
+                        ax=ax)
+    cbar.ax.set_ylabel("Temperature in " + ("kelvin" if units == ThermalUnits.KELVIN else "celsius"))
     return fig
 
 
@@ -127,7 +130,21 @@ def plot_2d_heat_map(heatmap_cube_list: List[TemperatureLocatedCube],
                      axis: Literal["X", "Y", "Z"],
                      location_in_axis: int,
                      min_temperature: Optional[float] = None,
-                     max_temperature: Optional[float] = None) -> Figure:
+                     max_temperature: Optional[float] = None,
+                     color_map: str = "plasma",
+                     units: ThermalUnits = ThermalUnits.KELVIN) -> Figure:
+    """
+    Plot 2d heat map of the model
+
+    :param location_in_axis: Location in the axis
+    :param axis: Axis to plot
+    :param heatmap_cube_list: List with model temperature
+    :param min_temperature: Min temperature in the model
+    :param max_temperature: Max temperature in the model
+    :param color_map: Model color map
+    :param units: Thermal units
+    :return: Resultant figure
+    """
     # Obtain surrounded cube
     min_x = min([i.location.x for i in heatmap_cube_list])
     min_y = min([i.location.y for i in heatmap_cube_list])
@@ -215,8 +232,9 @@ def plot_2d_heat_map(heatmap_cube_list: List[TemperatureLocatedCube],
         ax.set_xlim(x_lim_min, x_lim_max)
         ax.set_ylim(y_lim_min, y_lim_max)
 
-        quad = ax.pcolormesh(heat_matrix, vmin=min_temperature, vmax=max_temperature, cmap="plasma")
+        quad = ax.pcolormesh(heat_matrix, vmin=min_temperature, vmax=max_temperature, cmap=color_map)
         ax.set_xticks(numpy.arange(plane_min_x, plane_max_x + 1, 1.0))
         ax.set_yticks(numpy.arange(plane_min_y, plane_max_y + 1, 1.0))
-        fig.colorbar(quad, ax=ax)
+        cbar = fig.colorbar(quad, ax=ax)
+        cbar.ax.set_ylabel("Temperature in " + ("kelvin" if units == ThermalUnits.KELVIN else "celsius"))
         return fig

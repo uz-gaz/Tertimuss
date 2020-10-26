@@ -69,4 +69,4 @@ class TCPNSimulatorVariableStepRK(AbstractTCPNSimulatorVariableStep):
 
         sol = solve_ivp(lambda t, m: a.dot(m), [0, dt], mo.reshape(-1), vectorized=True)
 
-        return (sol.y[:, -1]).reshape(-1, 1)
+        return (sol.y[:, -1]).reshape(-1)
