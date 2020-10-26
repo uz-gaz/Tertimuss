@@ -3,7 +3,8 @@ from typing import List, Optional, Tuple, Literal
 
 import numpy
 import matplotlib.pyplot as plt
-from matplotlib import cm, colors
+from matplotlib import cm, colors, animation
+from matplotlib.animation import FuncAnimation
 from matplotlib.figure import Figure
 
 from cubed_space_thermal_simulator import TemperatureLocatedCube, obtain_min_temperature, obtain_max_temperature, \
@@ -126,25 +127,9 @@ def generate_video_3d_heat_map(
     pass
 
 
-def plot_2d_heat_map(heatmap_cube_list: List[TemperatureLocatedCube],
-                     axis: Literal["X", "Y", "Z"],
-                     location_in_axis: int,
-                     min_temperature: Optional[float] = None,
-                     max_temperature: Optional[float] = None,
-                     color_map: str = "plasma",
-                     units: ThermalUnits = ThermalUnits.KELVIN) -> Figure:
-    """
-    Plot 2d heat map of the model
-
-    :param location_in_axis: Location in the axis
-    :param axis: Axis to plot
-    :param heatmap_cube_list: List with model temperature
-    :param min_temperature: Min temperature in the model
-    :param max_temperature: Max temperature in the model
-    :param color_map: Model color map
-    :param units: Thermal units
-    :return: Resultant figure
-    """
+def obtain_2d_heat_matrix(heatmap_cube_list: List[TemperatureLocatedCube],
+                          axis: Literal["X", "Y", "Z"],
+                          location_in_axis: int) -> Optional[Tuple[numpy.ndarray, float, float, float, float]]:
     # Obtain surrounded cube
     min_x = min([i.location.x for i in heatmap_cube_list])
     min_y = min([i.location.y for i in heatmap_cube_list])
@@ -217,9 +202,85 @@ def plot_2d_heat_map(heatmap_cube_list: List[TemperatureLocatedCube],
                         heat_matrix[
                             representation_y_offset + local_y, representation_x_offset + local_x] = temperature_value
 
+        return heat_matrix, plane_min_x, plane_max_x, plane_min_y, plane_max_y
+
+    else:
+        return None
+
+
+def plot_2d_heat_map(heatmap_cube_list: List[TemperatureLocatedCube],
+                     axis: Literal["X", "Y", "Z"],
+                     location_in_axis: int,
+                     min_temperature: Optional[float] = None,
+                     max_temperature: Optional[float] = None,
+                     color_map: str = "plasma",
+                     units: ThermalUnits = ThermalUnits.KELVIN) -> Optional[Figure]:
+    """
+    Plot 2d heat map of the model
+
+    :param location_in_axis: Location in the axis
+    :param axis: Axis to plot
+    :param heatmap_cube_list: List with model temperature
+    :param min_temperature: Min temperature in the model
+    :param max_temperature: Max temperature in the model
+    :param color_map: Model color map
+    :param units: Thermal units
+    :return: Resultant figure
+    """
+
+    # Obtain heat matrix
+    heat_matrix_result = obtain_2d_heat_matrix(heatmap_cube_list, axis, location_in_axis)
+    if heat_matrix_result is not None:
+        heat_matrix, plane_min_x, plane_max_x, plane_min_y, plane_max_y = heat_matrix_result
+
+        # Range
+        max_range = max([plane_max_x - plane_min_x, plane_max_y - plane_min_y])
+
+        # Calculate limits
+        x_lim_min = plane_min_x - ((max_range - (plane_max_x - plane_min_x)) / 2)
+        x_lim_max = plane_max_x + ((max_range - (plane_max_x - plane_min_x)) / 2)
+
+        y_lim_min = plane_min_y - ((max_range - (plane_max_y - plane_min_y)) / 2)
+        y_lim_max = plane_max_y + ((max_range - (plane_max_y - plane_min_y)) / 2)
+
         # Draw
         fig, ax = plt.subplots()
 
+        ax.set_xlim(x_lim_min, x_lim_max)
+        ax.set_ylim(y_lim_min, y_lim_max)
+
+        quad = ax.pcolormesh(heat_matrix, vmin=min_temperature, vmax=max_temperature, cmap=color_map)
+        ax.set_xticks(numpy.arange(plane_min_x, plane_max_x + 1, 1.0))
+        ax.set_yticks(numpy.arange(plane_min_y, plane_max_y + 1, 1.0))
+        cbar = fig.colorbar(quad, ax=ax)
+        cbar.ax.set_ylabel("Temperature in " + ("kelvin" if units == ThermalUnits.KELVIN else "celsius"))
+        return fig
+    else:
+        return None
+
+
+def generate_video_2d_heat_map(
+        heatmap_cube_list: List[Tuple[List[TemperatureLocatedCube], float]],
+        axis: Literal["X", "Y", "Z"],
+        location_in_axis: int,
+        min_temperature: Optional[float] = None,
+        max_temperature: Optional[float] = None,
+        color_map: str = "plasma",
+        units: ThermalUnits = ThermalUnits.KELVIN) -> FuncAnimation:
+    fig, ax = plt.subplots()
+    cbar = fig.colorbar(cm.ScalarMappable(norm=colors.Normalize(min_temperature, max_temperature), cmap=color_map),
+                        ax=ax)
+    cbar.ax.set_ylabel("Temperature in " + ("kelvin" if units == ThermalUnits.KELVIN else "celsius"))
+
+    def animate(i):
+        heatmap_cube_list_local, heatmap_cube_list_local_time = heatmap_cube_list[i]
+
+        # Obtain heat matrix
+        heat_matrix_result = obtain_2d_heat_matrix(heatmap_cube_list_local, axis, location_in_axis)
+
+        heat_matrix, plane_min_x, plane_max_x, plane_min_y, plane_max_y = heat_matrix_result
+
+        # Range
         max_range = max([plane_max_x - plane_min_x, plane_max_y - plane_min_y])
 
         # Calculate limits
@@ -231,10 +292,13 @@ def plot_2d_heat_map(heatmap_cube_list: List[TemperatureLocatedCube],
 
         ax.set_xlim(x_lim_min, x_lim_max)
         ax.set_ylim(y_lim_min, y_lim_max)
-
-        quad = ax.pcolormesh(heat_matrix, vmin=min_temperature, vmax=max_temperature, cmap=color_map)
         ax.set_xticks(numpy.arange(plane_min_x, plane_max_x + 1, 1.0))
         ax.set_yticks(numpy.arange(plane_min_y, plane_max_y + 1, 1.0))
-        cbar = fig.colorbar(quad, ax=ax)
-        cbar.ax.set_ylabel("Temperature in " + ("kelvin" if units == ThermalUnits.KELVIN else "celsius"))
-        return fig
+
+        quad = ax.pcolormesh(heat_matrix, vmin=min_temperature, vmax=max_temperature, cmap=color_map)
+
+        return quad
+
+    anim = animation.FuncAnimation(fig, animate, frames=len(heatmap_cube_list), interval=1, blit=False, repeat=False)
+
+    return anim

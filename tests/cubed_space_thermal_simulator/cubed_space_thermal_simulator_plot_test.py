@@ -1,9 +1,11 @@
 import unittest
 
+from matplotlib import animation
+
 from cubed_space_thermal_simulator import UnitDimensions, UnitLocation, \
     CubedSpace, SolidMaterialLocatedCube, \
     obtain_min_temperature, obtain_max_temperature, plot_3d_heat_map_temperature, \
-    InternalTemperatureBoosterLocatedCube, plot_2d_heat_map
+    InternalTemperatureBoosterLocatedCube, plot_2d_heat_map, generate_video_2d_heat_map
 
 from cubed_space_thermal_simulator.materials_pack import CooperSolidMaterial, SiliconSolidMaterial, \
     AirFreeEnvironmentProperties, AirForcedEnvironmentProperties
@@ -292,7 +294,7 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
 
         print("Temperature before 0 seconds: min", min_temperature, ", max", max_temperature)
 
-        # Half second
+        # Point one seconds
         plot_3d_heat_map_temperature(temperature_over_before_point_one_seconds,
                                      min_temperature=min_simulation_value,
                                      max_temperature=max_simulation_value).show()
@@ -306,7 +308,7 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
 
         print("Temperature before 0.1 seconds: min", min_temperature, ", max", max_temperature)
 
-        # One second
+        # Point two seconds
         plot_3d_heat_map_temperature(temperature_over_before_point_two_seconds,
                                      min_temperature=min_simulation_value,
                                      max_temperature=max_simulation_value).show()
@@ -319,6 +321,85 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
         max_temperature = obtain_max_temperature(temperature_over_before_point_two_seconds)
 
         print("Temperature before 0.2 second: min", min_temperature, ", max", max_temperature)
+
+    # @unittest.skip("Manual visualization test")
+    def test_external_conduction_plot_2d_animation_generation(self):
+        # Dimensions of the cubes
+        cubes_dimensions = UnitDimensions(x=4, z=4, y=4)
+
+        # Cube 0 material
+        cube_0_material = SiliconSolidMaterial()
+
+        # Cube 1 material
+        cube_1_material = CooperSolidMaterial()
+
+        # Core initial temperature
+        cube_0_initial_temperature = 273.15 + 65
+        cube_1_initial_temperature = 273.15 + 25
+
+        # Board initial temperature
+        environment_temperature = 273.15 + 15
+
+        # Min simulation value
+        min_simulation_value = cube_1_initial_temperature - 10
+        max_simulation_value = cube_0_initial_temperature + 10
+
+        # Definition of the CPU shape and materials
+        scene_definition = {
+            # Cores
+            0: SolidMaterialLocatedCube(
+                location=UnitLocation(x=0, z=0, y=0),
+                dimensions=cubes_dimensions,
+                solidMaterial=cube_0_material
+            ),
+            1: SolidMaterialLocatedCube(
+                location=UnitLocation(x=cubes_dimensions.x, z=0, y=0),
+                dimensions=cubes_dimensions,
+                solidMaterial=cube_1_material
+            )
+        }
+
+        # Edge size pf 1 mm
+        cube_edge_size = 0.001
+
+        # Environment properties
+        environment_properties = AirForcedEnvironmentProperties()
+
+        cubed_space = CubedSpace(
+            material_cubes=scene_definition,
+            cube_edge_size=cube_edge_size,
+            environment_properties=environment_properties,
+            simulation_precision="HIGH")
+
+        initial_state = cubed_space.create_initial_state(
+            default_temperature=environment_temperature,
+            material_cubes_temperatures={
+                0: cube_0_initial_temperature,
+                1: cube_1_initial_temperature
+            },
+            environment_temperature=environment_temperature
+        )
+
+        # Initial temperatures
+        temperature_over_before_zero_seconds = cubed_space.obtain_temperature(actual_state=initial_state)
+
+        # Apply energy over the cubed space
+        initial_state = cubed_space.apply_energy(actual_state=initial_state, amount_of_time=0.1)
+        temperature_over_before_point_one_seconds = cubed_space.obtain_temperature(actual_state=initial_state)
+
+        # Apply energy over the cubed space
+        initial_state = cubed_space.apply_energy(actual_state=initial_state, amount_of_time=0.1)
+        temperature_over_before_point_two_seconds = cubed_space.obtain_temperature(actual_state=initial_state)
+
+        heat_map_2d_video = generate_video_2d_heat_map(
+            [(temperature_over_before_zero_seconds, 0),
+             (temperature_over_before_point_one_seconds, 0.1),
+             (temperature_over_before_point_two_seconds, 0.2)],
+            min_temperature=min_simulation_value,
+            max_temperature=max_simulation_value, axis="Z", location_in_axis=2)
+
+        writer = animation.FFMpegWriter(fps=30)
+        heat_map_2d_video.save("mymovie.mp4", writer=writer)
 
     @unittest.skip("Manual visualization test")
     def test_internal_conduction_plot(self):
