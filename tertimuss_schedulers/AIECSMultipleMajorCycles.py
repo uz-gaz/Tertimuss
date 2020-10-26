@@ -3,8 +3,6 @@ import math
 from typing import List, Optional, Tuple
 
 import numpy
-import scipy.optimize
-import scipy.linalg
 from ortools.linear_solver import pywraplp
 
 from main.core.problem_specification.GlobalSpecification import GlobalSpecification
@@ -14,12 +12,12 @@ from main.core.execution_simulator.system_simulator.SystemPeriodicTask import Sy
 from main.core.execution_simulator.system_simulator.SystemTask import SystemTask
 
 
-class AIECSScheduler(AbstractScheduler):
+class AIECSMultipleMajorCyclesScheduler(AbstractScheduler):
     """
     Implements the AIECS scheduler
     """
 
-    def __init__(self) -> None:
+    def __init__(self, number_of_major_cycles: int) -> None:
         super().__init__()
 
         # Declare class variables
@@ -32,8 +30,10 @@ class AIECSScheduler(AbstractScheduler):
         self.__dt = None
         self.__aperiodic_arrive = None
         self.__possible_f = None
-        self.__periodic_tasks = None
         self.__intervals_frequencies = None
+        self.__number_of_major_cycles = number_of_major_cycles
+        self.__index_to_id = None
+        self.__id_to_index = None
 
     @staticmethod
     def __list_lcm(values: List[int]) -> int:
@@ -124,8 +124,6 @@ class AIECSScheduler(AbstractScheduler):
                 objective.SetCoefficient(variables_list[task_index][partition_index], 1)
         objective.SetMaximization()
 
-        # print(solver.ExportModelAsLpFormat(False))
-
         # Solve the system
         status = solver.Solve()
 
@@ -142,139 +140,6 @@ class AIECSScheduler(AbstractScheduler):
         else:
             print('The solver could not solve the problem.')
             return None
-
-    @staticmethod
-    def __ilpp_dp_scipy(ci: List[int], ti: List[int], n: int, m: int) -> [numpy.ndarray, numpy.ndarray]:
-        """
-        Solves the linear programing problem
-        :param ci: execution cycles of each task
-        :param ti: period in cycles of each task
-        :param n: number of tasks
-        :param m: number of cpus
-        :return: 1 -> tasks execution each interval
-                 2 -> intervals
-        """
-        hyperperiod = numpy.lcm.reduce(ti)
-
-        jobs = list(map(lambda task: int(hyperperiod / task), ti))
-
-        t_star = list(map(lambda task: task[1] - task[0], zip(ci, ti)))
-
-        d = numpy.zeros((n, max(jobs)))
-
-        for i in range(n):
-            d[i, :jobs[i]] = (numpy.arange(ti[i], hyperperiod, ti[i]).tolist() + [hyperperiod])
-
-        sd = d[0, 0:jobs[0]]
-
-        for i in range(1, n):
-            sd = numpy.union1d(sd, d[i, 0:jobs[i]])
-
-        sd = numpy.union1d(sd, [0])
-
-        number_of_interval = len(sd)
-
-        # Intervals length
-        isd = numpy.asarray([sd[j + 1] - sd[j] for j in range(number_of_interval - 1)])
-
-        # Number of variables
-        v = n * (number_of_interval - 1)
-
-        # Restrictions
-        # - Cpu utilization
-        aeq_1 = scipy.linalg.block_diag(*((number_of_interval - 1) * [numpy.ones(n)]))
-        beq_1 = numpy.asarray([j * m for j in isd]).reshape((-1, 1))
-
-        aeq_2 = numpy.zeros((v, v))
-        a_1 = numpy.zeros((v, v))
-        beq_2 = numpy.zeros((v, 1))
-        b_1 = numpy.zeros((v, 1))
-
-        # - Temporal
-        f1 = 0
-        f2 = 0
-        for j in range(number_of_interval - 1):
-            for i in range(n):
-                i_k = 0
-
-                q = math.floor(sd[j + 1] / ti[i])
-                r = sd[j + 1] % ti[i]
-
-                for k in range(j + 1):
-                    if r == 0:
-                        aeq_2[f1, k * n + i] = 1
-                    else:
-                        a_1[f2, k * n + i] = -1
-                    i_k = i_k + isd[k]
-
-                if r == 0:
-                    beq_2[f1, 0] = q * ci[i]
-                    f1 = f1 + 1
-                else:
-                    b_1[f2, 0] = -1 * (q * ci[i] - q * ti[i] + max(0, i_k - t_star[i]))
-                    f2 = f2 + 1
-
-        def select_non_zero_rows(array_to_filter):
-            return numpy.concatenate(list(map(lambda filtered_row: filtered_row.reshape(1, -1), (
-                filter(lambda actual_row: numpy.count_nonzero(actual_row) != 0, array_to_filter)))), axis=0)
-
-        aeq_2 = select_non_zero_rows(aeq_2)
-        a_1 = select_non_zero_rows(a_1)
-        beq_2 = beq_2[0:len(aeq_2), :]
-        b_1 = b_1[0:len(a_1), :]
-
-        # Maximum utilization
-        a_2 = numpy.identity(v)
-        b_2 = numpy.zeros((v, 1))
-        f1 = 0
-        for j in range(number_of_interval - 1):
-            b_2[f1:f1 + n, 0] = isd[j]
-            f1 = f1 + n
-
-        a_eq = numpy.concatenate([aeq_1, aeq_2])
-        b_eq = numpy.concatenate([beq_1, beq_2])
-
-        a = numpy.concatenate([a_1, a_2])
-        b = numpy.concatenate([b_1, b_2])
-
-        f = numpy.full((v, 1), -1)
-
-        # WARNING: "Presolve = False" is a workaround to deal with an issue on the scipy.optimize.linprog library
-        # res = scipy.optimize.linprog(c=f, A_ub=a, b_ub=b, A_eq=a_eq,
-        #                              b_eq=b_eq, method='simplex', options={"presolve": False, "maxiter": 10000})
-        res = scipy.optimize.linprog(c=f, A_ub=a, b_ub=b, A_eq=a_eq, b_eq=b_eq, method='revised simplex')
-
-        if not res.success:
-            # No solution found
-            raise Exception("Error: No solution found when trying to solve the lineal programing problem")
-
-        x = res.x
-
-        # Partitioning
-        i = 0
-        s = numpy.zeros((n, number_of_interval - 1))
-        for k in range(number_of_interval - 1):
-            s[0:n, k] = x[i:i + n]
-            i = i + n
-
-        return s, sd
-
-    @classmethod
-    def aiecs_periods_lpp_scipy(cls, ci: List[int], ti: List[int], n: int, m: int) -> Optional[
-        Tuple[List[int], List[List[int]]]]:
-        """
-        Solves the linear programing problem
-        :param ci: execution cycles of each task
-        :param ti: period in cycles of each task
-        :param n: number of tasks
-        :param m: number of cpus
-        :return: 1 -> tasks execution each interval
-                 2 -> intervals
-        """
-        s, sd = cls.__ilpp_dp_scipy(ci, ti, n, m)
-        s_as_integer = [list(map(lambda x: round(x), i)) for i in s.tolist()]
-        sd_as_integer = list(map(lambda x: round(x), sd.tolist()))
-        return sd_as_integer, s_as_integer
 
     def offline_stage(self, global_specification: GlobalSpecification,
                       periodic_tasks: List[SystemPeriodicTask],
@@ -374,14 +239,20 @@ class AIECSScheduler(AbstractScheduler):
                     number_of_extra_cycles = (dt * f_star_hz) - (cci[task] % int(round(dt * f_star_hz)))
                     x[task, last_interval_of_execution] = x[task, last_interval_of_execution] - number_of_extra_cycles
 
+        # Index to id
+        self.__index_to_id = {i: j.id for i, j in enumerate(periodic_tasks)}
+        self.__id_to_index = {j.id: i for i, j in enumerate(periodic_tasks)}
+
         # All intervals
-        self.__intervals_end = sd
+        self.__intervals_end = numpy.hstack(
+            [sd + (i * global_specification.tasks_specification.h) for i in range(self.__number_of_major_cycles)])
 
         # All executions by intervals
-        self.__execution_by_intervals = x
+        self.__execution_by_intervals = numpy.hstack(self.__number_of_major_cycles * [x])
 
         # [(cc left in the interval, task id)]
-        self.__interval_cc_left = [(round(i[0]), i[1].id) for i in zip((x[:, 0]).reshape(-1), periodic_tasks)]
+        self.__interval_cc_left = [(round(i[0]), self.__id_to_index[i[1].id]) for i in
+                                   zip((x[:, 0]).reshape(-1), periodic_tasks)]
 
         # Index of the actual interval
         self.__actual_interval_index = 0
@@ -390,16 +261,13 @@ class AIECSScheduler(AbstractScheduler):
         self.__dt = super().offline_stage(global_specification, periodic_tasks, aperiodic_tasks)
 
         # Processors frequencies in each step
-        self.__intervals_frequencies = len(self.__intervals_end) * [f_star_hz]
+        self.__intervals_frequencies = (len(self.__intervals_end) * self.__number_of_major_cycles) * [f_star_hz]
 
         # Possible frequencies
         self.__possible_f = available_frequencies_hz
 
         # True if new aperiodic has arrive
         self.__aperiodic_arrive = False
-
-        # Periodic tasks
-        self.__periodic_tasks = periodic_tasks
 
         return self.__dt
 
@@ -413,90 +281,91 @@ class AIECSScheduler(AbstractScheduler):
         :param cores_max_temperature: temperature of each core
         :return: true if want to immediately call the scheduler (schedule_policy method), false otherwise
         """
-        for actual_task in aperiodic_tasks_arrived:
-            # x in cycles
-            x = self.__execution_by_intervals
-            cc = numpy.asarray([i[0] for i in self.__interval_cc_left])
+        # for actual_task in aperiodic_tasks_arrived:
+        #     # x in cycles
+        #     x = self.__execution_by_intervals
+        #     cc = numpy.asarray([i[0] for i in self.__interval_cc_left])
+        #
+        #     # Remaining time for aperiodic in the actual interval for each frequency
+        #     remaining_actual = [self.__m * (self.__intervals_end[self.__actual_interval_index] - time) - sum(cc / i) for
+        #                         i in self.__possible_f]
+        #
+        #     # Remaining time for aperiodic in full intervals between aperiodic start and its deadline
+        #     number_of_full_intervals = len(
+        #         [i for i in self.__intervals_end[self.__actual_interval_index + 1:] if i <= actual_task.next_deadline])
+        #
+        #     remaining_full_intervals = [[
+        #         self.__m * (self.__intervals_end[self.__actual_interval_index + i + 1] - self.__intervals_end[
+        #             self.__actual_interval_index + i]) - sum(
+        #             (x[:, self.__actual_interval_index + i + 1]).reshape(-1) / j) for i in
+        #         range(number_of_full_intervals)] for j in
+        #         self.__possible_f] if number_of_full_intervals > 0 else len(self.__possible_f) * [0]
+        #
+        #     # Remaining time for aperiodic in last interval
+        #     remaining_last_interval_to_deadline = self.__m * (actual_task.next_deadline - self.__intervals_end[
+        #         self.__actual_interval_index + number_of_full_intervals])
+        #
+        #     remaining_last_interval = [min(
+        #         self.__intervals_end[self.__actual_interval_index + number_of_full_intervals + 1] -
+        #         self.__intervals_end[
+        #             self.__actual_interval_index + number_of_full_intervals] - sum(
+        #             (x[:, self.__actual_interval_index + number_of_full_intervals + 1]).reshape(-1) / j),
+        #         remaining_last_interval_to_deadline) for j in
+        #         self.__possible_f] if remaining_last_interval_to_deadline > 0 else len(self.__possible_f) * [0]
+        #
+        #     # Remaining time in each frequency
+        #     remaining = [(i[0] + sum(i[1]) + i[2], i[3]) for i in
+        #                  zip(remaining_actual, remaining_full_intervals, remaining_last_interval,
+        #                      range(len(self.__possible_f)))]
+        #
+        #     dt = self.__dt
+        #
+        #     possible_f_index = [i[1] for i in remaining if
+        #                         i[0] >= (math.ceil(actual_task.pending_c / round(self.__possible_f[i[1]] * dt)) * dt)]
+        #
+        #     if len(possible_f_index) > 0:
+        #         self.__aperiodic_arrive = True
+        #         # Recreate x
+        #         f_star = self.__possible_f[possible_f_index[0]]
+        #
+        #         times_to_execute = [remaining_actual[possible_f_index[0]]] + remaining_full_intervals[
+        #             possible_f_index[0]] + ([remaining_last_interval[
+        #                                          possible_f_index[
+        #                                              0]]] if remaining_last_interval_to_deadline > 0 else [])
+        #
+        #         times_to_execute_c_aperiodic = math.ceil(actual_task.pending_c / round(f_star * dt)) * dt
+        #
+        #         times_to_execute_cc = [round(i * f_star) for i in times_to_execute]
+        #
+        #         # Number of intervals that we will need for the execution
+        #         intervals_needed = 0
+        #         remaining_auxiliary = times_to_execute_c_aperiodic * f_star
+        #
+        #         while remaining_auxiliary > 0:
+        #             remaining_auxiliary = remaining_auxiliary - times_to_execute_cc[intervals_needed]
+        #             intervals_needed = intervals_needed + 1
+        #
+        #         times_to_execute_cc[intervals_needed - 1] = times_to_execute_cc[
+        #                                                         intervals_needed - 1] + remaining_auxiliary
+        #
+        #         new_x_row = numpy.zeros((1, len(self.__intervals_end)))
+        #         new_x_row[0,
+        #         self.__actual_interval_index: self.__actual_interval_index + intervals_needed] = times_to_execute_cc[
+        #                                                                                          :intervals_needed]
+        #
+        #         self.__execution_by_intervals = numpy.concatenate([self.__execution_by_intervals, new_x_row], axis=0)
+        #
+        #         self.__interval_cc_left = self.__interval_cc_left + [
+        #             (round(self.__execution_by_intervals[-1, self.__actual_interval_index]), actual_task.id)]
+        #
+        #         self.__intervals_frequencies[self.__actual_interval_index:
+        #                                      self.__actual_interval_index + intervals_needed] = intervals_needed * [
+        #             f_star]
+        #     else:
+        #         print("Warning: The aperiodic task can not be executed")
 
-            # Remaining time for aperiodic in the actual interval for each frequency
-            remaining_actual = [self.__m * (self.__intervals_end[self.__actual_interval_index] - time) - sum(cc / i) for
-                                i in self.__possible_f]
-
-            # Remaining time for aperiodic in full intervals between aperiodic start and its deadline
-            number_of_full_intervals = len(
-                [i for i in self.__intervals_end[self.__actual_interval_index + 1:] if i <= actual_task.next_deadline])
-
-            remaining_full_intervals = [[
-                self.__m * (self.__intervals_end[self.__actual_interval_index + i + 1] - self.__intervals_end[
-                    self.__actual_interval_index + i]) - sum(
-                    (x[:, self.__actual_interval_index + i + 1]).reshape(-1) / j) for i in
-                range(number_of_full_intervals)] for j in
-                self.__possible_f] if number_of_full_intervals > 0 else len(self.__possible_f) * [0]
-
-            # Remaining time for aperiodic in last interval
-            remaining_last_interval_to_deadline = self.__m * (actual_task.next_deadline - self.__intervals_end[
-                self.__actual_interval_index + number_of_full_intervals])
-
-            remaining_last_interval = [min(
-                self.__intervals_end[self.__actual_interval_index + number_of_full_intervals + 1] -
-                self.__intervals_end[
-                    self.__actual_interval_index + number_of_full_intervals] - sum(
-                    (x[:, self.__actual_interval_index + number_of_full_intervals + 1]).reshape(-1) / j),
-                remaining_last_interval_to_deadline) for j in
-                self.__possible_f] if remaining_last_interval_to_deadline > 0 else len(self.__possible_f) * [0]
-
-            # Remaining time in each frequency
-            remaining = [(i[0] + sum(i[1]) + i[2], i[3]) for i in
-                         zip(remaining_actual, remaining_full_intervals, remaining_last_interval,
-                             range(len(self.__possible_f)))]
-
-            dt = self.__dt
-
-            possible_f_index = [i[1] for i in remaining if
-                                i[0] >= (math.ceil(actual_task.pending_c / round(self.__possible_f[i[1]] * dt)) * dt)]
-
-            if len(possible_f_index) > 0:
-                self.__aperiodic_arrive = True
-                # Recreate x
-                f_star = self.__possible_f[possible_f_index[0]]
-
-                times_to_execute = [remaining_actual[possible_f_index[0]]] + remaining_full_intervals[
-                    possible_f_index[0]] + ([remaining_last_interval[
-                                                 possible_f_index[
-                                                     0]]] if remaining_last_interval_to_deadline > 0 else [])
-
-                times_to_execute_c_aperiodic = math.ceil(actual_task.pending_c / round(f_star * dt)) * dt
-
-                times_to_execute_cc = [round(i * f_star) for i in times_to_execute]
-
-                # Number of intervals that we will need for the execution
-                intervals_needed = 0
-                remaining_auxiliary = times_to_execute_c_aperiodic * f_star
-
-                while remaining_auxiliary > 0:
-                    remaining_auxiliary = remaining_auxiliary - times_to_execute_cc[intervals_needed]
-                    intervals_needed = intervals_needed + 1
-
-                times_to_execute_cc[intervals_needed - 1] = times_to_execute_cc[
-                                                                intervals_needed - 1] + remaining_auxiliary
-
-                new_x_row = numpy.zeros((1, len(self.__intervals_end)))
-                new_x_row[0,
-                self.__actual_interval_index: self.__actual_interval_index + intervals_needed] = times_to_execute_cc[
-                                                                                                 :intervals_needed]
-
-                self.__execution_by_intervals = numpy.concatenate([self.__execution_by_intervals, new_x_row], axis=0)
-
-                self.__interval_cc_left = self.__interval_cc_left + [
-                    (round(self.__execution_by_intervals[-1, self.__actual_interval_index]), actual_task.id)]
-
-                self.__intervals_frequencies[self.__actual_interval_index:
-                                             self.__actual_interval_index + intervals_needed] = intervals_needed * [
-                    f_star]
-            else:
-                print("Warning: The aperiodic task can not be executed")
-
-        return self.__aperiodic_arrive
+        # Not implemented for now
+        return False
 
     def __sp_interrupt(self, active_tasks: List[int], time: float) -> bool:
         """
@@ -591,10 +460,14 @@ class AIECSScheduler(AbstractScheduler):
                 (round(i[0]), i[1][1]) for i in zip(self.__execution_by_intervals[:, self.__actual_interval_index],
                                                     self.__interval_cc_left)]
 
+        active_tasks_index = [self.__id_to_index[i] if i != -1 else -1 for i in active_tasks]
+        executable_tasks_index = [self.__id_to_index[i.id] for i in executable_tasks]
+
         # Obtain new tasks to execute
-        tasks_to_execute = active_tasks
-        if self.__sp_interrupt(active_tasks, time):
-            tasks_to_execute = self.__schedule_policy_imp(time, active_tasks, [i.id for i in executable_tasks])
+        tasks_to_execute = active_tasks_index
+        if self.__sp_interrupt(active_tasks_index, time):
+            tasks_to_execute = self.__schedule_policy_imp(time, active_tasks_index,
+                                                          [i for i in executable_tasks_index])
 
         # Update cc in tasks being executed
         self.__interval_cc_left = [
@@ -607,9 +480,10 @@ class AIECSScheduler(AbstractScheduler):
 
         # Do affinity, this is a little improvement over the original algorithm
         for i in range(self.__m):
-            actual = active_tasks[i]
+            actual = active_tasks_index[i]
             for j in range(self.__m):
                 if tasks_to_execute[j] == actual and j != i:
                     tasks_to_execute[j], tasks_to_execute[i] = tasks_to_execute[i], tasks_to_execute[j]
 
-        return tasks_to_execute, None, self.__m * [self.__intervals_frequencies[self.__actual_interval_index]]
+        return [self.__index_to_id[i] if i != -1 else -1 for i in tasks_to_execute], None, self.__m * [
+            self.__intervals_frequencies[self.__actual_interval_index]]

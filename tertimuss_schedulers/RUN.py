@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 import numpy
 
@@ -77,7 +77,7 @@ class RUNScheduler(AbstractScheduler):
         self.__parents_of_tree = None
         self.__dt = None
         self.__operating_frequency = None
-        self.__last_tasks_assignation = None
+        self.__last_tasks_cpu_used_assignation = None
         self.__m = None
 
     @classmethod
@@ -269,19 +269,31 @@ class RUNScheduler(AbstractScheduler):
         return tasks_to_execute
 
     @classmethod
-    def _assign_tasks_to_cpu(cls, task_set: List[RUNTask], last_tasks_cpu_assignation: List[int], m: int) -> List[int]:
+    def _assign_tasks_to_cpu(cls, task_set: List[RUNTask], active_tasks: List[int],
+                             last_tasks_cpu_assignation: Dict[int, int], m: int) -> List[int]:
         tasks_assignation = m * [-1]
 
         not_assigned_yet_phase_1 = []
 
         # Phase 1
         for i in task_set:
-            if i.task_id in last_tasks_cpu_assignation and i.task_id != -1:
-                cpu_assigned = last_tasks_cpu_assignation.index(i.task_id)
+            if i.task_id in active_tasks and i.task_id != -1:
+                cpu_assigned = active_tasks.index(i.task_id)
                 tasks_assignation[cpu_assigned] = i.task_id
-                # i.last_cpu_execution = cpu_assigned
             else:
                 not_assigned_yet_phase_1 = not_assigned_yet_phase_1 + [i]
+
+        # This improve cause worse results
+        # not_assigned_yet_phase_1_2 = []
+        # # Phase 1.2 (Improvement)
+        # # Assign tasks to their last used CPU to avoid unnecessary migrations
+        # for i in not_assigned_yet_phase_1:
+        #     if i.task_id != -1 and last_tasks_cpu_assignation.__contains__(i.task_id) and \
+        #             tasks_assignation[last_tasks_cpu_assignation[i.task_id]] == -1:
+        #         cpu_assigned = last_tasks_cpu_assignation[i.task_id]
+        #         tasks_assignation[cpu_assigned] = i.task_id
+        #     else:
+        #         not_assigned_yet_phase_1_2.append(i)
 
         # Phase 2
         not_assigned_yet_phase_2 = []
@@ -331,8 +343,8 @@ class RUNScheduler(AbstractScheduler):
         self.__parents_of_tree = self._create_tree(task_set)
         self.__dt = global_specification.simulation_specification.dt
         self.__operating_frequency = m * [selected_frequency]
-        self.__last_tasks_assignation = m * [-1]
         self.__m = m
+        self.__last_tasks_cpu_used_assignation = len(periodic_tasks) * [-1]
 
         return global_specification.simulation_specification.dt
 
@@ -340,21 +352,14 @@ class RUNScheduler(AbstractScheduler):
                         actual_cores_frequency: List[int], cores_max_temperature: Optional[numpy.ndarray]) -> \
             [List[int], Optional[float], Optional[List[int]]]:
 
-        if time == 1.59:
-            iii = 0
-            pass
-            pass
-
         iteration_result = self._select_tasks_to_execute(self.__parents_of_tree, time, self.__dt,
                                                          actual_cores_frequency[0])
-        iteration_result = self._assign_tasks_to_cpu(iteration_result, self.__last_tasks_assignation, self.__m)
-        self.__last_tasks_assignation = iteration_result
+        iteration_result = self._assign_tasks_to_cpu(iteration_result, active_tasks,
+                                                     self.__last_tasks_cpu_used_assignation, self.__m)
 
-
-        #
-        # if len([i for i in iteration_result if i != -1]) < 2:
-        #     ii = 0
-        #     pass
+        for i, j in enumerate(iteration_result):
+            if j != -1:
+                self.__last_tasks_cpu_used_assignation[j] = i
 
         return iteration_result, self.__dt, self.__operating_frequency
 
