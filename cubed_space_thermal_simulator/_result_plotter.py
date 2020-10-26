@@ -202,5 +202,21 @@ def plot_2d_heat_map(heatmap_cube_list: List[TemperatureLocatedCube],
 
         # Draw
         fig, ax = plt.subplots()
+
+        max_range = max([plane_max_x - plane_min_x, plane_max_y - plane_min_y])
+
+        # Calculate limits
+        x_lim_min = plane_min_x - ((max_range - (plane_max_x - plane_min_x)) / 2)
+        x_lim_max = plane_max_x + ((max_range - (plane_max_x - plane_min_x)) / 2)
+
+        y_lim_min = plane_min_y - ((max_range - (plane_max_y - plane_min_y)) / 2)
+        y_lim_max = plane_max_y + ((max_range - (plane_max_y - plane_min_y)) / 2)
+
+        ax.set_xlim(x_lim_min, x_lim_max)
+        ax.set_ylim(y_lim_min, y_lim_max)
+
         quad = ax.pcolormesh(heat_matrix, vmin=min_temperature, vmax=max_temperature, cmap="plasma")
+        ax.set_xticks(numpy.arange(plane_min_x, plane_max_x + 1, 1.0))
+        ax.set_yticks(numpy.arange(plane_min_y, plane_max_y + 1, 1.0))
+        fig.colorbar(quad, ax=ax)
         return fig

@@ -11,6 +11,7 @@ from cubed_space_thermal_simulator.physics_utils import create_energy_applicator
 
 
 class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
+    @unittest.skip("Manual visualization test")
     def test_processor_heat_generation_plot(self):
         # Dimensions of the core
         core_dimensions = UnitDimensions(x=10, z=2, y=10)
@@ -210,6 +211,7 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
 
             print("Temperature before", i * 0.5, "seconds: min", min_temperature, ", max", max_temperature)
 
+    # @unittest.skip("Manual visualization test")
     def test_external_conduction_plot(self):
         # Dimensions of the cubes
         cubes_dimensions = UnitDimensions(x=4, z=4, y=4)
@@ -324,6 +326,7 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
 
         print("Temperature before 0.2 second: min", min_temperature, ", max", max_temperature)
 
+    @unittest.skip("Manual visualization test")
     def test_internal_conduction_plot(self):
         # Dimensions of the cubes
         cubes_dimensions = UnitDimensions(x=2, z=2, y=2)
