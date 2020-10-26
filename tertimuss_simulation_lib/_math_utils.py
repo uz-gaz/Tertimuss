@@ -1,3 +1,4 @@
+import functools
 import math
 from typing import List
 
@@ -34,3 +35,7 @@ def float_gcd(numbers: List[float], rtol=1e-03, atol=1e-05) -> float:
 def float_lcm(numbers: List[float], rtol=1e-03, atol=1e-05) -> float:
     lcm = numpy.lcm.reduce([round(i / atol) for i in numbers])
     return lcm * atol
+
+
+def list_lcm(values: List[int]) -> int:
+    return functools.reduce(lambda a, b: abs(a * b) // math.gcd(a, b), values)
