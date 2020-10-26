@@ -5,7 +5,7 @@ from matplotlib import animation
 from cubed_space_thermal_simulator import UnitDimensions, UnitLocation, \
     CubedSpace, SolidMaterialLocatedCube, \
     obtain_min_temperature, obtain_max_temperature, plot_3d_heat_map_temperature, \
-    InternalTemperatureBoosterLocatedCube, plot_2d_heat_map, generate_video_2d_heat_map
+    InternalTemperatureBoosterLocatedCube, plot_2d_heat_map, generate_video_2d_heat_map, generate_video_3d_heat_map
 
 from cubed_space_thermal_simulator.materials_pack import CooperSolidMaterial, SiliconSolidMaterial, \
     AirFreeEnvironmentProperties, AirForcedEnvironmentProperties
@@ -211,7 +211,7 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
 
             print("Temperature before", i * 0.5, "seconds: min", min_temperature, ", max", max_temperature)
 
-    # @unittest.skip("Manual visualization test")
+    @unittest.skip("Manual visualization test")
     def test_external_conduction_plot(self):
         # Dimensions of the cubes
         cubes_dimensions = UnitDimensions(x=4, z=4, y=4)
@@ -322,8 +322,8 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
 
         print("Temperature before 0.2 second: min", min_temperature, ", max", max_temperature)
 
-    # @unittest.skip("Manual visualization test")
-    def test_external_conduction_plot_2d_animation_generation(self):
+    @unittest.skip("Manual visualization test")
+    def test_external_conduction_plot_2d_3d_animation_generation(self):
         # Dimensions of the cubes
         cubes_dimensions = UnitDimensions(x=4, z=4, y=4)
 
@@ -392,14 +392,26 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
         temperature_over_before_point_two_seconds = cubed_space.obtain_temperature(actual_state=initial_state)
 
         heat_map_2d_video = generate_video_2d_heat_map(
-            [(temperature_over_before_zero_seconds, 0),
-             (temperature_over_before_point_one_seconds, 0.1),
-             (temperature_over_before_point_two_seconds, 0.2)],
+            {
+                0.0: temperature_over_before_zero_seconds,
+                1: temperature_over_before_point_one_seconds,
+                2: temperature_over_before_point_two_seconds
+            },
             min_temperature=min_simulation_value,
-            max_temperature=max_simulation_value, axis="Z", location_in_axis=2)
+            max_temperature=max_simulation_value, axis="Z", location_in_axis=2, delay_between_frames_ms=100)
 
-        writer = animation.FFMpegWriter(fps=30)
-        heat_map_2d_video.save("mymovie.mp4", writer=writer)
+        heat_map_3d_video = generate_video_3d_heat_map(
+            {
+                0.0: temperature_over_before_zero_seconds,
+                1: temperature_over_before_point_one_seconds,
+                2: temperature_over_before_point_two_seconds
+            },
+            min_temperature=min_simulation_value,
+            max_temperature=max_simulation_value, delay_between_frames_ms=100)
+
+        writer = animation.FFMpegWriter()
+        heat_map_2d_video.save("2d_generation.mp4", writer=writer)
+        heat_map_3d_video.save("3d_generation.mp4", writer=writer)
 
     @unittest.skip("Manual visualization test")
     def test_internal_conduction_plot(self):

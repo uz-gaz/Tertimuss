@@ -50,13 +50,11 @@ class CubedSpaceThermalSimulatorTest(unittest.TestCase):
         )
         # Apply energy over the cubed space
         initial_state = cubed_space.apply_energy(actual_state=initial_state, amount_of_time=0.5)
-        temperature_over_before_half_second = cubed_space.obtain_temperature(actual_state=initial_state,
-                                                                             units=ThermalUnits.CELSIUS)
+        temperature_over_before_half_second = cubed_space.obtain_temperature(actual_state=initial_state)
 
         # Apply energy over the cubed space
         initial_state = cubed_space.apply_energy(actual_state=initial_state, amount_of_time=0.5)
-        temperature_over_before_one_second = cubed_space.obtain_temperature(actual_state=initial_state,
-                                                                            units=ThermalUnits.CELSIUS)
+        temperature_over_before_one_second = cubed_space.obtain_temperature(actual_state=initial_state)
 
         # Half second
         min_temperature_half = obtain_min_temperature(temperature_over_before_half_second)
@@ -116,13 +114,11 @@ class CubedSpaceThermalSimulatorTest(unittest.TestCase):
 
         # Apply energy over the cubed space
         initial_state = cubed_space.apply_energy(actual_state=initial_state, amount_of_time=0.5)
-        temperature_over_before_half_second = cubed_space.obtain_temperature(actual_state=initial_state,
-                                                                             units=ThermalUnits.CELSIUS)
+        temperature_over_before_half_second = cubed_space.obtain_temperature(actual_state=initial_state)
 
         # Apply energy over the cubed space
         initial_state = cubed_space.apply_energy(actual_state=initial_state, amount_of_time=0.5)
-        temperature_over_before_one_second = cubed_space.obtain_temperature(actual_state=initial_state,
-                                                                            units=ThermalUnits.CELSIUS)
+        temperature_over_before_one_second = cubed_space.obtain_temperature(actual_state=initial_state)
 
         # Half second
         min_temperature_half = obtain_min_temperature(temperature_over_before_half_second)
@@ -196,8 +192,7 @@ class CubedSpaceThermalSimulatorTest(unittest.TestCase):
 
         # Apply energy over the cubed space
         initial_state = cubed_space.apply_energy(actual_state=initial_state, amount_of_time=2)
-        temperature_over_before_point_one_seconds = cubed_space.obtain_temperature(actual_state=initial_state,
-                                                                                   units=ThermalUnits.CELSIUS)
+        temperature_over_before_point_one_seconds = cubed_space.obtain_temperature(actual_state=initial_state)
 
         # Half second
         min_temperature_one_second = obtain_min_temperature(temperature_over_before_point_one_seconds)

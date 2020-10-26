@@ -1,5 +1,5 @@
 import functools
-from typing import List, Optional, Tuple, Literal
+from typing import List, Optional, Tuple, Literal, Dict
 
 import numpy
 import matplotlib.pyplot as plt
@@ -14,20 +14,17 @@ from cubed_space_thermal_simulator import TemperatureLocatedCube, obtain_min_tem
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
 
 
-def plot_3d_heat_map_temperature(heatmap_cube_list: List[TemperatureLocatedCube],
-                                 min_temperature: Optional[float] = None,
-                                 max_temperature: Optional[float] = None,
-                                 color_map: str = "plasma",
-                                 units: ThermalUnits = ThermalUnits.KELVIN) -> Figure:
+def __obtain_3d_heat_map(heatmap_cube_list: List[TemperatureLocatedCube],
+                         min_temperature: Optional[float],
+                         max_temperature: Optional[float],
+                         color_map: str):
     """
-    Plot 3d heat map of the model
+    Obtain 3d heat map of the model
 
     :param heatmap_cube_list: List with model temperature
     :param min_temperature: Min temperature in the model
     :param max_temperature: Max temperature in the model
-    :param color_map: Model color map
-    :param units: Thermal units
-    :return: Resultant figure
+    :return: Resultant figure representation
     """
     # Obtain surrounded cube
     min_x = min([i.location.x for i in heatmap_cube_list])
@@ -45,11 +42,6 @@ def plot_3d_heat_map_temperature(heatmap_cube_list: List[TemperatureLocatedCube]
     voxels_colors = numpy.zeros((max_x - min_x, max_y - min_y, max_z - min_z, 3))
 
     voxels_list = []
-
-    # Min temperature
-
-    min_temperature = obtain_min_temperature(heatmap_cube_list) if min_temperature is None else min_temperature
-    max_temperature = obtain_max_temperature(heatmap_cube_list) if max_temperature is None else max_temperature
 
     # Color transformer
     color_mappable = cm.ScalarMappable(norm=colors.Normalize(min_temperature, max_temperature), cmap=color_map)
@@ -74,10 +66,6 @@ def plot_3d_heat_map_temperature(heatmap_cube_list: List[TemperatureLocatedCube]
                         (local_x - local_min_x) + (local_y - local_min_y) * i.dimensions.x + (
                                 local_z - local_min_z) * i.dimensions.y * i.dimensions.x]
 
-                    # Obtain normalized temperature
-                    normalized_temperature = (temperature - min_temperature) / (
-                            max_temperature - min_temperature) if min_temperature != max_temperature else 0.5
-
                     # Obtain color
                     rgb_color = color_mappable.to_rgba(temperature)
                     voxels_colors[local_x - min_x, local_y - min_y, local_z - min_z, 0], voxels_colors[
@@ -87,11 +75,123 @@ def plot_3d_heat_map_temperature(heatmap_cube_list: List[TemperatureLocatedCube]
     # combine the objects into a single boolean array
     voxels = functools.reduce(lambda a, b: a | b, voxels_list)
 
-    # and plot everything
+    return voxels, voxels_colors, min_x, max_x, min_y, max_y, min_z, max_z
+
+
+def plot_3d_heat_map_temperature(heatmap_cube_list: List[TemperatureLocatedCube],
+                                 min_temperature: Optional[float] = None,
+                                 max_temperature: Optional[float] = None,
+                                 color_map: str = "plasma",
+                                 units: ThermalUnits = ThermalUnits.KELVIN) -> Figure:
+    """
+    Plot 3d heat map of the model
+
+    :param heatmap_cube_list: List with model temperature
+    :param min_temperature: Min temperature in the model
+    :param max_temperature: Max temperature in the model
+    :param color_map: Model color map
+    :param units: Thermal units
+    :return: Resultant figure
+    """
+    # Min temperature
+    min_temperature = obtain_min_temperature(heatmap_cube_list) if min_temperature is None else min_temperature
+    max_temperature = obtain_max_temperature(heatmap_cube_list) if max_temperature is None else max_temperature
+
+    # Obtain representation
+    voxels, voxels_colors, min_x, max_x, min_y, max_y, min_z, max_z = __obtain_3d_heat_map(heatmap_cube_list,
+                                                                                           min_temperature,
+                                                                                           max_temperature,
+                                                                                           color_map)
+
+    # Plot everything
     fig = plt.figure()
     ax = fig.gca(projection='3d')
+    ax.set(xlabel='x', ylabel='y', zlabel='z')
+
     ax.voxels(voxels, facecolors=voxels_colors)
 
+    max_range = max([max_x - min_x, max_y - min_y, max_z - min_z])
+
+    # Calculate limits
+    x_lim_min = min_x - ((max_range - (max_x - min_x)) / 2)
+    x_lim_max = max_x + ((max_range - (max_x - min_x)) / 2)
+
+    y_lim_min = min_y - ((max_range - (max_y - min_y)) / 2)
+    y_lim_max = max_y + ((max_range - (max_y - min_y)) / 2)
+
+    z_lim_min = min_z - ((max_range - (max_z - min_z)) / 2)
+    z_lim_max = max_z + ((max_range - (max_z - min_z)) / 2)
+
+    ax.set_xlim(x_lim_min, x_lim_max)
+    ax.set_ylim(y_lim_min, y_lim_max)
+    ax.set_zlim(z_lim_min, z_lim_max)
+
+    # Hide grid lines
+    ax.grid(b=None)
+
+    cbar = fig.colorbar(cm.ScalarMappable(norm=colors.Normalize(min_temperature, max_temperature), cmap=color_map),
+                        ax=ax)
+    cbar.ax.set_ylabel("Temperature in " + ("kelvin" if units == ThermalUnits.KELVIN else "celsius"))
+    return fig
+
+
+def generate_video_3d_heat_map(
+        heatmap_cube_list_dict: Dict[float, List[TemperatureLocatedCube]],
+        delay_between_frames_ms: int,
+        min_temperature: Optional[float] = None,
+        max_temperature: Optional[float] = None,
+        color_map: str = "plasma",
+        units: ThermalUnits = ThermalUnits.KELVIN) -> FuncAnimation:
+    """
+    Generate a 3D video of heat map
+
+    :param delay_between_frames_ms: Delay between two frames in milliseconds
+    :param heatmap_cube_list_dict: Dict with parameters [time in seconds, list with model temperature]
+    :param min_temperature: Min temperature in the model
+    :param max_temperature: Max temperature in the model
+    :param color_map: Model color map
+    :param units: Thermal units
+    :return:
+    """
+    min_x = min(
+        [min([i.location.x for i in heatmap_cube_list]) for heatmap_cube_list in heatmap_cube_list_dict.values()])
+    min_y = min(
+        [min([i.location.y for i in heatmap_cube_list]) for heatmap_cube_list in heatmap_cube_list_dict.values()])
+    min_z = min(
+        [min([i.location.z for i in heatmap_cube_list]) for heatmap_cube_list in heatmap_cube_list_dict.values()])
+
+    max_x = max(
+        [max([i.location.x + i.dimensions.x for i in heatmap_cube_list]) for heatmap_cube_list in
+         heatmap_cube_list_dict.values()])
+    max_y = max(
+        [max([i.location.y + i.dimensions.y for i in heatmap_cube_list]) for heatmap_cube_list in
+         heatmap_cube_list_dict.values()])
+    max_z = max(
+        [max([i.location.z + i.dimensions.z for i in heatmap_cube_list]) for heatmap_cube_list in
+         heatmap_cube_list_dict.values()])
+
+    min_temperature = min([obtain_min_temperature(heatmap_cube_list) for heatmap_cube_list in
+                           heatmap_cube_list_dict.values()]) if min_temperature is None else min_temperature
+    max_temperature = max([obtain_max_temperature(heatmap_cube_list) for heatmap_cube_list in
+                           heatmap_cube_list_dict.values()]) if max_temperature is None else max_temperature
+
+    sorted_times = sorted(heatmap_cube_list_dict.keys())
+
+    elapsed_time = sorted_times[-1] - sorted_times[0]
+
+    # This is used to show the last frame some time
+    last_frame_time = sorted_times[-1] - sorted_times[-2]
+
+    number_of_frames = round((elapsed_time + last_frame_time) * 1000 / delay_between_frames_ms)
+
+    frames_to_dict_mapper = {
+        i: next(x for x, y in zip(sorted_times, sorted_times[1:] + [sorted_times[-1] + last_frame_time + 1]) if
+                x <= (i * delay_between_frames_ms) / 1000 < y) for
+        i in range(number_of_frames)}
+
+    # Plot everything
+    fig = plt.figure()
+    ax = fig.gca(projection='3d')
     ax.set(xlabel='x', ylabel='y', zlabel='z')
 
     max_range = max([max_x - min_x, max_y - min_y, max_z - min_z])
@@ -112,24 +212,41 @@ def plot_3d_heat_map_temperature(heatmap_cube_list: List[TemperatureLocatedCube]
 
     # Hide grid lines
     ax.grid(b=None)
-    # ax.set_axis_off()
 
     cbar = fig.colorbar(cm.ScalarMappable(norm=colors.Normalize(min_temperature, max_temperature), cmap=color_map),
                         ax=ax)
     cbar.ax.set_ylabel("Temperature in " + ("kelvin" if units == ThermalUnits.KELVIN else "celsius"))
-    return fig
+
+    def animate(i):
+        heatmap_cube_list_local, heatmap_cube_list_local_time = heatmap_cube_list_dict[frames_to_dict_mapper[i]], \
+                                                                frames_to_dict_mapper[i]
+        # Draw title
+        fig.suptitle("Simulation time: " + str(heatmap_cube_list_local_time) + " seconds", fontsize=12)
+
+        # Obtain representation
+        voxels, voxels_colors, _, _, _, _, _, _ = __obtain_3d_heat_map(heatmap_cube_list_local,
+                                                                       min_temperature,
+                                                                       max_temperature,
+                                                                       color_map)
+
+        return ax.voxels(voxels, facecolors=voxels_colors)
+
+    anim = animation.FuncAnimation(fig, animate, frames=number_of_frames, interval=delay_between_frames_ms, blit=False,
+                                   repeat=False)
+    return anim
 
 
-def generate_video_3d_heat_map(
-        heatmap_cube_list: List[Tuple[float, List[TemperatureLocatedCube]]],
-        min_temperature: Optional[float] = None,
-        max_temperature: Optional[float] = None):
-    pass
+def __obtain_2d_heat_matrix(heatmap_cube_list: List[TemperatureLocatedCube],
+                            axis: Literal["X", "Y", "Z"],
+                            location_in_axis: int) -> Optional[Tuple[numpy.ndarray, float, float, float, float]]:
+    """
+    Obtain 2d heat map of the model
 
-
-def obtain_2d_heat_matrix(heatmap_cube_list: List[TemperatureLocatedCube],
-                          axis: Literal["X", "Y", "Z"],
-                          location_in_axis: int) -> Optional[Tuple[numpy.ndarray, float, float, float, float]]:
+    :param location_in_axis: Location in the axis
+    :param axis: Axis to plot
+    :param heatmap_cube_list: List with model temperature
+    :return: Resultant figure
+    """
     # Obtain surrounded cube
     min_x = min([i.location.x for i in heatmap_cube_list])
     min_y = min([i.location.y for i in heatmap_cube_list])
@@ -229,7 +346,7 @@ def plot_2d_heat_map(heatmap_cube_list: List[TemperatureLocatedCube],
     """
 
     # Obtain heat matrix
-    heat_matrix_result = obtain_2d_heat_matrix(heatmap_cube_list, axis, location_in_axis)
+    heat_matrix_result = __obtain_2d_heat_matrix(heatmap_cube_list, axis, location_in_axis)
     if heat_matrix_result is not None:
         heat_matrix, plane_min_x, plane_max_x, plane_min_y, plane_max_y = heat_matrix_result
 
@@ -260,23 +377,56 @@ def plot_2d_heat_map(heatmap_cube_list: List[TemperatureLocatedCube],
 
 
 def generate_video_2d_heat_map(
-        heatmap_cube_list: List[Tuple[List[TemperatureLocatedCube], float]],
+        heatmap_cube_list_dict: Dict[float, List[TemperatureLocatedCube]],
         axis: Literal["X", "Y", "Z"],
         location_in_axis: int,
+        delay_between_frames_ms: int,
         min_temperature: Optional[float] = None,
         max_temperature: Optional[float] = None,
         color_map: str = "plasma",
         units: ThermalUnits = ThermalUnits.KELVIN) -> FuncAnimation:
+    """
+    Plot 2d heat map of the model
+
+    :param delay_between_frames_ms: Delay between two frames in milliseconds
+    :param location_in_axis: Location in the axis
+    :param axis: Axis to plot
+    :param heatmap_cube_list_dict: Dict with parameters [time in seconds, list with model temperature]
+    :param min_temperature: Min temperature in the model
+    :param max_temperature: Max temperature in the model
+    :param color_map: Model color map
+    :param units: Thermal units
+    :return: Resultant figure
+    """
+
+    sorted_times = sorted(heatmap_cube_list_dict.keys())
+
+    elapsed_time = sorted_times[-1] - sorted_times[0]
+
+    # This is used to show the last frame some time
+    last_frame_time = sorted_times[-1] - sorted_times[-2]
+
+    number_of_frames = round((elapsed_time + last_frame_time) * 1000 / delay_between_frames_ms)
+
+    frames_to_dict_mapper = {
+        i: next(x for x, y in zip(sorted_times, sorted_times[1:] + [sorted_times[-1] + last_frame_time + 1]) if
+                x <= (i * delay_between_frames_ms) / 1000 < y) for
+        i in range(number_of_frames)}
+
     fig, ax = plt.subplots()
     cbar = fig.colorbar(cm.ScalarMappable(norm=colors.Normalize(min_temperature, max_temperature), cmap=color_map),
                         ax=ax)
     cbar.ax.set_ylabel("Temperature in " + ("kelvin" if units == ThermalUnits.KELVIN else "celsius"))
 
     def animate(i):
-        heatmap_cube_list_local, heatmap_cube_list_local_time = heatmap_cube_list[i]
+        heatmap_cube_list_local, heatmap_cube_list_local_time = heatmap_cube_list_dict[frames_to_dict_mapper[i]], \
+                                                                frames_to_dict_mapper[i]
+
+        # Draw title
+        fig.suptitle("Simulation time: " + str(heatmap_cube_list_local_time) + " seconds", fontsize=12)
 
         # Obtain heat matrix
-        heat_matrix_result = obtain_2d_heat_matrix(heatmap_cube_list_local, axis, location_in_axis)
+        heat_matrix_result = __obtain_2d_heat_matrix(heatmap_cube_list_local, axis, location_in_axis)
 
         heat_matrix, plane_min_x, plane_max_x, plane_min_y, plane_max_y = heat_matrix_result
 
@@ -299,6 +449,7 @@ def generate_video_2d_heat_map(
 
         return quad
 
-    anim = animation.FuncAnimation(fig, animate, frames=len(heatmap_cube_list), interval=1, blit=False, repeat=False)
+    anim = animation.FuncAnimation(fig, animate, frames=number_of_frames, interval=delay_between_frames_ms, blit=False,
+                                   repeat=False)
 
     return anim
