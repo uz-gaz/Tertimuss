@@ -1,7 +1,7 @@
 import unittest
 
 from cubed_space_thermal_simulator import UnitDimensions, UnitLocation, CubedSpace, ThermalUnits, \
-    SolidMaterialLocatedCube, obtain_min_temperature, obtain_max_temperature
+    obtain_min_temperature, obtain_max_temperature, LocatedCube
 
 from cubed_space_thermal_simulator.materials_pack import CooperSolidMaterial, SiliconSolidMaterial, \
     AirForcedEnvironmentProperties
@@ -25,11 +25,11 @@ class CubedSpaceThermalSimulatorTest(unittest.TestCase):
         # Definition of the CPU shape and materials
         scene_definition = {
             # Cores
-            0: SolidMaterialLocatedCube(
-                location=UnitLocation(x=0, z=0, y=0),
-                dimensions=cubes_dimensions,
-                solidMaterial=cuboid_material
-            )
+            0: (cuboid_material,
+                LocatedCube(
+                    location=UnitLocation(x=0, z=0, y=0),
+                    dimensions=cubes_dimensions)
+                )
         }
 
         # Edge size pf 1 mm
@@ -85,11 +85,11 @@ class CubedSpaceThermalSimulatorTest(unittest.TestCase):
         # Definition of the CPU shape and materials
         scene_definition = {
             # Cores
-            0: SolidMaterialLocatedCube(
-                location=UnitLocation(x=0, z=0, y=0),
-                dimensions=cubes_dimensions,
-                solidMaterial=cuboid_material
-            )
+            0: (cuboid_material,
+                LocatedCube(
+                    location=UnitLocation(x=0, z=0, y=0),
+                    dimensions=cubes_dimensions)
+                )
         }
 
         # Edge size pf 1 mm
@@ -157,16 +157,16 @@ class CubedSpaceThermalSimulatorTest(unittest.TestCase):
         # Definition of the CPU shape and materials
         scene_definition = {
             # Cores
-            0: SolidMaterialLocatedCube(
-                location=UnitLocation(x=0, z=0, y=0),
-                dimensions=cubes_dimensions,
-                solidMaterial=cube_0_material
-            ),
-            1: SolidMaterialLocatedCube(
-                location=UnitLocation(x=cubes_dimensions.x, z=0, y=0),
-                dimensions=cubes_dimensions,
-                solidMaterial=cube_1_material
-            )
+            0: (cube_0_material,
+                LocatedCube(
+                    location=UnitLocation(x=0, z=0, y=0),
+                    dimensions=cubes_dimensions)
+                ),
+            1: (cube_1_material,
+                LocatedCube(
+                    location=UnitLocation(x=cubes_dimensions.x, z=0, y=0),
+                    dimensions=cubes_dimensions)
+                )
         }
 
         # Edge size pf 1 mm

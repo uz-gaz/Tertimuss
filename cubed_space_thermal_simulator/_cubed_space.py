@@ -13,7 +13,7 @@ class CubedSpaceState(object):
 
 
 class CubedSpace(object):
-    def __init__(self, material_cubes: Dict[int, SolidMaterialLocatedCube], cube_edge_size: float,
+    def __init__(self, material_cubes: Dict[int, Tuple[SolidMaterial, LocatedCube]], cube_edge_size: float,
                  environment_properties: Optional[FluidEnvironmentProperties] = None,
                  external_temperature_booster_points: Optional[Dict[int, ExternalTemperatureBoosterLocatedCube]] = None,
                  internal_temperature_booster_points: Optional[Dict[int, InternalTemperatureBoosterLocatedCube]] = None,
@@ -83,13 +83,13 @@ class CubedSpace(object):
         # First create internal conductivity for each material cube
         for material_cube_index, material_cube in material_cubes.items():
             # Parameters
-            x: int = material_cube.dimensions.x
-            y: int = material_cube.dimensions.y
-            z: int = material_cube.dimensions.z
+            x: int = material_cube[1].dimensions.x
+            y: int = material_cube[1].dimensions.y
+            z: int = material_cube[1].dimensions.z
 
-            rho: float = material_cube.solidMaterial.density
-            k: float = material_cube.solidMaterial.thermalConductivity
-            cp: float = material_cube.solidMaterial.specificHeatCapacity
+            rho: float = material_cube[0].density
+            k: float = material_cube[0].thermalConductivity
+            cp: float = material_cube[0].specificHeatCapacity
 
             # Horizontal lambda and vertical lambda was refactored to achieve more precision
             # Horizontal lambda is equal to vertical lambda because sides are equals
@@ -181,12 +181,12 @@ class CubedSpace(object):
             internal_conductivity_lambda.append(lambda_vector)
             places_material_mapping[mo_index[material_cube_index]:
                                     mo_index[material_cube_index] +
-                                    material_cube.dimensions.x *
-                                    material_cube.dimensions.y *
-                                    material_cube.dimensions.z] = (material_cube.dimensions.x *
-                                                                   material_cube.dimensions.y *
-                                                                   material_cube.dimensions.z) * [
-                                                                      material_cube_index]
+                                    material_cube[1].dimensions.x *
+                                    material_cube[1].dimensions.y *
+                                    material_cube[1].dimensions.z] = (material_cube[1].dimensions.x *
+                                                                      material_cube[1].dimensions.y *
+                                                                      material_cube[1].dimensions.z) * [
+                                                                         material_cube_index]
 
             # Fill location to place mapping dict
             for actual_z in range(z):
@@ -194,9 +194,9 @@ class CubedSpace(object):
                     for actual_x in range(x):
                         local_place = actual_z * y * x + actual_y * x + actual_x
                         global_place = mo_index[material_cube_index] + local_place
-                        location_places_mapping[(material_cube.location.x + actual_x,
-                                                 material_cube.location.y + actual_y,
-                                                 material_cube.location.z + actual_z)] = global_place
+                        location_places_mapping[(material_cube[1].location.x + actual_x,
+                                                 material_cube[1].location.y + actual_y,
+                                                 material_cube[1].location.z + actual_z)] = global_place
 
         # Add interaction between cuboids
         mo_places_size = sum(mo_cubes_size)
@@ -220,37 +220,37 @@ class CubedSpace(object):
 
                         # Transition 1, from A -> B
                         pre[place_a, 0] = 1
-                        post[place_b, 0] = (material_cube_a.solidMaterial.density
-                                            * material_cube_a.solidMaterial.specificHeatCapacity) / \
-                                           (material_cube_b.solidMaterial.density
-                                            * material_cube_b.solidMaterial.specificHeatCapacity)
+                        post[place_b, 0] = (material_cube_a[0].density
+                                            * material_cube_a[0].specificHeatCapacity) / \
+                                           (material_cube_b[0].density
+                                            * material_cube_b[0].specificHeatCapacity)
 
                         # Transition 2, from B -> A
                         pre[place_b, 1] = 1
-                        post[place_a, 1] = (material_cube_b.solidMaterial.density
-                                            * material_cube_b.solidMaterial.specificHeatCapacity) / \
-                                           (material_cube_a.solidMaterial.density
-                                            * material_cube_a.solidMaterial.specificHeatCapacity)
+                        post[place_a, 1] = (material_cube_b[0].density
+                                            * material_cube_b[0].specificHeatCapacity) / \
+                                           (material_cube_a[0].density
+                                            * material_cube_a[0].specificHeatCapacity)
 
                         # All lambdas are equals
                         lambda_vector = numpy.zeros(shape=2, dtype=dtype)
 
                         # Calculate lambda from A -> B
-                        lambda_vector[0] = (material_cube_a.solidMaterial.thermalConductivity
-                                            * material_cube_b.solidMaterial.thermalConductivity) / \
-                                           (material_cube_a.solidMaterial.density
-                                            * material_cube_a.solidMaterial.specificHeatCapacity
-                                            * (material_cube_a.solidMaterial.thermalConductivity
-                                               + material_cube_b.solidMaterial.thermalConductivity)
+                        lambda_vector[0] = (material_cube_a[0].thermalConductivity
+                                            * material_cube_b[0].thermalConductivity) / \
+                                           (material_cube_a[0].density
+                                            * material_cube_a[0].specificHeatCapacity
+                                            * (material_cube_a[0].thermalConductivity
+                                               + material_cube_b[0].thermalConductivity)
                                             * (cube_edge_size ** 2))
 
                         # Calculate lambda from B -> A
-                        lambda_vector[1] = (material_cube_a.solidMaterial.thermalConductivity
-                                            * material_cube_b.solidMaterial.thermalConductivity) / \
-                                           (material_cube_b.solidMaterial.density
-                                            * material_cube_b.solidMaterial.specificHeatCapacity
-                                            * (material_cube_a.solidMaterial.thermalConductivity
-                                               + material_cube_b.solidMaterial.thermalConductivity)
+                        lambda_vector[1] = (material_cube_a[0].thermalConductivity
+                                            * material_cube_b[0].thermalConductivity) / \
+                                           (material_cube_b[0].density
+                                            * material_cube_b[0].specificHeatCapacity
+                                            * (material_cube_a[0].thermalConductivity
+                                               + material_cube_b[0].thermalConductivity)
                                             * (cube_edge_size ** 2))
 
                         # Append to global values
@@ -267,10 +267,10 @@ class CubedSpace(object):
             places_with_contact) if environment_properties is not None else set()
 
         # Return the convection lambda of a material
-        def _convection_lambda_of_material(_material_cube: SolidMaterialLocatedCube) -> float:
+        def _convection_lambda_of_material(_material_cube: Tuple[SolidMaterial, LocatedCube]) -> float:
             return environment_properties.heatTransferCoefficient / (
-                    cube_edge_size * _material_cube.solidMaterial.density *
-                    _material_cube.solidMaterial.specificHeatCapacity)
+                    cube_edge_size * _material_cube[0].density *
+                    _material_cube[0].specificHeatCapacity)
 
         # This data structure store for each place in contact with the environment the heat extraction transition'
         # lambda value
@@ -435,106 +435,121 @@ class CubedSpace(object):
             {i for i, _ in external_temperature_booster_points.items()}
 
     @classmethod
-    def __obtain_places_in_touch(cls, material_cube_a: SolidMaterialLocatedCube, material_cube_a_places_index: int,
-                                 material_cube_b: SolidMaterialLocatedCube, material_cube_b_places_index: int) \
+    def __obtain_places_in_touch(cls, material_cube_a: Tuple[SolidMaterial, LocatedCube],
+                                 material_cube_a_places_index: int,
+                                 material_cube_b: Tuple[SolidMaterial, LocatedCube], material_cube_b_places_index: int) \
             -> List[Tuple[int, int]]:
         # Touch in axis y
-        if material_cube_a.location.y + material_cube_a.dimensions.y == material_cube_b.location.y:
+        if material_cube_a[1].location.y + material_cube_a[1].dimensions.y == material_cube_b[1].location.y:
             collision = cls.__check_rectangles_collision(
-                (material_cube_a.location.x, material_cube_a.location.z),
-                (material_cube_a.dimensions.x, material_cube_a.dimensions.z),
-                (material_cube_b.location.x, material_cube_b.location.z),
-                (material_cube_b.dimensions.x, material_cube_b.dimensions.z)
+                (material_cube_a[1].location.x, material_cube_a[1].location.z),
+                (material_cube_a[1].dimensions.x, material_cube_a[1].dimensions.z),
+                (material_cube_b[1].location.x, material_cube_b[1].location.z),
+                (material_cube_b[1].dimensions.x, material_cube_b[1].dimensions.z)
             )
 
-            return [(material_cube_a_places_index + (z - material_cube_a.location.z) * material_cube_a.dimensions.x *
-                     material_cube_a.dimensions.y + (
-                             x - material_cube_a.location.x),
-                     material_cube_b_places_index + (
-                             z - material_cube_b.location.z) * material_cube_b.dimensions.x
-                     * material_cube_b.dimensions.y + (material_cube_a.dimensions.y - 1)
-                     * material_cube_a.dimensions.x + (x - material_cube_b.location.x)) for x, z in collision]
+            return [
+                (material_cube_a_places_index + (z - material_cube_a[1].location.z) * material_cube_a[1].dimensions.x *
+                 material_cube_a[1].dimensions.y + (
+                         x - material_cube_a[1].location.x),
+                 material_cube_b_places_index + (
+                         z - material_cube_b[1].location.z) * material_cube_b[1].dimensions.x
+                 * material_cube_b[1].dimensions.y + (material_cube_a[1].dimensions.y - 1)
+                 * material_cube_a[1].dimensions.x + (x - material_cube_b[1].location.x)) for x, z in collision]
 
-        elif material_cube_b.location.y + material_cube_b.dimensions.y == material_cube_a.location.y:
+        elif material_cube_b[1].location.y + material_cube_b[1].dimensions.y == material_cube_a[1].location.y:
             collision = cls.__check_rectangles_collision(
-                (material_cube_a.location.x, material_cube_a.location.z),
-                (material_cube_a.dimensions.x, material_cube_a.dimensions.z),
-                (material_cube_b.location.x, material_cube_b.location.z),
-                (material_cube_b.dimensions.x, material_cube_b.dimensions.z)
+                (material_cube_a[1].location.x, material_cube_a[1].location.z),
+                (material_cube_a[1].dimensions.x, material_cube_a[1].dimensions.z),
+                (material_cube_b[1].location.x, material_cube_b[1].location.z),
+                (material_cube_b[1].dimensions.x, material_cube_b[1].dimensions.z)
             )
 
             return [(material_cube_a_places_index + (
-                    z - material_cube_a.location.z) * material_cube_a.dimensions.x * material_cube_a.dimensions.y
-                     + (material_cube_a.dimensions.y - 1) * material_cube_b.dimensions.x +
-                     (x - material_cube_a.location.x),
-                     material_cube_b_places_index + (z - material_cube_b.location.z) * material_cube_b.dimensions.x *
-                     material_cube_b.dimensions.y +
-                     (x - material_cube_b.location.x)) for x, z in collision]
+                    z - material_cube_a[1].location.z) * material_cube_a[1].dimensions.x * material_cube_a[
+                         1].dimensions.y
+                     + (material_cube_a[1].dimensions.y - 1) * material_cube_b[1].dimensions.x +
+                     (x - material_cube_a[1].location.x),
+                     material_cube_b_places_index + (z - material_cube_b[1].location.z) * material_cube_b[
+                         1].dimensions.x *
+                     material_cube_b[1].dimensions.y +
+                     (x - material_cube_b[1].location.x)) for x, z in collision]
 
         # Touch in axis x
-        elif material_cube_a.location.x + material_cube_a.dimensions.x == material_cube_b.location.x:
+        elif material_cube_a[1].location.x + material_cube_a[1].dimensions.x == material_cube_b[1].location.x:
             collision = cls.__check_rectangles_collision(
-                (material_cube_a.location.y, material_cube_a.location.z),
-                (material_cube_a.dimensions.y, material_cube_a.dimensions.z),
-                (material_cube_b.location.y, material_cube_b.location.z),
-                (material_cube_b.dimensions.y, material_cube_b.dimensions.z)
+                (material_cube_a[1].location.y, material_cube_a[1].location.z),
+                (material_cube_a[1].dimensions.y, material_cube_a[1].dimensions.z),
+                (material_cube_b[1].location.y, material_cube_b[1].location.z),
+                (material_cube_b[1].dimensions.y, material_cube_b[1].dimensions.z)
             )
 
             return [(material_cube_a_places_index + (
-                    z - material_cube_a.location.z) * material_cube_a.dimensions.x * material_cube_a.dimensions.y +
-                     (y - material_cube_a.location.y) * material_cube_a.dimensions.x + material_cube_b.dimensions.x - 1,
-                     material_cube_b_places_index + (z - material_cube_b.location.z) *
-                     material_cube_b.dimensions.x * material_cube_b.dimensions.y + (y - material_cube_b.location.y) *
-                     material_cube_b.dimensions.x) for y, z in collision]
+                    z - material_cube_a[1].location.z) * material_cube_a[1].dimensions.x * material_cube_a[
+                         1].dimensions.y +
+                     (y - material_cube_a[1].location.y) * material_cube_a[1].dimensions.x + material_cube_b[
+                         1].dimensions.x - 1,
+                     material_cube_b_places_index + (z - material_cube_b[1].location.z) *
+                     material_cube_b[1].dimensions.x * material_cube_b[1].dimensions.y + (
+                             y - material_cube_b[1].location.y) *
+                     material_cube_b[1].dimensions.x) for y, z in collision]
 
-        elif material_cube_b.location.x + material_cube_b.dimensions.x == material_cube_a.location.x:
+        elif material_cube_b[1].location.x + material_cube_b[1].dimensions.x == material_cube_a[1].location.x:
             collision = cls.__check_rectangles_collision(
-                (material_cube_a.location.y, material_cube_a.location.z),
-                (material_cube_a.dimensions.y, material_cube_a.dimensions.z),
-                (material_cube_b.location.y, material_cube_b.location.z),
-                (material_cube_b.dimensions.y, material_cube_b.dimensions.z)
+                (material_cube_a[1].location.y, material_cube_a[1].location.z),
+                (material_cube_a[1].dimensions.y, material_cube_a[1].dimensions.z),
+                (material_cube_b[1].location.y, material_cube_b[1].location.z),
+                (material_cube_b[1].dimensions.y, material_cube_b[1].dimensions.z)
             )
 
             return [(material_cube_a_places_index + (
-                    z - material_cube_a.location.z) * material_cube_a.dimensions.x * material_cube_a.dimensions.y +
-                     (y - material_cube_a.location.y) * material_cube_a.dimensions.x,
+                    z - material_cube_a[1].location.z) * material_cube_a[1].dimensions.x * material_cube_a[
+                         1].dimensions.y +
+                     (y - material_cube_a[1].location.y) * material_cube_a[1].dimensions.x,
                      material_cube_b_places_index + (
-                             z - material_cube_b.location.z) * material_cube_b.dimensions.x * material_cube_b.dimensions.y +
-                     (y - material_cube_b.location.y) * material_cube_b.dimensions.x + material_cube_a.dimensions.x - 1)
+                             z - material_cube_b[1].location.z) * material_cube_b[1].dimensions.x * material_cube_b[
+                         1].dimensions.y +
+                     (y - material_cube_b[1].location.y) * material_cube_b[1].dimensions.x + material_cube_a[
+                         1].dimensions.x - 1)
                     for y, z in collision]
 
             # Touch in axis z
-        elif material_cube_a.location.z + material_cube_a.dimensions.z == material_cube_b.location.z:
+        elif material_cube_a[1].location.z + material_cube_a[1].dimensions.z == material_cube_b[1].location.z:
             collision = cls.__check_rectangles_collision(
-                (material_cube_a.location.x, material_cube_a.location.y),
-                (material_cube_a.dimensions.x, material_cube_a.dimensions.y),
-                (material_cube_b.location.x, material_cube_b.location.y),
-                (material_cube_b.dimensions.x, material_cube_b.dimensions.y)
+                (material_cube_a[1].location.x, material_cube_a[1].location.y),
+                (material_cube_a[1].dimensions.x, material_cube_a[1].dimensions.y),
+                (material_cube_b[1].location.x, material_cube_b[1].location.y),
+                (material_cube_b[1].dimensions.x, material_cube_b[1].dimensions.y)
             )
 
             return [(material_cube_a_places_index + (
-                    material_cube_b.dimensions.z - 1) * material_cube_b.dimensions.x * material_cube_b.dimensions.y + (
-                             y - material_cube_a.location.y) * material_cube_a.dimensions.x + (
-                             x - material_cube_a.location.x),
+                    material_cube_b[1].dimensions.z - 1) * material_cube_b[1].dimensions.x * material_cube_b[
+                         1].dimensions.y + (
+                             y - material_cube_a[1].location.y) * material_cube_a[1].dimensions.x + (
+                             x - material_cube_a[1].location.x),
                      material_cube_b_places_index +
-                     (y - material_cube_b.location.y) * material_cube_b.dimensions.x + material_cube_b.dimensions.x +
-                     (x - material_cube_b.location.x)) for x, y in collision]
+                     (y - material_cube_b[1].location.y) * material_cube_b[1].dimensions.x + material_cube_b[
+                         1].dimensions.x +
+                     (x - material_cube_b[1].location.x)) for x, y in collision]
 
-        elif material_cube_b.location.z + material_cube_b.dimensions.z == material_cube_a.location.z:
+        elif material_cube_b[1].location.z + material_cube_b[1].dimensions.z == material_cube_a[1].location.z:
             collision = cls.__check_rectangles_collision(
-                (material_cube_a.location.x, material_cube_a.location.y),
-                (material_cube_a.dimensions.x, material_cube_a.dimensions.y),
-                (material_cube_b.location.x, material_cube_b.location.y),
-                (material_cube_b.dimensions.x, material_cube_b.dimensions.y)
+                (material_cube_a[1].location.x, material_cube_a[1].location.y),
+                (material_cube_a[1].dimensions.x, material_cube_a[1].dimensions.y),
+                (material_cube_b[1].location.x, material_cube_b[1].location.y),
+                (material_cube_b[1].dimensions.x, material_cube_b[1].dimensions.y)
             )
 
             return [(
                 material_cube_a_places_index +
-                (y - material_cube_a.location.y) * material_cube_a.dimensions.x + (x - material_cube_a.location.x),
+                (y - material_cube_a[1].location.y) * material_cube_a[1].dimensions.x + (
+                        x - material_cube_a[1].location.x),
                 material_cube_b_places_index + (
-                        material_cube_a.dimensions.z - 1) * material_cube_a.dimensions.x * material_cube_a.dimensions.y + (
-                        y - material_cube_b.location.y) * material_cube_b.dimensions.x + material_cube_b.dimensions.x +
-                (x - material_cube_b.location.x)) for x, y in collision]
+                        material_cube_a[1].dimensions.z - 1) * material_cube_a[1].dimensions.x * material_cube_a[
+                    1].dimensions.y + (
+                        y - material_cube_b[1].location.y) * material_cube_b[1].dimensions.x + material_cube_b[
+                    1].dimensions.x +
+                (x - material_cube_b[1].location.x)) for x, y in collision]
 
         # No touch
         else:
@@ -623,10 +638,11 @@ class CubedSpace(object):
 
         for i, v in self.__mo_index.items():
             material_cube = self.__material_cubes_dict[i]
-            number_of_occupied_places = material_cube.dimensions.x * material_cube.dimensions.y * material_cube.dimensions.z
+            number_of_occupied_places = material_cube[1].dimensions.x * material_cube[1].dimensions.y * material_cube[
+                1].dimensions.z
             temperature_places = actual_state.places_mo_vector[v: v + number_of_occupied_places]
             temperature_cubes.append(
-                TemperatureLocatedCube(material_cube.dimensions, material_cube.location, temperature_places))
+                TemperatureLocatedCube(material_cube[1].dimensions, material_cube[1].location, temperature_places))
 
         return temperature_cubes
 
@@ -643,7 +659,8 @@ class CubedSpace(object):
         places_temperature = []
         for i, v in self.__mo_index.items():
             material_cube = self.__material_cubes_dict[i]
-            number_of_occupied_places = material_cube.dimensions.x * material_cube.dimensions.y * material_cube.dimensions.z
+            number_of_occupied_places = material_cube[1].dimensions.x * material_cube[1].dimensions.y * material_cube[
+                1].dimensions.z
             local_places_temperature = numpy.ones(shape=(number_of_occupied_places), dtype=self.__simulation_precision)
 
             if material_cubes_temperatures is not None and material_cubes_temperatures.__contains__(i):

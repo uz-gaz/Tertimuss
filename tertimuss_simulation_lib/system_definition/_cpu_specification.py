@@ -1,6 +1,6 @@
 import itertools
 import math
-from typing import List, Optional
+from typing import List, Optional, Set
 
 
 class EnergyConsumptionProperties(object):
@@ -74,29 +74,26 @@ class Origin(object):
 class CoreGroupSpecification(object):
     def __init__(self, physical_properties: MaterialCuboid,
                  energy_consumption_properties: EnergyConsumptionProperties,
-                 available_frequencies: List[int], operating_frequencies: List[int],
+                 available_frequencies: Set[int],
                  cores_origins: Optional[List[Origin]] = None):
         """
         Specification of a group of cores with the same characteristics
 
         :param physical_properties: Cores physical properties
         :param energy_consumption_properties: Core construction properties relatives to the energy consumption
-        :param available_frequencies: Cores available frequencies in Hz
-        :param operating_frequencies: Cores operating frequencies in Hz. Each frequency must belong to the
-         available_frequencies set
+        :param available_frequencies: Cores available frequencies in H
         :param cores_origins: Cores origins locations
         """
         self.physical_properties: MaterialCuboid = physical_properties
         self.energy_consumption_properties: EnergyConsumptionProperties = energy_consumption_properties
-        self.available_frequencies: List[int] = available_frequencies
-        self.operating_frequencies: List[int] = operating_frequencies
-        self.operating_frequencies.sort()
+        self.available_frequencies: Set[int] = available_frequencies
         self.cores_origins: Optional[List[Origin]] = cores_origins
 
 
 class CpuSpecification(object):
 
-    def __init__(self, board_specification: BoardSpecification, cores_specification: CoreGroupSpecification):
+    def __init__(self, board_specification: BoardSpecification, cores_specification: CoreGroupSpecification,
+                 number_of_cores: int):
         """
         Specification of a processor
 
@@ -113,7 +110,7 @@ class CpuSpecification(object):
                                                   0, self.board_specification.physical_properties.y,
                                                   self.cores_specification.physical_properties.x,
                                                   self.cores_specification.physical_properties.y,
-                                                  len(self.cores_specification.operating_frequencies))
+                                                  number_of_cores)
 
     @classmethod
     def __generate_automatic_origins(cls, x0: float, x1: float, y0: float, y1: float, mx: float, my: float,

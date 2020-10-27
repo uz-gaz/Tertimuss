@@ -66,14 +66,6 @@ class TemperatureLocatedCube(LocatedCube):
 
 
 @dataclass
-class SolidMaterialLocatedCube(LocatedCube):
-    """
-    Cube with material and location
-    """
-    solidMaterial: SolidMaterial
-
-
-@dataclass
 class ExternalTemperatureBoosterLocatedCube(LocatedCube):
     """
     Increase the temperature of all the cubes that are located inside the locatedCube by a rate of

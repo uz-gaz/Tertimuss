@@ -3,9 +3,9 @@ import unittest
 from matplotlib import animation
 
 from cubed_space_thermal_simulator import UnitDimensions, UnitLocation, \
-    CubedSpace, SolidMaterialLocatedCube, \
-    obtain_min_temperature, obtain_max_temperature, plot_3d_heat_map_temperature, \
-    InternalTemperatureBoosterLocatedCube, plot_2d_heat_map, generate_video_2d_heat_map, generate_video_3d_heat_map
+    CubedSpace, obtain_min_temperature, obtain_max_temperature, plot_3d_heat_map_temperature, \
+    InternalTemperatureBoosterLocatedCube, plot_2d_heat_map, generate_video_2d_heat_map, generate_video_3d_heat_map, \
+    LocatedCube
 
 from cubed_space_thermal_simulator.materials_pack import CooperSolidMaterial, SiliconSolidMaterial, \
     AirFreeEnvironmentProperties, AirForcedEnvironmentProperties
@@ -44,33 +44,33 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
         # Definition of the CPU shape and materials
         cpu_definition = {
             # Cores
-            0: SolidMaterialLocatedCube(
-                location=UnitLocation(x=10, z=2, y=10),
-                dimensions=core_dimensions,
-                solidMaterial=core_material
-            ),
-            1: SolidMaterialLocatedCube(
-                location=UnitLocation(x=30, z=2, y=10),
-                dimensions=core_dimensions,
-                solidMaterial=core_material
-            ),
-            2: SolidMaterialLocatedCube(
-                location=UnitLocation(x=10, z=2, y=30),
-                dimensions=core_dimensions,
-                solidMaterial=core_material
-            ),
-            3: SolidMaterialLocatedCube(
-                location=UnitLocation(x=30, z=2, y=30),
-                dimensions=core_dimensions,
-                solidMaterial=core_material
-            ),
+            0: (core_material,
+                LocatedCube(
+                    location=UnitLocation(x=10, z=2, y=10),
+                    dimensions=core_dimensions)
+                ),
+            1: (core_material,
+                LocatedCube(
+                    location=UnitLocation(x=30, z=2, y=10),
+                    dimensions=core_dimensions)
+                ),
+            2: (core_material,
+                LocatedCube(
+                    location=UnitLocation(x=10, z=2, y=30),
+                    dimensions=core_dimensions)
+                ),
+            3: (core_material,
+                LocatedCube(
+                    location=UnitLocation(x=30, z=2, y=30),
+                    dimensions=core_dimensions)
+                ),
 
             # Board
-            4: SolidMaterialLocatedCube(
-                location=UnitLocation(x=0, z=0, y=0),
-                dimensions=UnitDimensions(x=50, z=2, y=50),
-                solidMaterial=board_material
-            )
+            4: (board_material,
+                LocatedCube(
+                    location=UnitLocation(x=0, z=0, y=0),
+                    dimensions=UnitDimensions(x=50, z=2, y=50))
+                )
         }
 
         # Edge size pf 1 mm
@@ -92,43 +92,48 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
         # External heat generators
         external_heat_generators = {
             # Dynamic power
-            0: create_energy_applicator(SolidMaterialLocatedCube(
-                location=UnitLocation(x=10, z=2, y=10),
-                dimensions=core_dimensions,
-                solidMaterial=board_material),
-                watts_to_apply=20,
-                cube_edge_size=cube_edge_size
-            ),
+            0: create_energy_applicator((core_material,
+                                         LocatedCube(
+                                             location=UnitLocation(x=10, z=2, y=10),
+                                             dimensions=core_dimensions)
+                                         ),
+                                        watts_to_apply=20,
+                                        cube_edge_size=cube_edge_size
+                                        ),
 
             # Leakage power
-            1: create_energy_applicator(SolidMaterialLocatedCube(
-                location=UnitLocation(x=10, z=2, y=10),
-                dimensions=core_dimensions,
-                solidMaterial=board_material),
-                watts_to_apply=leakage_alpha,
-                cube_edge_size=cube_edge_size
-            ),
-            2: create_energy_applicator(SolidMaterialLocatedCube(
-                location=UnitLocation(x=30, z=2, y=10),
-                dimensions=core_dimensions,
-                solidMaterial=board_material),
-                watts_to_apply=leakage_alpha,
-                cube_edge_size=cube_edge_size
-            ),
-            3: create_energy_applicator(SolidMaterialLocatedCube(
-                location=UnitLocation(x=10, z=2, y=30),
-                dimensions=core_dimensions,
-                solidMaterial=board_material),
-                watts_to_apply=leakage_alpha,
-                cube_edge_size=cube_edge_size
-            ),
-            4: create_energy_applicator(SolidMaterialLocatedCube(
-                location=UnitLocation(x=30, z=2, y=30),
-                dimensions=core_dimensions,
-                solidMaterial=board_material),
-                watts_to_apply=leakage_alpha,
-                cube_edge_size=cube_edge_size
-            )
+            1: create_energy_applicator((core_material,
+                                         LocatedCube(
+                                             location=UnitLocation(x=10, z=2, y=10),
+                                             dimensions=core_dimensions)
+                                         ),
+                                        watts_to_apply=leakage_alpha,
+                                        cube_edge_size=cube_edge_size
+                                        ),
+            2: create_energy_applicator((core_material,
+                                         LocatedCube(
+                                             location=UnitLocation(x=30, z=2, y=10),
+                                             dimensions=core_dimensions)
+                                         ),
+                                        watts_to_apply=leakage_alpha,
+                                        cube_edge_size=cube_edge_size
+                                        ),
+            3: create_energy_applicator((core_material,
+                                         LocatedCube(
+                                             location=UnitLocation(x=10, z=2, y=30),
+                                             dimensions=core_dimensions)
+                                         ),
+                                        watts_to_apply=leakage_alpha,
+                                        cube_edge_size=cube_edge_size
+                                        ),
+            4: create_energy_applicator((core_material,
+                                         LocatedCube(
+                                             location=UnitLocation(x=30, z=2, y=30),
+                                             dimensions=core_dimensions)
+                                         ),
+                                        watts_to_apply=leakage_alpha,
+                                        cube_edge_size=cube_edge_size
+                                        )
         }
 
         # Internal heat generators
@@ -236,16 +241,16 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
         # Definition of the CPU shape and materials
         scene_definition = {
             # Cores
-            0: SolidMaterialLocatedCube(
-                location=UnitLocation(x=0, z=0, y=0),
-                dimensions=cubes_dimensions,
-                solidMaterial=cube_0_material
-            ),
-            1: SolidMaterialLocatedCube(
-                location=UnitLocation(x=cubes_dimensions.x, z=0, y=0),
-                dimensions=cubes_dimensions,
-                solidMaterial=cube_1_material
-            )
+            0: (cube_0_material,
+                LocatedCube(
+                    location=UnitLocation(x=0, z=0, y=0),
+                    dimensions=cubes_dimensions)
+                ),
+            1: (cube_1_material,
+                LocatedCube(
+                    location=UnitLocation(x=cubes_dimensions.x, z=0, y=0),
+                    dimensions=cubes_dimensions)
+                )
         }
 
         # Edge size pf 1 mm
@@ -347,16 +352,16 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
         # Definition of the CPU shape and materials
         scene_definition = {
             # Cores
-            0: SolidMaterialLocatedCube(
-                location=UnitLocation(x=0, z=0, y=0),
-                dimensions=cubes_dimensions,
-                solidMaterial=cube_0_material
-            ),
-            1: SolidMaterialLocatedCube(
-                location=UnitLocation(x=cubes_dimensions.x, z=0, y=0),
-                dimensions=cubes_dimensions,
-                solidMaterial=cube_1_material
-            )
+            0: (cube_0_material,
+                LocatedCube(
+                    location=UnitLocation(x=0, z=0, y=0),
+                    dimensions=cubes_dimensions)
+                ),
+            1: (cube_1_material,
+                LocatedCube(
+                    location=UnitLocation(x=cubes_dimensions.x, z=0, y=0),
+                    dimensions=cubes_dimensions)
+                )
         }
 
         # Edge size pf 1 mm
@@ -434,11 +439,11 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
         # Definition of the CPU shape and materials
         scene_definition = {
             # Cores
-            0: SolidMaterialLocatedCube(
-                location=UnitLocation(x=0, z=0, y=0),
-                dimensions=cubes_dimensions,
-                solidMaterial=cube_0_material
-            )
+            0: (cube_0_material,
+                LocatedCube(
+                    location=UnitLocation(x=0, z=0, y=0),
+                    dimensions=cubes_dimensions)
+                )
         }
 
         # Edge size pf 1 mm

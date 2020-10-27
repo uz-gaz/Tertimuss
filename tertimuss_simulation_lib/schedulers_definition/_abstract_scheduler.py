@@ -13,7 +13,7 @@ class AbstractScheduler(object, metaclass=abc.ABCMeta):
     Base scheduler
     """
     @abc.abstractmethod
-    def offline_stage(self, global_specification: SystemConfigurationSpecification,
+    def offline_stage(self, cpu_specification,
                       periodic_tasks: List[SystemPeriodicTask],
                       aperiodic_tasks: List[SystemAperiodicTask]) -> float:
         """

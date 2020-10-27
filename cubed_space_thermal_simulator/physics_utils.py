@@ -1,10 +1,10 @@
-from typing import List
+from typing import List, Tuple
 
-from cubed_space_thermal_simulator import ExternalTemperatureBoosterLocatedCube, SolidMaterialLocatedCube, \
-    TemperatureLocatedCube
+from cubed_space_thermal_simulator import TemperatureLocatedCube, LocatedCube, SolidMaterial, \
+    ExternalTemperatureBoosterLocatedCube
 
 
-def create_energy_applicator(located_cube: SolidMaterialLocatedCube, cube_edge_size: float,
+def create_energy_applicator(located_cube: Tuple[SolidMaterial, LocatedCube], cube_edge_size: float,
                              watts_to_apply: float) -> ExternalTemperatureBoosterLocatedCube:
     """
     The resultant applicator will apply watts_to_apply watts distributed over the located_cube volume
@@ -14,11 +14,12 @@ def create_energy_applicator(located_cube: SolidMaterialLocatedCube, cube_edge_s
     :return:
     """
     volume = (cube_edge_size ** 3) * (
-            located_cube.dimensions.x * located_cube.dimensions.y * located_cube.dimensions.z)
-    mass = located_cube.solidMaterial.density * volume
-    specific_heat_capacity = located_cube.solidMaterial.specificHeatCapacity
+            located_cube[1].dimensions.x * located_cube[1].dimensions.y * located_cube[1].dimensions.z)
+    mass = located_cube[0].density * volume
+    specific_heat_capacity = located_cube[0].specificHeatCapacity
     temperature_boost = watts_to_apply / (specific_heat_capacity * mass)
-    return ExternalTemperatureBoosterLocatedCube(location=located_cube.location, dimensions=located_cube.dimensions,
+    return ExternalTemperatureBoosterLocatedCube(location=located_cube[1].location,
+                                                 dimensions=located_cube[1].dimensions,
                                                  boostRate=temperature_boost)
 
 
