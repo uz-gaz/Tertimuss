@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from typing import List, Set
 
 
-@dataclass
+@dataclass(frozen=True)
 class EnergyConsumptionProperties:
     # Leakage power properties = current temperature * 2 * leakage_delta + leakage_alpha
     leakage_alpha: float  # Leakage alpha
@@ -15,7 +15,7 @@ class EnergyConsumptionProperties:
     dynamic_beta: float  # Dynamic beta
 
 
-@dataclass
+@dataclass(frozen=True)
 class MaterialCuboid:
     # Cuboid-shaped material object
     x: float  # X size (mm)
@@ -26,20 +26,20 @@ class MaterialCuboid:
     k: float  # Thermal conductivity (W/m ºC)
 
 
-@dataclass
+@dataclass(frozen=True)
 class BoardSpecification:
     # Specification of the board where the cores are located
     physical_properties: MaterialCuboid  # Board physical properties
 
 
-@dataclass
+@dataclass(frozen=True)
 class Origin:
     # Origins of material cuboid
     x: float  # X coordinate (mm)
     y: float  # Y coordinate (mm)
 
 
-@dataclass
+@dataclass(frozen=True)
 class CoreGroupSpecification:
     #  Specification of a group of cores with the same characteristics
     physical_properties: MaterialCuboid  # Cores physical properties
@@ -48,7 +48,7 @@ class CoreGroupSpecification:
     cores_origins: List[Origin]  # Cores origins locations
 
 
-@dataclass
+@dataclass(frozen=True)
 class CpuSpecification:
     # Specification of a processor
     board_specification: BoardSpecification  # Specification of the board where cores are located

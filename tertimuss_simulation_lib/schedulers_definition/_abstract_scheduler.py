@@ -1,10 +1,8 @@
 import abc
 
-import numpy
+from ..system_definition import CpuSpecification, TaskSet, EnvironmentSpecification
 
-from ..system_definition import CpuSpecification, TaskSet, EnvironmentSpecification, PeriodicTask
-
-from typing import List, Optional, Set, Dict, Tuple
+from typing import Optional, Set, Dict, Tuple
 
 
 class CentralizedAbstractScheduler(object, metaclass=abc.ABCMeta):
@@ -24,7 +22,7 @@ class CentralizedAbstractScheduler(object, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def check_schedulability(self, cpu_specification: CpuSpecification,
                              environment_specification: EnvironmentSpecification,
-                             periodic_tasks: Set[PeriodicTask]) -> [bool, Optional[str]]:
+                             task_set: TaskSet) -> [bool, Optional[str]]:
         """
         Return true if the scheduler can be able to schedule the system. In negative case, it can return a reason.
         In example, an scheduler that only can work with periodic tasks with phase=0, can return
@@ -32,39 +30,39 @@ class CentralizedAbstractScheduler(object, metaclass=abc.ABCMeta):
 
         :param environment_specification: Specification of the environment
         :param cpu_specification: Specification of the cpu
-        :param periodic_tasks: Periodic tasks in the system
+        :param task_set: Tasks in the system
         :return CPU frequency
         """
         pass
 
     @abc.abstractmethod
     def offline_stage(self, cpu_specification: CpuSpecification, environment_specification: EnvironmentSpecification,
-                      periodic_tasks: Set[PeriodicTask]) -> int:
+                      task_set: TaskSet) -> int:
         """
         Method to implement with the offline stage scheduler tasks
+
         :param environment_specification: Specification of the environment
         :param cpu_specification: Specification of the cpu
-        :param periodic_tasks: Periodic tasks in the system
+        :param task_set: Tasks in the system
         :return CPU frequency
         """
         pass
 
     @abc.abstractmethod
-    def schedule_policy(self, global_time: float,
-                        time_since_major_cycle_start: float,
-                        cycles_executed_since_major_cycle_start: int,
-                        active_jobs_id: Set[int],
+    def schedule_policy(self, global_time: float, time_since_major_cycle_start: float,
+                        cycles_executed_since_major_cycle_start: int, active_jobs_id: Set[int],
                         jobs_being_executed_id: Dict[int, int],
                         cores_frequency: int, cores_max_temperature: Optional[Dict[int, float]]) -> \
             Tuple[Dict[int, int], Optional[int], Optional[int]]:
         """
         Method to implement with the actual scheduler police
+
         :param cycles_executed_since_major_cycle_start: Cycles executed since the major cycle start
         :param time_since_major_cycle_start: Time in seconds since the major cycle starts
         :param global_time: Time in seconds since the simulation starts
         :param jobs_being_executed_id: Ids of the jobs that are currently executed on the system. The dictionary has as
          key the CPU id, and as value the job id.
-        :param active_jobs_id: Ids of the jobs that are currently active
+        :param active_jobs_id: Identifications of the jobs that are currently active
          (look in :ref:..system_definition.DeadlineCriteria for more info) and can be executed.
         :param cores_frequency: Frequencies of cores on the scheduler invocation in Hz.
         :param cores_max_temperature: Max temperature of each core. The dictionary has as
@@ -81,60 +79,52 @@ class CentralizedAbstractScheduler(object, metaclass=abc.ABCMeta):
     #
     # System events
     #
-    @abc.abstractmethod
     def on_major_cycle_start(self, global_time: float) -> bool:
         """
         On new major cycle start event
+
         :param global_time: Time in seconds since the simulation starts
         :return: true if want to immediately call the scheduler (schedule_policy method), false otherwise
         """
         return True
 
-    def on_aperiodic_arrive(self, global_time: float, ) -> bool:
+    def on_job_activation(self, global_time: float, time_since_major_cycle_start: float,
+                          cycles_executed_since_major_cycle_start: int, job_id: int, task_id: int) -> bool:
         """
-        Method to implement with the actual on aperiodic arrive scheduler police
-        :param actual_cores_frequency: Frequencies of cores
-        :param time: actual simulation time passed
-        :param aperiodic_tasks_arrived: aperiodic tasks arrived in this step (arrive_time == time)
-        :param cores_max_temperature: temperature of each core
+        Method to implement with the actual on job activation scheduler police.
+        This method is the recommended place to detect the arrival of an aperiodic or sporadic task
+
+        :param task_id: Identification of the task which job have been activated
+        :param job_id: Identification of the job that have been activated
+        :param cycles_executed_since_major_cycle_start: Cycles executed since the major cycle start
+        :param time_since_major_cycle_start: Time in seconds since the major cycle starts
+        :param global_time: Time in seconds since the simulation starts
         :return: true if want to immediately call the scheduler (schedule_policy method), false otherwise
         """
         return False
 
-    def on_job_arrive(self, time: float, aperiodic_tasks_arrived: List[SystemTask],
-                      actual_cores_frequency: List[int], cores_max_temperature: Optional[numpy.ndarray]) -> bool:
+    def on_job_deadline_missed(self, global_time: float, time_since_major_cycle_start: float,
+                               cycles_executed_since_major_cycle_start: int, job_id: int) -> bool:
         """
         Method to implement with the actual on aperiodic arrive scheduler police
-        :param actual_cores_frequency: Frequencies of cores
-        :param time: actual simulation time passed
-        :param aperiodic_tasks_arrived: aperiodic tasks arrived in this step (arrive_time == time)
-        :param cores_max_temperature: temperature of each core
+
+        :param job_id: Identification of the job that have missed the deadline
+        :param cycles_executed_since_major_cycle_start: Cycles executed since the major cycle start
+        :param time_since_major_cycle_start: Time in seconds since the major cycle starts
+        :param global_time: Time in seconds since the simulation starts
         :return: true if want to immediately call the scheduler (schedule_policy method), false otherwise
         """
         return False
 
-    def on_job_deadline_missed(self, time: float, aperiodic_tasks_arrived: List[SystemTask],
-                               actual_cores_frequency: List[int],
-                               cores_max_temperature: Optional[numpy.ndarray]) -> bool:
+    def on_job_execution_finished(self, global_time: float, time_since_major_cycle_start: float,
+                                  cycles_executed_since_major_cycle_start: int, job_id: int) -> bool:
         """
         Method to implement with the actual on aperiodic arrive scheduler police
-        :param actual_cores_frequency: Frequencies of cores
-        :param time: actual simulation time passed
-        :param aperiodic_tasks_arrived: aperiodic tasks arrived in this step (arrive_time == time)
-        :param cores_max_temperature: temperature of each core
-        :return: true if want to immediately call the scheduler (schedule_policy method), false otherwise
-        """
-        return False
 
-    def on_job_execution_finished(self, time: float, aperiodic_tasks_arrived: List[SystemTask],
-                                  actual_cores_frequency: List[int],
-                                  cores_max_temperature: Optional[numpy.ndarray]) -> bool:
-        """
-        Method to implement with the actual on aperiodic arrive scheduler police
-        :param actual_cores_frequency: Frequencies of cores
-        :param time: actual simulation time passed
-        :param aperiodic_tasks_arrived: aperiodic tasks arrived in this step (arrive_time == time)
-        :param cores_max_temperature: temperature of each core
+        :param job_id: Identification of the job that have finished its execution
+        :param cycles_executed_since_major_cycle_start: Cycles executed since the major cycle start
+        :param time_since_major_cycle_start: Time in seconds since the major cycle starts
+        :param global_time: Time in seconds since the simulation starts
         :return: true if want to immediately call the scheduler (schedule_policy method), false otherwise
         """
         return False

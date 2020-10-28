@@ -73,7 +73,7 @@ class AlwaysWorstCaseExecutionTimeDistribution(AbstractExecutionTimeDistribution
         return worst_case_execution_time
 
 
-@dataclass
+@dataclass(frozen=True)
 class Task(object):
     """
     Task specification
@@ -111,7 +111,7 @@ class Task(object):
     energyConsumption: Optional[float]
 
 
-@dataclass
+@dataclass(frozen=True)
 class PeriodicTask(Task):
     """
     A task in which jobs are activated at regular intervals of time, such that the activation of consecutive jobs is
@@ -124,7 +124,7 @@ class PeriodicTask(Task):
     period: float
 
 
-@dataclass
+@dataclass(frozen=True)
 class AperiodicTask(Task):
     """
     Aperiodic task specification
@@ -132,7 +132,7 @@ class AperiodicTask(Task):
     pass
 
 
-@dataclass
+@dataclass(frozen=True)
 class SporadicTask(Task):
     """
     Sporadic task specification
@@ -141,7 +141,7 @@ class SporadicTask(Task):
     minimum_interarrival_time: float
 
 
-@dataclass
+@dataclass(frozen=True)
 class TaskSet(object):
     """
     Group of tasks
@@ -156,7 +156,7 @@ class TaskSet(object):
     sporadic_tasks: List[SporadicTask]
 
 
-@dataclass
+@dataclass  # (frozen=True)
 class Job(object):
     """
     Task specification
