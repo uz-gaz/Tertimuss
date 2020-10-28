@@ -22,6 +22,22 @@ class CentralizedAbstractScheduler(object, metaclass=abc.ABCMeta):
         self.is_debug = activate_debug
 
     @abc.abstractmethod
+    def check_schedulability(self, cpu_specification: CpuSpecification,
+                             environment_specification: EnvironmentSpecification,
+                             periodic_tasks: Set[PeriodicTask]) -> [bool, Optional[str]]:
+        """
+        Return true if the scheduler can be able to schedule the system. In negative case, it can return a reason.
+        In example, an scheduler that only can work with periodic tasks with phase=0, can return
+         [false, "Only can schedule tasks with phase=0"]
+
+        :param environment_specification: Specification of the environment
+        :param cpu_specification: Specification of the cpu
+        :param periodic_tasks: Periodic tasks in the system
+        :return CPU frequency
+        """
+        pass
+
+    @abc.abstractmethod
     def offline_stage(self, cpu_specification: CpuSpecification, environment_specification: EnvironmentSpecification,
                       periodic_tasks: Set[PeriodicTask]) -> int:
         """
