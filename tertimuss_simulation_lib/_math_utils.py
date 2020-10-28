@@ -14,7 +14,8 @@ def is_less_or_equal_than(number_a: float, number_b: float, rtol: float = 1e-03,
     return number_a < number_b or is_equal(number_a, number_b, rtol, atol)
 
 
-# Taken from https://stackoverflow.com/questions/45323619/python-greatest-common-divisor-gcd-for-floats-preferably-in-numpy
+# Taken from
+# https://stackoverflow.com/questions/45323619/python-greatest-common-divisor-gcd-for-floats-preferably-in-numpy
 def __float_gcd(a: float, b: float, rtol: float = 1e-03, atol: float = 1e-05) -> float:
     t = min(abs(a), abs(b))
     while abs(b) > rtol * t + atol:
