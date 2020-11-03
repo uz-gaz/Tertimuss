@@ -16,7 +16,7 @@ def do_plots():
                                                ("out/4/64/", "4/64"),
                                                ("out/4/80/", "4/80"),
                                                ]
-    scheduler_name = "clustered_aiecs"
+    scheduler_name = "run"
 
     number_of_tests = 200
 
@@ -57,6 +57,10 @@ def do_plots():
         statistics.pstdev([CS_ALG1 / CS_MANDATORY for (CS_ALG1, CS_MANDATORY, M_ALG1) in grouped_info_local]) for
         grouped_info_local in grouped_info]
 
+    algorithm_cs_ratio_quantiles = [
+        statistics.quantiles([CS_ALG1 / CS_MANDATORY for (CS_ALG1, CS_MANDATORY, M_ALG1) in grouped_info_local]) for
+        grouped_info_local in grouped_info]
+
     # Algorithm M / JOBS
     algorithm_m_ratio_means = [
         statistics.mean([M_ALG1 / CS_MANDATORY for (CS_ALG1, CS_MANDATORY, M_ALG1) in grouped_info_local]) for
@@ -66,16 +70,23 @@ def do_plots():
         statistics.pstdev([M_ALG1 / CS_MANDATORY for (CS_ALG1, CS_MANDATORY, M_ALG1) in grouped_info_local]) for
         grouped_info_local in grouped_info]
 
+    algorithm_m_ratio_quantiles = [
+        statistics.quantiles([M_ALG1 / CS_MANDATORY for (CS_ALG1, CS_MANDATORY, M_ALG1) in grouped_info_local]) for
+        grouped_info_local in grouped_info]
+
     print("Statistics for context switch and migrations mean by experiment", scheduler_name)
 
-    for experiment_name, cs_ratio_mean, cs_ratio_stdev, m_ratio_mean, m_ratio_stdev in zip(
-            [i[1] for i in tests_base_names], algorithm_cs_ratio_means, algorithm_cs_ratio_stdev,
-            algorithm_m_ratio_means, algorithm_m_ratio_stdev):
+    for experiment_name, cs_ratio_mean, cs_ratio_stdev, cs_ratio_quantiles, m_ratio_mean, m_ratio_stdev, \
+        m_ratio_quantiles in zip([i[1] for i in tests_base_names], algorithm_cs_ratio_means, algorithm_cs_ratio_stdev,
+                                 algorithm_cs_ratio_quantiles, algorithm_m_ratio_means, algorithm_m_ratio_stdev,
+                                 algorithm_m_ratio_quantiles):
         print("\t", experiment_name)
-        print("\t\t Context switch mean by experiment mean:              ", cs_ratio_mean)
-        print("\t\t Context switch mean by experiment standard deviation:", cs_ratio_stdev)
-        print("\t\t Migrations mean by experiment mean:                  ", m_ratio_mean)
-        print("\t\t Migrations mean by experiment standard deviation:    ", m_ratio_stdev)
+        print("\t\t Preemption mean by experiment mean:              ", cs_ratio_mean)
+        print("\t\t Preemption mean by experiment standard deviation:", cs_ratio_stdev)
+        print("\t\t Preemption mean by experiment quantiles:         ", cs_ratio_quantiles)
+        print("\t\t Migrations mean by experiment mean:              ", m_ratio_mean)
+        print("\t\t Migrations mean by experiment standard deviation:", m_ratio_stdev)
+        print("\t\t Migrations mean by experiment quantiles:         ", m_ratio_quantiles)
 
 
 if __name__ == '__main__':

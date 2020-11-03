@@ -18,7 +18,7 @@ def do_plots():
                                                ("out/4/64/", "4/64"),
                                                ("out/4/80/", "4/80"),
                                                ]
-    scheduler_name = "run"
+    scheduler_name = "clustered_aiecs"
 
     number_of_tests = 200
 
@@ -67,7 +67,7 @@ def do_plots():
 
     ax1.set_ylim(plot_limits_cs)
     # ax1.set_title("Boxplot " + scheduler_name + " produced (extra) \n (context switch experiment) / (JOBS experiment)")
-    ax1.set_ylabel("Number of context switch / Number of jobs")
+    ax1.set_ylabel("Number of preemptions / Number of jobs")
     ax1.set_xlabel("Number of cores / Number of tasks")
     bp = ax1.boxplot(algorithm_cs_ratio)
 
@@ -79,12 +79,14 @@ def do_plots():
     pyplot.setp(bp['medians'], color='black')
 
     # plt.show()
-    fig1.savefig('out/plots/' + scheduler_name + '_boxplot_context_switch_job_experiment.ps', bbox_inches='tight')
+    fig1.savefig('out/plots/' + scheduler_name + '_boxplot_context_switch_job_experiment.eps', bbox_inches='tight')
 
     # M
     fig1, ax1 = plt.subplots()
     ax1.set_ylim(plot_limits_m)
     # ax1.set_title("Boxplot " + scheduler_name + " produced (extra) \n (migrations) / (JOBS experiment)")
+    ax1.set_ylabel("Number of migrations / Number of jobs")
+    ax1.set_xlabel("Number of cores / Number of tasks")
     bp = ax1.boxplot(algorithm_m_ratio)
 
     pyplot.setp(bp['boxes'], color='black')
@@ -95,7 +97,7 @@ def do_plots():
     ax1.set_xticklabels([i[1] for i in tests_base_names])
 
     # plt.show()
-    fig1.savefig('out/plots/' + scheduler_name + '_boxplot_migrations_job_experiment.ps', bbox_inches='tight')
+    fig1.savefig('out/plots/' + scheduler_name + '_boxplot_migrations_job_experiment.eps', bbox_inches='tight')
 
 
 if __name__ == '__main__':
