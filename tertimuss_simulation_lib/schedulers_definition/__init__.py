@@ -1,2 +1,2 @@
 # Import exposed classes
-from ._abstract_scheduler import AbstractScheduler
+from ._abstract_scheduler import CentralizedAbstractScheduler

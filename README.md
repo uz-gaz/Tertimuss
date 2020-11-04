@@ -21,7 +21,7 @@ It's highly recommended to use the same Python distribution (or Anaconda) to avo
 ### Project dependencies (libraries)
 The project needs the follow packages:
 
-- Python 3.7 or higher and all its dependencies
+- Python 3.9 or higher and all its dependencies
 - scipy 1.3.0 or higher and all its dependencies
 - matplotlib 3.0.2 or higher and all its dependencies
 - jsonschema 3.0.1 or higher and all its dependencies

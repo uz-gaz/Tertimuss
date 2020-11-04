@@ -49,7 +49,7 @@ class CoreGroupSpecification:
 
 
 @dataclass(frozen=True)
-class CpuSpecification:
+class HomogeneousCpuSpecification:
     # Specification of a processor
     board_specification: BoardSpecification  # Specification of the board where cores are located
     cores_specification: CoreGroupSpecification  # Specification of the cores

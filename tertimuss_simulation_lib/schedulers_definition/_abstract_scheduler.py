@@ -1,8 +1,8 @@
 import abc
 
-from ..system_definition import CpuSpecification, TaskSet, EnvironmentSpecification
+from ..system_definition import HomogeneousCpuSpecification, TaskSet, EnvironmentSpecification
 
-from typing import Optional, Set, Dict, Tuple
+from typing import Optional, Set, Dict, Tuple, Union, List
 
 
 class CentralizedAbstractScheduler(object, metaclass=abc.ABCMeta):
@@ -20,7 +20,7 @@ class CentralizedAbstractScheduler(object, metaclass=abc.ABCMeta):
         self.is_debug = activate_debug
 
     @abc.abstractmethod
-    def check_schedulability(self, cpu_specification: CpuSpecification,
+    def check_schedulability(self, cpu_specification: Union[HomogeneousCpuSpecification],
                              environment_specification: EnvironmentSpecification,
                              task_set: TaskSet) -> [bool, Optional[str]]:
         """
@@ -36,7 +36,8 @@ class CentralizedAbstractScheduler(object, metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def offline_stage(self, cpu_specification: CpuSpecification, environment_specification: EnvironmentSpecification,
+    def offline_stage(self, cpu_specification: Union[HomogeneousCpuSpecification],
+                      environment_specification: EnvironmentSpecification,
                       task_set: TaskSet) -> int:
         """
         Method to implement with the offline stage scheduler tasks
@@ -50,14 +51,12 @@ class CentralizedAbstractScheduler(object, metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def schedule_policy(self, global_time: float, time_since_major_cycle_start: float,
-                        cycles_executed_since_major_cycle_start: int, active_jobs_id: Set[int],
-                        jobs_being_executed_id: Dict[int, int],
+                        active_jobs_id: Set[int], jobs_being_executed_id: Dict[int, int],
                         cores_frequency: int, cores_max_temperature: Optional[Dict[int, float]]) -> \
             Tuple[Dict[int, int], Optional[int], Optional[int]]:
         """
         Method to implement with the actual scheduler police
 
-        :param cycles_executed_since_major_cycle_start: Cycles executed since the major cycle start
         :param time_since_major_cycle_start: Time in seconds since the major cycle starts
         :param global_time: Time in seconds since the simulation starts
         :param jobs_being_executed_id: Ids of the jobs that are currently executed on the system. The dictionary has as
@@ -88,28 +87,27 @@ class CentralizedAbstractScheduler(object, metaclass=abc.ABCMeta):
         """
         return True
 
-    def on_job_activation(self, global_time: float, time_since_major_cycle_start: float,
-                          cycles_executed_since_major_cycle_start: int, job_id: int, task_id: int) -> bool:
+    def on_jobs_activation(self, global_time: float, time_since_major_cycle_start: float,
+                           jobs_id_tasks_ids: List[Tuple[int, int]]) -> bool:
         """
         Method to implement with the actual on job activation scheduler police.
-        This method is the recommended place to detect the arrival of an aperiodic or sporadic task
+        This method is the recommended place to detect the arrival of an aperiodic or sporadic task.
+        If
 
-        :param task_id: Identification of the task which job have been activated
-        :param job_id: Identification of the job that have been activated
-        :param cycles_executed_since_major_cycle_start: Cycles executed since the major cycle start
+        :param jobs_id_tasks_ids: List[Identification of the task which job have been activated,
+        Identification of the job that have been activated]
         :param time_since_major_cycle_start: Time in seconds since the major cycle starts
         :param global_time: Time in seconds since the simulation starts
         :return: true if want to immediately call the scheduler (schedule_policy method), false otherwise
         """
         return False
 
-    def on_job_deadline_missed(self, global_time: float, time_since_major_cycle_start: float,
-                               cycles_executed_since_major_cycle_start: int, job_id: int) -> bool:
+    def on_jobs_deadline_missed(self, global_time: float, time_since_major_cycle_start: float,
+                                jobs_id: List[int]) -> bool:
         """
         Method to implement with the actual on aperiodic arrive scheduler police
 
-        :param job_id: Identification of the job that have missed the deadline
-        :param cycles_executed_since_major_cycle_start: Cycles executed since the major cycle start
+        :param jobs_id: Identification of the jobs that have missed the deadline
         :param time_since_major_cycle_start: Time in seconds since the major cycle starts
         :param global_time: Time in seconds since the simulation starts
         :return: true if want to immediately call the scheduler (schedule_policy method), false otherwise
@@ -117,12 +115,11 @@ class CentralizedAbstractScheduler(object, metaclass=abc.ABCMeta):
         return False
 
     def on_job_execution_finished(self, global_time: float, time_since_major_cycle_start: float,
-                                  cycles_executed_since_major_cycle_start: int, job_id: int) -> bool:
+                                  jobs_id: List[int]) -> bool:
         """
         Method to implement with the actual on aperiodic arrive scheduler police
 
-        :param job_id: Identification of the job that have finished its execution
-        :param cycles_executed_since_major_cycle_start: Cycles executed since the major cycle start
+        :param jobs_id: Identification of the job that have finished its execution
         :param time_since_major_cycle_start: Time in seconds since the major cycle starts
         :param global_time: Time in seconds since the simulation starts
         :return: true if want to immediately call the scheduler (schedule_policy method), false otherwise
