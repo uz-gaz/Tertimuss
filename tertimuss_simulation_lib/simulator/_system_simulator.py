@@ -2,7 +2,8 @@ import itertools
 from dataclasses import dataclass
 from typing import List, Tuple, Dict, Optional, Union, Set
 
-from ._simulation_result import RawSimulationResult
+from cubed_space_thermal_simulator import TemperatureLocatedCube
+from ._simulation_result import RawSimulationResult, JobSectionExecution, CPUUsedFrequency
 from .._math_utils import list_lcm
 from ..schedulers_definition import CentralizedAbstractScheduler
 from ..system_definition import Job, TaskSet, HomogeneousCpuSpecification, EnvironmentSpecification
@@ -15,6 +16,11 @@ class SimulationOptionsSpecification:
 
     # True if want to simulate the thermal behaviour
     simulate_thermal_behaviour: bool
+
+    # If false, the system won't check if the tasks returned by the scheduler is on the available task set.
+    # It won't check if the returned frequency is correct.
+    # If you are sure that your scheduler have a good behaviour turn it off can reduce the simulation time
+    scheduler_selections_check: bool = True
 
 
 def _create_deadline_arrive_dict(lcm_frequency: int, jobs: List[Job]) -> Tuple[Dict[int, List[int]],
@@ -71,6 +77,9 @@ def execute_simulation(simulation_start_time: float,
             print("The scheduler can't schedule")
         return None
 
+    # Number of cpus
+    number_of_cpus = len(cpu_specification.cores_specification.cores_origins)
+
     # Run scheduler offline phase
     cpu_frequency = scheduler.offline_stage(cpu_specification, environment_specification, tasks)
 
@@ -81,8 +90,11 @@ def execute_simulation(simulation_start_time: float,
     # Dict with activation and deadlines
     activation_dict, deadlines_dict = _create_deadline_arrive_dict(lcm_frequency, jobs)
 
+    # Jobs CC dict by id (this value is constant and only should be used for fast access to the original cc)
+    jobs_cc_dict: Dict[int, int] = {i.identification: i.execution_time for i in jobs}
+
     # Remaining jobs CC dict by id
-    remaining_cc_dict: Dict[int, int] = {i.identification: i.execution_time for i in jobs}
+    remaining_cc_dict: Dict[int, int] = jobs_cc_dict.copy()
 
     # Simulation step
     actual_lcm_cycle = simulation_start_time * lcm_frequency
@@ -109,6 +121,20 @@ def execute_simulation(simulation_start_time: float,
 
     # When is set the next scheduling point by quantum
     next_scheduling_point = None
+
+    # Jobs being executed
+    jobs_being_executed_id: Dict[int, int] = {}
+
+    #  Raw execution result tables
+    job_sections_execution: Dict[int, List[JobSectionExecution]] = {i: [] for i in range(
+        number_of_cpus)}  # List of jobs executed by each core
+    cpus_frequencies: Dict[int, List[CPUUsedFrequency]] = {i: [] for i in range(
+        number_of_cpus)}  # List of CPU frequencies used by each core
+    scheduling_points: List[float] = []  # Points where the scheduler have made an scheduling
+    temperature_measures: Dict[float, List[TemperatureLocatedCube]] = {}  # Measures of temperature
+
+    # Jobs being executed extra information [CPU, [Job ID, start time]]
+    jobs_being_executed_extra: Dict[int, Tuple[int, float]] = {i: (-1, -1) for i in range(number_of_cpus)}
 
     # Main control loop
     while actual_lcm_cycle < final_lcm_cycle and not hard_rt_task_miss_deadline:
@@ -141,6 +167,9 @@ def execute_simulation(simulation_start_time: float,
 
         end_event_require_scheduling = scheduler.on_job_execution_finished(actual_time_seconds, jobs_that_have_end)
 
+        # TODO: Update RawSimulationResult tables in case that a task end by cc
+        # Remove it from executed tasks
+
         # Job missed deadline events
         deadline_this_cycle = [(i, j) for i, j in deadlines_dict.items() if i <= actual_lcm_cycle]
 
@@ -160,6 +189,9 @@ def execute_simulation(simulation_start_time: float,
         deadline_missed_event_require_scheduling = scheduler.on_jobs_deadline_missed(actual_time_seconds,
                                                                                      deadline_missed_this_cycle)
 
+        # TODO: Update RawSimulationResult tables in case that a task reach deadline and are firm
+        # Remove it from executed tasks
+
         # Do scheduling if required
         if not hard_rt_task_miss_deadline and (
                 major_cycle_event_require_scheduling or
@@ -167,13 +199,51 @@ def execute_simulation(simulation_start_time: float,
                 end_event_require_scheduling or
                 deadline_missed_event_require_scheduling or
                 next_scheduling_point == actual_lcm_cycle):
-            # TODO: Call scheduler
+            # Call scheduler
+            jobs_being_executed_id_next, cycles_until_next_scheduler_invocation, cores_frequency_next = \
+                scheduler.schedule_policy(actual_time_seconds, active_jobs, jobs_being_executed_id, cpu_frequency, None)
+
+            if cores_frequency_next is not None:
+                cpu_frequency = cores_frequency_next
+
+            # Scheduler result checks
+            if simulation_options.scheduler_selections_check:
+                bad_scheduler_behaviour = not (cpu_specification.cores_specification.available_frequencies.__contains__(
+                    cpu_frequency) and all(
+                    (0 <= i < number_of_cpus for i in jobs_being_executed_id_next.keys())) and all(
+                    (i in active_jobs for i in jobs_being_executed_id_next.values())) and (
+                                                       cycles_until_next_scheduler_invocation is None or
+                                                       cycles_until_next_scheduler_invocation > 0))
+
+                if bad_scheduler_behaviour:
+                    exception_message = "Error due to bad scheduler behaviour\n" + \
+                                        "\t Jobs to CPU assignation: " + str(jobs_being_executed_id_next) + "\n" + \
+                                        "\t Active jobs: " + str(active_jobs) + "\n" + \
+                                        "\t Selected frequency: " + str(cores_frequency_next) + "\n" + \
+                                        "\t Available frequencies: " + \
+                                        str(cpu_specification.cores_specification.available_frequencies)
+                    raise Exception(exception_message)
+
+            # Check if none preemptive task is preempted
+            for i, j in jobs_being_executed_id.items():
+                if j in non_preemptive_jobs and remaining_cc_dict[j] > 0 and (
+                        not jobs_being_executed_id_next.__contains__(i) or jobs_being_executed_id_next[i] != j):
+                    # If a non preemptive task have been preempted, its execution time must be restarted
+                    remaining_cc_dict[j] = jobs_cc_dict[j]
+
+            # Update RawSimulationResult tables
+            scheduling_points.append(actual_time_seconds)
+
             # TODO: Update RawSimulationResult tables
-            # TODO: If a non preemptive task have been preempted, its execution time must be restarted
-            pass
+            # For each task present in jobs_being_executed_id and not present in jobs_being_executed_id_next
+            # close the cycle
+            # For each task present in jobs_being_executed_id_next and not in jobs_being_executed_id create new cycle
+            # Use the variable jobs_being_executed_extra to make ir easy
 
         # TODO: Next cycle == min(keys(activation_dict), keys(deadline_dict), )
 
         # TODO: Once next loop is calculated update CC tables
+
+        # TODO: In the last cycle update RawSimulationResult tables
 
         pass

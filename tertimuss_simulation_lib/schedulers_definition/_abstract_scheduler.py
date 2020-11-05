@@ -50,17 +50,15 @@ class CentralizedAbstractScheduler(object, metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def schedule_policy(self, global_time: float, time_since_major_cycle_start: float,
-                        active_jobs_id: Set[int], jobs_being_executed_id: Dict[int, int],
+    def schedule_policy(self, global_time: float, active_jobs_id: Set[int], jobs_being_executed_id: Dict[int, int],
                         cores_frequency: int, cores_max_temperature: Optional[Dict[int, float]]) \
             -> Tuple[Dict[int, int], Optional[int], Optional[int]]:
         """
         Method to implement with the actual scheduler police
 
-        :param time_since_major_cycle_start: Time in seconds since the major cycle starts
         :param global_time: Time in seconds since the simulation starts
         :param jobs_being_executed_id: Ids of the jobs that are currently executed on the system. The dictionary has as
-         key the CPU id, and as value the job id.
+         key the CPU id (it goes from 0 to number of CPUs - 1), and as value the job id.
         :param active_jobs_id: Identifications of the jobs that are currently active
          (look in :ref:..system_definition.DeadlineCriteria for more info) and can be executed.
         :param cores_frequency: Frequencies of cores on the scheduler invocation in Hz.
