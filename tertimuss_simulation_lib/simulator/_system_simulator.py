@@ -133,8 +133,10 @@ def execute_simulation(simulation_start_time: float,
     scheduling_points: List[float] = []  # Points where the scheduler have made an scheduling
     temperature_measures: Dict[float, List[TemperatureLocatedCube]] = {}  # Measures of temperature
 
-    # Jobs being executed extra information [CPU, [Job ID, start time]]
-    jobs_being_executed_extra: Dict[int, Tuple[int, float]] = {i: (-1, -1) for i in range(number_of_cpus)}
+    # Jobs being executed extra information [CPU, [start time]]
+    jobs_last_section_start_time: Dict[int, float] = {i.identification: -1 for i in jobs}
+    jobs_last_cpu_used: Dict[int, int] = {i.identification: -1 for i in jobs}
+    jobs_last_preemption_remaining_cycles: Dict[int, int] = {i.identification: -1 for i in jobs}
 
     # Main control loop
     while actual_lcm_cycle < final_lcm_cycle and not hard_rt_task_miss_deadline:
@@ -165,10 +167,15 @@ def execute_simulation(simulation_start_time: float,
         for i in jobs_that_have_end:
             active_jobs.remove(i)
 
-        end_event_require_scheduling = scheduler.on_job_execution_finished(actual_time_seconds, jobs_that_have_end)
+            # Update RawSimulationResult tables in case that a task end by cc
+            # Remove it from executed tasks
+            job_cpu_used = jobs_last_cpu_used[i]
+            jobs_being_executed_id.pop(job_cpu_used)
+            job_sections_execution[job_cpu_used].append(
+                (JobSectionExecution(i, jobs_to_task_dict[i], jobs_last_section_start_time[i], actual_time_seconds,
+                                     jobs_last_preemption_remaining_cycles[i] - remaining_cc_dict[i])))
 
-        # TODO: Update RawSimulationResult tables in case that a task end by cc
-        # Remove it from executed tasks
+        end_event_require_scheduling = scheduler.on_job_execution_finished(actual_time_seconds, jobs_that_have_end)
 
         # Job missed deadline events
         deadline_this_cycle = [(i, j) for i, j in deadlines_dict.items() if i <= actual_lcm_cycle]
@@ -183,14 +190,20 @@ def execute_simulation(simulation_start_time: float,
         for i in (j for j in deadline_missed_this_cycle if j in firm_real_time_jobs):
             active_jobs.remove(i)  # Remove firm real time from active set
 
+            # Update RawSimulationResult tables in case that a task reach deadline and are firm
+            job_cpu_used = jobs_last_cpu_used[i]
+
+            if jobs_being_executed_id.__contains__(job_cpu_used) and jobs_being_executed_id[job_cpu_used] == i:
+                jobs_being_executed_id.pop(job_cpu_used)
+                job_sections_execution[job_cpu_used].append(
+                    (JobSectionExecution(i, jobs_to_task_dict[i], jobs_last_section_start_time[i], actual_time_seconds,
+                                         jobs_last_preemption_remaining_cycles[i] - remaining_cc_dict[i])))
+
         hard_rt_task_miss_deadline = any(
             (i in hard_real_time_jobs for i in deadline_this_cycle))  # If some jab is hard real time set the flag
 
         deadline_missed_event_require_scheduling = scheduler.on_jobs_deadline_missed(actual_time_seconds,
                                                                                      deadline_missed_this_cycle)
-
-        # TODO: Update RawSimulationResult tables in case that a task reach deadline and are firm
-        # Remove it from executed tasks
 
         # Do scheduling if required
         if not hard_rt_task_miss_deadline and (
@@ -244,6 +257,6 @@ def execute_simulation(simulation_start_time: float,
 
         # TODO: Once next loop is calculated update CC tables
 
-        # TODO: In the last cycle update RawSimulationResult tables
+        # TODO: In the last cycle update RawSimulationResult tables (All jobs being executed)
 
         pass

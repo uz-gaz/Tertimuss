@@ -10,6 +10,7 @@ class JobSectionExecution:
     task_id: int  # Task that have been executed
     execution_start_time: float  # When the job section start to execute in absolute seconds
     execution_end_time: float  # When the job section start to execute in absolute seconds
+    number_of_executed_cycles: int  # Number of cycles executed in this interval
 
 
 @dataclass
