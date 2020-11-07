@@ -58,7 +58,7 @@ $ python cli_launcher.py
 
 You can find a description of the JSON input file in [JSON-Schema](https://json-schema.org/) format at [./main/ui/cli/input_schema/global-schema.json](tertimuss_cli/input_schema/global-schema.json).
 
-Some examples are located in [./tests/cli/](./tests/cli).
+Some examples are located in [./tests/cli/](tests/old/cli).
 
 ### Graphical User Interface
 To launch the Graphical User Interface execute the script called gui_launcher.py.

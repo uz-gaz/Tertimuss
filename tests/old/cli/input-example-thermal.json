@@ -1,37 +1,27 @@
 {
-  "$schema": "../../tertimuss_cli/input_schema/global-schema.json",
+  "$schema": "../../../tertimuss_cli/input_schema/global-schema.json",
   "$id": "input-example-thermal-aperiodics-energy.scheduler.framework.TCPN.schema.example1",
   "title": "Example input specification",
   "description": "Input for Scheduler Framework TCPN v1.0",
   "simulate_thermal": true,
   "tasks_specification": {
     "task_generation_system": "Manual",
-    "task_consumption_model": "Energy based",
+    "task_consumption_model": "Frequency based",
     "tasks": [
       {
         "type": "Periodic",
         "worst_case_execution_time": 2000,
-        "period": 4,
-        "energy_consumption": 6.4
+        "period": 4
       },
       {
         "type": "Periodic",
         "worst_case_execution_time": 5000,
-        "period": 8,
-        "energy_consumption": 8
+        "period": 8
       },
       {
         "type": "Periodic",
         "worst_case_execution_time": 6000,
-        "period": 12,
-        "energy_consumption": 9.6
-      },
-      {
-        "type": "Aperiodic",
-        "worst_case_execution_time": 2000,
-        "arrive": 10,
-        "deadline": 20,
-        "energy_consumption": 6
+        "period": 12
       }
     ]
   },

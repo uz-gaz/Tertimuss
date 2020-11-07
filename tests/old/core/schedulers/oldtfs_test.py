@@ -2,7 +2,7 @@ import unittest
 
 from main.core.schedulers_definition.templates.AbstractScheduler import AbstractScheduler
 from main.core.schedulers_definition.implementations.OLDTFS import OLDTFSScheduler
-from tests.core.schedulers.scheduler_abstract_test import SchedulerAbstractTest
+from tests.old.core.schedulers.scheduler_abstract_test import SchedulerAbstractTest
 
 
 class TestOLDTFSScheduler(SchedulerAbstractTest):

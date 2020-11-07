@@ -1,27 +1,26 @@
 import unittest
 
+from main.core.schedulers_definition.implementations.G_LLF_AFA import GlobalLeastLaxityFirstAFAScheduler
 from main.core.schedulers_definition.templates.AbstractScheduler import AbstractScheduler
-
-from main.core.schedulers_definition.implementations.G_EDF_A import GlobalEDFAffinityScheduler
-from tests.core.schedulers.scheduler_abstract_test import SchedulerAbstractTest
+from tests.old.core.schedulers.scheduler_abstract_test import SchedulerAbstractTest
 
 
-class TestGEDFScheduler(SchedulerAbstractTest):
+class TestGLLFAFAScheduler(SchedulerAbstractTest):
 
     @staticmethod
     def get_global_variables() -> [AbstractScheduler, str]:
         # Scheduler
-        scheduler = GlobalEDFAffinityScheduler()
+        scheduler = GlobalLeastLaxityFirstAFAScheduler()
 
         # Result base name
-        scheduler_name = "g_edf_a"
+        scheduler_name = "g_llf_afa"
 
         return scheduler, scheduler_name
 
     def test_with_thermal(self):
         scheduler, scheduler_name = self.get_global_variables()
-        # self.save_plot_outputs_result(scheduler, True, False, "out/" + scheduler_name + "_thermal")
-        self.save_matlab_result(scheduler, True, False, "out/" + scheduler_name + "_thermal")
+        self.save_plot_outputs_result(scheduler, True, False, "out/" + scheduler_name + "_thermal")
+        # self.save_matlab_result(scheduler, True, False, "out/" + scheduler_name + "_thermal")
 
     def test_without_thermal(self):
         scheduler, scheduler_name = self.get_global_variables()

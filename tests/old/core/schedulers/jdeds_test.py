@@ -1,5 +1,4 @@
 import functools
-import hashlib
 import math
 import time
 import unittest
@@ -7,7 +6,7 @@ from typing import List
 
 from main.core.schedulers_definition.implementations.AIECS import AIECSScheduler
 from main.core.schedulers_definition.templates.AbstractScheduler import AbstractScheduler
-from tests.core.schedulers.scheduler_abstract_test import SchedulerAbstractTest
+from tests.old.core.schedulers.scheduler_abstract_test import SchedulerAbstractTest
 
 
 class TestJDEDSScheduler(SchedulerAbstractTest):

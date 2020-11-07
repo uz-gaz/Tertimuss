@@ -1,5 +1,5 @@
 {
-  "$schema": "../../tertimuss_cli/input_schema/global-schema.json",
+  "$schema": "../../../tertimuss_cli/input_schema/global-schema.json",
   "$id": "input-example-thermal-aperiodics-energy.scheduler.framework.TCPN.schema.example1",
   "title": "Example input specification",
   "description": "Input for Scheduler Framework TCPN v1.0",
@@ -9,57 +9,29 @@
     "tasks": [
       {
         "type": "Periodic",
-        "worst_case_execution_time": 430,
-        "period": 2
+        "worst_case_execution_time": 2000,
+        "period": 4
       },
       {
         "type": "Periodic",
-        "worst_case_execution_time": 1830,
-        "period": 12
-      },
-      {
-        "type": "Periodic",
-        "worst_case_execution_time": 510,
+        "worst_case_execution_time": 5000,
         "period": 8
       },
       {
         "type": "Periodic",
-        "worst_case_execution_time": 250,
-        "period": 2
-      },
-      {
-        "type": "Periodic",
-        "worst_case_execution_time": 1420,
+        "worst_case_execution_time": 6000,
         "period": 12
       },
       {
-        "type": "Periodic",
-        "worst_case_execution_time": 3900,
-        "period": 12
-      },
-      {
-        "type": "Periodic",
-        "worst_case_execution_time": 2080,
-        "period": 4
-      },
-      {
-        "type": "Periodic",
-        "worst_case_execution_time": 380,
-        "period": 3
-      },
-      {
-        "type": "Periodic",
-        "worst_case_execution_time": 590,
-        "period": 6
-      },
-      {
-        "type": "Periodic",
-        "worst_case_execution_time": 1020,
-        "period": 4
+        "type": "Aperiodic",
+        "worst_case_execution_time": 2000,
+        "arrive": 10,
+        "deadline": 20
       }
     ]
   },
   "cpu_specification": {
+
     "cores_specification": {
       "available_frequencies": [
         150,

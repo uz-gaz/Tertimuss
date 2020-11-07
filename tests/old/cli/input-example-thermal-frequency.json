@@ -1,21 +1,29 @@
 {
-  "$schema": "../../tertimuss_cli/input_schema/global-schema.json",
+  "$schema": "../../../tertimuss_cli/input_schema/global-schema.json",
   "$id": "input-example-thermal-aperiodics-energy.scheduler.framework.TCPN.schema.example1",
   "title": "Example input specification",
   "description": "Input for Scheduler Framework TCPN v1.0",
   "simulate_thermal": true,
   "tasks_specification": {
-    "task_consumption_model": "Energy based",
-    "task_generation_system": "Automatic",
-    "automatic_generation": {
-      "interval_for_periods": {
-        "min_period": 2,
-        "max_period": 4
+    "task_generation_system": "Manual",
+    "task_consumption_model": "Frequency based",
+    "tasks": [
+      {
+        "type": "Periodic",
+        "worst_case_execution_time": 2000,
+        "period": 4
       },
-      "number_of_tasks": 3,
-      "utilization_of_the_task_set": 0.3,
-      "name": "UUniFast"
-    }
+      {
+        "type": "Periodic",
+        "worst_case_execution_time": 5000,
+        "period": 8
+      },
+      {
+        "type": "Periodic",
+        "worst_case_execution_time": 6000,
+        "period": 12
+      }
+    ]
   },
   "cpu_specification": {
     "board_specification": {
@@ -64,10 +72,16 @@
   },
   "output_specification": {
     "output_path": "./out/",
-    "output_naming": "example_thermal_frequency_task_auto",
+    "output_naming": "example_thermal_frequency",
     "selected_output": [
       "Accumulated execution time",
-      "Energy consumption"
+      "Energy consumption",
+      "Execution percentage",
+      "Frequency",
+      "CPU heat evolution",
+      "Cores maximum temperature",
+      "Task execution",
+      "Processor utilization"
     ]
   },
   "scheduler_specification": {

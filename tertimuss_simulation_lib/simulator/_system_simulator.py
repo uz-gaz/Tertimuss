@@ -7,7 +7,7 @@ from ._simulation_result import RawSimulationResult, JobSectionExecution, CPUUse
     SimulationStackTraceHardRTDeadlineMissed
 from .._math_utils import list_lcm
 from ..schedulers_definition import CentralizedAbstractScheduler
-from ..system_definition import Job, TaskSet, HomogeneousCpuSpecification, EnvironmentSpecification
+from tertimuss_simulation_lib.system_definition import Job, TaskSet, HomogeneousCpuSpecification, EnvironmentSpecification
 
 
 @dataclass
@@ -285,6 +285,8 @@ def execute_simulation(simulation_start_time: float,
             # Update frequency and executed tasks
             cpu_frequency = cores_frequency_next
             jobs_being_executed_id = jobs_being_executed_id_next
+            next_scheduling_point = (cpu_frequency * cycles_until_next_scheduler_invocation + actual_lcm_cycle) \
+                if cycles_until_next_scheduler_invocation is not None else None
 
         # In case that it has been missed the state of the variables must keep without alteration
         if not hard_rt_task_miss_deadline:
@@ -299,7 +301,8 @@ def execute_simulation(simulation_start_time: float,
 
             next_job_activation = min(activation_dict.values()) if len(deadlines_dict) != 0 else next_major_cycle
 
-            next_lcm_cycle = min([next_major_cycle, next_job_end_end, next_job_deadline, next_job_activation])
+            next_lcm_cycle = min([next_major_cycle, next_job_end_end, next_job_deadline, next_job_activation] + (
+                [next_scheduling_point] if next_scheduling_point is not None else []))
 
             # This is just ceil((next_lcm_cycle - actual_lcm_cycle) / cpu_frequency) to advance an integer number
             # of cycles.

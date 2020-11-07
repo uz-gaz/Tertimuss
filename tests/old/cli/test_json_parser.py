@@ -13,7 +13,7 @@ class JsonParserTest(unittest.TestCase):
         absolute_file_to_test_path = os.path.join(os.path.dirname(__file__), file_to_test_path)
 
         # Path of the input validate schema
-        input_schema_path = os.path.join('..', '..', 'main', 'ui', 'cli', 'input_schema', 'global-schema.json')
+        input_schema_path = os.path.join('../..', '..', 'main', 'ui', 'cli', 'input_schema', 'global-schema.json')
         absolute_input_schema_path = os.path.join(os.path.dirname(__file__), input_schema_path)
 
         # Read schema

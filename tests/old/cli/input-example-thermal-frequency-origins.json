@@ -1,5 +1,5 @@
 {
-  "$schema": "../../tertimuss_cli/input_schema/global-schema.json",
+  "$schema": "../../../tertimuss_cli/input_schema/global-schema.json",
   "$id": "input-example-thermal-aperiodics-energy.scheduler.framework.TCPN.schema.example1",
   "title": "Example input specification",
   "description": "Input for Scheduler Framework TCPN v1.0",
@@ -22,6 +22,12 @@
         "type": "Periodic",
         "worst_case_execution_time": 6000,
         "period": 12
+      },
+      {
+        "type": "Aperiodic",
+        "worst_case_execution_time": 2000,
+        "arrive": 10,
+        "deadline": 20
       }
     ]
   },
@@ -62,7 +68,16 @@
         1000,
         1000
       ],
-      "cores_origins": "Automatic"
+      "cores_origins": [
+        {
+          "x": 8,
+          "y": 20
+        },
+        {
+          "x": 32,
+          "y": 20
+        }
+      ]
     }
   },
   "environment_specification": {
@@ -72,13 +87,10 @@
   },
   "output_specification": {
     "output_path": "./out/",
-    "output_naming": "example_thermal_aperiodics_energy",
+    "output_naming": "example_thermal_frequency_origins",
     "selected_output": [
       "Accumulated execution time",
-      "Energy consumption",
-      "Execution percentage",
-      "Task execution",
-      "Cores maximum temperature"
+      "Energy consumption"
     ]
   },
   "scheduler_specification": {
