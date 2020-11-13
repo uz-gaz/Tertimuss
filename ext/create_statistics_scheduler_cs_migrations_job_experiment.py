@@ -2,6 +2,8 @@ import json
 from typing import List, Tuple
 import statistics
 
+import scipy.stats
+
 
 def do_plots():
     tests_base_names: List[Tuple[str, str]] = [("out/2/8/", "2/8"),
@@ -16,7 +18,7 @@ def do_plots():
                                                ("out/4/64/", "4/64"),
                                                ("out/4/80/", "4/80"),
                                                ]
-    scheduler_name = "run"
+    scheduler_name = "aiecs"
 
     number_of_tests = 200
 
@@ -49,6 +51,9 @@ def do_plots():
         grouped_info.append(local_grouped_info)
 
     # Algorithm CS / JOBS
+    algorithm_cs_ratio = [[CS_ALG1 / CS_MANDATORY for (CS_ALG1, CS_MANDATORY, M_ALG1) in grouped_info_local] for
+                          grouped_info_local in grouped_info]
+
     algorithm_cs_ratio_means = [
         statistics.mean([CS_ALG1 / CS_MANDATORY for (CS_ALG1, CS_MANDATORY, M_ALG1) in grouped_info_local]) for
         grouped_info_local in grouped_info]
@@ -62,6 +67,9 @@ def do_plots():
         grouped_info_local in grouped_info]
 
     # Algorithm M / JOBS
+    algorithm_m_ratio = [[M_ALG1 / CS_MANDATORY for (CS_ALG1, CS_MANDATORY, M_ALG1) in grouped_info_local] for
+                         grouped_info_local in grouped_info]
+
     algorithm_m_ratio_means = [
         statistics.mean([M_ALG1 / CS_MANDATORY for (CS_ALG1, CS_MANDATORY, M_ALG1) in grouped_info_local]) for
         grouped_info_local in grouped_info]
@@ -76,10 +84,12 @@ def do_plots():
 
     print("Statistics for context switch and migrations mean by experiment", scheduler_name)
 
-    for experiment_name, cs_ratio_mean, cs_ratio_stdev, cs_ratio_quantiles, m_ratio_mean, m_ratio_stdev, \
-        m_ratio_quantiles in zip([i[1] for i in tests_base_names], algorithm_cs_ratio_means, algorithm_cs_ratio_stdev,
-                                 algorithm_cs_ratio_quantiles, algorithm_m_ratio_means, algorithm_m_ratio_stdev,
-                                 algorithm_m_ratio_quantiles):
+    for experiment_name, cs_ratio, cs_ratio_mean, cs_ratio_stdev, cs_ratio_quantiles, m_ratio, m_ratio_mean, \
+        m_ratio_stdev, m_ratio_quantiles in zip([i[1] for i in tests_base_names], algorithm_cs_ratio,
+                                                algorithm_cs_ratio_means, algorithm_cs_ratio_stdev,
+                                                algorithm_cs_ratio_quantiles, algorithm_m_ratio,
+                                                algorithm_m_ratio_means, algorithm_m_ratio_stdev,
+                                                algorithm_m_ratio_quantiles):
         print("\t", experiment_name)
         print("\t\t Preemption mean by experiment mean:              ", cs_ratio_mean)
         print("\t\t Preemption mean by experiment standard deviation:", cs_ratio_stdev)
@@ -87,6 +97,35 @@ def do_plots():
         print("\t\t Migrations mean by experiment mean:              ", m_ratio_mean)
         print("\t\t Migrations mean by experiment standard deviation:", m_ratio_stdev)
         print("\t\t Migrations mean by experiment quantiles:         ", m_ratio_quantiles)
+
+        # Check normality of data
+        alpha = 0.05
+
+        # Preemptions
+        print("\t\t Checking normality of data for preemptions")
+
+        # Shapiro-Wilk
+        stat, p = scipy.stats.shapiro(cs_ratio)
+        print("\t\t\t Shapiro-Wilk Test: W =", stat, ", p =", p, ",",
+              "(fail to reject H0)" if p > alpha else "(reject H0)")
+
+        # D’Agostino’s K^2
+        stat, p = scipy.stats.normaltest(cs_ratio)
+        print("\t\t\t D’Agostino’s K^2 Test: W =", stat, ", p =", p, ",",
+              "(fail to reject H0)" if p > alpha else "(reject H0)")
+
+        # Migrations
+        print("\t\t Checking normality of data for migrations")
+
+        # Shapiro-Wilk
+        stat, p = scipy.stats.shapiro(m_ratio)
+        print("\t\t\t Shapiro-Wilk Test: W =", stat, ", p =", p, ",",
+              "(fail to reject H0)" if p > alpha else "(reject H0)")
+
+        # D’Agostino’s K^2
+        stat, p = scipy.stats.normaltest(m_ratio)
+        print("\t\t\t D’Agostino’s K^2 Test: W =", stat, ", p =", p, ",",
+              "(fail to reject H0)" if p > alpha else "(reject H0)")
 
 
 if __name__ == '__main__':
