@@ -108,7 +108,7 @@ def execute_simulation(simulation_start_time: float,
         return None
 
     # Number of cpus
-    number_of_cpus = len(cpu_specification.cores_specification.cores_origins)
+    number_of_cpus = cpu_specification.cores_specification.number_of_cores
 
     # Run scheduler offline phase
     cpu_frequency = scheduler.offline_stage(cpu_specification, environment_specification, tasks)
@@ -128,7 +128,7 @@ def execute_simulation(simulation_start_time: float,
 
     # Simulation step
     actual_lcm_cycle = simulation_start_time * lcm_frequency
-    final_lcm_cycle = simulation_end_time * lcm_frequency
+    final_lcm_cycle = round(simulation_end_time * lcm_frequency)
 
     # Major cycle
     major_cycle_lcm = list_lcm([round(i.relative_deadline * lcm_frequency) for i in tasks.periodic_tasks])
@@ -175,7 +175,8 @@ def execute_simulation(simulation_start_time: float,
     last_frequency_set_time = simulation_start_time
 
     # Main control loop
-    while actual_lcm_cycle < final_lcm_cycle and not hard_rt_task_miss_deadline and len(active_jobs) > 0:
+    while actual_lcm_cycle < final_lcm_cycle and not hard_rt_task_miss_deadline and \
+            len(active_jobs) + len(activation_dict) > 0:
         # Actual time in seconds
         actual_time_seconds = actual_lcm_cycle / lcm_frequency
 
@@ -259,13 +260,13 @@ def execute_simulation(simulation_start_time: float,
             jobs_being_executed_id_next, cycles_until_next_scheduler_invocation, cores_frequency_next = \
                 scheduler.schedule_policy(actual_time_seconds, active_jobs, jobs_being_executed_id, cpu_frequency, None)
 
-            if cores_frequency_next is not None:
-                cpu_frequency = cores_frequency_next
+            if cores_frequency_next is None:
+                cores_frequency_next = cpu_frequency
 
             # Scheduler result checks
             if simulation_options.scheduler_selections_check:
                 bad_scheduler_behaviour = not (cpu_specification.cores_specification.available_frequencies.__contains__(
-                    cpu_frequency) and all(
+                    cores_frequency_next) and all(
                     (0 <= i < number_of_cpus for i in jobs_being_executed_id_next.keys())) and all(
                     (i in active_jobs for i in jobs_being_executed_id_next.values())) and (
                                                        cycles_until_next_scheduler_invocation is None or
@@ -318,34 +319,37 @@ def execute_simulation(simulation_start_time: float,
             next_scheduling_point = (cpu_frequency * cycles_until_next_scheduler_invocation + actual_lcm_cycle) \
                 if cycles_until_next_scheduler_invocation is not None else None
 
+            for i, j in jobs_being_executed_id.items():
+                jobs_last_cpu_used[j] = i
+
         # In case that it has been missed the state of the variables must keep without alteration
         if not hard_rt_task_miss_deadline:
             # Next cycle == min(keys(activation_dict), keys(deadline_dict), remaining cycles)
-            next_major_cycle = major_cycle_lcm - (actual_lcm_cycle % major_cycle_lcm)
+            next_major_cycle = major_cycle_lcm * ((actual_lcm_cycle // major_cycle_lcm) + 1)
 
-            next_job_end_end = min([remaining_cc_dict[i] for i in jobs_being_executed_id.values()]) * (
-                    major_cycle_lcm // cpu_frequency) + actual_lcm_cycle if len(
+            next_job_end = min([remaining_cc_dict[i] for i in jobs_being_executed_id.values()]) * (
+                    lcm_frequency // cpu_frequency) + actual_lcm_cycle if len(
                 jobs_being_executed_id) > 0 else next_major_cycle
 
-            next_job_deadline = min(deadlines_dict.values()) if len(deadlines_dict) != 0 else next_major_cycle
+            next_job_deadline = min(deadlines_dict.keys()) if len(deadlines_dict) != 0 else next_major_cycle
 
-            next_job_activation = min(activation_dict.values()) if len(deadlines_dict) != 0 else next_major_cycle
+            next_job_activation = min(activation_dict.keys()) if len(activation_dict) != 0 else next_major_cycle
 
-            next_lcm_cycle = min([next_major_cycle, next_job_end_end, next_job_deadline, next_job_activation] + (
+            next_lcm_cycle = min([next_major_cycle, next_job_end, next_job_deadline, next_job_activation] + (
                 [next_scheduling_point] if next_scheduling_point is not None else []))
 
             # This is just ceil((next_lcm_cycle - actual_lcm_cycle) / cpu_frequency) to advance an integer number
             # of cycles.
             # But with this formulation avoid floating point errors
-            cc_to_advance = (((next_lcm_cycle - actual_lcm_cycle) // cpu_frequency) + (
-                0 if (next_lcm_cycle - actual_lcm_cycle) % cpu_frequency == 0 else 1))
+            cc_to_advance = (((next_lcm_cycle - actual_lcm_cycle) // (lcm_frequency // cpu_frequency)) + (
+                0 if (next_lcm_cycle - actual_lcm_cycle) % (lcm_frequency // cpu_frequency) == 0 else 1))
 
             # Calculated update CC tables
             for i in jobs_being_executed_id.values():
                 remaining_cc_dict[i] -= cc_to_advance
 
             # Update actual_lcm_cycle
-            actual_lcm_cycle += cpu_frequency * cc_to_advance
+            actual_lcm_cycle += (lcm_frequency // cpu_frequency) * cc_to_advance
 
     # In the last cycle update RawSimulationResult tables (All jobs being executed)
     for i, j in jobs_being_executed_id.items():

@@ -70,11 +70,12 @@ class SystemSimulatorTest(unittest.TestCase):
         number_of_cores = 2
         available_frequencies = {1000}
 
-        simulation_result = execute_simulation_major_cycle(TaskSet(
-            periodic_tasks=periodic_tasks,
-            aperiodic_tasks=[],
-            sporadic_tasks=[]
-        ),
+        simulation_result = execute_simulation_major_cycle(
+            TaskSet(
+                periodic_tasks=periodic_tasks,
+                aperiodic_tasks=[],
+                sporadic_tasks=[]
+            ),
             aperiodic_tasks_jobs=[],
             sporadic_tasks_jobs=[],
             cpu_specification=generate_default_cpu(number_of_cores, available_frequencies),
@@ -94,6 +95,4 @@ class SystemSimulatorTest(unittest.TestCase):
         # +-----------------+
         # |T1  |T3 |T1  |   |
         # +-----------------+
-
-
         i = 0
