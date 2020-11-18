@@ -212,7 +212,9 @@ def execute_simulation(simulation_start_time: float,
                 (JobSectionExecution(i, jobs_to_task_dict[i], jobs_last_section_start_time[i], actual_time_seconds,
                                      jobs_last_preemption_remaining_cycles[i] - remaining_cc_dict[i])))
 
-        end_event_require_scheduling = scheduler.on_job_execution_finished(actual_time_seconds, jobs_that_have_end)
+        end_event_require_scheduling = scheduler.on_job_execution_finished(actual_time_seconds,
+                                                                           jobs_that_have_end) if len(
+            jobs_that_have_end) > 0 else False
 
         # Job missed deadline events
         deadline_this_cycle = [(i, j) for i, j in deadlines_dict.items() if i <= actual_lcm_cycle]
@@ -247,7 +249,8 @@ def execute_simulation(simulation_start_time: float,
         else:
             # Check if a deadline missed require rescheduling
             deadline_missed_event_require_scheduling = scheduler.on_jobs_deadline_missed(actual_time_seconds,
-                                                                                         deadline_missed_this_cycle)
+                                                                                         deadline_missed_this_cycle) \
+                if len(deadline_missed_this_cycle) > 0 else False
 
         # Do scheduling if required
         if not hard_rt_task_miss_deadline and (
