@@ -179,4 +179,6 @@ class Job(object):
     def __post_init__(self):
         self.absolute_deadline = self.activation_time + self.task.relative_deadline
         self.execution_time = self.task.execution_time_distribution.generate_execution_time(
-            self.task.best_case_execution_time, self.task.worst_case_execution_time)
+            self.task.best_case_execution_time,
+            self.task.worst_case_execution_time) if self.task.execution_time_distribution is not None \
+            else self.task.worst_case_execution_time

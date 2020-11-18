@@ -33,9 +33,8 @@ def float_gcd(numbers: List[float], rtol=1e-03, atol=1e-05) -> float:
         return 1
 
 
-def float_lcm(numbers: List[float], rtol=1e-03, atol=1e-05) -> float:
-    lcm = numpy.lcm.reduce([round(i / atol) for i in numbers])
-    return lcm * atol
+def float_lcm(numbers: List[float], atol=1e-05) -> float:
+    return functools.reduce(lambda a, b: abs(a * b) // math.gcd(a, b), [round(i / atol) for i in numbers]) * atol
 
 
 def list_lcm(values: List[int]) -> int:

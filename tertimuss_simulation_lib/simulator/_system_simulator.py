@@ -1,22 +1,25 @@
 import itertools
+from collections import deque
 from dataclasses import dataclass
 from typing import List, Tuple, Dict, Optional, Union, Set
 
 from cubed_space_thermal_simulator import TemperatureLocatedCube
 from ._simulation_result import RawSimulationResult, JobSectionExecution, CPUUsedFrequency, \
     SimulationStackTraceHardRTDeadlineMissed
-from .._math_utils import list_lcm
+from .._math_utils import list_lcm, float_lcm
 from ..schedulers_definition import CentralizedAbstractScheduler
-from tertimuss_simulation_lib.system_definition import Job, TaskSet, HomogeneousCpuSpecification, EnvironmentSpecification
+from tertimuss_simulation_lib.system_definition import Job, TaskSet, HomogeneousCpuSpecification, \
+    EnvironmentSpecification
+from ..system_definition.utils import calculate_major_cycle
 
 
 @dataclass
 class SimulationOptionsSpecification:
     # True if is a debug simulation and debug messages should be showed
-    id_debug: bool
+    id_debug: bool = False
 
     # True if want to simulate the thermal behaviour
-    simulate_thermal_behaviour: bool
+    simulate_thermal_behaviour: bool = False
 
     # If false, the system won't check if the tasks returned by the scheduler is on the available task set.
     # It won't check if the returned frequency is correct.
@@ -53,6 +56,30 @@ def _create_deadline_arrive_dict(lcm_frequency: int, jobs: List[Job]) -> Tuple[D
     return activation_dict, deadlines_dict
 
 
+def execute_simulation_major_cycle(tasks: TaskSet,
+                                   aperiodic_tasks_jobs: List[Job],
+                                   sporadic_tasks_jobs: List[Job],
+                                   cpu_specification: Union[HomogeneousCpuSpecification],
+                                   environment_specification: EnvironmentSpecification,
+                                   scheduler: CentralizedAbstractScheduler,
+                                   simulation_options: SimulationOptionsSpecification) -> Optional[RawSimulationResult]:
+    major_cycle = calculate_major_cycle(tasks)
+
+    number_of_periodic_ids = sum([round(major_cycle / i.relative_deadline) for i in tasks.periodic_tasks])
+    number_of_ids = number_of_periodic_ids + len(aperiodic_tasks_jobs) + len(sporadic_tasks_jobs)
+
+    job_ids_stack: deque = deque(
+        Set.difference({i for i in range(number_of_ids)}, Set.union({i.identification for i in aperiodic_tasks_jobs},
+                                                                    {i.identification for i in sporadic_tasks_jobs})))
+
+    periodic_tasks_jobs: List[Job] = list(itertools.chain(*[[Job(job_ids_stack.pop(), i, j * i.relative_deadline)
+                                                             for j in range(round(major_cycle / i.relative_deadline))]
+                                                            for i in tasks.periodic_tasks]))
+
+    return execute_simulation(0, major_cycle, periodic_tasks_jobs + aperiodic_tasks_jobs + sporadic_tasks_jobs, tasks,
+                              cpu_specification, environment_specification, scheduler, simulation_options)
+
+
 def execute_simulation(simulation_start_time: float,
                        simulation_end_time: float,
                        jobs: List[Job],
@@ -64,6 +91,9 @@ def execute_simulation(simulation_start_time: float,
     # TODOLIST:
     # Simulation for homogeneous CPUs, Centralized Schedulers with thermal
     # Add parameters check
+    #   Jobs ids
+    #   Start and end of simulation
+    #   CPU specification
     # Add simulation options control
     # Simulation for homogeneous CPUs, Distributed Schedulers with thermal
 

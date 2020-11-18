@@ -1,10 +1,10 @@
 from typing import Set
 
-from tertimuss_simulation_lib.system_definition import CpuSpecification, EnergyConsumptionProperties, \
+from tertimuss_simulation_lib.system_definition import HomogeneousCpuSpecification, EnergyConsumptionProperties, \
     CoreGroupSpecification, MaterialCuboid, generate_automatic_core_origins, BoardSpecification
 
 
-def generate_default_cpu(number_of_cores: int, available_frequencies: Set[int]) -> CpuSpecification:
+def generate_default_cpu(number_of_cores: int, available_frequencies: Set[int]) -> HomogeneousCpuSpecification:
     """
     Generate a default CPU specifying the number of cores and the available frequencies
     :param number_of_cores: Number of cores in the CPU
@@ -34,4 +34,4 @@ def generate_default_cpu(number_of_cores: int, available_frequencies: Set[int]) 
         cores_origins=cores_origins)
 
     board_specification = BoardSpecification(board_physical_properties)
-    return CpuSpecification(board_specification=board_specification, cores_specification=cores_specification)
+    return HomogeneousCpuSpecification(board_specification=board_specification, cores_specification=cores_specification)

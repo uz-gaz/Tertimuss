@@ -47,6 +47,10 @@ class CoreGroupSpecification:
     available_frequencies: Set[int]  # Cores available frequencies in Hz
     cores_origins: List[Origin]  # Cores origins locations
 
+    @property
+    def number_of_cores(self) -> int:
+        return len(self.cores_origins)
+
 
 @dataclass(frozen=True)
 class HomogeneousCpuSpecification:
