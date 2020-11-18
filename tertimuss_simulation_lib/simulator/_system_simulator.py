@@ -6,7 +6,7 @@ from typing import List, Tuple, Dict, Optional, Union, Set
 from cubed_space_thermal_simulator import TemperatureLocatedCube
 from ._simulation_result import RawSimulationResult, JobSectionExecution, CPUUsedFrequency, \
     SimulationStackTraceHardRTDeadlineMissed
-from .._math_utils import list_lcm, float_lcm
+from .._math_utils import list_lcm
 from ..schedulers_definition import CentralizedAbstractScheduler
 from tertimuss_simulation_lib.system_definition import Job, TaskSet, HomogeneousCpuSpecification, \
     EnvironmentSpecification
@@ -96,6 +96,7 @@ def execute_simulation(simulation_start_time: float,
     #   CPU specification
     # Add simulation options control
     # Simulation for homogeneous CPUs, Distributed Schedulers with thermal
+    # Add memory_footprint
 
     # Check if scheduler is capable of execute task set
     can_schedule, error_message = scheduler.check_schedulability(cpu_specification, environment_specification, tasks)
@@ -360,6 +361,10 @@ def execute_simulation(simulation_start_time: float,
             (JobSectionExecution(j, jobs_to_task_dict[j], jobs_last_section_start_time[j],
                                  actual_lcm_cycle / lcm_frequency,
                                  jobs_last_preemption_remaining_cycles[j] - remaining_cc_dict[j])))
+
+    # In the last cycle update RawSimulationResult tables (Used frequencies)
+    for i in range(number_of_cpus):
+        cpus_frequencies[i].append(CPUUsedFrequency(cpu_frequency, last_frequency_set_time, simulation_end_time))
 
     return RawSimulationResult(job_sections_execution, cpus_frequencies, scheduling_points, temperature_measures,
                                hard_real_time_deadline_missed_stack_trace)

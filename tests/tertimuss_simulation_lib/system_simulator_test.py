@@ -1,8 +1,8 @@
 import unittest
 from typing import Set, Dict, Optional, Tuple, Union, List
 
-from tertimuss_simulation_lib.simulator import execute_simulation_major_cycle, TaskSet, SimulationOptionsSpecification, \
-    CentralizedAbstractScheduler, JobSectionExecution, CPUUsedFrequency
+from tertimuss_simulation_lib.simulator import TaskSet, SimulationOptionsSpecification, \
+    CentralizedAbstractScheduler, JobSectionExecution, CPUUsedFrequency, Job, execute_simulation
 from tertimuss_simulation_lib.system_definition import PeriodicTask, PreemptiveExecution, Criticality, \
     HomogeneousCpuSpecification, EnvironmentSpecification
 from tertimuss_simulation_lib.system_definition.utils import generate_default_cpu, default_environment_specification
@@ -78,29 +78,46 @@ class SystemSimulatorTest(unittest.TestCase):
                             priority=task_id,
                             preemptive_execution=PreemptiveExecution.FULLY_PREEMPTIVE,
                             deadline_criteria=Criticality.FIRM,
-                            energyConsumption=None,
+                            energy_consumption=None,
                             phase=None,
                             period=period)
 
     def test_simple_simulation_periodic_task_set(self):
         periodic_tasks = [
-            self.__create_implicit_deadline_periodic_task_h_rt(3, 3000, 7),
-            self.__create_implicit_deadline_periodic_task_h_rt(2, 4000, 7),
-            self.__create_implicit_deadline_periodic_task_h_rt(1, 4000, 14),
-            self.__create_implicit_deadline_periodic_task_h_rt(0, 3000, 14)
+            self.__create_implicit_deadline_periodic_task_h_rt(3, 3000, 7.0),
+            self.__create_implicit_deadline_periodic_task_h_rt(2, 4000, 7.0),
+            self.__create_implicit_deadline_periodic_task_h_rt(1, 4000, 14.0),
+            self.__create_implicit_deadline_periodic_task_h_rt(0, 3000, 14.0)
+        ]
+
+        jobs_list = [
+            # Task 3
+            Job(identification=0, activation_time=0.0, task=periodic_tasks[0]),
+            Job(identification=1, activation_time=7.0, task=periodic_tasks[0]),
+
+            # Task 2
+            Job(identification=2, activation_time=0.0, task=periodic_tasks[1]),
+            Job(identification=3, activation_time=7.0, task=periodic_tasks[1]),
+
+            # Task 1
+            Job(identification=4, activation_time=0.0, task=periodic_tasks[2]),
+
+            # Task 0
+            Job(identification=5, activation_time=0.0, task=periodic_tasks[3]),
         ]
 
         number_of_cores = 2
         available_frequencies = {1000}
 
-        simulation_result = execute_simulation_major_cycle(
-            TaskSet(
+        simulation_result = execute_simulation(
+            simulation_start_time=0.0,
+            simulation_end_time=14.0,
+            tasks=TaskSet(
                 periodic_tasks=periodic_tasks,
                 aperiodic_tasks=[],
                 sporadic_tasks=[]
             ),
-            aperiodic_tasks_jobs=[],
-            sporadic_tasks_jobs=[],
+            jobs=jobs_list,
             cpu_specification=generate_default_cpu(number_of_cores, available_frequencies),
             environment_specification=default_environment_specification(),
             simulation_options=SimulationOptionsSpecification(id_debug=True),
@@ -110,24 +127,24 @@ class SystemSimulatorTest(unittest.TestCase):
         # Correct execution
         correct_job_sections_execution = {
             0: [
-                JobSectionExecution(job_id=5, task_id=3, execution_start_time=0.0, execution_end_time=3.0,
+                JobSectionExecution(job_id=0, task_id=3, execution_start_time=0.0, execution_end_time=3.0,
                                     number_of_executed_cycles=3000),
-                JobSectionExecution(job_id=3, task_id=2, execution_start_time=3.0, execution_end_time=4.0,
+                JobSectionExecution(job_id=2, task_id=2, execution_start_time=3.0, execution_end_time=4.0,
                                     number_of_executed_cycles=1000),
-                JobSectionExecution(job_id=1, task_id=1, execution_start_time=4.0, execution_end_time=7.0,
+                JobSectionExecution(job_id=4, task_id=1, execution_start_time=4.0, execution_end_time=7.0,
                                     number_of_executed_cycles=3000),
-                JobSectionExecution(job_id=4, task_id=3, execution_start_time=7.0, execution_end_time=10.0,
+                JobSectionExecution(job_id=1, task_id=3, execution_start_time=7.0, execution_end_time=10.0,
                                     number_of_executed_cycles=3000),
-                JobSectionExecution(job_id=2, task_id=2, execution_start_time=10.0, execution_end_time=11.0,
+                JobSectionExecution(job_id=3, task_id=2, execution_start_time=10.0, execution_end_time=11.0,
                                     number_of_executed_cycles=1000)],
             1: [
-                JobSectionExecution(job_id=3, task_id=2, execution_start_time=0.0, execution_end_time=3.0,
+                JobSectionExecution(job_id=2, task_id=2, execution_start_time=0.0, execution_end_time=3.0,
                                     number_of_executed_cycles=3000),
-                JobSectionExecution(job_id=1, task_id=1, execution_start_time=3.0, execution_end_time=4.0,
+                JobSectionExecution(job_id=4, task_id=1, execution_start_time=3.0, execution_end_time=4.0,
                                     number_of_executed_cycles=1000),
-                JobSectionExecution(job_id=0, task_id=0, execution_start_time=4.0, execution_end_time=7.0,
+                JobSectionExecution(job_id=5, task_id=0, execution_start_time=4.0, execution_end_time=7.0,
                                     number_of_executed_cycles=3000),
-                JobSectionExecution(job_id=2, task_id=2, execution_start_time=7.0, execution_end_time=10.0,
+                JobSectionExecution(job_id=3, task_id=2, execution_start_time=7.0, execution_end_time=10.0,
                                     number_of_executed_cycles=3000)]
         }
 

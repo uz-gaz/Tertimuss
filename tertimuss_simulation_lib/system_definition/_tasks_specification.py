@@ -108,7 +108,7 @@ class Task(object):
     deadline_criteria: Criticality
 
     # Energy consumption of each job of the task in Jules
-    energyConsumption: Optional[float]
+    energy_consumption: Optional[float]
 
 
 @dataclass(frozen=True)
