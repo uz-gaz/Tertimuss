@@ -18,7 +18,7 @@ def do_plots():
                                                ("out/4/64/", "4/64"),
                                                ("out/4/80/", "4/80"),
                                                ]
-    scheduler_name = "clustered_aiecs"
+    scheduler_name = "aiecs"
 
     number_of_tests = 200
 
