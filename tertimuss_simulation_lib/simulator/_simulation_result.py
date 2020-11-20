@@ -30,9 +30,15 @@ class SimulationStackTraceHardRTDeadlineMissed:
 
 @dataclass
 class RawSimulationResult:
+    # Scheduler task set acceptance
+    have_been_scheduled: bool  # This will be true if the scheduler agree to schedule the task set
+    scheduler_acceptance_error_message: Optional[str]  # Only will take value if have_been_scheduled is False. This will
+    # contain the scheduler reason
+
+    # Simulation results
     job_sections_execution: Dict[int, List[JobSectionExecution]]  # List of jobs executed by each core
     cpus_frequencies: Dict[int, List[CPUUsedFrequency]]  # List of CPU frequencies used by each core
     scheduling_points: List[float]  # Points where the scheduler have made an scheduling
     temperature_measures: Dict[float, List[TemperatureLocatedCube]]  # Measures of temperature
-    hard_real_time_deadline_missed_stack_trace: Optional[SimulationStackTraceHardRTDeadlineMissed]  # Only must take
+    hard_real_time_deadline_missed_stack_trace: Optional[SimulationStackTraceHardRTDeadlineMissed]  # Only will take
     # value if a hard real time is missed
