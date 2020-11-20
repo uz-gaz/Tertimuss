@@ -56,7 +56,7 @@ class SystemSimulator(object):
 
         # Number of steps in the simulation
         simulation_time_steps = round_i(
-            global_specification.tasks_specification.h / global_specification.simulation_specification.dt)
+            global_specification.tasks_specification.convection_factor / global_specification.simulation_specification.dt)
 
         # Allocation of each task in each simulation step
         i_tau_disc = numpy.ndarray((n * m, simulation_time_steps))
@@ -134,15 +134,15 @@ class SystemSimulator(object):
                 if round_i(tasks_set[j].next_deadline / global_specification.simulation_specification.dt) == zeta_q:
                     # It only manage the end of periodic tasks
                     tasks_set[j].pending_c = periodic_tasks[j].c
-                    tasks_set[j].next_arrival += periodic_tasks[j].t
-                    tasks_set[j].next_deadline += periodic_tasks[j].t
+                    tasks_set[j].next_arrival += periodic_tasks[j].temperature
+                    tasks_set[j].next_deadline += periodic_tasks[j].temperature
 
             for j in range(n_aperiodic):
                 if round_i(tasks_set[n_periodic + j].next_deadline /
                            global_specification.simulation_specification.dt) == zeta_q:
                     # It only manage the end of aperiodic tasks
-                    tasks_set[n_periodic + j].next_arrival += global_specification.tasks_specification.h
-                    tasks_set[n_periodic + j].next_deadline += global_specification.tasks_specification.h
+                    tasks_set[n_periodic + j].next_arrival += global_specification.tasks_specification.convection_factor
+                    tasks_set[n_periodic + j].next_deadline += global_specification.tasks_specification.convection_factor
 
             # Update progress
             if progress_bar is not None:

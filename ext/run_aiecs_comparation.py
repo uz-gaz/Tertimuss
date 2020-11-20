@@ -87,7 +87,7 @@ def rec_comparision(experiment_name: str, number_of_cpus: int, number_of_tasks: 
         for i in range(len(x)):
             multiplier = random.choice([1, 2, 4, 5, 8, 10, 20, 40])  # randrange(1, 9)
             x[i].d = x[i].d * multiplier
-            x[i].t = x[i].t * multiplier
+            x[i].temperature = x[i].temperature * multiplier
             x[i].c = x[i].c * multiplier * 10
 
         tasks_definition_dict = []
@@ -177,7 +177,7 @@ def _have_miss_deadline(global_specification: GlobalSpecification, scheduler_res
 
     i_tau_disc = i_tau_disc * frequencies_disc_f
 
-    hyperperiod = int(global_specification.tasks_specification.h / global_specification.simulation_specification.dt)
+    hyperperiod = int(global_specification.tasks_specification.convection_factor / global_specification.simulation_specification.dt)
 
     ci_p_dt = [i.c for i in
                global_specification.tasks_specification.periodic_tasks]
@@ -185,7 +185,7 @@ def _have_miss_deadline(global_specification: GlobalSpecification, scheduler_res
     di_p_dt = [int(round(i.d / global_specification.simulation_specification.dt)) for i in
                global_specification.tasks_specification.periodic_tasks]
 
-    ti_p_dt = [int(round(i.t / global_specification.simulation_specification.dt)) for i in
+    ti_p_dt = [int(round(i.temperature / global_specification.simulation_specification.dt)) for i in
                global_specification.tasks_specification.periodic_tasks]
 
     ci_a_dt = [i.c for i in global_specification.tasks_specification.aperiodic_tasks]

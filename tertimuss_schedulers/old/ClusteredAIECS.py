@@ -54,7 +54,7 @@ class ClusteredAIECSScheduler(AbstractScheduler):
         for utilization, task_set_loop in partitions_obtained:
             major_cycle_local = round(reduce(numpy.lcm, [int(periodic_tasks_dict[i].d) for i in task_set_loop]))
 
-            number_of_major_cycles = round(global_specification.tasks_specification.h / major_cycle_local)
+            number_of_major_cycles = round(global_specification.tasks_specification.convection_factor / major_cycle_local)
 
             actual_scheduler = EDFScheduler() if (utilization == 1) else AIECSMultipleMajorCyclesScheduler(
                 number_of_major_cycles)
@@ -64,7 +64,7 @@ class ClusteredAIECSScheduler(AbstractScheduler):
 
             # Call on offline stage
             local_task_specification: TasksSpecification = TasksSpecification(
-                [PeriodicTask(c=periodic_tasks_dict[i].c, d=periodic_tasks_dict[i].d, t=periodic_tasks_dict[i].t,
+                [PeriodicTask(c=periodic_tasks_dict[i].c, d=periodic_tasks_dict[i].d, t=periodic_tasks_dict[i].temperature,
                               e=None) for i
                  in task_set_loop])
 

@@ -44,7 +44,7 @@ class TaskExecutionDrawer(AbstractResultDrawer):
         utilization_by_task = numpy.zeros(((n_periodic + n_aperiodic), len(i_tau_disc[0])))
 
         total_steps_number = int(
-            global_specification.tasks_specification.h / global_specification.simulation_specification.dt)
+            global_specification.tasks_specification.convection_factor / global_specification.simulation_specification.dt)
         deadline_by_task = numpy.zeros(((n_periodic + n_aperiodic), total_steps_number))
         arrives_by_task = numpy.zeros((n_aperiodic, total_steps_number))
         deadlines_time = [i * global_specification.simulation_specification.dt for i in range(total_steps_number)]
@@ -53,7 +53,7 @@ class TaskExecutionDrawer(AbstractResultDrawer):
         for i in range(n_periodic):
             actual_deadline = int(
                 global_specification.tasks_specification.periodic_tasks[
-                    i].t / global_specification.simulation_specification.dt)
+                    i].temperature / global_specification.simulation_specification.dt)
             for j in range(len(i_tau_disc[0])):
                 for k in range(m):
                     utilization_by_task[i, j] += i_tau_disc[(n_periodic + n_aperiodic) * k + i, j]

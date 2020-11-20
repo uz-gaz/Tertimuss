@@ -31,7 +31,7 @@ class GlobalEDFScheduler(AbstractScheduler):
         :return: 1 - Scheduling quantum (default will be the step specified in problem creation)
         """
         self.__m = len(global_specification.cpu_specification.cores_specification.operating_frequencies)
-        self.__h = global_specification.tasks_specification.h
+        self.__h = global_specification.tasks_specification.convection_factor
         return super().offline_stage(global_specification, periodic_tasks, aperiodic_tasks)
 
     def aperiodic_arrive(self, time: float, aperiodic_tasks_arrived: List[SystemTask],

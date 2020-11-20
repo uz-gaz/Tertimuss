@@ -68,7 +68,7 @@ class SemiPartitionedAIECSScheduler(RUNScheduler):
 
             # Call on offline stage
             local_task_specification: TasksSpecification = TasksSpecification(
-                [PeriodicTask(i.c, i.t, i.d, i.e) for i in task_set_loop])
+                [PeriodicTask(i.c, i.temperature, i.d, i.e) for i in task_set_loop])
             local_cores_specification: CoreGroupSpecification = CoreGroupSpecification(
                 global_specification.cpu_specification.cores_specification.physical_properties,
                 global_specification.cpu_specification.cores_specification.energy_consumption_properties,
@@ -86,7 +86,7 @@ class SemiPartitionedAIECSScheduler(RUNScheduler):
                 global_specification.simulation_specification,
                 global_specification.tcpn_model_specification)
             actual_scheduler.offline_stage(local_global_specification,
-                                           [SystemPeriodicTask(PeriodicTask(i.c, i.t, i.d, i.e), tasks_ids.index(i.id))
+                                           [SystemPeriodicTask(PeriodicTask(i.c, i.temperature, i.d, i.e), tasks_ids.index(i.id))
                                             for i in task_set_loop], [])
         return global_specification.simulation_specification.dt
 

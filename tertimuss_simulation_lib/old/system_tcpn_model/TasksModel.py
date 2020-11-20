@@ -41,7 +41,7 @@ class TasksModel(object):
         post[n_periodic: 2 * n_periodic, :] = scipy.sparse.identity(n_periodic,
                                                                     dtype=simulation_specification.type_precision,
                                                                     format="lil")  # Transition from t^w_i to p^cc_i
-        lambda_vector[:] = numpy.asarray([task.t for task in tasks_specification.periodic_tasks],
+        lambda_vector[:] = numpy.asarray([task.temperature for task in tasks_specification.periodic_tasks],
                                          dtype=simulation_specification.type_precision)
         pi[:n_periodic, :] = scipy.sparse.identity(n_periodic, dtype=simulation_specification.type_precision,
                                                    format="lil")  # Transition from p^w_i to t^w_i

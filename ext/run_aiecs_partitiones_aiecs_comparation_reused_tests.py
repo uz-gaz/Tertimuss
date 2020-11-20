@@ -127,7 +127,7 @@ def _have_miss_deadline(global_specification: GlobalSpecification, scheduler_res
 
     i_tau_disc = i_tau_disc * frequencies_disc_f
 
-    hyperperiod = int(global_specification.tasks_specification.h / global_specification.simulation_specification.dt)
+    hyperperiod = int(global_specification.tasks_specification.convection_factor / global_specification.simulation_specification.dt)
 
     ci_p_dt = [i.c for i in
                global_specification.tasks_specification.periodic_tasks]
@@ -135,7 +135,7 @@ def _have_miss_deadline(global_specification: GlobalSpecification, scheduler_res
     di_p_dt = [int(round(i.d / global_specification.simulation_specification.dt)) for i in
                global_specification.tasks_specification.periodic_tasks]
 
-    ti_p_dt = [int(round(i.t / global_specification.simulation_specification.dt)) for i in
+    ti_p_dt = [int(round(i.temperature / global_specification.simulation_specification.dt)) for i in
                global_specification.tasks_specification.periodic_tasks]
 
     ci_a_dt = [i.c for i in global_specification.tasks_specification.aperiodic_tasks]

@@ -52,7 +52,7 @@ class ContextSwitchStatistics(AbstractResultDrawer):
             for j in range(n_periodic):
                 deadline_interval = round(
                     global_specification.tasks_specification.periodic_tasks[
-                        j].t / global_specification.simulation_specification.dt)
+                        j].temperature / global_specification.simulation_specification.dt)
                 if i % deadline_interval == 0:
                     # New interval start in this cycle
                     last_executed_cpu[j] = -1
@@ -85,7 +85,7 @@ class ContextSwitchStatistics(AbstractResultDrawer):
                     last_executed_cpu[task_no] = actual_execution_cpu
 
         jobs_by_tasks = [int(
-            global_specification.tasks_specification.h / global_specification.tasks_specification.periodic_tasks[i].d)
+            global_specification.tasks_specification.convection_factor / global_specification.tasks_specification.periodic_tasks[i].d)
                             for i in range(n_periodic)] + n_aperiodic * [1]
 
         context_changes_by_tasks = [sum(context_changes_by_tasks[task::(n_periodic + n_aperiodic)][:m]) for task in

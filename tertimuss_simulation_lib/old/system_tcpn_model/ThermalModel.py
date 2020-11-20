@@ -195,7 +195,7 @@ class ThermalModel(object):
         rho_p1 = cpu_specification.board_specification.physical_properties.p
         cp_p1 = cpu_specification.board_specification.physical_properties.c_p
 
-        h = environment_specification.h
+        h = environment_specification.convection_factor
 
         lambda_convection = (h / (cpu_specification.board_specification.physical_properties.z * rho_p1 * cp_p1)) * 1000
 

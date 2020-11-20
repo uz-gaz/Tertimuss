@@ -105,7 +105,7 @@ def _have_miss_deadline(global_specification: GlobalSpecification, scheduler_res
 
     i_tau_disc = i_tau_disc * frequencies_disc_f
 
-    hyperperiod = int(global_specification.tasks_specification.h / global_specification.simulation_specification.dt)
+    hyperperiod = int(global_specification.tasks_specification.convection_factor / global_specification.simulation_specification.dt)
 
     ci_p_dt = [i.c for i in
                global_specification.tasks_specification.periodic_tasks]
@@ -113,7 +113,7 @@ def _have_miss_deadline(global_specification: GlobalSpecification, scheduler_res
     di_p_dt = [int(round(i.d / global_specification.simulation_specification.dt)) for i in
                global_specification.tasks_specification.periodic_tasks]
 
-    ti_p_dt = [int(round(i.t / global_specification.simulation_specification.dt)) for i in
+    ti_p_dt = [int(round(i.temperature / global_specification.simulation_specification.dt)) for i in
                global_specification.tasks_specification.periodic_tasks]
 
     ci_a_dt = [i.c for i in global_specification.tasks_specification.aperiodic_tasks]
@@ -219,7 +219,7 @@ def generate_task_set(full_experiment_name: str, number_of_cpus: int, number_of_
     for i in range(len(x)):
         multiplier = random.choice(major_cycle_divisors)  # randrange(1, 9)
         x[i].d = x[i].d * multiplier
-        x[i].t = x[i].t * multiplier
+        x[i].temperature = x[i].temperature * multiplier
         x[i].c = x[i].c * multiplier
 
     # u = UUniFastExtended()

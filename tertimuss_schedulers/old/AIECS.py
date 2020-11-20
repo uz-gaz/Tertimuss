@@ -301,11 +301,11 @@ class AIECSScheduler(AbstractScheduler):
 
         for actual_frequency in clock_available_frequencies_hz:
             tasks_real_cycles = [
-                ((math.ceil(i.c / round(actual_frequency * dt)) * actual_frequency * dt), i.t * actual_frequency) for i
+                ((math.ceil(i.c / round(actual_frequency * dt)) * actual_frequency * dt), i.temperature * actual_frequency) for i
                 in periodic_tasks]
 
             # Avoid float errors
-            h_cycles = int(global_specification.tasks_specification.h * actual_frequency)
+            h_cycles = int(global_specification.tasks_specification.convection_factor * actual_frequency)
             utilization_constraint = sum([i[0] * (h_cycles / i[1]) for i in tasks_real_cycles]) <= self.__m * h_cycles
 
             # utilization_constraint = sum([i[0] / i[1] for i in tasks_real_cycles]) <= self.__m
@@ -323,10 +323,10 @@ class AIECSScheduler(AbstractScheduler):
 
         # Number of cycles
         cci = [i.c for i in periodic_tasks]
-        tci = [int(i.t * f_star_hz) for i in periodic_tasks]
+        tci = [int(i.temperature * f_star_hz) for i in periodic_tasks]
 
         # Add dummy task if needed
-        hyperperiod_hz = int(global_specification.tasks_specification.h * f_star_hz)
+        hyperperiod_hz = int(global_specification.tasks_specification.convection_factor * f_star_hz)
 
         a_i = [int(hyperperiod_hz / i) for i in tci]
 

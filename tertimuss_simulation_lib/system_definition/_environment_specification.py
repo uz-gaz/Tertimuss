@@ -7,7 +7,7 @@ class EnvironmentSpecification(object):
     Specification of the environment
     """
     # Convection factor (W/mm^2 ºC)
-    h: float
+    convection_factor: float
 
     # Environment temperature (ºC)
-    t: float
+    temperature: float

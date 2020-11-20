@@ -9,6 +9,6 @@ class SystemPeriodicTask(PeriodicTask, SystemTask):
         :param task_specification: periodic task
         :param task_id: task id
         """
-        PeriodicTask.__init__(self, task_specification.c, task_specification.t, task_specification.d,
+        PeriodicTask.__init__(self, task_specification.c, task_specification.temperature, task_specification.d,
                               task_specification.e)
         SystemTask.__init__(self, task_specification.d, 0, task_specification.c, task_id)

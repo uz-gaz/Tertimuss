@@ -7,17 +7,6 @@ import scipy.sparse
 import scipy.sparse.linalg
 import scipy.linalg
 
-from main.core.problem_specification.GlobalSpecification import GlobalSpecification
-from main.core.problem_specification.tasks_specification.TasksSpecification import TasksSpecification
-from main.core.schedulers_definition.templates.AbstractScheduler import AbstractScheduler
-
-from main.core.execution_simulator.system_simulator.SystemAperiodicTask import SystemAperiodicTask
-from main.core.execution_simulator.system_simulator.SystemPeriodicTask import SystemPeriodicTask
-from main.core.execution_simulator.system_simulator.SystemTask import SystemTask
-from main.core.execution_simulator.system_modeling.ProcessorModel import ProcessorModel
-from main.core.execution_simulator.system_modeling.TasksModel import TasksModel
-from main.core.tcpn_simulator.implementation.numerical_integration.TcpnSimulatorOptimizedTasksAndProcessors import \
-    TcpnSimulatorOptimizedTasksAndProcessors
 
 
 class OLDTFSScheduler(AbstractScheduler):

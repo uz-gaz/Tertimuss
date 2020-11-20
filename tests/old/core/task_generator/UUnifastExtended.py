@@ -19,7 +19,7 @@ class UUnifastExtendedTest(unittest.TestCase):
             }
         )
 
-        assert (numpy.isclose(sum([i.c / i.t for i in x]), 6000))
+        assert (numpy.isclose(sum([i.c / i.temperature for i in x]), 6000))
         assert (len([0 for i in x if i.c == 0]) == 0)
 
 

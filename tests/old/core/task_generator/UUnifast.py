@@ -24,8 +24,8 @@ class UUnifastTest(unittest.TestCase):
             }
         )
 
-        print(sum([i.c / i.t for i in x]))
-        assert (199 <= sum([i.c / i.t for i in x]) <= 200)
+        print(sum([i.c / i.temperature for i in x]))
+        assert (199 <= sum([i.c / i.temperature for i in x]) <= 200)
         num_wcet_zero = len([0 for i in x if i.c == 0])
         print("Number of zero execution time tasks", num_wcet_zero)
 
@@ -45,7 +45,7 @@ class UUnifastTest(unittest.TestCase):
 
         print("Number of zero execution time tasks", num_wcet_zero)
 
-        print(sum([i.c / i.t for i in x]))
+        print(sum([i.c / i.temperature for i in x]))
 
         # assert (1099 < sum([i.c / i.t for i in x]) < 1101)
 
@@ -69,7 +69,7 @@ class UUnifastTest(unittest.TestCase):
             for i in range(len(x)):
                 multiplier = random.choice([1, 2, 4, 5, 8, 10, 20, 40])  # randrange(1, 9)
                 x[i].d = x[i].d * multiplier
-                x[i].t = x[i].t * multiplier
+                x[i].temperature = x[i].temperature * multiplier
                 x[i].c = x[i].c * multiplier
 
             max_period = 40
@@ -116,7 +116,7 @@ class UUnifastTest(unittest.TestCase):
             for i in range(len(x)):
                 multiplier = random.choice([1, 2, 4, 5, 8, 10, 20, 40])  # randrange(1, 9)
                 x[i].d = x[i].d * multiplier
-                x[i].t = x[i].t * multiplier
+                x[i].temperature = x[i].temperature * multiplier
                 x[i].c = x[i].c * multiplier
 
             max_period = 40

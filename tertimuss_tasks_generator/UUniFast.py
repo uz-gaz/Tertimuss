@@ -61,7 +61,7 @@ class UUniFast(AbstractTaskGeneratorAlgorithm):
             processor_frequency * vector_u[i] * t_i[i]) > 0 else 1, t_i[i], t_i[i], e_i[i]) for i in
                        range(number_of_tasks)]
 
-        hyperperiod_final = TasksSpecification(tasks_inst1).h
+        hyperperiod_final = TasksSpecification(tasks_inst1).convection_factor
 
         cycles_in_hyperperiod = int(processor_frequency * hyperperiod_final * utilization)
 
