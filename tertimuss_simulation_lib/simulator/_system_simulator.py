@@ -88,7 +88,7 @@ def execute_simulation(simulation_start_time: float,
                        environment_specification: EnvironmentSpecification,
                        scheduler: CentralizedAbstractScheduler,
                        simulation_options: SimulationOptionsSpecification) -> Optional[RawSimulationResult]:
-    # TODOLIST:
+    # TODO LIST:
     # Simulation for homogeneous CPUs, Centralized Schedulers with thermal
     # Add parameters check
     #   Jobs ids
