@@ -5,8 +5,8 @@ from tertimuss_simulation_lib.system_definition import HomogeneousCpuSpecificati
 
 
 class GlobalEarliestDeadlineFirstScheduler(CentralizedAbstractScheduler):
-    def __init__(self):
-        super().__init__(True)
+    def __init__(self, is_debug=True):
+        super().__init__(is_debug)
         self.__m = 0
         self.__tasks_relative_deadline: Dict[int, float] = {}
         self.__active_jobs_priority: Dict[int, int] = {}

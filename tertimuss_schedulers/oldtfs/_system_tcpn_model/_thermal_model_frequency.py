@@ -3,7 +3,7 @@ from typing import List, Union
 import numpy
 
 from ._thermal_model import ThermalModel
-from tertimuss_simulation_lib.system_definition import HomogeneousCpuSpecification, TaskSet, Task
+from tertimuss_simulation_lib.system_definition import HomogeneousCpuSpecification, TaskSet
 
 
 class ThermalModelFrequencyAware(ThermalModel):
