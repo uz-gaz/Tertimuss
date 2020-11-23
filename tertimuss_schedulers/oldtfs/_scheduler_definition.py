@@ -54,14 +54,6 @@ class OLDTFSScheduler(CentralizedAbstractScheduler):
         self.__task_to_job = {}
         self.__job_to_task = {}
 
-    @staticmethod
-    def __float_lcm(numbers: List[float], atol=1e-05) -> float:
-        return functools.reduce(lambda a, b: abs(a * b) // math.gcd(a, b), [round(i / atol) for i in numbers]) * atol
-
-    @staticmethod
-    def __float_gcd(numbers: List[float], atol=1e-05) -> float:
-        return functools.reduce(lambda a, b: math.gcd(a, b), [round(i / atol) for i in numbers]) * atol
-
     def check_schedulability(self, cpu_specification: Union[HomogeneousCpuSpecification],
                              environment_specification: EnvironmentSpecification, task_set: TaskSet) \
             -> [bool, Optional[str]]:

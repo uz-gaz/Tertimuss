@@ -6,7 +6,7 @@ from typing import List, Tuple, Dict, Optional, Union, Set
 from cubed_space_thermal_simulator import TemperatureLocatedCube
 from ._simulation_result import RawSimulationResult, JobSectionExecution, CPUUsedFrequency, \
     SimulationStackTraceHardRTDeadlineMissed
-from .._math_utils import list_lcm
+from ..math_utils import list_lcm
 from ..schedulers_definition import CentralizedAbstractScheduler
 from tertimuss_simulation_lib.system_definition import Job, TaskSet, HomogeneousCpuSpecification, \
     EnvironmentSpecification, Criticality, PreemptiveExecution

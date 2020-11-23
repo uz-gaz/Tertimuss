@@ -1,4 +1,4 @@
-from tertimuss_simulation_lib._math_utils import float_lcm
+from tertimuss_simulation_lib.math_utils import float_lcm
 from tertimuss_simulation_lib.system_definition import TaskSet, Task, Job
 
 
