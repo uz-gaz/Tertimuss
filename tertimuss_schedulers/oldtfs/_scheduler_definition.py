@@ -9,6 +9,7 @@ import scipy.sparse.linalg
 import scipy.linalg
 
 from tcpn_simulator import TCPNSimulatorVariableStepRK
+from tertimuss_simulation_lib.math_utils import list_float_lcm, list_int_gcd
 from ._system_tcpn_model import ThermalModelSelector, TasksModel, ProcessorModel
 from tertimuss_simulation_lib.schedulers_definition import CentralizedAbstractScheduler
 from tertimuss_simulation_lib.system_definition import HomogeneousCpuSpecification, EnvironmentSpecification, TaskSet
@@ -163,7 +164,7 @@ class OLDTFSScheduler(CentralizedAbstractScheduler):
 
         ti = [i.relative_deadline for i in task_set.periodic_tasks]
 
-        h = cls.__float_lcm(ti)
+        h = list_float_lcm(ti)
 
         number_of_jobs = numpy.asarray([round(h / i) for i in ti])
 
@@ -262,7 +263,7 @@ class OLDTFSScheduler(CentralizedAbstractScheduler):
 
         rounded_list = functools.reduce(operator.add, ((sd[i] * j_fsc_i).tolist() for i in range(1, len(sd) - 1)))
 
-        quantum = cls.__float_gcd([int(i) for i in rounded_list])
+        quantum = list_int_gcd([int(i) for i in rounded_list])
 
         return j_fsc_i, quantum
 
@@ -359,7 +360,7 @@ class OLDTFSScheduler(CentralizedAbstractScheduler):
 
         ti = [i.relative_deadline for i in task_set.periodic_tasks]
 
-        h = self.__float_lcm(ti)
+        h = list_float_lcm(ti)
 
         number_of_jobs = [round(h / i) for i in ti]
 
