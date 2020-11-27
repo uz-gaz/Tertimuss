@@ -6,4 +6,4 @@ def default_environment_specification() -> EnvironmentSpecification:
     Create a default environment
     :return: Environment specification
     """
-    return EnvironmentSpecification(h=0.001, t=45)
+    return EnvironmentSpecification(convection_factor=0.001, temperature=45)

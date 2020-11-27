@@ -6,7 +6,7 @@ from typing import List, Tuple, Dict, Optional, Union, Set
 from cubed_space_thermal_simulator import TemperatureLocatedCube
 from ._simulation_result import RawSimulationResult, JobSectionExecution, CPUUsedFrequency, \
     SimulationStackTraceHardRTDeadlineMissed
-from ..math_utils import list_lcm
+from ..math_utils import list_int_lcm
 from ..schedulers_definition import CentralizedAbstractScheduler
 from tertimuss_simulation_lib.system_definition import Job, TaskSet, HomogeneousCpuSpecification, \
     EnvironmentSpecification, Criticality, PreemptiveExecution
@@ -117,7 +117,7 @@ def execute_simulation(simulation_start_time: float,
 
     # Create data structures for the simulation
     # Max frequency
-    lcm_frequency = list_lcm(list(cpu_specification.cores_specification.available_frequencies))
+    lcm_frequency = list_int_lcm(list(cpu_specification.cores_specification.available_frequencies))
 
     # Dict with activation and deadlines
     activation_dict, deadlines_dict = _create_deadline_arrive_dict(lcm_frequency, jobs)
@@ -133,7 +133,7 @@ def execute_simulation(simulation_start_time: float,
     final_lcm_cycle: int = round(simulation_end_time * lcm_frequency)
 
     # Major cycle
-    major_cycle_lcm = list_lcm([round(i.relative_deadline * lcm_frequency) for i in tasks.periodic_tasks])
+    major_cycle_lcm = list_int_lcm([round(i.relative_deadline * lcm_frequency) for i in tasks.periodic_tasks])
 
     # Jobs to task dict
     jobs_to_task_dict = {i.identification: i.task.identification for i in jobs}
