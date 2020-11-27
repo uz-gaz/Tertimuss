@@ -186,7 +186,7 @@ class ALECSScheduler(CentralizedAbstractScheduler):
 
     @staticmethod
     def __schedule_policy_imp(tasks_being_executed: List[int], interval_cc_left: List[int],
-                              cycles_in_this_interval: int, new_interval_start: bool) -> List[int]:
+                              cycles_in_this_interval: int) -> List[int]:
         """
         Assign tasks to cores
         :param tasks_being_executed: actual tasks in execution
@@ -306,8 +306,7 @@ class ALECSScheduler(CentralizedAbstractScheduler):
             if self.__offline_stage_check_interrupt(tasks_being_executed, actual_interval_cc, actual_interval_end - i,
                                                     interval_have_ended_this_cycle):
                 tasks_being_executed = self.__schedule_policy_imp(tasks_being_executed, actual_interval_cc,
-                                                                  actual_interval_end - i,
-                                                                  interval_have_ended_this_cycle)
+                                                                  actual_interval_end - i)
 
             # Update CC
             for j in (r for r in tasks_being_executed if r != -1):
@@ -321,15 +320,19 @@ class ALECSScheduler(CentralizedAbstractScheduler):
 
         self.__scheduling_points = scheduling_points
 
-        scheduling_points_debug = -2 * numpy.ones((m, major_cycle_in_cycles // range_quantum))
+        # Only used for debug purposes
+        scheduling_points_debug_activated = False
 
-        index_sp = {i: max(j for j in scheduling_points.keys() if j <= i * range_quantum) for i in
-                    range(major_cycle_in_cycles // range_quantum)}
+        if scheduling_points_debug_activated:
+            scheduling_points_debug = -2 * numpy.ones((m, major_cycle_in_cycles // range_quantum))
 
-        for i in range(major_cycle_in_cycles // range_quantum):
-            for j in range(m):
-                scheduling_points_debug[j, i] = scheduling_points[index_sp[i]][j] if scheduling_points[
-                    index_sp[i]].__contains__(j) else -1
+            index_sp = {i: max(j for j in scheduling_points.keys() if j <= i * range_quantum) for i in
+                        range(major_cycle_in_cycles // range_quantum)}
+
+            for i in range(major_cycle_in_cycles // range_quantum):
+                for j in range(m):
+                    scheduling_points_debug[j, i] = scheduling_points[index_sp[i]][j] if scheduling_points[
+                        index_sp[i]].__contains__(j) else -1
 
         return f_star_hz
 
