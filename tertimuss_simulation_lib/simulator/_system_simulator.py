@@ -103,7 +103,7 @@ def execute_simulation(simulation_start_time: float,
                        cpu_specification: Union[HomogeneousCpuSpecification],
                        environment_specification: EnvironmentSpecification,
                        scheduler: CentralizedAbstractScheduler,
-                       simulation_options: SimulationOptionsSpecification) -> Optional[RawSimulationResult]:
+                       simulation_options: SimulationOptionsSpecification) -> RawSimulationResult:
     # TODO LIST:
     # Simulation for homogeneous CPUs, Centralized Schedulers with thermal
     # Add parameters check
