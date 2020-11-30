@@ -62,7 +62,22 @@ def execute_simulation_major_cycle(tasks: TaskSet,
                                    cpu_specification: Union[HomogeneousCpuSpecification],
                                    environment_specification: EnvironmentSpecification,
                                    scheduler: CentralizedAbstractScheduler,
-                                   simulation_options: SimulationOptionsSpecification) -> RawSimulationResult:
+                                   simulation_options: SimulationOptionsSpecification) \
+        -> Tuple[RawSimulationResult, List[Job], float]:
+    """
+    Execute a simulation over the major cycle
+    :param tasks: tasks set
+    :param aperiodic_tasks_jobs:
+    :param sporadic_tasks_jobs:
+    :param cpu_specification:
+    :param environment_specification:
+    :param scheduler:
+    :param simulation_options:
+    :return:
+     Simulation result
+     Periodic jobs automatically generated
+     Major cycle
+    """
     major_cycle = calculate_major_cycle(tasks)
 
     number_of_periodic_ids = sum([round(major_cycle / i.relative_deadline) for i in tasks.periodic_tasks])
@@ -77,7 +92,8 @@ def execute_simulation_major_cycle(tasks: TaskSet,
                                                             for i in tasks.periodic_tasks]))
 
     return execute_simulation(0, major_cycle, periodic_tasks_jobs + aperiodic_tasks_jobs + sporadic_tasks_jobs, tasks,
-                              cpu_specification, environment_specification, scheduler, simulation_options)
+                              cpu_specification, environment_specification, scheduler, simulation_options), \
+           periodic_tasks_jobs, major_cycle
 
 
 def execute_simulation(simulation_start_time: float,

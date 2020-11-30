@@ -201,7 +201,7 @@ class SystemSimulatorTest(unittest.TestCase):
         number_of_cores = 2
         available_frequencies = {1000}
 
-        simulation_result = execute_simulation_major_cycle(
+        simulation_result, periodic_jobs, major_cycle = execute_simulation_major_cycle(
             tasks=TaskSet(
                 periodic_tasks=periodic_tasks,
                 aperiodic_tasks=[],
@@ -260,7 +260,7 @@ class SystemSimulatorTest(unittest.TestCase):
         number_of_cores = 2
         available_frequencies = {1000}
 
-        simulation_result = execute_simulation_major_cycle(
+        simulation_result, periodic_jobs, major_cycle = execute_simulation_major_cycle(
             tasks=TaskSet(
                 periodic_tasks=periodic_tasks,
                 aperiodic_tasks=[],
