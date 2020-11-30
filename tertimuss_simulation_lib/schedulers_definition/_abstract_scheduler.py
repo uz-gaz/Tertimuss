@@ -91,8 +91,8 @@ class CentralizedAbstractScheduler(object, metaclass=abc.ABCMeta):
         Method to implement with the actual on job activation scheduler police.
         This method is the recommended place to detect the arrival of an aperiodic or sporadic task.
 
-        :param jobs_id_tasks_ids: List[Identification of the task which job have been activated,
-        Identification of the job that have been activated]
+        :param jobs_id_tasks_ids: List[Identification of the job that have been activated,
+         Identification of the task which job have been activated]
         :param global_time: Actual time in seconds since the simulation starts
         :param activation_time: Time where the activation was produced (It can be different from the global_time in the
          case that it doesn't adjust to a cycle end)

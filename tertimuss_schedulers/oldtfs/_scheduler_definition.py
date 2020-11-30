@@ -1,5 +1,4 @@
 import functools
-import math
 import operator
 from typing import List, Optional, Union, Tuple, Dict, Set
 
@@ -18,6 +17,9 @@ from tertimuss_simulation_lib.system_definition import HomogeneousCpuSpecificati
 class OLDTFSScheduler(CentralizedAbstractScheduler):
     """
     Implements the OLDTFS scheduler
+
+    References:
+        DOI: 10.1109/WODES.2016.7497860
     """
 
     def __init__(self, max_temperature_constraint: float, is_debug=True, simulate_thermal=True,
@@ -491,7 +493,18 @@ class OLDTFSScheduler(CentralizedAbstractScheduler):
 
     def on_jobs_activation(self, global_time: float, activation_time: float,
                            jobs_id_tasks_ids: List[Tuple[int, int]]) -> bool:
-        for (i, j) in jobs_id_tasks_ids:
-            self.__job_to_task[j] = i
-            self.__task_to_job[i] = j
+        """
+        Method to implement with the actual on job activation scheduler police.
+        This method is the recommended place to detect the arrival of an aperiodic or sporadic task.
+
+        :param jobs_id_tasks_ids: List[Identification of the job that have been activated,
+         Identification of the task which job have been activated]
+        :param global_time: Actual time in seconds since the simulation starts
+        :param activation_time: Time where the activation was produced (It can be different from the global_time in the
+         case that it doesn't adjust to a cycle end)
+        :return: true if want to immediately call the scheduler (schedule_policy method), false otherwise
+        """
+        for job_id, task_id in jobs_id_tasks_ids:
+            self.__job_to_task[job_id] = task_id
+            self.__task_to_job[task_id] = job_id
         return super().on_jobs_activation(global_time, activation_time, jobs_id_tasks_ids)

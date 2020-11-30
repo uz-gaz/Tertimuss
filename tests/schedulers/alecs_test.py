@@ -53,5 +53,4 @@ class ALECSTest(unittest.TestCase):
 
         # Correct execution
         assert simulation_result.have_been_scheduled
-        assert (simulation_result.hard_real_time_deadline_missed_stack_trace is not None
-                and simulation_result.hard_real_time_deadline_missed_stack_trace.time == 7.0)
+        assert simulation_result.hard_real_time_deadline_missed_stack_trace is None

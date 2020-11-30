@@ -286,7 +286,8 @@ def execute_simulation(simulation_start_time: float,
                                         "\t Active jobs: " + str(active_jobs) + "\n" + \
                                         "\t Selected frequency: " + str(cores_frequency_next) + "\n" + \
                                         "\t Available frequencies: " + \
-                                        str(cpu_specification.cores_specification.available_frequencies)
+                                        str(cpu_specification.cores_specification.available_frequencies) + "\n" + \
+                                        "\t Actual time: " + str(actual_time_seconds)
                     raise Exception(exception_message)
 
             # Check if none preemptive task is preempted
@@ -324,8 +325,8 @@ def execute_simulation(simulation_start_time: float,
             # Update frequency and executed tasks
             cpu_frequency = cores_frequency_next
             jobs_being_executed_id = jobs_being_executed_id_next
-            next_scheduling_point = (cpu_frequency * cycles_until_next_scheduler_invocation + actual_lcm_cycle) \
-                if cycles_until_next_scheduler_invocation is not None else None
+            next_scheduling_point = ((lcm_frequency // cpu_frequency) * cycles_until_next_scheduler_invocation +
+                                     actual_lcm_cycle) if cycles_until_next_scheduler_invocation is not None else None
 
             for i, j in jobs_being_executed_id.items():
                 jobs_last_cpu_used[j] = i

@@ -8,32 +8,27 @@ from ortools.linear_solver import pywraplp
 
 from tertimuss_simulation_lib.math_utils import list_float_lcm, list_int_gcd
 from tertimuss_simulation_lib.schedulers_definition import CentralizedAbstractScheduler
-from tertimuss_simulation_lib.system_definition import HomogeneousCpuSpecification, EnvironmentSpecification, TaskSet
+from tertimuss_simulation_lib.system_definition import HomogeneousCpuSpecification, EnvironmentSpecification, TaskSet, \
+    PreemptiveExecution
 
 
 class ALECSScheduler(CentralizedAbstractScheduler):
     """
-    Implements the AIECS scheduler
+    Implements the ALECS scheduler
+
+    The actual implementation only allows periodic tasks (the original specification allows aperiodic too)
+
+    References:
+        TODO:
     """
 
-    def __init__(self, number_of_major_cycles: int = 1) -> None:
+    def __init__(self) -> None:
         super().__init__(True)
 
         # Declare class variables
         self.__scheduling_points: Dict[int, Dict[int, int]] = {}
-        # self.__m = None
-        # self.__n = None
-        # self.__intervals_end = None
-        # self.__execution_by_intervals = None
-        # self.__interval_cc_left = None
-        # self.__actual_interval_index = None
-        # self.__dt = None
-        # self.__aperiodic_arrive = None
-        # self.__possible_f = None
-        # self.__intervals_frequencies = None
-        # self.__number_of_major_cycles = number_of_major_cycles
-        # self.__index_to_id = None
-        # self.__id_to_index = None
+        self.__major_cycle: float = 0
+        self.__task_to_job: Dict[int, int] = {}
 
     @staticmethod
     def __list_lcm(values: List[int]) -> int:
@@ -144,8 +139,17 @@ class ALECSScheduler(CentralizedAbstractScheduler):
     def check_schedulability(self, cpu_specification: Union[HomogeneousCpuSpecification],
                              environment_specification: EnvironmentSpecification, task_set: TaskSet) \
             -> [bool, Optional[str]]:
-        # TODO: Only implicit deadline, fully preemptive task-sets without phase in the periodic tasks are allowed,
-        # and simulaton start in second 0
+        only_0_phase = all(i.phase is None or i.phase == 0 for i in task_set.periodic_tasks)
+
+        only_periodic_tasks = len(task_set.sporadic_tasks) + len(task_set.aperiodic_tasks) == 0
+
+        only_implicit_deadline = all(i.relative_deadline == i.period for i in task_set.periodic_tasks)
+
+        only_fully_preemptive = all(i.preemptive_execution == PreemptiveExecution.FULLY_PREEMPTIVE
+                                    for i in task_set.periodic_tasks)
+
+        if not (only_0_phase and only_periodic_tasks and only_implicit_deadline and only_fully_preemptive):
+            return False, "Error: Only implicit deadline, fully preemptive, 0 phase periodic tasks are allowed"
 
         m = cpu_specification.cores_specification.number_of_cores
 
@@ -161,9 +165,10 @@ class ALECSScheduler(CentralizedAbstractScheduler):
                                           <= round(major_cycle * actual_frequency) for i in task_set.periodic_tasks])]
 
         if len(available_frequencies) == 0:
-            return True, "Error: Schedule is not feasible"
-        else:
-            return True, None
+            return False, "Error: Schedule is not feasible"
+
+        # All tests passed
+        return True, None
 
     @staticmethod
     def __offline_stage_check_interrupt(tasks_being_executed: List[int], interval_cc_left: List[int],
@@ -179,8 +184,7 @@ class ALECSScheduler(CentralizedAbstractScheduler):
         # Condition 1: True if new interval have started
         # Condition 2: True if any task have ended in this step
         # Condition 3: True if any task laxity is 0
-        return new_interval_start or \
-               any(interval_cc_left[i] == 0 for i in tasks_being_executed) or \
+        return new_interval_start or any(interval_cc_left[i] == 0 for i in tasks_being_executed) or \
                any(j == cycles_in_this_interval and i not in tasks_being_executed for i, j in
                    enumerate(interval_cc_left))
 
@@ -192,7 +196,6 @@ class ALECSScheduler(CentralizedAbstractScheduler):
         :param tasks_being_executed: actual tasks in execution
         :param interval_cc_left: CC left of each task in this interval
         :param cycles_in_this_interval: Cycles left in this interval
-        :param new_interval_start: True if new interval have start this cycle
         :return: next tasks to execute
         """
         m = len(tasks_being_executed)
@@ -237,8 +240,16 @@ class ALECSScheduler(CentralizedAbstractScheduler):
 
     def offline_stage(self, cpu_specification: Union[HomogeneousCpuSpecification],
                       environment_specification: EnvironmentSpecification, task_set: TaskSet) -> int:
+        """
+        Method to implement with the offline stage scheduler tasks
+
+        :param environment_specification: Specification of the environment
+        :param cpu_specification: Specification of the cpu
+        :param task_set: Tasks in the system
+        :return CPU frequency
+        """
+
         m = cpu_specification.cores_specification.number_of_cores
-        n = len(task_set.periodic_tasks)
 
         clock_available_frequencies = list(cpu_specification.cores_specification.available_frequencies)
 
@@ -279,7 +290,6 @@ class ALECSScheduler(CentralizedAbstractScheduler):
 
         # Index to id
         index_to_id = {i: j.identification for i, j in enumerate(task_set.periodic_tasks)}
-        id_to_index = {j.identification: i for i, j in enumerate(task_set.periodic_tasks)}
 
         # Low the range of sd, x
         range_quantum = list_int_gcd([x[i, j] for i in range(x.shape[0]) for j in range(x.shape[1]) if x[i, j] != 0] +
@@ -313,12 +323,13 @@ class ALECSScheduler(CentralizedAbstractScheduler):
                 actual_interval_cc[j] = actual_interval_cc[j] - range_quantum
 
             # Mark scheduling point
-            # TODO: This can be a bit improved, because not not all interval ends the scheduler should
+            # TODO: This can be a bit improved, because not all interval ends the scheduler should
             # be called, neither when a task end his execution
             if interval_have_ended_this_cycle or previous_tasks_being_executed != tasks_being_executed:
                 scheduling_points[i] = {i: index_to_id[j] for i, j in enumerate(tasks_being_executed) if j != -1}
 
         self.__scheduling_points = scheduling_points
+        self.__major_cycle = major_cycle
 
         # Only used for debug purposes
         scheduling_points_debug_activated = False
@@ -335,6 +346,55 @@ class ALECSScheduler(CentralizedAbstractScheduler):
                         index_sp[i]].__contains__(j) else -1
 
         return f_star_hz
+
+    def schedule_policy(self, global_time: float, active_jobs_id: Set[int],
+                        jobs_being_executed_id: Dict[int, int], cores_frequency: int,
+                        cores_max_temperature: Optional[Dict[int, float]]) \
+            -> Tuple[Dict[int, int], Optional[int], Optional[int]]:
+        """
+        Method to implement with the actual scheduler police
+
+        :param global_time: Time in seconds since the simulation starts
+        :param jobs_being_executed_id: Ids of the jobs that are currently executed on the system. The dictionary has as
+         key the CPU id (it goes from 0 to number of CPUs - 1), and as value the job id.
+        :param active_jobs_id: Identifications of the jobs that are currently active
+         (look in :ref:..system_definition.DeadlineCriteria for more info) and can be executed.
+        :param cores_frequency: Frequencies of cores on the scheduler invocation in Hz.
+        :param cores_max_temperature: Max temperature of each core. The dictionary has as
+         key the CPU id, and as value the temperature in Kelvin degrees.
+        :return: Tuple of [
+         Jobs CPU assignation. The dictionary has as key the CPU id, and as value the job id,
+         Cycles to execute until the next invocation of the scheduler. If None, it won't be executed until a system
+         event trigger its invocation,
+         CPU frequency. If None, it will maintain the last used frequency (cores_frequency)
+        ]
+        """
+        actual_execution_cycle = round(global_time * cores_frequency) % round(self.__major_cycle * cores_frequency)
+
+        next_scheduling_point = next(i for i in sorted(self.__scheduling_points.keys()) +
+                                     [round(self.__major_cycle * cores_frequency)] if i > actual_execution_cycle)
+
+        return ({k: self.__task_to_job[v] for k, v in self.__scheduling_points[actual_execution_cycle].items()},
+                next_scheduling_point - actual_execution_cycle,
+                None)
+
+    def on_jobs_activation(self, global_time: float, activation_time: float,
+                           jobs_id_tasks_ids: List[Tuple[int, int]]) -> bool:
+        """
+        Method to implement with the actual on job activation scheduler police.
+        This method is the recommended place to detect the arrival of an aperiodic or sporadic task.
+
+        :param jobs_id_tasks_ids: List[Identification of the job that have been activated,
+         Identification of the task which job have been activated]
+        :param global_time: Actual time in seconds since the simulation starts
+        :param activation_time: Time where the activation was produced (It can be different from the global_time in the
+         case that it doesn't adjust to a cycle end)
+        :return: true if want to immediately call the scheduler (schedule_policy method), false otherwise
+        """
+        for job_id, task_id in jobs_id_tasks_ids:
+            self.__task_to_job[task_id] = job_id
+
+        return super().on_jobs_activation(global_time, activation_time, jobs_id_tasks_ids)
 
     # def aperiodic_arrive(self, time: float, aperiodic_tasks_arrived: List[SystemTask],
     #                      actual_cores_frequency: List[int], cores_max_temperature: Optional[numpy.ndarray]) -> bool:
@@ -431,50 +491,3 @@ class ALECSScheduler(CentralizedAbstractScheduler):
     #
     #     # Not implemented for now
     #     return False
-
-    def schedule_policy(self, global_time: float, active_jobs_id: Set[int],
-                        jobs_being_executed_id: Dict[int, int], cores_frequency: int,
-                        cores_max_temperature: Optional[Dict[int, float]]) \
-            -> Tuple[Dict[int, int], Optional[int], Optional[int]]:
-        """
-        Method to implement with the actual scheduler police
-        :param actual_cores_frequency: Frequencies of cores
-        :param time: actual simulation time passed
-        :param executable_tasks: actual tasks that can be executed ( c > 0 and arrive_time <= time)
-        :param active_tasks: actual id of tasks assigned to cores (task with id -1 is the idle task)
-        :param cores_max_temperature: temperature of each core
-        :return: 1 - tasks to assign to cores in next step (task with id -1 is the idle task)
-                 2 - next quantum size (if None, will be taken the quantum specified in the offline_stage)
-                 3 - cores relatives frequencies for the next quantum (if None, will be taken the frequencies specified
-                  in the problem specification)
-        """
-        # Check if new interval have arrived and update everything
-        new_interval_start = (round(time / self.__dt) >= round(
-            self.__intervals_end[self.__actual_interval_index] / self.__dt))
-
-        if new_interval_start:
-            self.__actual_interval_index += 1
-            self.__interval_cc_left = [
-                (round(i[0]), i[1][1]) for i in zip(self.__execution_by_intervals[:, self.__actual_interval_index],
-                                                    self.__interval_cc_left)]
-
-        active_tasks_index = [self.__id_to_index[i] if i != -1 else -1 for i in active_tasks]
-        executable_tasks_index = [self.__id_to_index[i.id] for i in executable_tasks]
-
-        # Obtain new tasks to execute
-        tasks_to_execute = active_tasks_index
-        if self.__sp_interrupt(active_tasks_index, time):
-            tasks_to_execute = self.__schedule_policy_imp(time, active_tasks_index,
-                                                          [i for i in executable_tasks_index])
-
-        # Update cc in tasks being executed
-        self.__interval_cc_left = [
-            (round(i[0] - (self.__intervals_frequencies[self.__actual_interval_index] *
-                           self.__dt)), i[1]) if i[1] in tasks_to_execute else i
-            for i in self.__interval_cc_left]
-
-        # If any task has negative cc left, transform to 0
-        self.__interval_cc_left = [i if i[0] > 0 else (0, i[1]) for i in self.__interval_cc_left]
-
-        return [self.__index_to_id[i] if i != -1 else -1 for i in tasks_to_execute], None, self.__m * [
-            self.__intervals_frequencies[self.__actual_interval_index]]
