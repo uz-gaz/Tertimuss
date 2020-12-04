@@ -23,7 +23,7 @@ class Criticality(Enum):
     FIRM = auto()  # A task is said to be firm if missing a timing constraint does not jeopardize the correct system
     # behavior but it is completely useless for the system. If a job with this criteria miss the deadline, the
     # simulation will continue, but the scheduler won't be able to continue the execution of the task
-    SOFT_RT = auto()  # A task is said to be soft if missing a timing constraint does not jeopardize the correct system
+    SOFT = auto()  # A task is said to be soft if missing a timing constraint does not jeopardize the correct system
     # behavior and has a still a reduced value for the system. If a task with this criteria miss the deadline, the
     # simulation will continue, and the scheduler will be able to continue the execution of the task
 
