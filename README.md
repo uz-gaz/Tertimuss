@@ -33,10 +33,25 @@ The project needs the follow packages:
 
 If you are using Miniconda or Anaconda the next few lines will create an environment called rt-scheduler-simulation-environment with all project dependencies installed in it.
 
+Installation with conda
 ```bash
 $ conda create -n rt-scheduler-simulation-environment python=3.8 scipy=1.5 matplotlib=3.3 jsonschema=3.2 pyqt=5.9 ffmpeg=4.2
 $ conda activate rt-scheduler-simulation-environment
 $ pip install ortools
+```
+
+Installation with python 3.8
+```bash
+$ python3.8 -m venv .venv --copies
+$ source .venv/bin/activate
+$ pip install scipy~=1.5.0 matplotlib~=3.3.0 jsonschema~=3.2.0 PySide2~=5.15.0 ortools==7.8.7959
+```
+
+Installation with python 3.9
+```bash
+$ python3.9 -m venv .venv --copies
+$ source .venv/bin/activate
+$ pip install scipy~=1.5.0 matplotlib~=3.3.0 jsonschema~=3.2.0 PySide2~=5.15.0 ortools==7.8.7959
 ```
 
 ## Usage
