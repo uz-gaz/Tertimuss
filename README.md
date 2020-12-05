@@ -21,10 +21,10 @@ It's highly recommended to use the same Python distribution (or Anaconda) to avo
 ### Project dependencies (libraries)
 The project needs the follow packages:
 
-- Python 3.9 or higher and all its dependencies
-- scipy 1.3.0 or higher and all its dependencies
-- matplotlib 3.0.2 or higher and all its dependencies
-- jsonschema 3.0.1 or higher and all its dependencies
+- Python 3.8 and all its dependencies
+- scipy 1.5.2 or higher and all its dependencies
+- matplotlib 3.3.1 or higher and all its dependencies
+- jsonschema 3.2.0 or higher and all its dependencies
 - progress 1.5 or higher and all its dependencies
 - ffmpeg 4.1 or higher and all its dependencies
 - pyqt 5.9.2 or higher and all its dependencies
@@ -34,9 +34,8 @@ The project needs the follow packages:
 If you are using Miniconda or Anaconda the next few lines will create an environment called rt-scheduler-simulation-environment with all project dependencies installed in it.
 
 ```bash
-$ conda create -n rt-scheduler-simulation-environment python=3 scipy matplotlib jsonschema pyqt qt
+$ conda create -n rt-scheduler-simulation-environment python=3.8 scipy=1.5 matplotlib=3.3 jsonschema=3.2 pyqt=5.9 ffmpeg=4.2
 $ conda activate rt-scheduler-simulation-environment
-$ conda install -c conda-forge ffmpeg progress
 $ pip install ortools
 ```
 
