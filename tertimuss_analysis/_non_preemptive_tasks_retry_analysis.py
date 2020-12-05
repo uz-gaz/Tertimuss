@@ -60,9 +60,9 @@ def obtain_non_preemptive_tasks_retries_analysis(task_set: TaskSet, jobs: List[J
 
     # Analysis by task
     number_of_retries_by_task: Dict[int, int] = {i.identification: 0 for i in tasks if
-                                                 i.preemptive_execution == PreemptiveExecution.FULLY_PREEMPTIVE}
+                                                 i.preemptive_execution == PreemptiveExecution.NON_PREEMPTIVE}
     number_of_used_cycles_by_task: Dict[int, int] = {i.identification: 0 for i in tasks if
-                                                     i.preemptive_execution == PreemptiveExecution.FULLY_PREEMPTIVE}
+                                                     i.preemptive_execution == PreemptiveExecution.NON_PREEMPTIVE}
 
     # Analysis by job
     number_of_retries_by_job: Dict[int, int] = {i.identification: 0 for i in jobs if
@@ -98,7 +98,7 @@ def obtain_non_preemptive_tasks_retries_analysis(task_set: TaskSet, jobs: List[J
     firm_rt_tasks: Set[int] = {i.identification for i in tasks if i.deadline_criteria == Criticality.FIRM}
 
     # All types of tasks
-    number_of_retries: int = __sum_items_by_condition(number_of_retries_by_task, periodic_tasks)
+    number_of_retries: int = sum(number_of_used_cycles_by_task.values())
 
     # Periodic tasks
     number_of_retries_periodic_tasks: int = __sum_items_by_condition(number_of_retries_by_task, periodic_tasks)
