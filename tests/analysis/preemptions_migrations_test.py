@@ -93,3 +93,6 @@ class PreemptionsMigrationsAnalysisTest(unittest.TestCase):
 
         preemptions_migrations_analysis = obtain_preemptions_migrations_analysis(jobs=jobs_list, task_set=tasks,
                                                                                  schedule_result=simulation_result)
+
+        assert (preemptions_migrations_analysis.number_of_preemptions == 9)
+        assert (preemptions_migrations_analysis.number_of_migrations == 3)
