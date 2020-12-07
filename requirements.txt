@@ -1,0 +1,5 @@
+matplotlib~=3.3.3
+numpy~=1.19.4
+ortools~=7.8.7959
+PySide2~=5.15.2
+scipy~=1.5.4
