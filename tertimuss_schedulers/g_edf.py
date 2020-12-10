@@ -9,7 +9,7 @@ class GlobalEarliestDeadlineFirstScheduler(CentralizedAbstractScheduler):
         super().__init__(is_debug)
         self.__m = 0
         self.__tasks_relative_deadline: Dict[int, float] = {}
-        self.__active_jobs_priority: Dict[int, int] = {}
+        self.__active_jobs_priority: Dict[int, float] = {}
 
     def check_schedulability(self, cpu_specification: Union[HomogeneousCpuSpecification],
                              environment_specification: EnvironmentSpecification, task_set: TaskSet) \
@@ -32,7 +32,7 @@ class GlobalEarliestDeadlineFirstScheduler(CentralizedAbstractScheduler):
             -> Tuple[Dict[int, int], Optional[int], Optional[int]]:
 
         # The priority of the tasks must be inverse to the deadline
-        tasks_that_can_be_executed: List[Tuple[int, float]] = sorted(self.__active_jobs_priority.items(),
+        tasks_that_can_be_executed: List[Tuple[int, float]] = sorted([i for i in self.__active_jobs_priority.items()],
                                                                      key=lambda j: j[1])
 
         if len(tasks_that_can_be_executed) > self.__m:
