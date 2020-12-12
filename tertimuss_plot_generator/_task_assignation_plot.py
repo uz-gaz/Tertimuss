@@ -1,16 +1,13 @@
-from dataclasses import dataclass
-from typing import Dict, Set, List
+from typing import Dict
 
-import numpy
 from matplotlib import pyplot, cm, colors, patches
 from matplotlib.figure import Figure
 
-from tertimuss_simulation_lib.simulator import RawSimulationResult, JobSectionExecution
-from tertimuss_simulation_lib.system_definition import TaskSet, Job, Task, PreemptiveExecution, Criticality
+from tertimuss_simulation_lib.simulator import RawSimulationResult
+from tertimuss_simulation_lib.system_definition import TaskSet
 
 
-def generate_task_assignation_plot(task_set: TaskSet, jobs: List[Job],
-                                   schedule_result: RawSimulationResult) -> Figure:
+def generate_task_assignation_plot(task_set: TaskSet, schedule_result: RawSimulationResult) -> Figure:
     num_colors = len(task_set.periodic_tasks) + len(task_set.aperiodic_tasks) + len(task_set.sporadic_tasks)
 
     periodic_tasks_color_id: Dict[int, int] = {j.identification: i for i, j in enumerate(task_set.periodic_tasks)}

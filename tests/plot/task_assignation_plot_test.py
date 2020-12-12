@@ -1,12 +1,10 @@
 import unittest
 
-import matplotlib.pyplot as plt
-
 from typing import Optional
 
 from tertimuss_plot_generator._task_assignation_plot import generate_task_assignation_plot
 from tertimuss_simulation_lib.simulator import RawSimulationResult, JobSectionExecution, CPUUsedFrequency
-from tertimuss_simulation_lib.system_definition import PeriodicTask, PreemptiveExecution, Criticality, Job, TaskSet
+from tertimuss_simulation_lib.system_definition import PeriodicTask, PreemptiveExecution, Criticality, TaskSet
 
 
 class TaskAssignationPlotTest(unittest.TestCase):
@@ -33,22 +31,6 @@ class TaskAssignationPlotTest(unittest.TestCase):
             self.__create_implicit_deadline_periodic_task_h_rt(2, 4000, 7.0, 2),
             self.__create_implicit_deadline_periodic_task_h_rt(1, 4000, 14.0, 1),
             self.__create_implicit_deadline_periodic_task_h_rt(0, 3000, 14.0, 0)
-        ]
-
-        jobs_list = [
-            # Task 3
-            Job(identification=0, activation_time=0.0, task=periodic_tasks[0]),
-            Job(identification=1, activation_time=7.0, task=periodic_tasks[0]),
-
-            # Task 2
-            Job(identification=2, activation_time=0.0, task=periodic_tasks[1]),
-            Job(identification=3, activation_time=7.0, task=periodic_tasks[1]),
-
-            # Task 1
-            Job(identification=4, activation_time=0.0, task=periodic_tasks[2]),
-
-            # Task 0
-            Job(identification=5, activation_time=0.0, task=periodic_tasks[3]),
         ]
 
         tasks = TaskSet(
@@ -94,6 +76,5 @@ class TaskAssignationPlotTest(unittest.TestCase):
                                                 scheduling_points=[0.0, 3.0, 4.0, 7.0, 10.0], temperature_measures={},
                                                 hard_real_time_deadline_missed_stack_trace=None)
 
-        fig = generate_task_assignation_plot(jobs=jobs_list, task_set=tasks,
-                                             schedule_result=simulation_result)
+        fig = generate_task_assignation_plot(task_set=tasks, schedule_result=simulation_result)
         fig.show()
