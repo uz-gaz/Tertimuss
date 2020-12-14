@@ -1,15 +1,13 @@
 import unittest
 
-from typing import Optional
+from typing import Optional, Tuple, List
 
-from matplotlib import pyplot
-
-from tertimuss_plot_generator._task_assignation_plot import generate_task_assignation_plot
+from tertimuss_plot_generator import generate_task_assignation_plot, generate_job_assignation_plot
 from tertimuss_simulation_lib.simulator import RawSimulationResult, JobSectionExecution, CPUUsedFrequency
-from tertimuss_simulation_lib.system_definition import PeriodicTask, PreemptiveExecution, Criticality, TaskSet
+from tertimuss_simulation_lib.system_definition import PeriodicTask, PreemptiveExecution, Criticality, TaskSet, Job
 
 
-class TaskAssignationPlotTest(unittest.TestCase):
+class AssignationPlotTest(unittest.TestCase):
     @staticmethod
     def __create_implicit_deadline_periodic_task_h_rt(task_id: int, worst_case_execution_time: int,
                                                       period: float, priority: Optional[int]) -> PeriodicTask:
@@ -27,12 +25,29 @@ class TaskAssignationPlotTest(unittest.TestCase):
                             phase=None,
                             period=period)
 
-    def test_tasks_assignation_plot(self):
+    @classmethod
+    def _get_simulation_result(cls) -> Tuple[TaskSet, List[Job], RawSimulationResult]:
         periodic_tasks = [
-            self.__create_implicit_deadline_periodic_task_h_rt(3, 3000, 7.0, 3),
-            self.__create_implicit_deadline_periodic_task_h_rt(2, 4000, 7.0, 2),
-            self.__create_implicit_deadline_periodic_task_h_rt(1, 4000, 14.0, 1),
-            self.__create_implicit_deadline_periodic_task_h_rt(0, 3000, 14.0, 0)
+            cls.__create_implicit_deadline_periodic_task_h_rt(3, 3000, 7.0, 3),
+            cls.__create_implicit_deadline_periodic_task_h_rt(2, 4000, 7.0, 2),
+            cls.__create_implicit_deadline_periodic_task_h_rt(1, 4000, 14.0, 1),
+            cls.__create_implicit_deadline_periodic_task_h_rt(0, 3000, 14.0, 0)
+        ]
+
+        jobs_list = [
+            # Task 3
+            Job(identification=0, activation_time=0.0, task=periodic_tasks[0]),
+            Job(identification=1, activation_time=7.0, task=periodic_tasks[0]),
+
+            # Task 2
+            Job(identification=2, activation_time=0.0, task=periodic_tasks[1]),
+            Job(identification=3, activation_time=7.0, task=periodic_tasks[1]),
+
+            # Task 1
+            Job(identification=4, activation_time=0.0, task=periodic_tasks[2]),
+
+            # Task 0
+            Job(identification=5, activation_time=0.0, task=periodic_tasks[3]),
         ]
 
         tasks = TaskSet(
@@ -77,7 +92,18 @@ class TaskAssignationPlotTest(unittest.TestCase):
                                                                      frequency_unset_time=14.0)]},
                                                 scheduling_points=[0.0, 3.0, 4.0, 7.0, 10.0], temperature_measures={},
                                                 hard_real_time_deadline_missed_stack_trace=None)
+        return tasks, jobs_list, simulation_result
+
+    def test_tasks_assignation_plot(self):
+        tasks, _, simulation_result = self._get_simulation_result()
 
         fig = generate_task_assignation_plot(task_set=tasks, schedule_result=simulation_result,
                                              title="Task assignation")
+        fig.show()
+
+    def test_job_assignation_plot(self):
+        tasks, jobs_list, simulation_result = self._get_simulation_result()
+
+        fig = generate_job_assignation_plot(task_set=tasks, schedule_result=simulation_result, jobs=jobs_list,
+                                            title="Job assignation")
         fig.show()
