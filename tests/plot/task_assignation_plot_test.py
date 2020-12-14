@@ -2,6 +2,8 @@ import unittest
 
 from typing import Optional
 
+from matplotlib import pyplot
+
 from tertimuss_plot_generator._task_assignation_plot import generate_task_assignation_plot
 from tertimuss_simulation_lib.simulator import RawSimulationResult, JobSectionExecution, CPUUsedFrequency
 from tertimuss_simulation_lib.system_definition import PeriodicTask, PreemptiveExecution, Criticality, TaskSet
@@ -76,5 +78,6 @@ class TaskAssignationPlotTest(unittest.TestCase):
                                                 scheduling_points=[0.0, 3.0, 4.0, 7.0, 10.0], temperature_measures={},
                                                 hard_real_time_deadline_missed_stack_trace=None)
 
-        fig = generate_task_assignation_plot(task_set=tasks, schedule_result=simulation_result)
+        fig = generate_task_assignation_plot(task_set=tasks, schedule_result=simulation_result,
+                                             title="Task assignation")
         fig.show()
