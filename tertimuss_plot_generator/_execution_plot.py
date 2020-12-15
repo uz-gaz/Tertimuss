@@ -19,7 +19,7 @@ def generate_task_execution_plot(task_set: TaskSet, schedule_result: RawSimulati
     :param title: Plot title
     :return: plot
     """
-    cpu_color_id: Dict[int, int] = {j: i for i, j in enumerate(schedule_result.job_sections_execution.keys())}
+    cpu_color_id: Dict[int, int] = {j: i for i, j in enumerate(sorted(schedule_result.job_sections_execution.keys()))}
 
     color_palette = __obtain_color_palette(len(cpu_color_id))
 

@@ -2,12 +2,13 @@ import unittest
 
 from typing import Optional, Tuple, List
 
-from tertimuss_plot_generator import generate_task_execution_plot, generate_job_execution_plot
+from tertimuss_plot_generator._accumulate_execution_plot import generate_accumulate_execution_plot, \
+    generate_job_accumulate_execution_plot
 from tertimuss_simulation_lib.simulator import RawSimulationResult, JobSectionExecution, CPUUsedFrequency
 from tertimuss_simulation_lib.system_definition import PeriodicTask, PreemptiveExecution, Criticality, TaskSet, Job
 
 
-class ExecutionPlotTest(unittest.TestCase):
+class AccumulateExecutionPlotTest(unittest.TestCase):
     @staticmethod
     def __create_implicit_deadline_periodic_task_h_rt(task_id: int, worst_case_execution_time: int,
                                                       period: float, priority: Optional[int]) -> PeriodicTask:
@@ -94,16 +95,16 @@ class ExecutionPlotTest(unittest.TestCase):
                                                 hard_real_time_deadline_missed_stack_trace=None)
         return tasks, jobs_list, simulation_result
 
-    def test_tasks_execution_plot(self):
+    def test_tasks_accumulate_execution_plot(self):
         tasks, _, simulation_result = self._get_simulation_result()
 
-        fig = generate_task_execution_plot(task_set=tasks, schedule_result=simulation_result,
-                                           title="Task execution")
+        fig = generate_accumulate_execution_plot(task_set=tasks, schedule_result=simulation_result,
+                                                 title="Task accumulate execution")
         fig.show()
 
-    def test_job_assignation_plot(self):
+    def test_job_accumulate_execution_plot(self):
         tasks, jobs_list, simulation_result = self._get_simulation_result()
 
-        fig = generate_job_execution_plot(task_set=tasks, schedule_result=simulation_result, jobs=jobs_list,
-                                          title="Job execution")
+        fig = generate_job_accumulate_execution_plot(task_set=tasks, schedule_result=simulation_result, jobs=jobs_list,
+                                                     title="Job accumulate execution")
         fig.show()
