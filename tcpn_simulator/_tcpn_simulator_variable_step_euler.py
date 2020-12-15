@@ -76,4 +76,4 @@ class TCPNSimulatorVariableStepEuler(AbstractTCPNSimulatorVariableStep):
         for i in range(self.__number_of_steps):
             mo_next = a_i.dot(mo_next)
 
-        return mo_next
+        return mo_next.reshape(-1)

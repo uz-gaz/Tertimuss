@@ -1,54 +1,28 @@
 import unittest
+from typing import List
 
 import numpy
 
 import scipy.sparse
 
 from tcpn_simulator import TCPNSimulatorVariableStepEuler
-from tcpn_simulator._tcpn_simulator_variable_step_rk import TCPNSimulatorVariableStepRK
+from tcpn_simulator import TCPNSimulatorVariableStepRK
 
 
 class TCPNSimulatorTest(unittest.TestCase):
 
-    def test_petri_net_advance_conf_1(self):
-        pre = numpy.asarray([
-            [1, 0, 0],
-            [0, 1, 0],
-            [0, 0, 1],
-            [0, 0, 1]
-        ])
+    @staticmethod
+    def _check_difference(mo_1: List[float], mo_2: List[float], error: float = 0.05) -> bool:
+        return len(mo_1) == len(mo_2) and all(abs(i - j) < error for i, j in zip(mo_1, mo_2))
 
-        post = numpy.asarray([
-            [0, 0, 1],
-            [1, 0, 0],
-            [0, 1, 0],
-            [0, 1, 0]
-        ])
+    def test_petri_net_rk(self):
+        eta = 100
 
-        lambda_vector = numpy.asarray([1, 1, 1])
-
-        mo = numpy.asarray([1, 0, 0, 0]).reshape((-1, 1))
-
-        # tcpn_simulator: TCPNSimulatorVariableStepEuler = TCPNSimulatorVariableStepEuler(scipy.sparse.csr_matrix(pre),
-        #                                                                                 scipy.sparse.csr_matrix(post),
-        #                                                                                 lambda_vector, None, 64, True)
-
-        tcpn_simulator: TCPNSimulatorVariableStepRK = TCPNSimulatorVariableStepRK(scipy.sparse.csr_matrix(pre),
-                                                                                        scipy.sparse.csr_matrix(post),
-                                                                                        lambda_vector, None, True)
-
-        for i in range(6):
-            mo_next = tcpn_simulator.simulate_step(mo, 1)
-            mo = mo_next
-
-        assert (numpy.array_equal(mo.reshape(-1), [1, 0, 0, 0]))
-
-    def test_petri_net_advance_conf_2(self):
         pre = numpy.asarray([
             [1, 0, 0, 0],
             [0, 1, 0, 0],
             [0, 0, 0, 0],
-            [1, 0, 1, 0],
+            [eta, 0, eta, 0],
             [0, 0, 1, 0],
             [0, 0, 0, 1],
             [0, 0, 0, 0]
@@ -58,19 +32,19 @@ class TCPNSimulatorTest(unittest.TestCase):
             [0, 0, 0, 0],
             [1, 0, 0, 0],
             [0, 1, 0, 0],
-            [0, 1, 0, 1],
+            [0, eta, 0, eta],
             [0, 0, 0, 0],
             [0, 0, 1, 0],
             [0, 0, 0, 1]
         ])
 
-        lambda_vector = numpy.asarray([1, 1, 1, 1])
+        lambda_vector = numpy.asarray([eta, 1, eta, 1])
 
         mo = numpy.asarray([3, 0, 0, 1, 3, 0, 0]).reshape((-1, 1))
 
-        tcpn_simulator: TCPNSimulatorVariableStepEuler = TCPNSimulatorVariableStepEuler(scipy.sparse.csr_matrix(pre),
-                                                                                        scipy.sparse.csr_matrix(post),
-                                                                                        lambda_vector, None, 128, True)
+        tcpn_simulator: TCPNSimulatorVariableStepRK = TCPNSimulatorVariableStepRK(scipy.sparse.csr_matrix(pre),
+                                                                                  scipy.sparse.csr_matrix(post),
+                                                                                  lambda_vector, None, True)
 
         for i in range(3):
             # 2 transitions for 1
@@ -91,9 +65,11 @@ class TCPNSimulatorTest(unittest.TestCase):
             mo_next = tcpn_simulator.simulate_step(mo, 1)
             mo = mo_next
 
-        assert (numpy.array_equal(mo.reshape(-1), [0, 0, 3, 1, 0, 0, 3]))
+        array_to_compare = [3 - 3 * (1 / eta), 0, 3 * (1 / eta), 1, 3 - 3 * (1 / eta), 0, 3 * (1 / eta)]
 
-    def test_petri_net_advance_conf_3(self):
+        assert self._check_difference(mo.tolist(), array_to_compare)
+
+    def test_petri_net_euler(self):
         eta = 100
 
         pre = numpy.asarray([
@@ -144,7 +120,8 @@ class TCPNSimulatorTest(unittest.TestCase):
             mo = mo_next
 
         array_to_compare = [3 - 3 * (1 / eta), 0, 3 * (1 / eta), 1, 3 - 3 * (1 / eta), 0, 3 * (1 / eta)]
-        print(mo.reshape(-1), array_to_compare)
+
+        assert self._check_difference(mo.tolist(), array_to_compare)
 
 
 if __name__ == '__main__':

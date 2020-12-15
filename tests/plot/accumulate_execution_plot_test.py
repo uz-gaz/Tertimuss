@@ -2,7 +2,7 @@ import unittest
 
 from typing import Optional, Tuple, List
 
-from tertimuss_plot_generator._accumulate_execution_plot import generate_accumulate_execution_plot, \
+from tertimuss_plot_generator import generate_accumulate_execution_plot, \
     generate_job_accumulate_execution_plot
 from tertimuss_simulation_lib.simulator import RawSimulationResult, JobSectionExecution, CPUUsedFrequency
 from tertimuss_simulation_lib.system_definition import PeriodicTask, PreemptiveExecution, Criticality, TaskSet, Job
