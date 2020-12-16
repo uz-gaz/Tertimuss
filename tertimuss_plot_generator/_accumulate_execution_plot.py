@@ -56,10 +56,16 @@ def generate_accumulate_execution_plot(task_set: TaskSet, schedule_result: RawSi
 
     # Set row and column titles
     for i, task_id in enumerate(tasks_ids):
-        ax[0, i].set_title(f'Task {task_id}')
+        for j, cpu_id in enumerate(cpu_ids):
+            if j == len(cpu_ids) - 1:
+                ax[j, i].set_xlabel(f'Time (s)\nTask {task_id}')
+            else:
+                ax[j, i].set_xlabel(f'Time (s)')
 
-    for i, cpu_id in enumerate(cpu_ids):
-        ax[i, 0].set_ylabel(f'CPU {cpu_id}', size='large')
+            if i == 0:
+                ax[j, i].set_ylabel(f'CPU {cpu_id}\nExecution (cycles)')
+            else:
+                ax[j, i].set_ylabel(f'Execution (cycles)')
 
     # Set title
     if title is not None:
@@ -121,10 +127,16 @@ def generate_job_accumulate_execution_plot(task_set: TaskSet, jobs: List[Job], s
 
     # Set row and column titles
     for i, job_id in enumerate(jobs_cc):
-        ax[0, i].set_title(f'Job {job_id}')
+        for j, cpu_id in enumerate(cpu_ids):
+            if j == len(cpu_ids) - 1:
+                ax[j, i].set_xlabel(f'Job (s)\nTask {job_id}')
+            else:
+                ax[j, i].set_xlabel(f'Time (s)')
 
-    for i, cpu_id in enumerate(cpu_ids):
-        ax[i, 0].set_ylabel(f'CPU {cpu_id}', size='large')
+            if i == 0:
+                ax[j, i].set_ylabel(f'CPU {cpu_id}\nExecution (cycles)')
+            else:
+                ax[j, i].set_ylabel(f'Execution (cycles)')
 
     # Set title
     if title is not None:

@@ -45,6 +45,9 @@ def generate_task_assignation_plot(task_set: TaskSet, schedule_result: RawSimula
 
     ax.set_xlim(start_time, end_time)
 
+    # Set label
+    ax.set_xlabel(f'Time (s)')
+
     # Set title
     if title is not None:
         ax.set_title(title)
@@ -92,6 +95,9 @@ def generate_job_assignation_plot(task_set: TaskSet, jobs: List[Job], schedule_r
     end_time = end_time if end_time is not None else calculate_major_cycle(task_set)
 
     ax.set_xlim(start_time, end_time)
+
+    # Set label
+    ax.set_xlabel(f'Time (s)')
 
     # Set title
     if title is not None:
