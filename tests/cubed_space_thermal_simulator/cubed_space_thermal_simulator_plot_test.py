@@ -2,14 +2,14 @@ import unittest
 
 from matplotlib import animation
 
-from cubed_space_thermal_simulator import UnitDimensions, UnitLocation, \
+from tertimuss.cubed_space_thermal_simulator import UnitDimensions, UnitLocation, \
     CubedSpace, obtain_min_temperature, obtain_max_temperature, plot_3d_heat_map_temperature, \
     InternalTemperatureBoosterLocatedCube, plot_2d_heat_map, generate_video_2d_heat_map, generate_video_3d_heat_map, \
     LocatedCube
 
-from cubed_space_thermal_simulator.materials_pack import CooperSolidMaterial, SiliconSolidMaterial, \
+from tertimuss.cubed_space_thermal_simulator.materials_pack import CooperSolidMaterial, SiliconSolidMaterial, \
     AirFreeEnvironmentProperties, AirForcedEnvironmentProperties
-from cubed_space_thermal_simulator.physics_utils import create_energy_applicator
+from tertimuss.cubed_space_thermal_simulator.physics_utils import create_energy_applicator
 
 
 class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):

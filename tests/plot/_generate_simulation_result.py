@@ -3,8 +3,8 @@ This file pretends to define an example simulation result that can be used to te
 """
 from typing import Optional, Tuple, List
 
-from tertimuss_simulation_lib.simulator import RawSimulationResult, JobSectionExecution, CPUUsedFrequency
-from tertimuss_simulation_lib.system_definition import PeriodicTask, PreemptiveExecution, Criticality, TaskSet, Job
+from tertimuss.simulation_lib.simulator import RawSimulationResult, JobSectionExecution, CPUUsedFrequency
+from tertimuss.simulation_lib.system_definition import PeriodicTask, PreemptiveExecution, Criticality, TaskSet, Job
 
 
 def create_implicit_deadline_periodic_task_h_rt(task_id: int, worst_case_execution_time: int,

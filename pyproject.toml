@@ -1,0 +1,16 @@
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "tertimuss"
+version = "1.1.2"
+description = ""
+authors = ["AbelChT"]
+
+# Requirements
+[tool.poetry.dependencies]
+python = "~3.8"
+scipy = "~1.5.2"
+matplotlib = "~3.3.1"
+ortools = "7.8.7959"

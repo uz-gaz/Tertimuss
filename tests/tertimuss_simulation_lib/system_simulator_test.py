@@ -1,12 +1,12 @@
 import unittest
 from typing import Set, Dict, Optional, Tuple, Union, List
 
-from tertimuss_simulation_lib.simulator import TaskSet, SimulationOptionsSpecification, \
+from tertimuss.simulation_lib.simulator import TaskSet, SimulationOptionsSpecification, \
     CentralizedAbstractScheduler, JobSectionExecution, CPUUsedFrequency, Job, execute_simulation, \
     execute_simulation_major_cycle
-from tertimuss_simulation_lib.system_definition import PeriodicTask, PreemptiveExecution, Criticality, \
+from tertimuss.simulation_lib.system_definition import PeriodicTask, PreemptiveExecution, Criticality, \
     HomogeneousCpuSpecification, EnvironmentSpecification
-from tertimuss_simulation_lib.system_definition.utils import generate_default_cpu, default_environment_specification
+from tertimuss.simulation_lib.system_definition.utils import generate_default_cpu, default_environment_specification
 
 
 class SystemSimulatorTest(unittest.TestCase):

@@ -1,6 +1,6 @@
 import unittest
 
-from tertimuss_plot_generator import generate_task_execution_plot, generate_job_execution_plot
+from tertimuss.plot_generator import generate_task_execution_plot, generate_job_execution_plot
 from ._generate_simulation_result import get_simulation_result
 
 

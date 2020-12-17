@@ -1,8 +1,8 @@
 import unittest
-from tertimuss_schedulers.alecs import ALECSScheduler
-from tertimuss_simulation_lib.simulator import execute_simulation_major_cycle, SimulationOptionsSpecification
-from tertimuss_simulation_lib.system_definition import PeriodicTask, PreemptiveExecution, Criticality, TaskSet
-from tertimuss_simulation_lib.system_definition.utils import generate_default_cpu, default_environment_specification
+from tertimuss.schedulers.alecs import ALECSScheduler
+from tertimuss.simulation_lib.simulator import execute_simulation_major_cycle, SimulationOptionsSpecification
+from tertimuss.simulation_lib.system_definition import PeriodicTask, PreemptiveExecution, Criticality, TaskSet
+from tertimuss.simulation_lib.system_definition.utils import generate_default_cpu, default_environment_specification
 
 
 class ALECSTest(unittest.TestCase):

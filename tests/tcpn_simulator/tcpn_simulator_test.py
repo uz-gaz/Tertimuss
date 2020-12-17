@@ -5,8 +5,8 @@ import numpy
 
 import scipy.sparse
 
-from tcpn_simulator import TCPNSimulatorVariableStepEuler
-from tcpn_simulator import TCPNSimulatorVariableStepRK
+from tertimuss.tcpn_simulator import TCPNSimulatorVariableStepEuler
+from tertimuss.tcpn_simulator import TCPNSimulatorVariableStepRK
 
 
 class TCPNSimulatorTest(unittest.TestCase):

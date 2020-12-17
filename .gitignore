@@ -139,4 +139,3 @@ dmypy.json
 node_modules/
 package-lock.json
 /ext/out_2
-research/

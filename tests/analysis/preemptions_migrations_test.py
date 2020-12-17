@@ -1,9 +1,9 @@
 import unittest
 from typing import Optional
 
-from tertimuss_analysis._preemptions_migrations_analysis import obtain_preemptions_migrations_analysis
-from tertimuss_simulation_lib.simulator import RawSimulationResult, JobSectionExecution, CPUUsedFrequency
-from tertimuss_simulation_lib.system_definition import PeriodicTask, PreemptiveExecution, Criticality, Job, TaskSet
+from tertimuss.analysis import obtain_preemptions_migrations_analysis
+from tertimuss.simulation_lib.simulator import RawSimulationResult, JobSectionExecution, CPUUsedFrequency
+from tertimuss.simulation_lib.system_definition import PeriodicTask, PreemptiveExecution, Criticality, Job, TaskSet
 
 
 class PreemptionsMigrationsAnalysisTest(unittest.TestCase):
