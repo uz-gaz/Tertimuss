@@ -4,6 +4,8 @@ from ..system_definition import HomogeneousCpuSpecification, TaskSet, Environmen
 
 from typing import Optional, Set, Dict, Tuple, Union, List
 
+from ..system_definition._processor_specification import ProcessorDefinition
+
 
 class CentralizedAbstractScheduler(object, metaclass=abc.ABCMeta):
     """
@@ -20,7 +22,7 @@ class CentralizedAbstractScheduler(object, metaclass=abc.ABCMeta):
         self.is_debug = activate_debug
 
     @abc.abstractmethod
-    def check_schedulability(self, cpu_specification: Union[HomogeneousCpuSpecification],
+    def check_schedulability(self, processor_definition: ProcessorDefinition,
                              environment_specification: EnvironmentSpecification,
                              task_set: TaskSet) -> [bool, Optional[str]]:
         """
@@ -29,21 +31,21 @@ class CentralizedAbstractScheduler(object, metaclass=abc.ABCMeta):
          [false, "Only can schedule tasks with phase=0"]
 
         :param environment_specification: Specification of the environment
-        :param cpu_specification: Specification of the cpu
+        :param processor_definition: Specification of the cpu
         :param task_set: Tasks in the system
         :return CPU frequency
         """
         pass
 
     @abc.abstractmethod
-    def offline_stage(self, cpu_specification: Union[HomogeneousCpuSpecification],
+    def offline_stage(self, processor_definition: ProcessorDefinition,
                       environment_specification: EnvironmentSpecification,
                       task_set: TaskSet) -> int:
         """
         Method to implement with the offline stage scheduler tasks
 
         :param environment_specification: Specification of the environment
-        :param cpu_specification: Specification of the cpu
+        :param processor_definition: Specification of the cpu
         :param task_set: Tasks in the system
         :return CPU frequency
         """

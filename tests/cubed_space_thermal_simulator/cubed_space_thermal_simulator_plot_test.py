@@ -34,7 +34,7 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
         # Board initial temperature
         board_initial_temperature = 273.15 + 25
 
-        # Board initial temperature
+        # Environment initial temperature
         environment_temperature = 273.15 + 25
 
         # Min simulation value

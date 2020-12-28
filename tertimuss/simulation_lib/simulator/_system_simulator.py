@@ -1,15 +1,15 @@
 import itertools
 from collections import deque
 from dataclasses import dataclass
-from typing import List, Tuple, Dict, Optional, Union, Set
+from typing import List, Tuple, Dict, Optional, Set
 
 from tertimuss.cubed_space_thermal_simulator import TemperatureLocatedCube
 from ._simulation_result import RawSimulationResult, JobSectionExecution, CPUUsedFrequency, \
     SimulationStackTraceHardRTDeadlineMissed
 from ..math_utils import list_int_lcm
 from ..schedulers_definition import CentralizedAbstractScheduler
-from ..system_definition import Job, TaskSet, HomogeneousCpuSpecification, \
-    EnvironmentSpecification, Criticality, PreemptiveExecution
+from ..system_definition import Job, TaskSet, EnvironmentSpecification, Criticality, PreemptiveExecution
+from ..system_definition._processor_specification import ProcessorDefinition
 from ..system_definition.utils import calculate_major_cycle
 
 
@@ -59,7 +59,7 @@ def _create_deadline_arrive_dict(lcm_frequency: int, jobs: List[Job]) -> Tuple[D
 def execute_simulation_major_cycle(tasks: TaskSet,
                                    aperiodic_tasks_jobs: List[Job],
                                    sporadic_tasks_jobs: List[Job],
-                                   cpu_specification: Union[HomogeneousCpuSpecification],
+                                   processor_definition: ProcessorDefinition,
                                    environment_specification: EnvironmentSpecification,
                                    scheduler: CentralizedAbstractScheduler,
                                    simulation_options: SimulationOptionsSpecification) \
@@ -69,7 +69,7 @@ def execute_simulation_major_cycle(tasks: TaskSet,
     :param tasks: tasks set
     :param aperiodic_tasks_jobs:
     :param sporadic_tasks_jobs:
-    :param cpu_specification:
+    :param processor_definition:
     :param environment_specification:
     :param scheduler:
     :param simulation_options:
@@ -78,6 +78,16 @@ def execute_simulation_major_cycle(tasks: TaskSet,
      Periodic jobs automatically generated
      Major cycle
     """
+    # TODO LIST:
+    # Simulation for homogeneous CPUs, Centralized Schedulers with thermal
+    # Add parameters check
+    #   Jobs ids
+    #   Start and end of simulation
+    #   CPU specification
+    # Add simulation options control
+    # Simulation for homogeneous CPUs, Distributed Schedulers with thermal
+    # Add memory_footprint
+
     major_cycle = calculate_major_cycle(tasks)
 
     number_of_periodic_ids = sum([round(major_cycle / i.relative_deadline) for i in tasks.periodic_tasks])
@@ -91,31 +101,35 @@ def execute_simulation_major_cycle(tasks: TaskSet,
                                                              for j in range(round(major_cycle / i.relative_deadline))]
                                                             for i in tasks.periodic_tasks]))
 
-    return execute_simulation(0, major_cycle, periodic_tasks_jobs + aperiodic_tasks_jobs + sporadic_tasks_jobs, tasks,
-                              cpu_specification, environment_specification, scheduler, simulation_options), \
-           periodic_tasks_jobs, major_cycle
+    return execute_centralized_scheduler_simulation(0, major_cycle, periodic_tasks_jobs + aperiodic_tasks_jobs +
+                                                    sporadic_tasks_jobs, tasks, processor_definition,
+                                                    environment_specification, scheduler,
+                                                    simulation_options), periodic_tasks_jobs, major_cycle
 
 
-def execute_simulation(simulation_start_time: float,
-                       simulation_end_time: float,
-                       jobs: List[Job],
-                       tasks: TaskSet,
-                       cpu_specification: Union[HomogeneousCpuSpecification],
-                       environment_specification: EnvironmentSpecification,
-                       scheduler: CentralizedAbstractScheduler,
-                       simulation_options: SimulationOptionsSpecification) -> RawSimulationResult:
-    # TODO LIST:
-    # Simulation for homogeneous CPUs, Centralized Schedulers with thermal
-    # Add parameters check
-    #   Jobs ids
-    #   Start and end of simulation
-    #   CPU specification
-    # Add simulation options control
-    # Simulation for homogeneous CPUs, Distributed Schedulers with thermal
-    # Add memory_footprint
+def execute_centralized_scheduler_simulation(simulation_start_time: float,
+                                             simulation_end_time: float,
+                                             jobs: List[Job],
+                                             tasks: TaskSet,
+                                             processor_definition: ProcessorDefinition,
+                                             environment_specification: EnvironmentSpecification,
+                                             scheduler: CentralizedAbstractScheduler,
+                                             simulation_options: SimulationOptionsSpecification) -> RawSimulationResult:
+    # Possible frequencies
+    # As we are simulating with a centralized scheduler, only frequencies possibles in all cores are available
+    available_frequencies = Set.intersection(
+        *[i.core_type.available_frequencies for i in processor_definition.cores_definition.values()])
+
+    if len(available_frequencies) == 0:
+        return RawSimulationResult(have_been_scheduled=False,
+                                   scheduler_acceptance_error_message="at least one frequency must be shared by all" +
+                                                                      " cores in a centralized scheduler simulation",
+                                   job_sections_execution={}, cpus_frequencies={},
+                                   scheduling_points=[], temperature_measures={},
+                                   hard_real_time_deadline_missed_stack_trace=None)
 
     # Check if scheduler is capable of execute task set
-    can_schedule, error_message = scheduler.check_schedulability(cpu_specification, environment_specification, tasks)
+    can_schedule, error_message = scheduler.check_schedulability(processor_definition, environment_specification, tasks)
 
     if not can_schedule:
         return RawSimulationResult(have_been_scheduled=False,
@@ -126,14 +140,14 @@ def execute_simulation(simulation_start_time: float,
                                    hard_real_time_deadline_missed_stack_trace=None)
 
     # Number of cpus
-    number_of_cpus = cpu_specification.cores_specification.number_of_cores
+    number_of_cpus = len(processor_definition.cores_definition)
 
     # Run scheduler offline phase
-    cpu_frequency = scheduler.offline_stage(cpu_specification, environment_specification, tasks)
+    cpu_frequency = scheduler.offline_stage(processor_definition, environment_specification, tasks)
 
     # Create data structures for the simulation
     # Max frequency
-    lcm_frequency = list_int_lcm(list(cpu_specification.cores_specification.available_frequencies))
+    lcm_frequency = list_int_lcm(list(available_frequencies))
 
     # Dict with activation and deadlines
     activation_dict, deadlines_dict = _create_deadline_arrive_dict(lcm_frequency, jobs)
@@ -166,9 +180,6 @@ def execute_simulation(simulation_start_time: float,
     # Jobs type dict
     hard_real_time_jobs: Set[int] = {i.identification for i in jobs if i.task.deadline_criteria == Criticality.HARD}
     firm_real_time_jobs: Set[int] = {i.identification for i in jobs if i.task.deadline_criteria == Criticality.FIRM}
-    # soft_real_time_jobs: Set[int] = {i.identification for i in jobs if i.task.deadline_criteria == Criticality.SOFT}
-    # fully_preemptive_jobs: Set[int] = {i.identification for i in jobs if
-    #                                  i.task.preemptive_execution == PreemptiveExecution.FULLY_PREEMPTIVE}
     non_preemptive_jobs: Set[int] = {i.identification for i in jobs if
                                      i.task.preemptive_execution == PreemptiveExecution.NON_PREEMPTIVE}
 
@@ -193,6 +204,10 @@ def execute_simulation(simulation_start_time: float,
 
     # Last time frequency was set
     last_frequency_set_time = simulation_start_time
+
+    # Thermal options
+    if simulation_options.simulate_thermal_behaviour:
+        pass
 
     # Main control loop
     while actual_lcm_cycle < final_lcm_cycle and not hard_rt_task_miss_deadline and \
@@ -289,8 +304,7 @@ def execute_simulation(simulation_start_time: float,
 
             # Scheduler result checks
             if simulation_options.scheduler_selections_check:
-                bad_scheduler_behaviour = not (cpu_specification.cores_specification.available_frequencies.__contains__(
-                    cores_frequency_next) and all(
+                bad_scheduler_behaviour = not (available_frequencies.__contains__(cores_frequency_next) and all(
                     (0 <= i < number_of_cpus for i in jobs_being_executed_id_next.keys())) and all(
                     (i in active_jobs for i in jobs_being_executed_id_next.values())) and (
                                                        cycles_until_next_scheduler_invocation is None or
@@ -302,7 +316,7 @@ def execute_simulation(simulation_start_time: float,
                                         "\t Active jobs: " + str(active_jobs) + "\n" + \
                                         "\t Selected frequency: " + str(cores_frequency_next) + "\n" + \
                                         "\t Available frequencies: " + \
-                                        str(cpu_specification.cores_specification.available_frequencies) + "\n" + \
+                                        str(available_frequencies) + "\n" + \
                                         "\t Actual time: " + str(actual_time_seconds)
                     raise Exception(exception_message)
 
