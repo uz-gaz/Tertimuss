@@ -1,6 +1,7 @@
 import unittest
 
-from tertimuss.cubed_space_thermal_simulator import UnitDimensions, UnitLocation, CubedSpace, obtain_min_temperature, obtain_max_temperature, LocatedCube
+from tertimuss.cubed_space_thermal_simulator import UnitDimensions, UnitLocation, CubedSpace, obtain_min_temperature, \
+    obtain_max_temperature, LocatedCube
 
 from tertimuss.cubed_space_thermal_simulator.materials_pack import CooperSolidMaterial, SiliconSolidMaterial, \
     AirForcedEnvironmentProperties

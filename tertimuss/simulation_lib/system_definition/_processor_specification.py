@@ -36,11 +36,13 @@ class BoardDefinition:
 @dataclass(frozen=True)
 class CoreDefinition:
     core_type: CoreTypeDefinition  # Core type of the core
+    location: UnitLocation  # Location of the board
 
 
 @dataclass(frozen=True)
 class ProcessorDefinition:
     board_definition: BoardDefinition  # Definition of the CPU board
-    cores_definition: Dict[int, CoreDefinition]  # Definition of each core
+    cores_definition: Dict[int, CoreDefinition]  # Definition of each core. The key is the CPU id and the value the
+    # definition
     migration_costs: Dict[Tuple[int, int], int]  # Cost of migrations in cycles. key = (core from, core to)
     measure_unit: float  # The measure unit in metres
