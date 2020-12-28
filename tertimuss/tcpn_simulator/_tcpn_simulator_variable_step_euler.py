@@ -12,8 +12,8 @@ class TCPNSimulatorVariableStepEuler(AbstractTCPNSimulatorVariableStep):
     """
 
     def __init__(self, pre: scipy.sparse.csr_matrix, post: scipy.sparse.csr_matrix,
-                 lambda_vector: numpy.ndarray, pi: Optional[scipy.sparse.csr_matrix], number_of_steps: int,
-                 constant_pi: bool = False):
+                 lambda_vector: numpy.ndarray, pi: Optional[scipy.sparse.csr_matrix], number_of_steps: int = 128,
+                 constant_pi: bool = True):
         """
         Define the TCPN
         :param pre: pre matrix

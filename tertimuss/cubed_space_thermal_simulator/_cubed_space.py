@@ -3,7 +3,8 @@ from typing import List, Optional, Tuple, Set, Literal
 
 import scipy.sparse
 
-from tertimuss.tcpn_simulator import TCPNSimulatorVariableStepRK
+from tertimuss.tcpn_simulator import TCPNSimulatorVariableStepRK, AbstractTCPNSimulatorVariableStep, \
+    TCPNSimulatorVariableStepEuler
 from ._basic_types import *
 
 
@@ -17,7 +18,7 @@ class CubedSpace(object):
                  environment_properties: Optional[FluidEnvironmentProperties] = None,
                  external_temperature_booster_points: Optional[Dict[int, ExternalTemperatureBoosterLocatedCube]] = None,
                  internal_temperature_booster_points: Optional[Dict[int, InternalTemperatureBoosterLocatedCube]] = None,
-                 simulation_precision: Literal["HIGH"] = "HIGH"):
+                 simulation_precision: Literal["LOW", "MIDDLE", "HIGH"] = "HIGH"):
         """
         This function create a cubedSpace
 
@@ -34,24 +35,26 @@ class CubedSpace(object):
          not null, all of the elements of internal_energy_application_points in the function apply_energy, must be in
          fixed_internal_energy_application_points.
         """
-        # Precision definition
-        dtype = numpy.float64  # if (simulation_precision == "HIGH") else numpy.float32
-
         # Fill fields if are empty
         external_temperature_booster_points = external_temperature_booster_points \
             if external_temperature_booster_points is not None else dict()
         internal_temperature_booster_points = internal_temperature_booster_points \
             if internal_temperature_booster_points is not None else dict()
 
-        # TODO: Add different precisions
-        # When the float precision is changed, it must be reflected in the float dt
-        # Maybe some of them can be implemented in the graphic card
-        #
-        # VERY LOW: Euler and float32
-        # LOW: Euler and float64
+        # Different precision types
+        # LOW: Euler and float32
         # MIDDLE: RK and float32
         # HIGH: RK and float64
-        # VERY HIGH: RK and float128
+
+        # Select precision type
+        if simulation_precision == "LOW":
+            dtype = numpy.float32
+        elif simulation_precision == "MIDDLE":
+            dtype = numpy.float32
+        elif simulation_precision == "HIGH":
+            dtype = numpy.float64
+        else:
+            raise Exception("Not available precision")
 
         # Incidence matrix petri net structure
         # +------------+------------+-----------------+----+-------+
@@ -420,9 +423,21 @@ class CubedSpace(object):
 
         self.__simulation_precision = dtype
 
-        self.__tcpn_simulator: TCPNSimulatorVariableStepRK = TCPNSimulatorVariableStepRK(self.__pre, self.__post,
-                                                                                         self.__lambda_vector,
-                                                                                         self.__pi)
+        if simulation_precision == "HIGH" or simulation_precision == "MIDDLE":
+            self.__tcpn_simulator: AbstractTCPNSimulatorVariableStep = TCPNSimulatorVariableStepRK(
+                self.__pre,
+                self.__post,
+                self.__lambda_vector,
+                self.__pi
+            )
+        elif simulation_precision == "LOW":
+            self.__tcpn_simulator: AbstractTCPNSimulatorVariableStep = TCPNSimulatorVariableStepEuler(
+                self.__pre, self.__post,
+                self.__lambda_vector,
+                self.__pi, 128, True
+            )
+        else:
+            raise Exception("Not available precision")
 
         self.__internal_temperature_boost_transitions: Dict[
             int, Tuple[int, int]] = internal_temperature_boost_transitions

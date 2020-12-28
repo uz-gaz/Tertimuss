@@ -27,9 +27,8 @@ The project needs the follow packages:
 - jsonschema 3.2.0 or higher and all its dependencies
 - progress 1.5 or higher and all its dependencies
 - ffmpeg 4.1 or higher and all its dependencies
-- pyqt 5.9.2 or higher and all its dependencies
-- qt 5.9.2 or higher and all its dependencies (This package is necessary only if you want to modify the GUI)
-- ortools 7.8.7959 and all its dependencies
+- pyside2 5.15.0 or higher and all its dependencies
+- ortools 8.1.8487 and all its dependencies
 
 If you are using Miniconda or Anaconda the next few lines will create an environment called rt-scheduler-simulation-environment with all project dependencies installed in it.
 
@@ -44,14 +43,20 @@ Installation with python 3.8
 ```bash
 $ python3.8 -m venv .venv --copies
 $ source .venv/bin/activate
-$ pip install scipy~=1.5.0 matplotlib~=3.3.0 jsonschema~=3.2.0 PySide2~=5.15.0 ortools==7.8.7959
+$ pip install scipy~=1.5.0 matplotlib~=3.3.0 jsonschema~=3.2.0 PySide2~=5.15.0 ortools==8.1.8487
 ```
 
 Installation with python 3.9
 ```bash
 $ python3.9 -m venv .venv --copies
 $ source .venv/bin/activate
-$ pip install scipy~=1.5.0 matplotlib~=3.3.0 jsonschema~=3.2.0 PySide2~=5.15.0 ortools==7.8.7959
+$ pip install scipy~=1.5.0 matplotlib~=3.3.0 jsonschema~=3.2.0 PySide2~=5.15.0 ortools==8.1.8487
+```
+
+Installation with anaconda
+```bash
+$ conda create -n tertimuss-dev python=3.8 numpy scipy matplotlib
+$ pip install ortools==8.1.8487
 ```
 
 ## Usage
