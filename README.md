@@ -32,31 +32,32 @@ The project needs the follow packages:
 
 If you are using Miniconda or Anaconda the next few lines will create an environment called rt-scheduler-simulation-environment with all project dependencies installed in it.
 
-Installation with conda
-```bash
-$ conda create -n rt-scheduler-simulation-environment python=3.8 scipy=1.5 matplotlib=3.3 jsonschema=3.2 pyqt=5.9 ffmpeg=4.2
-$ conda activate rt-scheduler-simulation-environment
-$ pip install ortools
-```
-
 Installation with python 3.8
 ```bash
 $ python3.8 -m venv .venv --copies
 $ source .venv/bin/activate
-$ pip install scipy~=1.5.0 matplotlib~=3.3.0 jsonschema~=3.2.0 PySide2~=5.15.0 ortools==8.1.8487
+$ pip install scipy~=1.5.0 matplotlib~=3.3.0 jsonschema~=3.2.0 PySide6~=6.0.0 ortools==8.1.8487
 ```
 
 Installation with python 3.9
 ```bash
 $ python3.9 -m venv .venv --copies
 $ source .venv/bin/activate
-$ pip install scipy~=1.5.0 matplotlib~=3.3.0 jsonschema~=3.2.0 PySide2~=5.15.0 ortools==8.1.8487
+$ pip install scipy~=1.5.0 matplotlib~=3.3.0 jsonschema~=3.2.0 PySide6~=6.0.0 ortools==8.1.8487
 ```
 
-Installation with anaconda
+Installation with python 3.9 in windows
+```bash
+$ python3.9 -m venv .venv --copies
+$ source .venv/Script/activate.bat
+$ pip install scipy~=1.5.0 matplotlib~=3.3.0 jsonschema~=3.2.0 PySide2~=6.0.0 ortools==8.1.8487 numpy==1.19.3
+```
+
+Installation with conda
 ```bash
 $ conda create -n tertimuss-dev python=3.8 numpy scipy matplotlib
-$ pip install ortools==8.1.8487
+$ conda activate rt-scheduler-simulation-environment
+$ pip install ortools==8.1.8487 jsonschema==3.2.0 PySide2==6.0.0
 ```
 
 ## Usage
