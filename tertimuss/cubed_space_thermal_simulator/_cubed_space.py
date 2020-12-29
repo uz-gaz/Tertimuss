@@ -642,22 +642,22 @@ class CubedSpace(object):
         mo_next = self.__tcpn_simulator.simulate_step(mo, amount_of_time)
         return CubedSpaceState(mo_next)
 
-    def obtain_temperature(self, actual_state: CubedSpaceState) -> List[TemperatureLocatedCube]:
+    def obtain_temperature(self, actual_state: CubedSpaceState) -> Dict[int, TemperatureLocatedCube]:
         """
         This function return the temperature in each cube of unit edge that conform the cubedSpace
 
         :param actual_state:
         :return: List of temperature blocks in kelvin
         """
-        temperature_cubes = []
+        temperature_cubes = {}
 
         for i, v in self.__mo_index.items():
             material_cube = self.__material_cubes_dict[i]
             number_of_occupied_places = material_cube[1].dimensions.x * material_cube[1].dimensions.y * material_cube[
                 1].dimensions.z
             temperature_places = actual_state.places_mo_vector[v: v + number_of_occupied_places]
-            temperature_cubes.append(
-                TemperatureLocatedCube(material_cube[1].dimensions, material_cube[1].location, temperature_places))
+            temperature_cubes[i] = TemperatureLocatedCube(material_cube[1].dimensions, material_cube[1].location,
+                                                          temperature_places)
 
         return temperature_cubes
 
@@ -696,9 +696,9 @@ class CubedSpace(object):
             numpy.concatenate(places_temperature + [numpy.ones(len(self.__external_temperature_boost_places))]))
 
 
-def obtain_min_temperature(heatmap_cube_list: List[TemperatureLocatedCube]) -> float:
-    return min([i.temperatureMatrix.min() for i in heatmap_cube_list])
+def obtain_min_temperature(heatmap_cube_list: Dict[int, TemperatureLocatedCube]) -> Dict[int, float]:
+    return {i: j.temperatureMatrix.min() for i, j in heatmap_cube_list.items()}
 
 
-def obtain_max_temperature(heatmap_cube_list: List[TemperatureLocatedCube]) -> float:
-    return max([i.temperatureMatrix.max() for i in heatmap_cube_list])
+def obtain_max_temperature(heatmap_cube_list: Dict[int, TemperatureLocatedCube]) -> Dict[int, float]:
+    return {i: j.temperatureMatrix.max() for i, j in heatmap_cube_list.items()}

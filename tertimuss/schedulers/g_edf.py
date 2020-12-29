@@ -1,7 +1,7 @@
-from typing import Dict, Union, Optional, Set, List, Tuple
+from typing import Dict, Optional, Set, List, Tuple
 
 from ..simulation_lib.schedulers_definition import CentralizedAbstractScheduler
-from ..simulation_lib.system_definition import HomogeneousCpuSpecification, EnvironmentSpecification, TaskSet
+from ..simulation_lib.system_definition import ProcessorDefinition, EnvironmentSpecification, TaskSet
 
 
 class GlobalEarliestDeadlineFirstScheduler(CentralizedAbstractScheduler):
@@ -11,20 +11,25 @@ class GlobalEarliestDeadlineFirstScheduler(CentralizedAbstractScheduler):
         self.__tasks_relative_deadline: Dict[int, float] = {}
         self.__active_jobs_priority: Dict[int, float] = {}
 
-    def check_schedulability(self, cpu_specification: Union[HomogeneousCpuSpecification],
+    def check_schedulability(self, cpu_specification: ProcessorDefinition,
                              environment_specification: EnvironmentSpecification, task_set: TaskSet) \
             -> [bool, Optional[str]]:
         return True, None
 
-    def offline_stage(self, cpu_specification: Union[HomogeneousCpuSpecification],
+    def offline_stage(self, cpu_specification: ProcessorDefinition,
                       environment_specification: EnvironmentSpecification, task_set: TaskSet) -> int:
-        self.__m = cpu_specification.cores_specification.number_of_cores
+        m = len(cpu_specification.cores_definition)
+
+        clock_available_frequencies = Set.intersection(*[i.core_type.available_frequencies for i
+                                                         in cpu_specification.cores_definition.values()])
+
+        self.__m = m
 
         self.__tasks_relative_deadline = {i.identification: i.relative_deadline for i in
                                           task_set.periodic_tasks + task_set.aperiodic_tasks +
                                           task_set.sporadic_tasks}
 
-        return max(cpu_specification.cores_specification.available_frequencies)
+        return max(clock_available_frequencies)
 
     def schedule_policy(self, global_time: float, active_jobs_id: Set[int],
                         jobs_being_executed_id: Dict[int, int], cores_frequency: int,

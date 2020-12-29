@@ -11,7 +11,7 @@ from tertimuss.tcpn_simulator import TCPNSimulatorVariableStepRK
 from tertimuss.simulation_lib.math_utils import list_float_lcm, list_int_gcd
 from ._system_tcpn_model import ThermalModelSelector, TasksModel, ProcessorModel
 from tertimuss.simulation_lib.schedulers_definition import CentralizedAbstractScheduler
-from tertimuss.simulation_lib.system_definition import HomogeneousCpuSpecification, EnvironmentSpecification, TaskSet
+from tertimuss.simulation_lib.system_definition import ProcessorDefinition, EnvironmentSpecification, TaskSet
 
 
 class OLDTFSScheduler(CentralizedAbstractScheduler):
@@ -57,13 +57,13 @@ class OLDTFSScheduler(CentralizedAbstractScheduler):
         self.__task_to_job = {}
         self.__job_to_task = {}
 
-    def check_schedulability(self, cpu_specification: Union[HomogeneousCpuSpecification],
+    def check_schedulability(self, cpu_specification: ProcessorDefinition,
                              environment_specification: EnvironmentSpecification, task_set: TaskSet) \
             -> [bool, Optional[str]]:
         pass
 
     @staticmethod
-    def __obtain_thermal_constraint(cpu_specification: Union[HomogeneousCpuSpecification],
+    def __obtain_thermal_constraint(cpu_specification: ProcessorDefinition,
                                     environment_specification: EnvironmentSpecification,
                                     task_set: TaskSet,
                                     thermal_model_type: ThermalModelSelector,
@@ -75,7 +75,7 @@ class OLDTFSScheduler(CentralizedAbstractScheduler):
         Returns the thermal constraint required in the LPP solving
         """
         # Number of cores
-        m = cpu_specification.cores_specification.number_of_cores
+        m = len(cpu_specification.cores_definition)
 
         # Board and micros conductivity
         pre_board_cond, post_board_cond, lambda_board_cond = thermal_model_type.thermal_model_selector.value.simple_conductivity(
@@ -152,7 +152,7 @@ class OLDTFSScheduler(CentralizedAbstractScheduler):
         return a.tocsc(), b.tocsc(), scipy.sparse.csc_matrix(b_star), s_t.tocsc()
 
     @classmethod
-    def __solve_linear_programing_problem(cls, cpu_specification: Union[HomogeneousCpuSpecification],
+    def __solve_linear_programing_problem(cls, cpu_specification: ProcessorDefinition,
                                           environment_specification: EnvironmentSpecification, task_set: TaskSet,
                                           thermal_model_type: ThermalModelSelector,
                                           simulation_precision,
@@ -270,7 +270,7 @@ class OLDTFSScheduler(CentralizedAbstractScheduler):
         return j_fsc_i, quantum
 
     @staticmethod
-    def __obtain_tasks_processors_tcpn_model(cpu_specification: Union[HomogeneousCpuSpecification],
+    def __obtain_tasks_processors_tcpn_model(cpu_specification: ProcessorDefinition,
                                              task_set: TaskSet, simulation_precision) -> [scipy.sparse.csr_matrix,
                                                                                           scipy.sparse.csr_matrix,
                                                                                           scipy.sparse.csr_matrix,
@@ -331,7 +331,7 @@ class OLDTFSScheduler(CentralizedAbstractScheduler):
 
         return pre, post, pi, lambda_vector, mo
 
-    def offline_stage(self, cpu_specification: Union[HomogeneousCpuSpecification],
+    def offline_stage(self, cpu_specification: ProcessorDefinition,
                       environment_specification: EnvironmentSpecification, task_set: TaskSet) -> int:
         # Obtain quantum and FSC
 

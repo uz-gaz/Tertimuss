@@ -39,6 +39,6 @@ class RawSimulationResult:
     job_sections_execution: Dict[int, List[JobSectionExecution]]  # List of jobs executed by each core
     cpus_frequencies: Dict[int, List[CPUUsedFrequency]]  # List of CPU frequencies used by each core
     scheduling_points: List[float]  # Points where the scheduler have made an scheduling
-    temperature_measures: Dict[float, List[TemperatureLocatedCube]]  # Measures of temperature
+    temperature_measures: Dict[float, Dict[int, TemperatureLocatedCube]]  # Measures of temperature
     hard_real_time_deadline_missed_stack_trace: Optional[SimulationStackTraceHardRTDeadlineMissed]  # Only will take
     # value if a hard real time is missed

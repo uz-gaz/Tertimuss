@@ -1,14 +1,14 @@
 import functools
 import heapq
 import math
-from typing import List, Optional, Union, Tuple, Dict, Set
+from typing import List, Optional, Tuple, Dict, Set
 
 import numpy
 from ortools.linear_solver import pywraplp
 
 from ..simulation_lib.math_utils import list_float_lcm, list_int_gcd
 from ..simulation_lib.schedulers_definition import CentralizedAbstractScheduler
-from ..simulation_lib.system_definition import HomogeneousCpuSpecification, EnvironmentSpecification, TaskSet, \
+from ..simulation_lib.system_definition import ProcessorDefinition, EnvironmentSpecification, TaskSet, \
     PreemptiveExecution
 
 
@@ -69,7 +69,7 @@ class ALECSScheduler(CentralizedAbstractScheduler):
         number_of_partitions = len(partitions_size)
 
         # Create solver
-        solver = pywraplp.Solver.CreateSolver('linear_programming_examples', 'GLOP')
+        solver = pywraplp.Solver.CreateSolver('GLOP')
 
         # Create variables [task, period]
         variables_list = [
@@ -136,7 +136,7 @@ class ALECSScheduler(CentralizedAbstractScheduler):
             print('The solver could not solve the problem.')
             return None
 
-    def check_schedulability(self, cpu_specification: Union[HomogeneousCpuSpecification],
+    def check_schedulability(self, cpu_specification: ProcessorDefinition,
                              environment_specification: EnvironmentSpecification, task_set: TaskSet) \
             -> [bool, Optional[str]]:
         only_0_phase = all(i.phase is None or i.phase == 0 for i in task_set.periodic_tasks)
@@ -151,9 +151,10 @@ class ALECSScheduler(CentralizedAbstractScheduler):
         if not (only_0_phase and only_periodic_tasks and only_implicit_deadline and only_fully_preemptive):
             return False, "Error: Only implicit deadline, fully preemptive, 0 phase periodic tasks are allowed"
 
-        m = cpu_specification.cores_specification.number_of_cores
+        m = len(cpu_specification.cores_definition)
 
-        clock_available_frequencies = list(cpu_specification.cores_specification.available_frequencies)
+        clock_available_frequencies = list(Set.intersection(*[i.core_type.available_frequencies for i
+                                                              in cpu_specification.cores_definition.values()]))
 
         # Calculate F start
         major_cycle = list_float_lcm([i.relative_deadline for i in task_set.periodic_tasks])
@@ -238,7 +239,7 @@ class ALECSScheduler(CentralizedAbstractScheduler):
 
         return tasks_to_execute
 
-    def offline_stage(self, cpu_specification: Union[HomogeneousCpuSpecification],
+    def offline_stage(self, cpu_specification: ProcessorDefinition,
                       environment_specification: EnvironmentSpecification, task_set: TaskSet) -> int:
         """
         Method to implement with the offline stage scheduler tasks
@@ -248,10 +249,10 @@ class ALECSScheduler(CentralizedAbstractScheduler):
         :param task_set: Tasks in the system
         :return CPU frequency
         """
+        m = len(cpu_specification.cores_definition)
 
-        m = cpu_specification.cores_specification.number_of_cores
-
-        clock_available_frequencies = list(cpu_specification.cores_specification.available_frequencies)
+        clock_available_frequencies = list(Set.intersection(*[i.core_type.available_frequencies for i
+                                                              in cpu_specification.cores_definition.values()]))
 
         # Calculate F start
         major_cycle = list_float_lcm([i.relative_deadline for i in task_set.periodic_tasks])

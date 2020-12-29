@@ -1,7 +1,9 @@
 from dataclasses import dataclass
 
+from tertimuss.cubed_space_thermal_simulator import FluidEnvironmentProperties
+
 
 @dataclass(frozen=True)
 class EnvironmentSpecification:
-    heat_transfer_coefficient: float  # Convective Heat Transfer Coefficient (W / m^2 ºC)
+    environment_properties: FluidEnvironmentProperties  # Environment properties
     temperature: float  # Environment temperature (ºK)

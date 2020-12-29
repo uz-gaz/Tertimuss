@@ -184,8 +184,7 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
         temperatures_vector = []
 
         # Initial temperatures
-        temperature_over_before_zero_seconds = cubed_space.obtain_temperature(
-            actual_state=initial_state)
+        temperature_over_before_zero_seconds = cubed_space.obtain_temperature(actual_state=initial_state)
 
         temperatures_vector.append(temperature_over_before_zero_seconds)
 
@@ -206,7 +205,7 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
                                          min_temperature=min_simulation_value,
                                          max_temperature=max_simulation_value).show()
 
-            plot_2d_heat_map(temperature_over_before_zero_seconds,
+            plot_2d_heat_map(temperature,
                              min_temperature=min_simulation_value,
                              max_temperature=max_simulation_value,
                              axis="Z", location_in_axis=1).show()

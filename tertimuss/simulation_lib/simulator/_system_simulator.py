@@ -5,13 +5,13 @@ from typing import List, Tuple, Dict, Optional, Set, Literal
 
 from tertimuss.cubed_space_thermal_simulator import TemperatureLocatedCube, LocatedCube, UnitLocation, UnitDimensions, \
     CubedSpace, CubedSpaceState, InternalTemperatureBoosterLocatedCube, ExternalTemperatureBoosterLocatedCube, \
-    FluidEnvironmentProperties
+    obtain_max_temperature
 from ._simulation_result import RawSimulationResult, JobSectionExecution, CPUUsedFrequency, \
     SimulationStackTraceHardRTDeadlineMissed
 from ..math_utils import list_int_lcm
 from ..schedulers_definition import CentralizedAbstractScheduler
-from ..system_definition import Job, TaskSet, EnvironmentSpecification, Criticality, PreemptiveExecution
-from ..system_definition._processor_specification import ProcessorDefinition
+from ..system_definition import Job, TaskSet, EnvironmentSpecification, Criticality, PreemptiveExecution, \
+    ProcessorDefinition
 from ..system_definition.utils import calculate_major_cycle
 from ...cubed_space_thermal_simulator.physics_utils import create_energy_applicator
 
@@ -36,6 +36,9 @@ class SimulationOptionsSpecification:
     # simulation
     thermal_simulation_precision: Literal["LOW", "MIDDLE", "HIGH"] = "HIGH"  # Precision in the thermal simulation
     # (method used to solve the model and float precision)
+
+    # minimum number of thermal measures per second (TODO: Implement)
+    thermal_measure_rate: int = 1
 
 
 def _create_deadline_arrive_dict(lcm_frequency: int, jobs: List[Job]) -> Tuple[Dict[int, List[int]],
@@ -245,7 +248,7 @@ def _generate_cubed_space(tasks: TaskSet,
         external_temperature_booster_points={**external_heat_generators_leakage_power,
                                              **external_heat_generators_dynamic_energy},
         internal_temperature_booster_points=internal_heat_generators_leakage_power,
-        environment_properties=FluidEnvironmentProperties(environment_specification.heat_transfer_coefficient),
+        environment_properties=environment_specification.environment_properties,
         simulation_precision=simulation_options.thermal_simulation_precision)
 
     initial_state = cubed_space.create_initial_state(
@@ -363,7 +366,7 @@ def execute_centralized_scheduler_simulation(simulation_start_time: float,
     cpus_frequencies: Dict[int, List[CPUUsedFrequency]] = {i: [] for i in range(
         number_of_cpus)}  # List of CPU frequencies used by each core
     scheduling_points: List[float] = []  # Points where the scheduler have made an scheduling
-    temperature_measures: Dict[float, List[TemperatureLocatedCube]] = {}  # Measures of temperature
+    temperature_measures: Dict[float, Dict[int, TemperatureLocatedCube]] = {}  # Measures of temperature
 
     # Jobs being executed extra information [CPU, [start time]]
     jobs_last_section_start_time: Dict[int, float] = {i.identification: -1 for i in jobs}
@@ -376,19 +379,31 @@ def execute_centralized_scheduler_simulation(simulation_start_time: float,
     # Board id
     board_thermal_id: int = number_of_cpus
 
+    # Energy management objects
+    cubed_space: Optional[CubedSpace] = None
+    initial_state: Optional[CubedSpaceState] = None
+    core_frequency_energy_activator: Optional[Dict[Tuple[int, int], int]] = None
+    core_task_energy_activator: Optional[Dict[Tuple[int, int], int]] = None
+    cores_max_temperature: Optional[Dict[int, float]] = None
+
     # Thermal options
     if simulation_options.simulate_thermal_behaviour:
         cubed_space, initial_state, core_frequency_energy_activator, core_task_energy_activator = _generate_cubed_space(
             tasks, processor_definition, environment_specification,
             simulation_options, board_thermal_id)
 
-        # TODO: activate each energy generator when it is required
-
     # Main control loop
     while actual_lcm_cycle < final_lcm_cycle and not hard_rt_task_miss_deadline and \
             len(active_jobs) + len(activation_dict) > 0:
         # Actual time in seconds
         actual_time_seconds = actual_lcm_cycle / lcm_frequency
+
+        # Record temperature
+        if simulation_options.simulate_thermal_behaviour:
+            cubes_temperatures = cubed_space.obtain_temperature(initial_state)
+            temperature_measures[actual_time_seconds] = cubes_temperatures
+            cores_max_temperature = obtain_max_temperature(cubes_temperatures)
+            cores_max_temperature.pop(board_thermal_id)
 
         # Major cycle start event
         major_cycle_event_require_scheduling = scheduler.on_major_cycle_start(actual_time_seconds) \
@@ -561,6 +576,27 @@ def execute_centralized_scheduler_simulation(simulation_start_time: float,
             for i in jobs_being_executed_id.values():
                 remaining_cc_dict[i] -= cc_to_advance
 
+            # Obtain temperature in the next simulation point
+            if simulation_options.simulate_thermal_behaviour:
+                if simulation_options.thermal_simulation_type == "DVFS":
+                    external_energy_point_execution = {core_frequency_energy_activator[(used_cpu, cpu_frequency)] for
+                                                       used_cpu in jobs_being_executed_id.keys()}
+
+                elif simulation_options.thermal_simulation_type == "TASK_CONSUMPTION_MEASURED":
+                    external_energy_point_execution = {core_task_energy_activator[(used_cpu, task_executed)] for
+                                                       used_cpu, task_executed in jobs_being_executed_id.keys()}
+                else:
+                    external_energy_point_execution = set()
+
+                # Apply energy
+                initial_state = cubed_space.apply_energy(actual_state=initial_state,
+                                                         amount_of_time=cc_to_advance / cpu_frequency,
+                                                         external_energy_application_points=Set.union(
+                                                             external_energy_point_execution,
+                                                             {i for i in range(number_of_cpus)}),
+                                                         internal_energy_application_points={i for i in
+                                                                                             range(number_of_cpus)})
+
             # Update actual_lcm_cycle
             actual_lcm_cycle += (lcm_frequency // cpu_frequency) * cc_to_advance
 
@@ -570,6 +606,11 @@ def execute_centralized_scheduler_simulation(simulation_start_time: float,
             (JobSectionExecution(j, jobs_to_task_dict[j], jobs_last_section_start_time[j],
                                  actual_lcm_cycle / lcm_frequency,
                                  jobs_last_preemption_remaining_cycles[j] - remaining_cc_dict[j])))
+
+    # Record temperature
+    if simulation_options.simulate_thermal_behaviour:
+        cubes_temperatures = cubed_space.obtain_temperature(initial_state)
+        temperature_measures[actual_lcm_cycle / lcm_frequency] = cubes_temperatures
 
     # In the last cycle update RawSimulationResult tables (Used frequencies)
     for i in range(number_of_cpus):

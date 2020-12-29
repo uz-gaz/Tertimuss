@@ -1,11 +1,11 @@
 import unittest
 from typing import Set, Dict, Optional, Tuple, Union, List
 
-from tertimuss.simulation_lib.simulator import TaskSet, SimulationOptionsSpecification, \
-    CentralizedAbstractScheduler, JobSectionExecution, CPUUsedFrequency, Job, execute_simulation, \
-    execute_simulation_major_cycle
+from tertimuss.simulation_lib.simulator import SimulationOptionsSpecification, \
+    CentralizedAbstractScheduler, JobSectionExecution, CPUUsedFrequency, \
+    execute_simulation_major_cycle, execute_centralized_scheduler_simulation
 from tertimuss.simulation_lib.system_definition import PeriodicTask, PreemptiveExecution, Criticality, \
-    HomogeneousCpuSpecification, EnvironmentSpecification
+    EnvironmentSpecification, ProcessorDefinition, Job, TaskSet
 from tertimuss.simulation_lib.system_definition.utils import generate_default_cpu, default_environment_specification
 
 
@@ -21,7 +21,7 @@ class SystemSimulatorTest(unittest.TestCase):
                 self.__tasks_priority: Dict[int, int] = {}
                 self.__active_jobs_priority: Dict[int, int] = {}
 
-            def check_schedulability(self, cpu_specification: Union[HomogeneousCpuSpecification],
+            def check_schedulability(self, cpu_specification: ProcessorDefinition,
                                      environment_specification: EnvironmentSpecification, task_set: TaskSet) \
                     -> [bool, Optional[str]]:
                 is_schedulable = all((i.priority is not None for i in task_set.periodic_tasks)) and all(
@@ -30,14 +30,17 @@ class SystemSimulatorTest(unittest.TestCase):
 
                 return is_schedulable, None if is_schedulable else "All task must have priority"
 
-            def offline_stage(self, cpu_specification: Union[HomogeneousCpuSpecification],
+            def offline_stage(self, cpu_specification: ProcessorDefinition,
                               environment_specification: EnvironmentSpecification, task_set: TaskSet) -> int:
-                self.__m = cpu_specification.cores_specification.number_of_cores
+                self.__m = len(cpu_specification.cores_definition)
 
-                self.__tasks_priority = {i.identification: i.priority for i in
-                                         task_set.periodic_tasks + task_set.aperiodic_tasks + task_set.sporadic_tasks}
+                self.__tasks_priority = {i.identification: i.priority for i in task_set.periodic_tasks +
+                                         task_set.aperiodic_tasks + task_set.sporadic_tasks}
 
-                return max(cpu_specification.cores_specification.available_frequencies)
+                clock_available_frequencies = Set.intersection(*[i.core_type.available_frequencies for i
+                                                                 in cpu_specification.cores_definition.values()])
+
+                return max(clock_available_frequencies)
 
             def schedule_policy(self, global_time: float, active_jobs_id: Set[int],
                                 jobs_being_executed_id: Dict[int, int], cores_frequency: int,
@@ -73,14 +76,17 @@ class SystemSimulatorTest(unittest.TestCase):
             def __init__(self):
                 super().__init__(True)
 
-            def check_schedulability(self, cpu_specification: Union[HomogeneousCpuSpecification],
+            def check_schedulability(self, cpu_specification: ProcessorDefinition,
                                      environment_specification: EnvironmentSpecification, task_set: TaskSet) \
                     -> [bool, Optional[str]]:
                 return True, None
 
-            def offline_stage(self, cpu_specification: Union[HomogeneousCpuSpecification],
+            def offline_stage(self, cpu_specification: ProcessorDefinition,
                               environment_specification: EnvironmentSpecification, task_set: TaskSet) -> int:
-                return max(cpu_specification.cores_specification.available_frequencies)
+                clock_available_frequencies = Set.intersection(*[i.core_type.available_frequencies for i
+                                                                 in cpu_specification.cores_definition.values()])
+
+                return max(clock_available_frequencies)
 
             def schedule_policy(self, global_time: float, active_jobs_id: Set[int],
                                 jobs_being_executed_id: Dict[int, int], cores_frequency: int,
@@ -137,7 +143,7 @@ class SystemSimulatorTest(unittest.TestCase):
         number_of_cores = 2
         available_frequencies = {1000}
 
-        simulation_result = execute_simulation(
+        simulation_result = execute_centralized_scheduler_simulation(
             simulation_start_time=0.0,
             simulation_end_time=14.0,
             tasks=TaskSet(
@@ -146,7 +152,7 @@ class SystemSimulatorTest(unittest.TestCase):
                 sporadic_tasks=[]
             ),
             jobs=jobs_list,
-            cpu_specification=generate_default_cpu(number_of_cores, available_frequencies),
+            processor_definition=generate_default_cpu(number_of_cores, available_frequencies, 0, 0),
             environment_specification=default_environment_specification(),
             simulation_options=SimulationOptionsSpecification(id_debug=True),
             scheduler=self.__simple_priority_scheduler_definition()
@@ -209,7 +215,7 @@ class SystemSimulatorTest(unittest.TestCase):
             ),
             aperiodic_tasks_jobs=[],
             sporadic_tasks_jobs=[],
-            cpu_specification=generate_default_cpu(number_of_cores, available_frequencies),
+            processor_definition=generate_default_cpu(number_of_cores, available_frequencies, 0, 0),
             environment_specification=default_environment_specification(),
             simulation_options=SimulationOptionsSpecification(id_debug=True),
             scheduler=self.__simple_priority_scheduler_definition()
@@ -240,7 +246,7 @@ class SystemSimulatorTest(unittest.TestCase):
                 ),
                 aperiodic_tasks_jobs=[],
                 sporadic_tasks_jobs=[],
-                cpu_specification=generate_default_cpu(number_of_cores, available_frequencies),
+                processor_definition=generate_default_cpu(number_of_cores, available_frequencies, 0, 0),
                 environment_specification=default_environment_specification(),
                 simulation_options=SimulationOptionsSpecification(id_debug=True),
                 scheduler=self.__bad_behaviour_scheduler_definition()
@@ -268,7 +274,7 @@ class SystemSimulatorTest(unittest.TestCase):
             ),
             aperiodic_tasks_jobs=[],
             sporadic_tasks_jobs=[],
-            cpu_specification=generate_default_cpu(number_of_cores, available_frequencies),
+            processor_definition=generate_default_cpu(number_of_cores, available_frequencies, 0, 0),
             environment_specification=default_environment_specification(),
             simulation_options=SimulationOptionsSpecification(id_debug=True),
             scheduler=self.__simple_priority_scheduler_definition()

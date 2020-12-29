@@ -1,10 +1,8 @@
 import abc
 
-from ..system_definition import HomogeneousCpuSpecification, TaskSet, EnvironmentSpecification
+from ..system_definition import ProcessorDefinition, TaskSet, EnvironmentSpecification
 
-from typing import Optional, Set, Dict, Tuple, Union, List
-
-from ..system_definition._processor_specification import ProcessorDefinition
+from typing import Optional, Set, Dict, Tuple, List
 
 
 class CentralizedAbstractScheduler(object, metaclass=abc.ABCMeta):

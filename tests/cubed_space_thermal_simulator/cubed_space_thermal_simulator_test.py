@@ -64,10 +64,10 @@ class CubedSpaceThermalSimulatorTest(unittest.TestCase):
         min_temperature_one = obtain_min_temperature(temperature_over_before_one_second)
         max_temperature_one = obtain_max_temperature(temperature_over_before_one_second)
 
-        assert (self.float_equal(min_temperature_half, cuboid_initial_temperature, error=0.5))
-        assert (self.float_equal(max_temperature_half, cuboid_initial_temperature, error=0.5))
-        assert (self.float_equal(min_temperature_one, cuboid_initial_temperature, error=0.5))
-        assert (self.float_equal(max_temperature_one, cuboid_initial_temperature, error=0.5))
+        assert (self.float_equal(min(min_temperature_half.values()), cuboid_initial_temperature, error=0.5))
+        assert (self.float_equal(max(max_temperature_half.values()), cuboid_initial_temperature, error=0.5))
+        assert (self.float_equal(min(min_temperature_one.values()), cuboid_initial_temperature, error=0.5))
+        assert (self.float_equal(max(max_temperature_one.values()), cuboid_initial_temperature, error=0.5))
 
     def test_internal_conduction_with_convection(self):
         # Dimensions of the cubes
@@ -124,9 +124,15 @@ class CubedSpaceThermalSimulatorTest(unittest.TestCase):
         min_temperature_half = obtain_min_temperature(temperature_over_before_half_second)
         max_temperature_half = obtain_max_temperature(temperature_over_before_half_second)
 
+        min_temperature_half = min(min_temperature_half.values())
+        max_temperature_half = max(max_temperature_half.values())
+
         # One second
         min_temperature_one = obtain_min_temperature(temperature_over_before_one_second)
         max_temperature_one = obtain_max_temperature(temperature_over_before_one_second)
+
+        min_temperature_one = min(min_temperature_one.values())
+        max_temperature_one = max(max_temperature_one.values())
 
         assert (environment_temperature <= min_temperature_half <= cuboid_initial_temperature
                 and max_temperature_half <= cuboid_initial_temperature)
@@ -197,6 +203,9 @@ class CubedSpaceThermalSimulatorTest(unittest.TestCase):
         # Half second
         min_temperature_one_second = obtain_min_temperature(temperature_over_before_point_one_seconds)
         max_temperature_one_second = obtain_max_temperature(temperature_over_before_point_one_seconds)
+
+        min_temperature_one_second = min(min_temperature_one_second.values())
+        max_temperature_one_second = max(max_temperature_one_second.values())
 
         assert (environment_temperature <= min_temperature_one_second <= cube_0_initial_temperature and
                 self.float_equal(min_temperature_one_second, max_temperature_one_second, 1))

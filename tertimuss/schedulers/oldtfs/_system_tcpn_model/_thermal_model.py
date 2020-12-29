@@ -3,8 +3,7 @@ from typing import List, Union
 import numpy
 import scipy.sparse
 
-from tertimuss.simulation_lib.system_definition import TaskSet, EnvironmentSpecification, HomogeneousCpuSpecification, \
-    MaterialCuboid, Origin
+from tertimuss.simulation_lib.system_definition import TaskSet, EnvironmentSpecification,
 
 
 class ThermalModel(object):

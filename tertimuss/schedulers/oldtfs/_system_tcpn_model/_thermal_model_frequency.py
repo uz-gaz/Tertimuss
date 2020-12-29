@@ -1,9 +1,9 @@
-from typing import List, Union
+from typing import List
 
 import numpy
 
 from ._thermal_model import ThermalModel
-from tertimuss.simulation_lib.system_definition import HomogeneousCpuSpecification, TaskSet
+from tertimuss.simulation_lib.system_definition import ProcessorDefinition, TaskSet
 
 
 class ThermalModelFrequencyAware(ThermalModel):
@@ -12,7 +12,7 @@ class ThermalModelFrequencyAware(ThermalModel):
     """
 
     @staticmethod
-    def _get_dynamic_power_consumption(cpu_specification: Union[HomogeneousCpuSpecification],
+    def _get_dynamic_power_consumption(cpu_specification: ProcessorDefinition,
                                        task_set: TaskSet,
                                        clock_relative_frequencies: List[float]) -> numpy.ndarray:
         """
@@ -28,8 +28,9 @@ class ThermalModelFrequencyAware(ThermalModel):
         n: int = len(task_set.periodic_tasks) + len(task_set.aperiodic_tasks)
 
         consumption_by_cpu = [
-            (cpu_specification.cores_specification.energy_consumption_properties.dynamic_alpha * (f ** 3) +
-             cpu_specification.cores_specification.energy_consumption_properties.dynamic_beta) for f in
-            clock_relative_frequencies]
+            (j.cores_specification.energy_consumption_properties.dynamic_alpha * (f ** 3) +
+             j.cores_specification.energy_consumption_properties.dynamic_beta) for f in
+            clock_relative_frequencies for _, j in
+            sorted(cpu_specification.cores_definition.items(), key=lambda k: k[0])]
 
-        return numpy.repeat(numpy.asarray(consumption_by_cpu).reshape((-1, 1)), n, axis=1)
+        return numpy.asarray(consumption_by_cpu).reshape((-1, 1))
