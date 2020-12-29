@@ -1,5 +1,5 @@
 import unittest
-from typing import Set, Dict, Optional, Tuple, Union, List
+from typing import Set, Dict, Optional, Tuple, List
 
 from tertimuss.simulation_lib.simulator import SimulationOptionsSpecification, \
     CentralizedAbstractScheduler, JobSectionExecution, CPUUsedFrequency, \
@@ -282,3 +282,84 @@ class SystemSimulatorTest(unittest.TestCase):
 
         # Correct execution
         assert not simulation_result.have_been_scheduled
+
+    def test_simple_simulation_periodic_task_set_with_thermal(self):
+        periodic_tasks = [
+            self.__create_implicit_deadline_periodic_task_h_rt(3, 3000, 7.0, 3),
+            self.__create_implicit_deadline_periodic_task_h_rt(2, 4000, 7.0, 2),
+            self.__create_implicit_deadline_periodic_task_h_rt(1, 4000, 14.0, 1),
+            self.__create_implicit_deadline_periodic_task_h_rt(0, 3000, 14.0, 0)
+        ]
+
+        jobs_list = [
+            # Task 3
+            Job(identification=0, activation_time=0.0, task=periodic_tasks[0]),
+            Job(identification=1, activation_time=7.0, task=periodic_tasks[0]),
+
+            # Task 2
+            Job(identification=2, activation_time=0.0, task=periodic_tasks[1]),
+            Job(identification=3, activation_time=7.0, task=periodic_tasks[1]),
+
+            # Task 1
+            Job(identification=4, activation_time=0.0, task=periodic_tasks[2]),
+
+            # Task 0
+            Job(identification=5, activation_time=0.0, task=periodic_tasks[3]),
+        ]
+
+        number_of_cores = 2
+        available_frequencies = {1000}
+
+        simulation_result = execute_centralized_scheduler_simulation(
+            simulation_start_time=0.0,
+            simulation_end_time=14.0,
+            tasks=TaskSet(
+                periodic_tasks=periodic_tasks,
+                aperiodic_tasks=[],
+                sporadic_tasks=[]
+            ),
+            jobs=jobs_list,
+            processor_definition=generate_default_cpu(number_of_cores, available_frequencies, 0, 0),
+            environment_specification=default_environment_specification(),
+            simulation_options=SimulationOptionsSpecification(id_debug=True, thermal_simulation_type="DVFS",
+                                                              simulate_thermal_behaviour=True),
+            scheduler=self.__simple_priority_scheduler_definition()
+        )
+
+        # Correct execution
+        correct_job_sections_execution = {
+            0: [
+                JobSectionExecution(job_id=0, task_id=3, execution_start_time=0.0, execution_end_time=3.0,
+                                    number_of_executed_cycles=3000),
+                JobSectionExecution(job_id=2, task_id=2, execution_start_time=3.0, execution_end_time=4.0,
+                                    number_of_executed_cycles=1000),
+                JobSectionExecution(job_id=4, task_id=1, execution_start_time=4.0, execution_end_time=7.0,
+                                    number_of_executed_cycles=3000),
+                JobSectionExecution(job_id=1, task_id=3, execution_start_time=7.0, execution_end_time=10.0,
+                                    number_of_executed_cycles=3000),
+                JobSectionExecution(job_id=3, task_id=2, execution_start_time=10.0, execution_end_time=11.0,
+                                    number_of_executed_cycles=1000)],
+            1: [
+                JobSectionExecution(job_id=2, task_id=2, execution_start_time=0.0, execution_end_time=3.0,
+                                    number_of_executed_cycles=3000),
+                JobSectionExecution(job_id=4, task_id=1, execution_start_time=3.0, execution_end_time=4.0,
+                                    number_of_executed_cycles=1000),
+                JobSectionExecution(job_id=5, task_id=0, execution_start_time=4.0, execution_end_time=7.0,
+                                    number_of_executed_cycles=3000),
+                JobSectionExecution(job_id=3, task_id=2, execution_start_time=7.0, execution_end_time=10.0,
+                                    number_of_executed_cycles=3000)]
+        }
+
+        correct_cpu_frequencies = {0: [CPUUsedFrequency(1000, 0.0, 14.0)], 1: [CPUUsedFrequency(1000, 0.0, 14.0)]}
+
+        correct_scheduling_points = [0.0, 3.0, 4.0, 7.0, 10.0]
+
+        assert simulation_result.have_been_scheduled
+
+        assert (simulation_result.job_sections_execution == correct_job_sections_execution)
+
+        assert (simulation_result.cpus_frequencies == correct_cpu_frequencies)
+
+        assert (simulation_result.scheduling_points == correct_scheduling_points)
+
+        assert (simulation_result.hard_real_time_deadline_missed_stack_trace is None)

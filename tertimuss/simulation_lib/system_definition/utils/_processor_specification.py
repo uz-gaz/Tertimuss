@@ -6,19 +6,26 @@ from ....simulation_lib.system_definition import ProcessorDefinition, CoreEnergy
     UnitDimensions, BoardDefinition, UnitLocation, CoreDefinition
 
 
-def generate_default_cpu(number_of_cores: int, available_frequencies: Set[int], preemption_cost: int,
-                         migration_cost: int) -> ProcessorDefinition:
+def generate_default_cpu(number_of_cores: int, available_frequencies: Set[int], preemption_cost: int = 0,
+                         migration_cost: int = 0, thermal_dissipation: float = 65) -> ProcessorDefinition:
     """
     Generate a default CPU specifying the number of cores and the available frequencies
     :param number_of_cores: Number of cores in the CPU
     :param available_frequencies: Available frequencies in the CPU
     :param preemption_cost: Cost of preemption in cycles
     :param migration_cost: Cost of migration in cycles
+    :param thermal_dissipation: Dissipation of each core in watts when they are with maximum frequency
     :return: CPU specification
     """
-    energy_consumption_properties = CoreEnergyConsumption(leakage_alpha=0.001, leakage_delta=0.1,
-                                                          dynamic_alpha=1.52,
-                                                          dynamic_beta=0.08)
+    max_cpu_frequency: float = max(available_frequencies)
+    leakage_alpha: float = 0.001
+    leakage_delta: float = 0.1
+    dynamic_alpha: float = 55 * max_cpu_frequency ** -3
+    dynamic_beta: float = 10
+
+    energy_consumption_properties = CoreEnergyConsumption(leakage_alpha=leakage_alpha, leakage_delta=leakage_delta,
+                                                          dynamic_alpha=dynamic_alpha,
+                                                          dynamic_beta=dynamic_beta)
 
     core_type_definition = CoreTypeDefinition(dimensions=UnitDimensions(x=10, y=10, z=2),
                                               material=SiliconSolidMaterial(),

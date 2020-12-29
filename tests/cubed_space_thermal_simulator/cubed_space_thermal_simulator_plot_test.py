@@ -13,7 +13,7 @@ from tertimuss.cubed_space_thermal_simulator.physics_utils import create_energy_
 
 
 class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
-    @unittest.skip("Manual visualization test")
+    # @unittest.skip("Manual visualization test")
     def test_processor_heat_generation_plot(self):
         # Dimensions of the core
         core_dimensions = UnitDimensions(x=10, z=2, y=10)
@@ -38,7 +38,7 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
         environment_temperature = 273.15 + 25
 
         # Min simulation value
-        max_simulation_value = 273.15 + 40
+        max_simulation_value = 273.15 + 80
         min_simulation_value = 273.15 + 20
 
         # Definition of the CPU shape and materials
@@ -84,10 +84,12 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
         #  Leakage power = current temperature * 2 * leakage_delta + leakage_alpha
         leakage_alpha: float = 0.001
         leakage_delta: float = 0.1
-        dynamic_alpha: float = 1.52
-        dynamic_beta: float = 0.08
+        dynamic_alpha: float = 19 * 1000 ** -3
+        dynamic_beta: float = 2
 
         cpu_frequency: float = 1000
+
+        watts_to_apply = dynamic_alpha * (cpu_frequency ** 3) + dynamic_beta
 
         # External heat generators
         external_heat_generators = {
@@ -97,7 +99,7 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
                                              location=UnitLocation(x=10, z=2, y=10),
                                              dimensions=core_dimensions)
                                          ),
-                                        watts_to_apply=20,
+                                        watts_to_apply=watts_to_apply,
                                         cube_edge_size=cube_edge_size
                                         ),
 
