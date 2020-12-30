@@ -1,9 +1,11 @@
 """
 This file pretends to define an example simulation result that can be used to test the plotting packages
 """
+import os
+import pickle
 from typing import Optional, Tuple, List
 
-from tertimuss.simulation_lib.simulator import RawSimulationResult, JobSectionExecution, CPUUsedFrequency
+from tertimuss.simulation_lib.simulator import RawSimulationResult
 from tertimuss.simulation_lib.system_definition import PeriodicTask, PreemptiveExecution, Criticality, TaskSet, Job
 
 
@@ -54,40 +56,7 @@ def get_simulation_result() -> Tuple[TaskSet, List[Job], RawSimulationResult]:
         sporadic_tasks=[]
     )
 
-    simulation_result = RawSimulationResult(have_been_scheduled=True, scheduler_acceptance_error_message=None,
-                                            job_sections_execution={0: [
-                                                JobSectionExecution(job_id=0, task_id=3, execution_start_time=0.0,
-                                                                    execution_end_time=3.0,
-                                                                    number_of_executed_cycles=3000),
-                                                JobSectionExecution(job_id=2, task_id=2, execution_start_time=3.0,
-                                                                    execution_end_time=4.0,
-                                                                    number_of_executed_cycles=1000),
-                                                JobSectionExecution(job_id=4, task_id=1, execution_start_time=4.0,
-                                                                    execution_end_time=7.0,
-                                                                    number_of_executed_cycles=3000),
-                                                JobSectionExecution(job_id=1, task_id=3, execution_start_time=7.0,
-                                                                    execution_end_time=10.0,
-                                                                    number_of_executed_cycles=3000),
-                                                JobSectionExecution(job_id=3, task_id=2, execution_start_time=10.0,
-                                                                    execution_end_time=11.0,
-                                                                    number_of_executed_cycles=1000)], 1: [
-                                                JobSectionExecution(job_id=2, task_id=2, execution_start_time=0.0,
-                                                                    execution_end_time=3.0,
-                                                                    number_of_executed_cycles=3000),
-                                                JobSectionExecution(job_id=4, task_id=1, execution_start_time=3.0,
-                                                                    execution_end_time=4.0,
-                                                                    number_of_executed_cycles=1000),
-                                                JobSectionExecution(job_id=5, task_id=0, execution_start_time=4.0,
-                                                                    execution_end_time=7.0,
-                                                                    number_of_executed_cycles=3000),
-                                                JobSectionExecution(job_id=3, task_id=2, execution_start_time=7.0,
-                                                                    execution_end_time=10.0,
-                                                                    number_of_executed_cycles=3000)]},
-                                            cpus_frequencies={0: [
-                                                CPUUsedFrequency(frequency_used=1000, frequency_set_time=0.0,
-                                                                 frequency_unset_time=14.0)], 1: [
-                                                CPUUsedFrequency(frequency_used=1000, frequency_set_time=0.0,
-                                                                 frequency_unset_time=14.0)]},
-                                            scheduling_points=[0.0, 3.0, 4.0, 7.0, 10.0], temperature_measures={},
-                                            hard_real_time_deadline_missed_stack_trace=None)
+    with open(os.path.dirname(os.path.realpath(__file__)) + '/simulation_result.pyobj', 'rb') as simulation_result_file:
+        simulation_result = pickle.load(simulation_result_file)
+
     return tasks, jobs_list, simulation_result

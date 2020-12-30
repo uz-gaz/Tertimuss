@@ -7,7 +7,7 @@ from ....simulation_lib.system_definition import ProcessorDefinition, CoreEnergy
 
 
 def generate_default_cpu(number_of_cores: int, available_frequencies: Set[int], preemption_cost: int = 0,
-                         migration_cost: int = 0, thermal_dissipation: float = 65) -> ProcessorDefinition:
+                         migration_cost: int = 0, thermal_dissipation: float = 5) -> ProcessorDefinition:
     """
     Generate a default CPU specifying the number of cores and the available frequencies
     :param number_of_cores: Number of cores in the CPU
@@ -20,8 +20,8 @@ def generate_default_cpu(number_of_cores: int, available_frequencies: Set[int], 
     max_cpu_frequency: float = max(available_frequencies)
     leakage_alpha: float = 0.001
     leakage_delta: float = 0.1
-    dynamic_alpha: float = 55 * max_cpu_frequency ** -3
-    dynamic_beta: float = 10
+    dynamic_beta: float = 2
+    dynamic_alpha: float = (thermal_dissipation - dynamic_beta) * max_cpu_frequency ** -3
 
     energy_consumption_properties = CoreEnergyConsumption(leakage_alpha=leakage_alpha, leakage_delta=leakage_delta,
                                                           dynamic_alpha=dynamic_alpha,
