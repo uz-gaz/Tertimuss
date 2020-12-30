@@ -57,6 +57,7 @@ Installation with conda
 ```bash
 $ conda create -n tertimuss-dev python=3.8 numpy scipy matplotlib
 $ conda activate rt-scheduler-simulation-environment
+$ conda install -c conda-forge ffmpeg
 $ pip install ortools==8.1.8487 jsonschema==3.2.0 PySide2==6.0.0
 ```
 

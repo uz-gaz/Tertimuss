@@ -8,6 +8,5 @@ class ComponentsHotspotsPlotTest(unittest.TestCase):
     def test_component_hotspots_plot(self):
         tasks, _, simulation_result = get_simulation_result()
 
-        fig = generate_component_hotspots_plot(task_set=tasks, schedule_result=simulation_result,
-                                               title="Components hotspots")
+        fig = generate_component_hotspots_plot(schedule_result=simulation_result, title="Components hotspots")
         fig.show()
