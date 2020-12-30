@@ -40,6 +40,9 @@ class SimulationOptionsSpecification:
     # minimum number of thermal measures per second (TODO: Implement)
     thermal_measure_rate: int = 1
 
+    # Simulate memory occupation constraints
+    simulate_memory_footprint: bool = False
+
 
 def _create_deadline_arrive_dict(lcm_frequency: int, jobs: List[Job]) -> Tuple[Dict[int, List[int]],
                                                                                Dict[int, List[int]]]:
@@ -93,14 +96,13 @@ def execute_simulation_major_cycle(tasks: TaskSet,
      Major cycle
     """
     # TODO LIST:
-    # Simulation for homogeneous CPUs, Centralized Schedulers with thermal
     # Add parameters check
     #   Jobs ids
     #   Start and end of simulation
     #   CPU specification
+    #   memory_footprint
     # Add simulation options control
     # Simulation for homogeneous CPUs, Distributed Schedulers with thermal
-    # Add memory_footprint
 
     major_cycle = calculate_major_cycle(tasks)
 
@@ -278,7 +280,8 @@ def execute_centralized_scheduler_simulation(simulation_start_time: float,
                                                                       " cores in a centralized scheduler simulation",
                                    job_sections_execution={}, cpus_frequencies={},
                                    scheduling_points=[], temperature_measures={},
-                                   hard_real_time_deadline_missed_stack_trace=None)
+                                   hard_real_time_deadline_missed_stack_trace=None,
+                                   memory_usage_record=None)
 
     # Unit mesh division
     if simulation_options.processor_mesh_division < 1:
@@ -286,7 +289,8 @@ def execute_centralized_scheduler_simulation(simulation_start_time: float,
                                    scheduler_acceptance_error_message="mesh division must be greater than 0",
                                    job_sections_execution={}, cpus_frequencies={},
                                    scheduling_points=[], temperature_measures={},
-                                   hard_real_time_deadline_missed_stack_trace=None)
+                                   hard_real_time_deadline_missed_stack_trace=None,
+                                   memory_usage_record=None)
 
     # Number of cpus
     number_of_cpus = len(processor_definition.cores_definition)
@@ -300,7 +304,8 @@ def execute_centralized_scheduler_simulation(simulation_start_time: float,
                                                                       " CPUS - 1",
                                    job_sections_execution={}, cpus_frequencies={},
                                    scheduling_points=[], temperature_measures={},
-                                   hard_real_time_deadline_missed_stack_trace=None)
+                                   hard_real_time_deadline_missed_stack_trace=None,
+                                   memory_usage_record=None)
 
     # Check if scheduler is capable of execute task set
     can_schedule, error_message = scheduler.check_schedulability(processor_definition, environment_specification, tasks)
@@ -311,7 +316,8 @@ def execute_centralized_scheduler_simulation(simulation_start_time: float,
                                    if error_message is None else error_message,
                                    job_sections_execution={}, cpus_frequencies={},
                                    scheduling_points=[], temperature_measures={},
-                                   hard_real_time_deadline_missed_stack_trace=None)
+                                   hard_real_time_deadline_missed_stack_trace=None,
+                                   memory_usage_record=None)
 
     # Run scheduler offline phase
     cpu_frequency = scheduler.offline_stage(processor_definition, environment_specification, tasks)
@@ -379,12 +385,18 @@ def execute_centralized_scheduler_simulation(simulation_start_time: float,
     # Board id
     board_thermal_id: int = number_of_cpus
 
+    # Available memory
+    jobs_memory_consumption: Dict[int, int] = {
+        i.identification: i.task.memory_footprint if i.task.memory_footprint is not None else 0 for i in jobs
+    }
+    memory_usage: int = 0
+    memory_usage_record: Dict[float, int] = {}
+
     # Energy management objects
     cubed_space: Optional[CubedSpace] = None
     initial_state: Optional[CubedSpaceState] = None
     core_frequency_energy_activator: Optional[Dict[Tuple[int, int], int]] = None
     core_task_energy_activator: Optional[Dict[Tuple[int, int], int]] = None
-    cores_max_temperature: Optional[Dict[int, float]] = None
 
     # Thermal options
     if simulation_options.simulate_thermal_behaviour:
@@ -404,6 +416,10 @@ def execute_centralized_scheduler_simulation(simulation_start_time: float,
             temperature_measures[actual_time_seconds] = cubes_temperatures
             cores_max_temperature = obtain_max_temperature(cubes_temperatures)
             cores_max_temperature.pop(board_thermal_id)
+
+        # Record memory usage
+        if simulation_options.simulate_memory_footprint:
+            memory_usage_record[actual_time_seconds] = memory_usage
 
         # Major cycle start event
         major_cycle_event_require_scheduling = scheduler.on_major_cycle_start(actual_time_seconds) \
@@ -437,6 +453,10 @@ def execute_centralized_scheduler_simulation(simulation_start_time: float,
                 (JobSectionExecution(i, jobs_to_task_dict[i], jobs_last_section_start_time[i], actual_time_seconds,
                                      jobs_last_preemption_remaining_cycles[i] - remaining_cc_dict[i])))
 
+            # Remove job from memory
+            if simulation_options.simulate_memory_footprint:
+                memory_usage = memory_usage - jobs_memory_consumption[i]
+
         end_event_require_scheduling = scheduler.on_job_execution_finished(actual_time_seconds, jobs_that_have_end) \
             if len(jobs_that_have_end) > 0 else False
 
@@ -461,6 +481,10 @@ def execute_centralized_scheduler_simulation(simulation_start_time: float,
                 job_sections_execution[job_cpu_used].append(
                     (JobSectionExecution(i, jobs_to_task_dict[i], jobs_last_section_start_time[i], actual_time_seconds,
                                          jobs_last_preemption_remaining_cycles[i] - remaining_cc_dict[i])))
+
+                # Remove job from memory
+                if simulation_options.simulate_memory_footprint:
+                    memory_usage = memory_usage - jobs_memory_consumption[i]
 
         hard_rt_task_miss_deadline = any(
             (i in hard_real_time_jobs for i in
@@ -537,6 +561,11 @@ def execute_centralized_scheduler_simulation(simulation_start_time: float,
                         CPUUsedFrequency(cores_frequency_next, last_frequency_set_time, actual_time_seconds))
 
                 last_frequency_set_time = actual_time_seconds
+
+            # Update memory usage
+            if simulation_options.simulate_memory_footprint:
+                memory_usage = memory_usage - sum(jobs_memory_consumption[i] for i in jobs_being_executed_id.values()) \
+                               + sum(jobs_memory_consumption[i] for i in jobs_being_executed_id_next.values())
 
             # Update RawSimulationResult tables
             scheduling_points.append(actual_time_seconds)
@@ -619,4 +648,6 @@ def execute_centralized_scheduler_simulation(simulation_start_time: float,
     return RawSimulationResult(have_been_scheduled=True, scheduler_acceptance_error_message=None,
                                job_sections_execution=job_sections_execution, cpus_frequencies=cpus_frequencies,
                                scheduling_points=scheduling_points, temperature_measures=temperature_measures,
-                               hard_real_time_deadline_missed_stack_trace=hard_real_time_deadline_missed_stack_trace)
+                               hard_real_time_deadline_missed_stack_trace=hard_real_time_deadline_missed_stack_trace,
+                               memory_usage_record=memory_usage_record if simulation_options.simulate_memory_footprint
+                               else None)

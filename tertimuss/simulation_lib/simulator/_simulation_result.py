@@ -42,3 +42,4 @@ class RawSimulationResult:
     temperature_measures: Dict[float, Dict[int, TemperatureLocatedCube]]  # Measures of temperature
     hard_real_time_deadline_missed_stack_trace: Optional[SimulationStackTraceHardRTDeadlineMissed]  # Only will take
     # value if a hard real time is missed
+    memory_usage_record: Optional[Dict[float, int]]  # Record of the memory usage in bytes
