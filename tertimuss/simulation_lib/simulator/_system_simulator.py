@@ -1,7 +1,7 @@
 import itertools
 from collections import deque
 from dataclasses import dataclass
-from typing import List, Tuple, Dict, Optional, Set, Literal
+from typing import List, Tuple, Dict, Optional, Set, Literal, Union
 
 from tertimuss.cubed_space_thermal_simulator import TemperatureLocatedCube, LocatedCube, UnitLocation, UnitDimensions, \
     CubedSpace, CubedSpaceState, InternalTemperatureBoosterLocatedCube, ExternalTemperatureBoosterLocatedCube, \
@@ -37,7 +37,8 @@ class SimulationOptionsSpecification:
     thermal_simulation_precision: Literal["LOW", "MIDDLE", "HIGH"] = "HIGH"  # Precision in the thermal simulation
     # (method used to solve the model and float precision)
 
-    # minimum number of thermal measures per second (TODO: Implement)
+    # minimum number of thermal measures per second
+    # TODO: Must be implemented in the simulation
     thermal_measure_rate: int = 1
 
     # Simulate memory occupation constraints
@@ -48,9 +49,11 @@ def _create_deadline_arrive_dict(lcm_frequency: int, jobs: List[Job]) -> Tuple[D
                                                                                Dict[int, List[int]]]:
     """
     Return a list ordered by arrive and by deadline of jobs containing the id of each job
-    :param lcm_frequency:
-    :param jobs:
+    :param lcm_frequency: Base frequency
+    :param jobs: Jobs list
     :return:
+        Dict[activation base cycle, job id]
+        Dict[deadline base cycle, job id]
     """
     # Dict of activations
     activation_dict: Dict[int, List[int]] = {}
@@ -73,36 +76,30 @@ def _create_deadline_arrive_dict(lcm_frequency: int, jobs: List[Job]) -> Tuple[D
     return activation_dict, deadlines_dict
 
 
-def execute_simulation_major_cycle(tasks: TaskSet,
-                                   aperiodic_tasks_jobs: List[Job],
-                                   sporadic_tasks_jobs: List[Job],
-                                   processor_definition: ProcessorDefinition,
-                                   environment_specification: EnvironmentSpecification,
-                                   scheduler: CentralizedAbstractScheduler,
-                                   simulation_options: SimulationOptionsSpecification) \
-        -> Tuple[RawSimulationResult, List[Job], float]:
+def execute_scheduler_simulation_simple(tasks: TaskSet,
+                                        aperiodic_tasks_jobs: List[Job],
+                                        sporadic_tasks_jobs: List[Job],
+                                        processor_definition: ProcessorDefinition,
+                                        environment_specification: EnvironmentSpecification,
+                                        scheduler: Union[CentralizedAbstractScheduler],
+                                        simulation_options: SimulationOptionsSpecification
+                                        = SimulationOptionsSpecification()
+                                        ) -> Tuple[RawSimulationResult, List[Job], float]:
     """
-    Execute a simulation over the major cycle
-    :param tasks: tasks set
-    :param aperiodic_tasks_jobs:
-    :param sporadic_tasks_jobs:
-    :param processor_definition:
-    :param environment_specification:
-    :param scheduler:
-    :param simulation_options:
+    Run a simulation without supplying the periodic jobs. It will be generated from the periodic tasks definition, and
+     the simulation will be done between time 0 and the end of the first major cycle
+    :param tasks: Group of tasks in the system. If None it will be the major cycle
+    :param aperiodic_tasks_jobs: Aperiodic lobs in the system
+    :param sporadic_tasks_jobs: Sporadic jobs in the system
+    :param processor_definition: Definition of the CPU to use
+    :param environment_specification: Specification of the environment
+    :param scheduler: Centralized scheduler to use
+    :param simulation_options: Options of the simulation
     :return:
      Simulation result
      Periodic jobs automatically generated
      Major cycle
     """
-    # TODO LIST:
-    # Add parameters check
-    #   Jobs ids
-    #   Start and end of simulation
-    #   CPU specification
-    #   memory_footprint
-    # Add simulation options control
-    # Simulation for homogeneous CPUs, Distributed Schedulers with thermal
 
     major_cycle = calculate_major_cycle(tasks)
 
@@ -117,10 +114,79 @@ def execute_simulation_major_cycle(tasks: TaskSet,
                                                              for j in range(round(major_cycle / i.relative_deadline))]
                                                             for i in tasks.periodic_tasks]))
 
-    return execute_centralized_scheduler_simulation(0, major_cycle, periodic_tasks_jobs + aperiodic_tasks_jobs +
-                                                    sporadic_tasks_jobs, tasks, processor_definition,
-                                                    environment_specification, scheduler,
-                                                    simulation_options), periodic_tasks_jobs, major_cycle
+    return execute_scheduler_simulation(periodic_tasks_jobs + aperiodic_tasks_jobs + sporadic_tasks_jobs, tasks,
+                                        processor_definition, environment_specification, scheduler,
+                                        simulation_options), periodic_tasks_jobs, major_cycle
+
+
+def execute_scheduler_simulation(jobs: List[Job],
+                                 tasks: TaskSet,
+                                 processor_definition: ProcessorDefinition,
+                                 environment_specification: EnvironmentSpecification,
+                                 scheduler: Union[CentralizedAbstractScheduler],
+                                 simulation_options: SimulationOptionsSpecification
+                                 = SimulationOptionsSpecification(),
+                                 simulation_start_time: float = 0,
+                                 simulation_end_time: Optional[float] = None) -> RawSimulationResult:
+    """
+    Run a simulation using a centralized scheduler
+    :param jobs: Jobs in the system
+    :param simulation_start_time: Time in seconds where the system start to make decisions. Time 0 is the start of the
+     first major cycle
+    :param simulation_end_time: Time in seconds since the start of the first major cycle where the simulation ends.
+    :param tasks: Group of tasks in the system. If None it will be the major cycle
+    :param processor_definition: Definition of the CPU to use
+    :param environment_specification: Specification of the environment
+    :param scheduler: Centralized scheduler to use
+    :param simulation_options: Options of the simulation
+    :return: Simulation result
+    """
+    # TODO: Check tasks specification (memory_footprint, WCET, d)
+    # TODO: CPU specification
+    # TODO: Ass support for distributed schedulers with thermal
+
+    # Check jobs
+    if len(jobs) == 0:
+        raise Exception("The system mist contains at least one job to simulate")
+
+    jobs_ids = {i.identification for i in jobs}
+
+    # Check tasks
+    if len(jobs_ids) != len(jobs):
+        raise Exception("Jobs must have different ids")
+
+    tasks_ids = {i.identification for i in tasks.tasks()}
+
+    # Check that all jobs have a valid task
+    if any(i.task.identification not in tasks_ids for i in jobs):
+        raise Exception("Some job have a non valid task associated")
+
+    # Check tasks
+    if len(jobs) == 0:
+        raise Exception("The system mist contains at least one job to simulate")
+
+    # Check tasks
+    if len(tasks_ids) != len(tasks.tasks()):
+        raise Exception("Tasks must have different ids")
+
+    # Check start time
+    if simulation_start_time < 0:
+        raise Exception("Start time must be grater or equal than 0")
+
+    # Check simulator end time
+    if simulation_end_time is None:
+        simulation_end_time = calculate_major_cycle(tasks)
+
+    if simulation_start_time >= simulation_end_time:
+        raise Exception("Start time must be lowest than end time")
+
+    # Check scheduler
+    if isinstance(scheduler, CentralizedAbstractScheduler):
+        return _execute_centralized_scheduler_simulation(jobs, tasks, processor_definition, environment_specification,
+                                                         scheduler, simulation_options, simulation_start_time,
+                                                         simulation_end_time)
+    else:
+        raise Exception("The scheduler type provided is not supported")
 
 
 def _generate_cubed_space(tasks: TaskSet,
@@ -129,6 +195,21 @@ def _generate_cubed_space(tasks: TaskSet,
                           simulation_options: SimulationOptionsSpecification,
                           board_thermal_id: int) -> Tuple[CubedSpace, CubedSpaceState, Dict[Tuple[int, int], int],
                                                           Dict[Tuple[int, int], int]]:
+    """
+    Generate a cubed space thermal simulator from the system specification
+    :param tasks: Group of tasks in the system
+    :param processor_definition: Definition of the CPU to use
+    :param environment_specification: Specification of the environment
+    :param simulation_options: Options of the simulation
+    :param board_thermal_id: Id of the cube that represents the board
+    :return:
+        Cubed space of the simulation
+        Cubed space state of the simulation
+        Dict [(core id, frequency in Hz)] -> External thermal source id that must be activated to simulate that a task
+         is being executed in a CPU with a determinate frequency if DVSF is used
+        Dict [(core id, task id)] -> External thermal source id that must be activated to simulate that a task is being
+         executed in a CPU if energy based thermal model is used
+    """
     cube_edge_size = processor_definition.measure_unit / simulation_options.processor_mesh_division
 
     scene_definition = {
@@ -222,7 +303,7 @@ def _generate_cubed_space(tasks: TaskSet,
     elif simulation_options.thermal_simulation_type == "TASK_CONSUMPTION_MEASURED":
         external_heat_generators_dynamic_energy: Dict[int, ExternalTemperatureBoosterLocatedCube] = {}
         for i, j in processor_definition.cores_definition.items():
-            for k in tasks.periodic_tasks + tasks.aperiodic_tasks + tasks.sporadic_tasks:
+            for k in tasks.tasks():
                 generator_id = len(external_heat_generators_dynamic_energy) + \
                                len(external_heat_generators_leakage_power)
                 core_task_energy_activator_id[(i, k.identification)] = generator_id
@@ -261,14 +342,27 @@ def _generate_cubed_space(tasks: TaskSet,
     return cubed_space, initial_state, core_frequency_energy_activator_id, core_task_energy_activator_id
 
 
-def execute_centralized_scheduler_simulation(simulation_start_time: float,
-                                             simulation_end_time: float,
-                                             jobs: List[Job],
-                                             tasks: TaskSet,
-                                             processor_definition: ProcessorDefinition,
-                                             environment_specification: EnvironmentSpecification,
-                                             scheduler: CentralizedAbstractScheduler,
-                                             simulation_options: SimulationOptionsSpecification) -> RawSimulationResult:
+def _execute_centralized_scheduler_simulation(jobs: List[Job],
+                                              tasks: TaskSet,
+                                              processor_definition: ProcessorDefinition,
+                                              environment_specification: EnvironmentSpecification,
+                                              scheduler: CentralizedAbstractScheduler,
+                                              simulation_options: SimulationOptionsSpecification,
+                                              simulation_start_time: float,
+                                              simulation_end_time: float) -> RawSimulationResult:
+    """
+    Run a simulation using a centralized scheduler
+    :param jobs: Jobs in the system
+    :param simulation_start_time: Time in seconds where the system start to make decisions. Time 0 is the start of the
+     first major cycle
+    :param simulation_end_time: Time in seconds since the start of the first major cycle where the simulation ends.
+    :param tasks: Group of tasks in the system
+    :param processor_definition: Definition of the CPU to use
+    :param environment_specification: Specification of the environment
+    :param scheduler: Centralized scheduler to use
+    :param simulation_options: Options of the simulation
+    :return: Simulation result
+    """
     # Possible frequencies
     # As we are simulating with a centralized scheduler, only frequencies possibles in all cores are available
     available_frequencies = Set.intersection(

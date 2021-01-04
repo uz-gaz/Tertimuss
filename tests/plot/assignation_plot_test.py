@@ -5,6 +5,7 @@ from ._generate_simulation_result import get_simulation_result
 
 
 class AssignationPlotTest(unittest.TestCase):
+    @unittest.skip("Manual visualization test")
     def test_tasks_assignation_plot(self):
         tasks, _, simulation_result = get_simulation_result()
 
@@ -12,6 +13,7 @@ class AssignationPlotTest(unittest.TestCase):
                                              title="Task assignation")
         fig.show()
 
+    @unittest.skip("Manual visualization test")
     def test_job_assignation_plot(self):
         tasks, jobs_list, simulation_result = get_simulation_result()
 

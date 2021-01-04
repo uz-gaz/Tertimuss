@@ -5,6 +5,7 @@ from ._generate_simulation_result import get_simulation_result
 
 
 class FrequencyEvolutionPlotTest(unittest.TestCase):
+    @unittest.skip("Manual visualization test")
     def test_frequency_evolution_plot(self):
         _, _, simulation_result = get_simulation_result()
 

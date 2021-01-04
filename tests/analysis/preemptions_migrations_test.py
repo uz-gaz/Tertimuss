@@ -89,7 +89,8 @@ class PreemptionsMigrationsAnalysisTest(unittest.TestCase):
                                                     CPUUsedFrequency(frequency_used=1000, frequency_set_time=0.0,
                                                                      frequency_unset_time=14.0)]},
                                                 scheduling_points=[0.0, 3.0, 4.0, 7.0, 10.0], temperature_measures={},
-                                                hard_real_time_deadline_missed_stack_trace=None)
+                                                hard_real_time_deadline_missed_stack_trace=None,
+                                                memory_usage_record={})
 
         preemptions_migrations_analysis = obtain_preemptions_migrations_analysis(jobs=jobs_list, task_set=tasks,
                                                                                  schedule_result=simulation_result)

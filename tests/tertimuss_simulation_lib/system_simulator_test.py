@@ -3,7 +3,7 @@ from typing import Set, Dict, Optional, Tuple, List
 
 from tertimuss.simulation_lib.simulator import SimulationOptionsSpecification, \
     CentralizedAbstractScheduler, JobSectionExecution, CPUUsedFrequency, \
-    execute_simulation_major_cycle, execute_centralized_scheduler_simulation
+    execute_scheduler_simulation, execute_scheduler_simulation_simple
 from tertimuss.simulation_lib.system_definition import PeriodicTask, PreemptiveExecution, Criticality, \
     EnvironmentSpecification, ProcessorDefinition, Job, TaskSet
 from tertimuss.simulation_lib.system_definition.utils import generate_default_cpu, default_environment_specification
@@ -143,7 +143,7 @@ class SystemSimulatorTest(unittest.TestCase):
         number_of_cores = 2
         available_frequencies = {1000}
 
-        simulation_result = execute_centralized_scheduler_simulation(
+        simulation_result = execute_scheduler_simulation(
             simulation_start_time=0.0,
             simulation_end_time=14.0,
             tasks=TaskSet(
@@ -207,7 +207,7 @@ class SystemSimulatorTest(unittest.TestCase):
         number_of_cores = 2
         available_frequencies = {1000}
 
-        simulation_result, periodic_jobs, major_cycle = execute_simulation_major_cycle(
+        simulation_result, periodic_jobs, major_cycle = execute_scheduler_simulation_simple(
             tasks=TaskSet(
                 periodic_tasks=periodic_tasks,
                 aperiodic_tasks=[],
@@ -238,7 +238,7 @@ class SystemSimulatorTest(unittest.TestCase):
         available_frequencies = {1000}
 
         try:
-            execute_simulation_major_cycle(
+            execute_scheduler_simulation_simple(
                 tasks=TaskSet(
                     periodic_tasks=periodic_tasks,
                     aperiodic_tasks=[],
@@ -266,7 +266,7 @@ class SystemSimulatorTest(unittest.TestCase):
         number_of_cores = 2
         available_frequencies = {1000}
 
-        simulation_result, periodic_jobs, major_cycle = execute_simulation_major_cycle(
+        simulation_result, periodic_jobs, major_cycle = execute_scheduler_simulation_simple(
             tasks=TaskSet(
                 periodic_tasks=periodic_tasks,
                 aperiodic_tasks=[],
@@ -310,7 +310,7 @@ class SystemSimulatorTest(unittest.TestCase):
         number_of_cores = 2
         available_frequencies = {1000}
 
-        simulation_result = execute_centralized_scheduler_simulation(
+        simulation_result = execute_scheduler_simulation(
             simulation_start_time=0.0,
             simulation_end_time=14.0,
             tasks=TaskSet(

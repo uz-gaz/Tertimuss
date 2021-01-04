@@ -155,6 +155,10 @@ class TaskSet(object):
     # List of sporadic tasks
     sporadic_tasks: List[SporadicTask]
 
+    # Return the list of tasks
+    def tasks(self) -> List[Task]:
+        return self.periodic_tasks + self.aperiodic_tasks + self.sporadic_tasks
+
 
 @dataclass  # (frozen=True)
 class Job(object):

@@ -17,7 +17,7 @@ class CpuTemperaturePlotTest(unittest.TestCase):
         writer = animation.FFMpegWriter()
         heat_map_2d_video.save("2d_generation.mp4", writer=writer)
 
-    # @unittest.skip("Manual visualization test")
+    @unittest.skip("Manual visualization test")
     def test_cpu_temperature_evolution_3d_plot(self):
         tasks, _, simulation_result = get_simulation_result()
 
