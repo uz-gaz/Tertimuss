@@ -1,11 +1,11 @@
 import unittest
-from tertimuss.schedulers.alecs import ALECSScheduler
+from tertimuss.schedulers.calecs import CALECSScheduler
 from tertimuss.simulation_lib.simulator import execute_scheduler_simulation_simple, SimulationOptionsSpecification
 from tertimuss.simulation_lib.system_definition import PeriodicTask, PreemptiveExecution, Criticality, TaskSet
 from tertimuss.simulation_lib.system_definition.utils import generate_default_cpu, default_environment_specification
 
 
-class ALECSTest(unittest.TestCase):
+class CALECSTest(unittest.TestCase):
     @staticmethod
     def __create_implicit_deadline_periodic_task_h_rt(task_id: int, worst_case_execution_time: int,
                                                       period: float) -> PeriodicTask:
@@ -48,7 +48,7 @@ class ALECSTest(unittest.TestCase):
             processor_definition=generate_default_cpu(number_of_cores, available_frequencies, 0, 0),
             environment_specification=default_environment_specification(),
             simulation_options=SimulationOptionsSpecification(id_debug=True),
-            scheduler=ALECSScheduler()
+            scheduler=CALECSScheduler()
         )
 
         # Correct execution

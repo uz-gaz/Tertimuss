@@ -40,8 +40,8 @@ class GlobalEarliestDeadlineFirstScheduler(CentralizedAbstractScheduler):
         tasks_that_can_be_executed: List[Tuple[int, float]] = sorted([i for i in self.__active_jobs_priority.items()],
                                                                      key=lambda j: j[1])
 
-        if len(tasks_that_can_be_executed) > self.__m:
-            # Some tasks won't be executed
+        if len(tasks_that_can_be_executed) <= self.__m:
+            # All tasks will be executed
             tasks_to_execute = [i for (i, j) in tasks_that_can_be_executed]
         else:
             # Tasks that will be executed because have height priority
@@ -69,7 +69,7 @@ class GlobalEarliestDeadlineFirstScheduler(CentralizedAbstractScheduler):
                                                                           tasks_to_execute_height_priority)]
 
         # Do affinity to avoid preemptions (migrations not taking in count)
-        jobs_running = {i: j for (i, j) in jobs_being_executed_id if j in tasks_to_execute}
+        jobs_running = {i: j for (i, j) in jobs_being_executed_id.items() if j in tasks_to_execute}
 
         remaining_tasks_to_execute = [i for i in tasks_to_execute if i not in jobs_running.values()]
         remaining_cpus = [i for i in range(self.__m) if i not in jobs_running.keys()]

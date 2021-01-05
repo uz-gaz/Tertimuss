@@ -363,6 +363,7 @@ def _execute_centralized_scheduler_simulation(jobs: List[Job],
     :param simulation_options: Options of the simulation
     :return: Simulation result
     """
+    # TODO: Context switch and migration cost must be implemented
     # Possible frequencies
     # As we are simulating with a centralized scheduler, only frequencies possibles in all cores are available
     available_frequencies = Set.intersection(
