@@ -14,12 +14,13 @@ from ..simulation_lib.system_definition import ProcessorDefinition, EnvironmentS
 
 class ALECSScheduler(CentralizedAbstractScheduler):
     """
-    Implements the ALECS scheduler
+    Implements the Allocation and Execution Control Scheduler (ALECS)
 
     The actual implementation only allows periodic tasks (the original specification allows aperiodic too)
 
     References:
-        TODO:
+        Real time scheduler for multiprocessor systems based on continuous control using Timed Continuous Petri Nets -
+        15th IFAC Workshop on Discrete Event Systems WODES 2020
     """
 
     def __init__(self) -> None:
@@ -135,6 +136,13 @@ class ALECSScheduler(CentralizedAbstractScheduler):
         else:
             print('The solver could not solve the problem.')
             return None
+
+    def get_scheduling_points(self) -> Dict[int, Dict[int, int]]:
+        """
+        Return the calculated scheduling points
+        :return:
+        """
+        return self.__scheduling_points
 
     def check_schedulability(self, cpu_specification: ProcessorDefinition,
                              environment_specification: EnvironmentSpecification, task_set: TaskSet) \

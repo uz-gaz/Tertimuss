@@ -1,8 +1,8 @@
 from abc import abstractmethod
 from typing import Dict, Set, Tuple, List
 
-from .integer_math_utils import list_lcm
-from .task import ImplicitDeadlineTask
+from ._task import ImplicitDeadlineTask
+from ...simulation_lib.math_utils import list_int_lcm
 
 
 class AbstractBPPBasedPartitionAlgorithm(object):
@@ -19,7 +19,7 @@ class AbstractBPPBasedPartitionAlgorithm(object):
         m = number_of_cpus
         clusters: List[Tuple[int, Set[int]]] = []
 
-        major_cycle = list_lcm([i.d for i in task_set.values()])
+        major_cycle = list_int_lcm([i.d for i in task_set.values()])
 
         task_sets_cc_in_major_cycle: Dict[int, int] = {i: j.c * (major_cycle // j.d) for i, j in task_set.items()}
 

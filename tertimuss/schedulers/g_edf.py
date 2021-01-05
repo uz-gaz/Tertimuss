@@ -4,7 +4,11 @@ from ..simulation_lib.schedulers_definition import CentralizedAbstractScheduler
 from ..simulation_lib.system_definition import ProcessorDefinition, EnvironmentSpecification, TaskSet
 
 
-class GlobalEarliestDeadlineFirstScheduler(CentralizedAbstractScheduler):
+class GEDFScheduler(CentralizedAbstractScheduler):
+    """
+    Implements the Global Earliest Deadline First Scheduler (G-EDF)
+    """
+
     def __init__(self, is_debug=True):
         super().__init__(is_debug)
         self.__m = 0

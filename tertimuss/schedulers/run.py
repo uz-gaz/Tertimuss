@@ -272,6 +272,14 @@ def _assign_tasks_to_cpu(task_set: List[_RUNTask], active_tasks: List[int], m: i
 
 
 class RUNScheduler(CentralizedAbstractScheduler):
+    """
+    Implements the Reduction to Uniprocessor Scheduler (RUN)
+
+    References:
+        RUN: Optimal Multiprocessor Real-Time Scheduling via Reduction to Uniprocessor -
+        Proceedings of the 32nd IEEE Real-Time Systems Symposium 2011
+        DOI: 10.1109/RTSS.2011.17
+    """
     def __init__(self):
         super().__init__(True)
         self.__scheduling_points: Dict[int, Dict[int, int]] = {}
