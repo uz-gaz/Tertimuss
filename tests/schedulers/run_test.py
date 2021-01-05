@@ -25,13 +25,13 @@ class RUNTest(unittest.TestCase):
 
     def test_simple_simulation_periodic_task_set(self):
         periodic_tasks = [
-            self.__create_implicit_deadline_periodic_task_h_rt(0, 10000, 20.0),
-            self.__create_implicit_deadline_periodic_task_h_rt(1, 5000, 10.0),
-            self.__create_implicit_deadline_periodic_task_h_rt(2, 7000, 10.0),
-            self.__create_implicit_deadline_periodic_task_h_rt(3, 7000, 10.0),
-            self.__create_implicit_deadline_periodic_task_h_rt(4, 7000, 10.0),
-            self.__create_implicit_deadline_periodic_task_h_rt(5, 14000, 20.0),
-            self.__create_implicit_deadline_periodic_task_h_rt(6, 3000, 5.0)
+            self.__create_implicit_deadline_periodic_task_h_rt(0 + 1, 10000, 20.0),
+            self.__create_implicit_deadline_periodic_task_h_rt(1 + 1, 5000, 10.0),
+            self.__create_implicit_deadline_periodic_task_h_rt(2 + 1, 7000, 10.0),
+            self.__create_implicit_deadline_periodic_task_h_rt(3 + 1, 7000, 10.0),
+            self.__create_implicit_deadline_periodic_task_h_rt(4 + 1, 7000, 10.0),
+            self.__create_implicit_deadline_periodic_task_h_rt(5 + 1, 14000, 20.0),
+            self.__create_implicit_deadline_periodic_task_h_rt(6 + 1, 3000, 5.0)
         ]
 
         number_of_cores = 5

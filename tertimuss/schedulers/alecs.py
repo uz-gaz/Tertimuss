@@ -239,8 +239,8 @@ class ALECSScheduler(CentralizedAbstractScheduler):
 
         return tasks_to_execute
 
-    def offline_stage(self, cpu_specification: ProcessorDefinition,
-                      environment_specification: EnvironmentSpecification, task_set: TaskSet) -> int:
+    def offline_stage(self, cpu_specification: ProcessorDefinition, environment_specification: EnvironmentSpecification,
+                      task_set: TaskSet) -> int:
         """
         Method to implement with the offline stage scheduler tasks
 
@@ -323,7 +323,7 @@ class ALECSScheduler(CentralizedAbstractScheduler):
             for j in (r for r in tasks_being_executed if r != -1):
                 actual_interval_cc[j] = actual_interval_cc[j] - range_quantum
 
-            # Mark scheduling point
+            # Mark for scheduling point
             # TODO: This can be a bit improved, because not all interval ends the scheduler should
             # be called, neither when a task end his execution
             if interval_have_ended_this_cycle or previous_tasks_being_executed != tasks_being_executed:
@@ -376,8 +376,7 @@ class ALECSScheduler(CentralizedAbstractScheduler):
                                      [round(self.__major_cycle * cores_frequency)] if i > actual_execution_cycle)
 
         return ({k: self.__task_to_job[v] for k, v in self.__scheduling_points[actual_execution_cycle].items()},
-                next_scheduling_point - actual_execution_cycle,
-                None)
+                next_scheduling_point - actual_execution_cycle, None)
 
     def on_jobs_activation(self, global_time: float, activation_time: float,
                            jobs_id_tasks_ids: List[Tuple[int, int]]) -> bool:
