@@ -54,3 +54,81 @@ class RUNTest(unittest.TestCase):
         # Correct execution
         assert simulation_result.have_been_scheduled
         assert simulation_result.hard_real_time_deadline_missed_stack_trace is None
+
+    def test_complex_simulation_periodic_task_set(self):
+        task_set = TaskSet(
+            periodic_tasks=[
+                PeriodicTask(
+                    identification=0, worst_case_execution_time=63, relative_deadline=3.0,
+                    best_case_execution_time=None, execution_time_distribution=None,
+                    memory_footprint=None, priority=None,
+                    preemptive_execution=PreemptiveExecution.FULLY_PREEMPTIVE,
+                    deadline_criteria=Criticality.HARD, energy_consumption=None, phase=None,
+                    period=3.0),
+                PeriodicTask(
+                    identification=1, worst_case_execution_time=1976, relative_deadline=4.0,
+                    best_case_execution_time=None,
+                    execution_time_distribution=None, memory_footprint=None, priority=None,
+                    preemptive_execution=PreemptiveExecution.FULLY_PREEMPTIVE,
+                    deadline_criteria=Criticality.HARD,
+                    energy_consumption=None, phase=None, period=4.0),
+                PeriodicTask(
+                    identification=2, worst_case_execution_time=3408, relative_deadline=12.0,
+                    best_case_execution_time=None,
+                    execution_time_distribution=None, memory_footprint=None, priority=None,
+                    preemptive_execution=PreemptiveExecution.FULLY_PREEMPTIVE,
+                    deadline_criteria=Criticality.HARD,
+                    energy_consumption=None, phase=None, period=12.0),
+                PeriodicTask(
+                    identification=3, worst_case_execution_time=74, relative_deadline=2.0,
+                    best_case_execution_time=None,
+                    execution_time_distribution=None, memory_footprint=None, priority=None,
+                    preemptive_execution=PreemptiveExecution.FULLY_PREEMPTIVE,
+                    deadline_criteria=Criticality.HARD,
+                    energy_consumption=None, phase=None, period=2.0),
+                PeriodicTask(
+                    identification=4, worst_case_execution_time=3285, relative_deadline=15.0,
+                    best_case_execution_time=None,
+                    execution_time_distribution=None, memory_footprint=None, priority=None,
+                    preemptive_execution=PreemptiveExecution.FULLY_PREEMPTIVE,
+                    deadline_criteria=Criticality.HARD,
+                    energy_consumption=None, phase=None, period=15.0),
+                PeriodicTask(
+                    identification=5, worst_case_execution_time=2715, relative_deadline=5.0,
+                    best_case_execution_time=None,
+                    execution_time_distribution=None, memory_footprint=None, priority=None,
+                    preemptive_execution=PreemptiveExecution.FULLY_PREEMPTIVE,
+                    deadline_criteria=Criticality.HARD,
+                    energy_consumption=None, phase=None, period=5.0),
+                PeriodicTask(
+                    identification=6, worst_case_execution_time=408, relative_deadline=6.0,
+                    best_case_execution_time=None,
+                    execution_time_distribution=None, memory_footprint=None, priority=None,
+                    preemptive_execution=PreemptiveExecution.FULLY_PREEMPTIVE,
+                    deadline_criteria=Criticality.HARD,
+                    energy_consumption=None, phase=None, period=6.0),
+                PeriodicTask(
+                    identification=7, worst_case_execution_time=1336, relative_deadline=4.0,
+                    best_case_execution_time=None,
+                    execution_time_distribution=None, memory_footprint=None, priority=None,
+                    preemptive_execution=PreemptiveExecution.FULLY_PREEMPTIVE,
+                    deadline_criteria=Criticality.HARD,
+                    energy_consumption=None, phase=None, period=4.0)], aperiodic_tasks=[],
+            sporadic_tasks=[])
+
+        number_of_cores = 2
+        available_frequencies = {1000}
+
+        simulation_result, periodic_jobs, major_cycle = execute_scheduler_simulation_simple(
+            tasks=task_set,
+            aperiodic_tasks_jobs=[],
+            sporadic_tasks_jobs=[],
+            processor_definition=generate_default_cpu(number_of_cores, available_frequencies, 0, 0),
+            environment_specification=default_environment_specification(),
+            simulation_options=SimulationOptionsSpecification(id_debug=True),
+            scheduler=RUNScheduler()
+        )
+
+        # Correct execution
+        assert simulation_result.have_been_scheduled
+        assert simulation_result.hard_real_time_deadline_missed_stack_trace is None
