@@ -131,4 +131,6 @@ class RUNTest(unittest.TestCase):
 
         # Correct execution
         assert simulation_result.have_been_scheduled
+        if simulation_result.hard_real_time_deadline_missed_stack_trace is not None:
+            print(simulation_result.hard_real_time_deadline_missed_stack_trace.time)
         assert simulation_result.hard_real_time_deadline_missed_stack_trace is None
