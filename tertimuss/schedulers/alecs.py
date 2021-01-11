@@ -5,6 +5,7 @@ from typing import List, Optional, Tuple, Dict, Set
 
 import numpy
 from ortools.linear_solver import pywraplp
+import ortools
 
 from ..simulation_lib.math_utils import list_float_lcm, list_int_gcd
 from ..simulation_lib.schedulers_definition import CentralizedAbstractScheduler
@@ -70,7 +71,10 @@ class ALECSScheduler(CentralizedAbstractScheduler):
         number_of_partitions = len(partitions_size)
 
         # Create solver
-        solver = pywraplp.Solver.CreateSolver('GLOP')
+        if ortools.__version__ == '7.8.7959':
+            solver = pywraplp.Solver.CreateSolver('problem_name', 'GLOP')
+        else:
+            solver = pywraplp.Solver.CreateSolver('GLOP')
 
         # Create variables [task, period]
         variables_list = [
