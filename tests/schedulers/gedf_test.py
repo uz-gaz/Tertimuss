@@ -1,5 +1,5 @@
 import unittest
-from tertimuss.schedulers.g_edf import GlobalEarliestDeadlineFirstScheduler
+from tertimuss.schedulers.g_edf import GEDFScheduler
 from tertimuss.simulation_lib.simulator import execute_scheduler_simulation_simple, SimulationOptionsSpecification
 from tertimuss.simulation_lib.system_definition import PeriodicTask, PreemptiveExecution, Criticality, TaskSet
 from tertimuss.simulation_lib.system_definition.utils import generate_default_cpu, default_environment_specification
@@ -48,7 +48,7 @@ class GEDFTest(unittest.TestCase):
             processor_definition=generate_default_cpu(number_of_cores, available_frequencies, 0, 0),
             environment_specification=default_environment_specification(),
             simulation_options=SimulationOptionsSpecification(id_debug=True),
-            scheduler=GlobalEarliestDeadlineFirstScheduler()
+            scheduler=GEDFScheduler()
         )
 
         # Correct execution

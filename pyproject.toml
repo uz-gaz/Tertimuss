@@ -11,7 +11,6 @@ authors = ["AbelChT"]
 # Requirements
 [tool.poetry.dependencies]
 python = "~3.8"
-scipy = "~1.5.2"
-matplotlib = "~3.3.1"
-# ortools = "7.8.7959"
-ortools = "8.1.8487"
+scipy = "~1.6.0"
+matplotlib = "~3.3.3"
+ortools = "~8.1.8487" # ortools = "7.8.7959"
