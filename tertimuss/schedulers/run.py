@@ -144,7 +144,7 @@ def _edf_server_tasks_selection(previous_dual_selection: List[_RUNPack], selecti
 
     for server in previous_dual_selection:
         children_with_time_to_execute = [i for i in server.content if (i.pending_laxity > 0 and selecting_servers) or (
-                    i.pending_c > 0 and not selecting_servers)]
+                i.pending_c > 0 and not selecting_servers)]
         if len(children_with_time_to_execute) != 0:
             # Order the tasks by the EDF criteria
             # Sort packs in ascendant order of arrive
@@ -280,6 +280,7 @@ class RUNScheduler(CentralizedAbstractScheduler):
         Proceedings of the 32nd IEEE Real-Time Systems Symposium 2011
         DOI: 10.1109/RTSS.2011.17
     """
+
     def __init__(self):
         super().__init__(True)
         self.__scheduling_points: Dict[int, Dict[int, int]] = {}
@@ -336,6 +337,10 @@ class RUNScheduler(CentralizedAbstractScheduler):
 
         run_tree = _create_tree(task_set_run)
 
+        # Tasks periods in cycles
+        tasks_periods_cycles: Dict[int, int] = {i.identification: int(i.relative_deadline * selected_frequency) for i in
+                                                task_set.periodic_tasks}
+
         # Compute the schedule for a major cycle
         scheduling_points: Dict[int, Dict[int, int]] = {}
 
@@ -350,7 +355,8 @@ class RUNScheduler(CentralizedAbstractScheduler):
 
             # Mark for scheduling point
             # TODO: This can be improved because not always that a task ends, the scheduler should be called
-            if previous_tasks_being_executed != tasks_being_executed:
+            if previous_tasks_being_executed != tasks_being_executed or any(
+                    actual_cycle % tasks_periods_cycles[i] == 0 for i in tasks_being_executed if i != -1):
                 scheduling_points[actual_cycle] = {i: j for i, j in enumerate(tasks_being_executed) if j != -1}
 
             previous_tasks_being_executed = tasks_being_executed
