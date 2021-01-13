@@ -1,3 +1,4 @@
+![Tertimuss logo](./doc/images/logo/logo.svg)
 # Simulation environment for Real-Time Multiprocessor Schedulers
 
 This is a tool to test real-time thermal aware schedulers.
