@@ -9,8 +9,12 @@ class GEDFScheduler(CentralizedAbstractScheduler):
     Implements the Global Earliest Deadline First Scheduler (G-EDF)
     """
 
-    def __init__(self, is_debug=True):
-        super().__init__(is_debug)
+    def __init__(self, activate_debug: bool):
+        """
+        Create a global EDF scheduler instance
+        :param activate_debug:  True if want to communicate the scheduler to be in debug mode
+        """
+        super().__init__(activate_debug)
         self.__m = 0
         self.__tasks_relative_deadline: Dict[int, float] = {}
         self.__active_jobs_priority: Dict[int, float] = {}

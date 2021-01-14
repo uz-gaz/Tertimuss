@@ -11,13 +11,28 @@ from ..alecs import ALECSScheduler
 
 
 class CALECSScheduler(CentralizedAbstractScheduler):
-    def __init__(self):
-        super().__init__(True)
+    def __init__(self, activate_debug: bool, store_clusters_obtained: bool):
+        """
+        Create the CALECS scheduler instance
+        :param activate_debug: True if want to communicate the scheduler to be in debug mode
+        :param store_clusters_obtained: True if want to access later to the clusters obtained by the scheduler
+        """
+        super().__init__(activate_debug)
 
         # Declare class variables
         self.__scheduling_points: Dict[int, Dict[int, int]] = {}
         self.__major_cycle: float = 0
         self.__task_to_job: Dict[int, int] = {}
+
+        # Store the number of CPUs in each cluster
+        self.__clusters_obtained: Optional[List[int]] = [] if store_clusters_obtained else None
+
+    def get_clusters_obtained(self) -> Optional[List[int]]:
+        """
+        Return the configuration of the clusters obtained
+        :return: number of cpus in each cluster
+        """
+        return self.__clusters_obtained
 
     def check_schedulability(self, processor_definition: ProcessorDefinition,
                              environment_specification: EnvironmentSpecification, task_set: TaskSet) -> [bool,
@@ -96,6 +111,10 @@ class CALECSScheduler(CentralizedAbstractScheduler):
         partitions_obtained: List[Tuple[int, Set[int]]] = partition_algorithm.do_partition(task_set_calecs,
                                                                                            number_of_used_processors)
 
+        # Save the clusters obtained
+        if self.__clusters_obtained is not None:
+            self.__clusters_obtained = [i for i, _ in partitions_obtained]
+
         last_cpu_id_used = 0
 
         clusters_scheduling_points = []
@@ -140,7 +159,7 @@ class CALECSScheduler(CentralizedAbstractScheduler):
                                          aperiodic_tasks=[],
                                          sporadic_tasks=[])
 
-                local_scheduler = ALECSScheduler()
+                local_scheduler = ALECSScheduler(self.is_debug)
                 local_scheduler.offline_stage(cpu_specification=local_processor_definition,
                                               task_set=local_task_set,
                                               environment_specification=environment_specification)

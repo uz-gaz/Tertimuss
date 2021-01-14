@@ -13,7 +13,7 @@ from tertimuss.cubed_space_thermal_simulator.physics_utils import create_energy_
 
 
 class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
-    # @unittest.skip("Manual visualization test")
+    @unittest.skip("Manual visualization test")
     def test_processor_heat_generation_plot(self):
         # Dimensions of the core
         core_dimensions = UnitDimensions(x=10, z=2, y=10)

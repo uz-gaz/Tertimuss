@@ -24,8 +24,12 @@ class ALECSScheduler(CentralizedAbstractScheduler):
         15th IFAC Workshop on Discrete Event Systems WODES 2020
     """
 
-    def __init__(self) -> None:
-        super().__init__(True)
+    def __init__(self, activate_debug: bool) -> None:
+        """
+        Create an ALECS scheduler instance
+        :param activate_debug:  True if want to communicate the scheduler to be in debug mode
+        """
+        super().__init__(activate_debug)
 
         # Declare class variables
         self.__scheduling_points: Dict[int, Dict[int, int]] = {}

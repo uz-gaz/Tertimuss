@@ -271,6 +271,12 @@ def _assign_tasks_to_cpu(task_set: List[_RUNTask], active_tasks: List[int], m: i
     return tasks_assignation
 
 
+def _obtain_utilization_of_run_pack_subtree(run_pack: _RUNPack) -> float:
+    return sum(
+        [_obtain_utilization_of_run_pack_subtree(i) if isinstance(i, _RUNPack) else i.c / i.d for i in
+         run_pack.content])
+
+
 class RUNScheduler(CentralizedAbstractScheduler):
     """
     Implements the Reduction to Uniprocessor Scheduler (RUN)
@@ -281,11 +287,26 @@ class RUNScheduler(CentralizedAbstractScheduler):
         DOI: 10.1109/RTSS.2011.17
     """
 
-    def __init__(self):
-        super().__init__(True)
+    def __init__(self, activate_debug: bool, store_clusters_obtained: bool):
+        """
+        Create the RUN scheduler instance
+        :param activate_debug: True if want to communicate the scheduler to be in debug mode
+        :param store_clusters_obtained: True if want to access later to the clusters obtained by the scheduler
+        """
+        super().__init__(activate_debug)
         self.__scheduling_points: Dict[int, Dict[int, int]] = {}
         self.__major_cycle: float = 0
         self.__task_to_job: Dict[int, int] = {}
+
+        # Store the number of CPUs in each cluster
+        self.__clusters_obtained: Optional[List[int]] = [] if store_clusters_obtained else None
+
+    def get_clusters_obtained(self) -> Optional[List[int]]:
+        """
+        Return the configuration of the clusters obtained
+        :return: number of cpus in each cluster
+        """
+        return self.__clusters_obtained
 
     def check_schedulability(self, processor_definition: ProcessorDefinition,
                              environment_specification: EnvironmentSpecification, task_set: TaskSet) -> [bool,
@@ -336,6 +357,9 @@ class RUNScheduler(CentralizedAbstractScheduler):
             task_set_run.append(_RUNTask(-1, free_cycles, major_cycle_in_cycles))
 
         run_tree = _create_tree(task_set_run)
+
+        if self.__clusters_obtained is not None:
+            self.__clusters_obtained = [round(_obtain_utilization_of_run_pack_subtree(i)) for i in run_tree]
 
         # Tasks periods in cycles
         tasks_periods_cycles: Dict[int, int] = {i.identification: int(i.relative_deadline * selected_frequency) for i in

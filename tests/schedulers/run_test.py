@@ -48,7 +48,7 @@ class RUNTest(unittest.TestCase):
             processor_definition=generate_default_cpu(number_of_cores, available_frequencies, 0, 0),
             environment_specification=default_environment_specification(),
             simulation_options=SimulationOptionsSpecification(id_debug=True),
-            scheduler=RUNScheduler()
+            scheduler=RUNScheduler(activate_debug=True, store_clusters_obtained=True)
         )
 
         # Correct execution
@@ -126,7 +126,7 @@ class RUNTest(unittest.TestCase):
             processor_definition=generate_default_cpu(number_of_cores, available_frequencies, 0, 0),
             environment_specification=default_environment_specification(),
             simulation_options=SimulationOptionsSpecification(id_debug=True),
-            scheduler=RUNScheduler()
+            scheduler=RUNScheduler(activate_debug=True, store_clusters_obtained=True)
         )
 
         # Correct execution
