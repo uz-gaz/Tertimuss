@@ -191,7 +191,7 @@ def _dual_server_selection(level: int, parent: _RUNPack, previous_edf_selection:
     return servers_with_pending_c
 
 
-def _select_tasks_to_execute_one_parent(parent: _RUNPack, actual_cycle: int, quantum: int) -> List[_RUNTask]:
+def _select_tasks_to_execute_one_parent(parent: _RUNPack, actual_cycle: int) -> List[_RUNTask]:
     tree_levels = _count_tree_levels(parent)
     dual_selection = [parent]
     for level in range(1, tree_levels - 1):
@@ -200,34 +200,34 @@ def _select_tasks_to_execute_one_parent(parent: _RUNPack, actual_cycle: int, qua
 
         # Decrease pending dual_c (laxity) of those servers selected by edf
         for server in edf_selection:
-            server.pending_laxity -= quantum
-            server.last_time_executed_edf = actual_cycle + quantum
+            server.pending_laxity -= 1
+            server.last_time_executed_edf = actual_cycle + 1
 
         # Select servers from the set of dual servers previously selected
         dual_selection = _dual_server_selection(level, parent, edf_selection)
 
         # Decrease pending c of those servers selected
         for server in dual_selection:
-            server.pending_c -= quantum
-            server.last_time_executed_dual = actual_cycle + quantum
+            server.pending_c -= 1
+            server.last_time_executed_dual = actual_cycle + 1
 
     # Select tasks by EDF
     edf_selection_tasks = _edf_server_tasks_selection(dual_selection, False)
 
     # Decrease pending dual_c (laxity) of those servers selected by edf
     for server in edf_selection_tasks:
-        server.pending_c -= quantum
-        server.last_time_executed_edf = actual_cycle + quantum
+        server.pending_c -= 1
+        server.last_time_executed_edf = actual_cycle + 1
 
     # In the leafs of the tree, we must have Tasks
     return [i for i in edf_selection_tasks if isinstance(i, _RUNTask)]
 
 
-def _select_tasks_to_execute(parents: List[_RUNPack], actual_cycle: int, quantum: int) -> List[_RUNTask]:
+def _select_tasks_to_execute(parents: List[_RUNPack], actual_cycle: int) -> List[_RUNTask]:
     _update_virtual_task_info(parents, actual_cycle)
     tasks_to_execute = []
     for parent in parents:
-        actual_tasks = _select_tasks_to_execute_one_parent(parent, actual_cycle, quantum)
+        actual_tasks = _select_tasks_to_execute_one_parent(parent, actual_cycle)
         tasks_to_execute += actual_tasks
     return tasks_to_execute
 
@@ -368,17 +368,13 @@ class RUNScheduler(CentralizedAbstractScheduler):
         # Compute the schedule for a major cycle
         scheduling_points: Dict[int, Dict[int, int]] = {}
 
-        # TODO: This must be calculated to improve performance
-        quantum: int = 1
-
         previous_tasks_being_executed: List[int] = m * [-1]
 
         for actual_cycle in range(0, major_cycle_in_cycles):
-            selected_tasks = _select_tasks_to_execute(run_tree, actual_cycle, quantum)
+            selected_tasks = _select_tasks_to_execute(run_tree, actual_cycle)
             tasks_being_executed = _assign_tasks_to_cpu(selected_tasks, previous_tasks_being_executed, m)
 
             # Mark for scheduling point
-            # TODO: This can be improved because not always that a task ends, the scheduler should be called
             if previous_tasks_being_executed != tasks_being_executed or any(
                     actual_cycle % tasks_periods_cycles[i] == 0 for i in tasks_being_executed if i != -1):
                 scheduling_points[actual_cycle] = {i: j for i, j in enumerate(tasks_being_executed) if j != -1}
