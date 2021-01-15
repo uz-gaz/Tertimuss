@@ -1,3 +1,5 @@
+import pickle
+import time
 import unittest
 from tertimuss.schedulers.calecs import CALECSScheduler
 from tertimuss.simulation_lib.simulator import execute_scheduler_simulation_simple, SimulationOptionsSpecification
@@ -54,3 +56,40 @@ class CALECSTest(unittest.TestCase):
         # Correct execution
         assert simulation_result.have_been_scheduled
         assert simulation_result.hard_real_time_deadline_missed_stack_trace is None
+
+    def test_partitioned_task_set(self):
+        with open("_partitioned_task_set.pickle", "rb") as text_file:
+            task_set = pickle.load(text_file)
+
+        number_of_cores = 4
+        available_frequencies = {1000}
+
+        start = time.time()
+
+        simulation_result, periodic_jobs, major_cycle = execute_scheduler_simulation_simple(
+            tasks=task_set,
+            aperiodic_tasks_jobs=[],
+            sporadic_tasks_jobs=[],
+            processor_definition=generate_default_cpu(number_of_cores, available_frequencies, 0, 0),
+            environment_specification=default_environment_specification(),
+            simulation_options=SimulationOptionsSpecification(id_debug=True),
+            scheduler=CALECSScheduler(activate_debug=True, store_clusters_obtained=True)
+        )
+
+        end = time.time()
+
+        print("Schedulers simulation time:", end - start)
+
+        # with open("_partitioned_task_set_expected_solution.pickle", "wb") as text_file:
+        #     pickle.dump((simulation_result, periodic_jobs, major_cycle), text_file)
+
+        with open("_partitioned_task_set_expected_solution_calecs.pickle", "rb") as text_file:
+            (expected_simulation_result, expected_periodic_jobs, expected_major_cycle) = pickle.load(text_file)
+
+        # Correct execution
+        assert simulation_result.have_been_scheduled
+        assert simulation_result.hard_real_time_deadline_missed_stack_trace is None
+
+        assert expected_simulation_result == simulation_result
+        assert periodic_jobs == expected_periodic_jobs
+        assert major_cycle == expected_major_cycle
