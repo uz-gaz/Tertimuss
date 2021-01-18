@@ -1,3 +1,4 @@
+import os
 import pickle
 import time
 import unittest
@@ -163,7 +164,8 @@ class RUNTest(unittest.TestCase):
         # with open("_partitioned_task_set_expected_solution_run.pickle", "wb") as text_file:
         #     pickle.dump((simulation_result, periodic_jobs, major_cycle), text_file)
 
-        with open("_partitioned_task_set_expected_solution_run.pickle", "rb") as text_file:
+        with open(os.path.join(os.path.dirname(__file__), "_partitioned_task_set_expected_solution_run.pickle"),
+                  "rb") as text_file:
             (expected_simulation_result, expected_periodic_jobs, expected_major_cycle) = pickle.load(text_file)
 
         # Correct execution

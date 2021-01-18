@@ -1,3 +1,4 @@
+import os
 import pickle
 import time
 import unittest
@@ -58,7 +59,7 @@ class CALECSTest(unittest.TestCase):
         assert simulation_result.hard_real_time_deadline_missed_stack_trace is None
 
     def test_partitioned_task_set(self):
-        with open("_partitioned_task_set.pickle", "rb") as text_file:
+        with open(os.path.join(os.path.dirname(__file__), "_partitioned_task_set.pickle"), "rb") as text_file:
             task_set = pickle.load(text_file)
 
         number_of_cores = 4
