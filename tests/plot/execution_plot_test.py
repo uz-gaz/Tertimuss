@@ -10,7 +10,8 @@ class ExecutionPlotTest(unittest.TestCase):
         tasks, _, simulation_result = get_simulation_result()
 
         fig = generate_task_execution_plot(task_set=tasks, schedule_result=simulation_result,
-                                           title="Task execution")
+                                           title="Task execution",
+                                           outline_boxes=True)
         fig.show()
 
     @unittest.skip("Manual visualization test")
@@ -18,5 +19,6 @@ class ExecutionPlotTest(unittest.TestCase):
         tasks, jobs_list, simulation_result = get_simulation_result()
 
         fig = generate_job_execution_plot(task_set=tasks, schedule_result=simulation_result, jobs=jobs_list,
-                                          title="Job execution")
+                                          title="Job execution",
+                                           outline_boxes=True)
         fig.show()

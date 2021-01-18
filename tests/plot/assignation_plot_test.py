@@ -10,7 +10,8 @@ class AssignationPlotTest(unittest.TestCase):
         tasks, _, simulation_result = get_simulation_result()
 
         fig = generate_task_assignation_plot(task_set=tasks, schedule_result=simulation_result,
-                                             title="Task assignation")
+                                             title="Task assignation",
+                                             outline_boxes=True)
         fig.show()
 
     @unittest.skip("Manual visualization test")
@@ -18,5 +19,6 @@ class AssignationPlotTest(unittest.TestCase):
         tasks, jobs_list, simulation_result = get_simulation_result()
 
         fig = generate_job_assignation_plot(task_set=tasks, schedule_result=simulation_result, jobs=jobs_list,
-                                            title="Job assignation")
+                                            title="Job assignation",
+                                            outline_boxes=True)
         fig.show()

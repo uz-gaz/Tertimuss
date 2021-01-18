@@ -3,15 +3,20 @@ from typing import Dict, Optional, List
 from matplotlib import pyplot, patches
 from matplotlib.figure import Figure
 
-from ._color_palette import __obtain_color_palette
+from . import AbstractColorPaletteGenerator, DefaultColorPaletteGenerator
 from ..simulation_lib.simulator import RawSimulationResult, calculate_major_cycle
 from ..simulation_lib.system_definition import TaskSet, Job
 
 
-def generate_task_execution_plot(task_set: TaskSet, schedule_result: RawSimulationResult, start_time: float = 0,
-                                 end_time: Optional[float] = None, title: Optional[str] = None) -> Figure:
+def generate_task_execution_plot(
+        task_set: TaskSet, schedule_result: RawSimulationResult, start_time: float = 0,
+        end_time: Optional[float] = None, title: Optional[str] = None,
+        outline_boxes: bool = False,
+        color_palette_generator: AbstractColorPaletteGenerator = DefaultColorPaletteGenerator()) -> Figure:
     """
     Generate tasks execution plot
+    :param color_palette_generator: color palette applied to the plot
+    :param outline_boxes: If true will outline the boxes
     :param task_set: Task set
     :param schedule_result: Result of the simulation
     :param start_time: Plot start time in seconds
@@ -21,10 +26,9 @@ def generate_task_execution_plot(task_set: TaskSet, schedule_result: RawSimulati
     """
     cpu_color_id: Dict[int, int] = {j: i for i, j in enumerate(sorted(schedule_result.job_sections_execution.keys()))}
 
-    color_palette = __obtain_color_palette(len(cpu_color_id))
-
-    tasks_ids: List[int] = sorted([i.identification for i in task_set.periodic_tasks + task_set.aperiodic_tasks +
-                                   task_set.sporadic_tasks])
+    color_palette = color_palette_generator.obtain_color_palette(len(cpu_color_id))
+    task_set.tasks()
+    tasks_ids: List[int] = sorted([i.identification for i in task_set.tasks()])
 
     tasks_to_lines_assignation: Dict[int, int] = {j: i for i, j in enumerate(tasks_ids)}
 
@@ -35,7 +39,8 @@ def generate_task_execution_plot(task_set: TaskSet, schedule_result: RawSimulati
             ax.barh(tasks_to_lines_assignation[section.task_id],
                     width=section.execution_end_time - section.execution_start_time,
                     left=section.execution_start_time,
-                    color=color_palette[cpu_color_id[cpu_id]])
+                    color=color_palette[cpu_color_id[cpu_id]],
+                    edgecolor='black' if outline_boxes else None)
 
     ax.set_yticks(range(len(tasks_ids)))
     ax.set_yticklabels([f'Task {i}' for i in tasks_ids])
@@ -62,11 +67,15 @@ def generate_task_execution_plot(task_set: TaskSet, schedule_result: RawSimulati
     return fig
 
 
-def generate_job_execution_plot(task_set: TaskSet, jobs: List[Job], schedule_result: RawSimulationResult,
-                                start_time: float = 0, end_time: Optional[float] = None,
-                                title: Optional[str] = None) -> Figure:
+def generate_job_execution_plot(
+        task_set: TaskSet, jobs: List[Job], schedule_result: RawSimulationResult,
+        start_time: float = 0, end_time: Optional[float] = None,
+        title: Optional[str] = None, outline_boxes: bool = False,
+        color_palette_generator: AbstractColorPaletteGenerator = DefaultColorPaletteGenerator()) -> Figure:
     """
     Generate jobs execution plot
+    :param color_palette_generator: color palette applied to the plot
+    :param outline_boxes: If true will outline the boxes
     :param task_set: Task set
     :param jobs: Jobs in the system
     :param schedule_result: Result of the simulation
@@ -77,7 +86,7 @@ def generate_job_execution_plot(task_set: TaskSet, jobs: List[Job], schedule_res
     """
     cpu_color_id: Dict[int, int] = {j: i for i, j in enumerate(schedule_result.job_sections_execution.keys())}
 
-    color_palette = __obtain_color_palette(len(cpu_color_id))
+    color_palette = color_palette_generator.obtain_color_palette(len(cpu_color_id))
 
     jobs_ids: List[int] = sorted([i.identification for i in jobs])
 
@@ -90,7 +99,8 @@ def generate_job_execution_plot(task_set: TaskSet, jobs: List[Job], schedule_res
             ax.barh(jobs_to_lines_assignation[section.job_id],
                     width=section.execution_end_time - section.execution_start_time,
                     left=section.execution_start_time,
-                    color=color_palette[cpu_color_id[cpu_id]])
+                    color=color_palette[cpu_color_id[cpu_id]],
+                    edgecolor='black' if outline_boxes else None)
 
     ax.set_yticks(range(len(jobs_ids)))
     ax.set_yticklabels([f'Jobs {i}' for i in jobs_ids])
