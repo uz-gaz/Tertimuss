@@ -20,5 +20,5 @@ class ExecutionPlotTest(unittest.TestCase):
 
         fig = generate_job_execution_plot(task_set=tasks, schedule_result=simulation_result, jobs=jobs_list,
                                           title="Job execution",
-                                           outline_boxes=True)
+                                          outline_boxes=True)
         fig.show()
