@@ -141,10 +141,6 @@ def execute_scheduler_simulation(jobs: List[Job],
     :param simulation_options: Options of the simulation
     :return: Simulation result
     """
-    # TODO: Check tasks specification (memory_footprint, WCET, d)
-    # TODO: CPU specification
-    # TODO: Ass support for distributed schedulers with thermal
-
     # Check jobs
     if len(jobs) == 0:
         raise Exception("The system mist contains at least one job to simulate")
@@ -363,7 +359,6 @@ def _execute_centralized_scheduler_simulation(jobs: List[Job],
     :param simulation_options: Options of the simulation
     :return: Simulation result
     """
-    # TODO: Context switch and migration cost must be implemented
     # Possible frequencies
     # As we are simulating with a centralized scheduler, only frequencies possibles in all cores are available
     available_frequencies = Set.intersection(
