@@ -1,15 +1,17 @@
 import functools
 import operator
-from typing import List, Optional, Union, Tuple, Dict, Set
+from typing import List, Optional, Tuple, Dict, Set
 
 import numpy
 import scipy.sparse
 import scipy.sparse.linalg
 import scipy.linalg
+import scipy.optimize
 
 from tertimuss.tcpn_simulator import TCPNSimulatorVariableStepRK
 from tertimuss.simulation_lib.math_utils import list_float_lcm, list_int_gcd
-from ._system_tcpn_model import ThermalModelSelector, TasksModel, ProcessorModel
+from ._system_tcpn_model import ThermalModelSelector, TasksModel, ProcessorModel, ThermalModelFrequencyAware, \
+    ThermalModelEnergy
 from tertimuss.simulation_lib.schedulers_definition import CentralizedAbstractScheduler
 from tertimuss.simulation_lib.system_definition import ProcessorDefinition, EnvironmentSpecification, TaskSet
 
@@ -60,15 +62,14 @@ class OLDTFSScheduler(CentralizedAbstractScheduler):
     def check_schedulability(self, cpu_specification: ProcessorDefinition,
                              environment_specification: EnvironmentSpecification, task_set: TaskSet) \
             -> [bool, Optional[str]]:
-        pass
+        return True, ""
 
     @staticmethod
     def __obtain_thermal_constraint(cpu_specification: ProcessorDefinition,
                                     environment_specification: EnvironmentSpecification,
                                     task_set: TaskSet,
                                     thermal_model_type: ThermalModelSelector,
-                                    simulation_precision,
-                                    mesh_step: float
+                                    simulation_precision
                                     ) -> [scipy.sparse.csc_matrix, scipy.sparse.csc_matrix, scipy.sparse.csc_matrix,
                                           scipy.sparse.csc_matrix]:
         """
@@ -77,12 +78,28 @@ class OLDTFSScheduler(CentralizedAbstractScheduler):
         # Number of cores
         m = len(cpu_specification.cores_definition)
 
-        # Board and micros conductivity
-        pre_board_cond, post_board_cond, lambda_board_cond = thermal_model_type.thermal_model_selector.value.simple_conductivity(
-            cpu_specification.cores_specification.physical_properties, mesh_step, simulation_precision)
+        # We assume that we are in an homogeneous platform
+        common_core_specification = cpu_specification.cores_definition[0].core_type
 
-        pre_micro_cond, post_micro_cond, lambda_micro_cond = thermal_model_type.thermal_model_selector.value.simple_conductivity(
-            cpu_specification.cores_specification.physical_properties, mesh_step, simulation_precision)
+        thermal_model = ThermalModelFrequencyAware(
+            cpu_specification, environment_specification, task_set, simulation_precision) if \
+            thermal_model_type == ThermalModelSelector.THERMAL_MODEL_FREQUENCY_BASED else \
+            ThermalModelEnergy(cpu_specification, environment_specification, task_set, simulation_precision)
+
+        mesh_step = cpu_specification.measure_unit
+
+        # Board and micros conductivity
+        pre_board_cond, post_board_cond, lambda_board_cond = thermal_model.simple_conductivity(
+            cpu_specification.board_definition.dimensions,
+            cpu_specification.board_definition.material,
+            mesh_step,
+            simulation_precision)
+
+        pre_micro_cond, post_micro_cond, lambda_micro_cond = thermal_model.simple_conductivity(
+            common_core_specification.dimensions,
+            common_core_specification.material,
+            mesh_step,
+            simulation_precision)
 
         # Number of places for the board
         p_board = pre_board_cond.shape[0]
@@ -106,24 +123,18 @@ class OLDTFSScheduler(CentralizedAbstractScheduler):
 
         # Add transitions between micro and board
         # Connections between micro places and board places
-        pre_int, post_int, lambda_vector_int = thermal_model_type.thermal_model_selector.value.add_interactions_layer(
-            p_board, p_one_micro, cpu_specification, mesh_step, simulation_precision)
+        pre_int, post_int, lambda_vector_int = thermal_model.add_interactions_layer(
+            p_board, p_one_micro, cpu_specification, simulation_precision)
 
         # Convection
         pre_conv, post_conv, lambda_vector_conv, pre_conv_air, post_conv_air, lambda_vector_conv_air = \
-            thermal_model_type.thermal_model_selector.value.add_convection(p_board, p_one_micro,
-                                                                           cpu_specification,
-                                                                           environment_specification,
-                                                                           simulation_precision)
-
-        clock_relative_frequencies = [i / max(cpu_specification.cores_specification.available_frequencies) for i in
-                                      cpu_specification.cores_specification.available_frequencies]
+            thermal_model.add_convection(p_board, p_one_micro, cpu_specification, environment_specification,
+                                         simulation_precision)
 
         # Heat generation dynamic
         pre_heat_dynamic, post_heat_dynamic, lambda_vector_heat_dynamic, power_consumption = \
-            thermal_model_type.thermal_model_selector.value.add_heat_by_dynamic_power(cpu_specification,
-                                                                                      task_set,
-                                                                                      clock_relative_frequencies)
+            thermal_model.add_heat_by_dynamic_power(p_board, p_one_micro, cpu_specification, task_set,
+                                                    simulation_precision)
 
         # Number places of boards and micros
         places_board_and_micros = m * p_one_micro + p_board
@@ -174,12 +185,15 @@ class OLDTFSScheduler(CentralizedAbstractScheduler):
         # ti = numpy.asarray([i.temperature for i in global_specification.tasks_specification.periodic_tasks])
         # ia = h / ti
         n = len(task_set.periodic_tasks)
-        m = cpu_specification.cores_specification.number_of_cores
+        m = len(cpu_specification.cores_definition)
+
+        # We assume that we are in an homogeneous platform
+        common_core_specification = cpu_specification.cores_definition[0].core_type
 
         # Inequality constraint
         # Create matrix diag([cc1/H ... ccn/H cc1/H .....]) of n*m
         ch_vector = numpy.asarray(
-            m * [i.worst_case_execution_time / max(cpu_specification.cores_specification.available_frequencies) for i in
+            m * [i.worst_case_execution_time / max(common_core_specification.available_frequencies) for i in
                  task_set.periodic_tasks]) / h
         c_h = numpy.diag(ch_vector)
 
@@ -187,7 +201,7 @@ class OLDTFSScheduler(CentralizedAbstractScheduler):
 
         au = scipy.linalg.block_diag(
             *(m * [
-                [i.worst_case_execution_time / max(cpu_specification.cores_specification.available_frequencies) for i in
+                [i.worst_case_execution_time / max(common_core_specification.available_frequencies) for i in
                  task_set.periodic_tasks]])) / h
 
         beq = numpy.transpose(number_of_jobs)
@@ -205,8 +219,7 @@ class OLDTFSScheduler(CentralizedAbstractScheduler):
                                                                       environment_specification,
                                                                       task_set,
                                                                       thermal_model_type,
-                                                                      simulation_precision,
-                                                                      mesh_step)
+                                                                      simulation_precision)
 
             # Inverse precision
             # WARNING: This is a workaround to deal with float precision
@@ -237,7 +250,7 @@ class OLDTFSScheduler(CentralizedAbstractScheduler):
         res = None
         while lpp_method_index < len(methods_for_solving_the_lpp) and not lpp_solved:
             try:
-                res = numpy.optimize.linprog(c=objective, A_ub=a, b_ub=b, A_eq=a_eq, b_eq=beq, bounds=bounds,
+                res = scipy.optimize.linprog(c=objective, A_ub=a, b_ub=b, A_eq=a_eq, b_eq=beq, bounds=bounds,
                                              method=methods_for_solving_the_lpp[lpp_method_index])
 
                 if res.success:
@@ -283,7 +296,7 @@ class OLDTFSScheduler(CentralizedAbstractScheduler):
         # model of the scheduler
         n_periodic = len(task_set.periodic_tasks)
 
-        m = cpu_specification.cores_specification.number_of_cores
+        m = len(cpu_specification.cores_definition)
 
         # Create tasks-processors model
         tasks_model: TasksModel = TasksModel(cpu_specification, task_set, simulation_precision)
@@ -358,7 +371,7 @@ class OLDTFSScheduler(CentralizedAbstractScheduler):
         n = len(task_set.periodic_tasks)
 
         # Number of cores
-        m = cpu_specification.cores_specification.number_of_cores
+        m = len(cpu_specification.cores_definition)
 
         ti = [i.relative_deadline for i in task_set.periodic_tasks]
 
@@ -399,7 +412,10 @@ class OLDTFSScheduler(CentralizedAbstractScheduler):
         self.__m = m
         self.__n = n
 
-        return max(cpu_specification.cores_specification.available_frequencies)
+        # We assume that we are in an homogeneous platform
+        common_core_specification = cpu_specification.cores_definition[0].core_type
+
+        return max(common_core_specification.available_frequencies)
 
     def schedule_policy(self, global_time: float, active_jobs_id: Set[int],
                         jobs_being_executed_id: Dict[int, int], cores_frequency: int,

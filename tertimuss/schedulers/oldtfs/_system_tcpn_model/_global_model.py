@@ -1,5 +1,3 @@
-from typing import Union
-
 import numpy
 import scipy.sparse
 
@@ -7,7 +5,7 @@ from ._processor_model import ProcessorModel
 from ._tasks_model import TasksModel
 from ._thermal_model import ThermalModel
 from ._thermal_model_selector import ThermalModelSelector
-from tertimuss.simulation_lib.system_definition import HomogeneousCpuSpecification, EnvironmentSpecification, TaskSet
+from tertimuss.simulation_lib.system_definition import ProcessorDefinition, EnvironmentSpecification, TaskSet
 
 
 class GlobalModel(object):
@@ -15,7 +13,7 @@ class GlobalModel(object):
     Encapsulate all TCPN which represent the global model of the simulation
     """
 
-    def __init__(self, cpu_specification: Union[HomogeneousCpuSpecification],
+    def __init__(self, cpu_specification: ProcessorDefinition,
                  environment_specification: EnvironmentSpecification,
                  task_set: TaskSet,
                  simulate_thermal=True,
@@ -28,7 +26,7 @@ class GlobalModel(object):
 
         n_aperiodic = len(task_set.aperiodic_tasks)
 
-        m = cpu_specification.cores_specification.number_of_cores
+        m = len(cpu_specification.cores_definition)
 
         # Create tasks-processors model
         tasks_model: TasksModel = TasksModel(cpu_specification, task_set, simulation_precision)

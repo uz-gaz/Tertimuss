@@ -1,9 +1,7 @@
-from typing import Union
-
 import numpy
 import scipy.sparse
 
-from tertimuss.simulation_lib.system_definition import TaskSet, HomogeneousCpuSpecification
+from tertimuss.simulation_lib.system_definition import TaskSet, ProcessorDefinition
 
 
 class TasksModel(object):
@@ -11,13 +9,15 @@ class TasksModel(object):
     Create the TCPN that represents the task model
     """
 
-    def __init__(self, cpu_specification: Union[HomogeneousCpuSpecification],
+    def __init__(self, cpu_specification: ProcessorDefinition,
                  task_set: TaskSet,
                  simulation_precision):
         n_periodic = len(task_set.periodic_tasks)
         n_aperiodic = len(task_set.aperiodic_tasks)
-        m = cpu_specification.cores_specification.number_of_cores
-        base_frequency = max(cpu_specification.cores_specification.available_frequencies)
+        m = len(cpu_specification.cores_definition)
+        common_core_specification = cpu_specification.cores_definition[0].core_type
+
+        base_frequency = max(common_core_specification.available_frequencies)
         # total of places of the TCPN ((p^w_i,p^cc_i) for each task)
         p = 2 * n_periodic + n_aperiodic
 

@@ -1,9 +1,7 @@
-from typing import Union
-
 import numpy
 import scipy.sparse
 
-from tertimuss.simulation_lib.system_definition import TaskSet, HomogeneousCpuSpecification
+from tertimuss.simulation_lib.system_definition import TaskSet, ProcessorDefinition
 
 
 class ProcessorModel(object):
@@ -11,11 +9,11 @@ class ProcessorModel(object):
     Create the TCPN that represents the processor model
     """
 
-    def __init__(self, cpu_specification: Union[HomogeneousCpuSpecification],
+    def __init__(self, cpu_specification: ProcessorDefinition,
                  task_set: TaskSet,
                  simulation_precision):
         n = len(task_set.periodic_tasks) + len(task_set.aperiodic_tasks)
-        m = cpu_specification.cores_specification.number_of_cores
+        m = len(cpu_specification.cores_definition)
 
         # Transition rate (n)
         eta = 100

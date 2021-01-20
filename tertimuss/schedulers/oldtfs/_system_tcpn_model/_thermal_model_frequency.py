@@ -24,13 +24,14 @@ class ThermalModelFrequencyAware(ThermalModel):
         :param clock_relative_frequencies: Core frequencies
         :return: an array with shape (m , n). Each place contains the weight in the arcs t_exec_n -> cpu_m
         """
-
-        n: int = len(task_set.periodic_tasks) + len(task_set.aperiodic_tasks)
+        # Assuming homogeneous CPU
+        common_core_specification = cpu_specification.cores_definition[0].core_type
 
         consumption_by_cpu = [
-            (j.cores_specification.energy_consumption_properties.dynamic_alpha * (f ** 3) +
-             j.cores_specification.energy_consumption_properties.dynamic_beta) for f in
-            clock_relative_frequencies for _, j in
-            sorted(cpu_specification.cores_definition.items(), key=lambda k: k[0])]
+            (common_core_specification.core_energy_consumption.dynamic_alpha * (f ** 3) +
+             common_core_specification.core_energy_consumption.dynamic_beta) for f in
+            clock_relative_frequencies for _ in
+            range(len(cpu_specification.cores_definition))]
 
-        return numpy.asarray(consumption_by_cpu).reshape((-1, 1))
+        return numpy.repeat(numpy.asarray(consumption_by_cpu).reshape((-1, 1)),
+                            len(task_set.periodic_tasks) + len(task_set.aperiodic_tasks), axis=1)

@@ -1,9 +1,11 @@
 import abc
-from typing import List, Union
+from typing import List
 import numpy
 import scipy.sparse
 
-from tertimuss.simulation_lib.system_definition import TaskSet, EnvironmentSpecification,
+from tertimuss.cubed_space_thermal_simulator import UnitDimensions, UnitLocation
+from tertimuss.simulation_lib.system_definition import TaskSet, EnvironmentSpecification, SolidMaterial, \
+    ProcessorDefinition
 
 
 class ThermalModel(object):
@@ -12,16 +14,18 @@ class ThermalModel(object):
     """
 
     @staticmethod
-    def simple_conductivity(material_cuboid: MaterialCuboid, mesh_step: float, simulation_precision) -> [
-        scipy.sparse.lil_matrix, scipy.sparse.lil_matrix, numpy.ndarray]:
-        d_side = mesh_step / 1000
+    def simple_conductivity(cuboid_dimensions: UnitDimensions, cuboid_material: SolidMaterial, mesh_step: float,
+                            simulation_precision) -> [scipy.sparse.lil_matrix,
+                                                      scipy.sparse.lil_matrix,
+                                                      numpy.ndarray]:
+        d_side = mesh_step
 
-        x: int = round(material_cuboid.x / mesh_step)
-        y: int = round(material_cuboid.y / mesh_step)
+        x: int = cuboid_dimensions.x
+        y: int = cuboid_dimensions.y
 
-        rho: float = material_cuboid.p
-        k: float = material_cuboid.k
-        cp: float = material_cuboid.c_p
+        rho: float = cuboid_material.density
+        k: float = cuboid_material.thermalConductivity
+        cp: float = cuboid_material.specificHeatCapacity
 
         # Horizontal lambda and vertical lambda was refactored to achieve more precision
         # Horizontal lambda is equal to vertical lambda because sides are equals
@@ -80,20 +84,20 @@ class ThermalModel(object):
         return pre, post, lambda_vector
 
     @staticmethod
-    def __get_cpu_coordinates(origin: Origin, cpu_spec: MaterialCuboid, board_spec: MaterialCuboid,
-                              mesh_step: float) -> List[int]:
-        x: int = round(cpu_spec.x / mesh_step)
-        y: int = round(cpu_spec.y / mesh_step)
+    def __get_cpu_coordinates(origin: UnitLocation, cpu_dimensions: UnitDimensions, board_dimensions: UnitDimensions) \
+            -> List[int]:
+        x: int = cpu_dimensions.x
+        y: int = cpu_dimensions.y
 
-        x_0: int = round(origin.x / mesh_step) + 1
-        y_0: int = round(origin.y / mesh_step) + 1
+        x_0: int = origin.x + 1
+        y_0: int = origin.y + 1
 
         x_1: int = x_0 + x
         y_1: int = y_0 + y
 
         places = []
 
-        x_board: int = round(board_spec.x / mesh_step)
+        x_board: int = board_dimensions.x
 
         for j in range(y_0, y_1):
             local_places = []
@@ -111,11 +115,11 @@ class ThermalModel(object):
         return places
 
     @staticmethod
-    def add_interactions_layer(p_board: int, p_one_micro: int, cpu_specification: Union[HomogeneousCpuSpecification],
-                               mesh_step: float, simulation_precision) -> [scipy.sparse.lil_matrix,
-                                                                           scipy.sparse.lil_matrix,
-                                                                           numpy.ndarray]:
-        m = cpu_specification.cores_specification.number_of_cores
+    def add_interactions_layer(p_board: int, p_one_micro: int, cpu_specification: ProcessorDefinition,
+                               simulation_precision) -> [scipy.sparse.lil_matrix,
+                                                         scipy.sparse.lil_matrix,
+                                                         numpy.ndarray]:
+        m = len(cpu_specification.cores_definition)
         # Places and transitions for all CPUs
         p_micros = p_one_micro * m
 
@@ -125,32 +129,36 @@ class ThermalModel(object):
 
         for i in range(m):
             rel_micro[i * p_one_micro: (i + 1) * p_one_micro] = ThermalModel.__get_cpu_coordinates(
-                cpu_specification.cores_specification.cores_origins[i],
-                cpu_specification.cores_specification.physical_properties,
-                cpu_specification.board_specification.physical_properties,
-                mesh_step)
+                cpu_specification.cores_definition[i].location,
+                cpu_specification.cores_definition[i].core_type.dimensions,
+                cpu_specification.board_definition.dimensions)
 
-        rho_p1 = cpu_specification.board_specification.physical_properties.p
-        k_p1 = cpu_specification.board_specification.physical_properties.k
-        cp_p1 = cpu_specification.board_specification.physical_properties.c_p
+        rho_p1 = cpu_specification.board_definition.material.density
+        k_p1 = cpu_specification.board_definition.material.thermalConductivity
+        cp_p1 = cpu_specification.board_definition.material.specificHeatCapacity
 
-        rho_p2 = cpu_specification.cores_specification.physical_properties.p
-        k_p2 = cpu_specification.cores_specification.physical_properties.k
-        cp_p2 = cpu_specification.cores_specification.physical_properties.c_p
+        # We assume that we are in an homogeneous platform
+        common_core_specification = cpu_specification.cores_definition[0].core_type
+
+        rho_p2 = common_core_specification.material.density
+        k_p2 = common_core_specification.material.thermalConductivity
+        cp_p2 = common_core_specification.material.specificHeatCapacity
+
+        mesh_step: float = cpu_specification.measure_unit
 
         # Refactored to improve precision
-        lambda1 = (k_p1 * k_p2 / (cpu_specification.board_specification.physical_properties.z * rho_p1 * cp_p1 * (
-                k_p2 * cpu_specification.board_specification.physical_properties.z + k_p1 *
-                cpu_specification.cores_specification.physical_properties.z))) * (2 * (1000 ** 2))
+        lambda1 = (k_p1 * k_p2 / (cpu_specification.board_definition.dimensions.z * mesh_step * rho_p1 * cp_p1 * (
+                k_p2 * cpu_specification.board_definition.dimensions.z * mesh_step + k_p1 *
+                common_core_specification.dimensions.z * mesh_step))) * 2
 
-        lambda2 = (k_p1 * k_p2 / (cpu_specification.cores_specification.physical_properties.z * rho_p2 * cp_p2 * (
-                k_p2 * cpu_specification.board_specification.physical_properties.z + k_p1 *
-                cpu_specification.cores_specification.physical_properties.z))) * (2 * (1000 ** 2))
+        lambda2 = (k_p1 * k_p2 / (common_core_specification.dimensions.z * mesh_step * rho_p2 * cp_p2 *
+                                  (k_p2 * common_core_specification.dimensions.z * mesh_step + k_p1 *
+                                   common_core_specification.dimensions.z * mesh_step))) * 2
 
-        lambda1_div_lambda2 = (cpu_specification.cores_specification.physical_properties.z * rho_p2 * cp_p2) / (
-                cpu_specification.board_specification.physical_properties.z * rho_p1 * cp_p1)
-        lambda2_div_lambda1 = (cpu_specification.board_specification.physical_properties.z * rho_p1 * cp_p1) / (
-                cpu_specification.cores_specification.physical_properties.z * rho_p2 * cp_p2)
+        lambda1_div_lambda2 = (common_core_specification.dimensions.z * mesh_step * rho_p2 * cp_p2) / (
+                cpu_specification.board_definition.dimensions.z * rho_p1 * cp_p1)
+        lambda2_div_lambda1 = (cpu_specification.board_definition.dimensions.z * rho_p1 * cp_p1) / (
+                common_core_specification.dimensions.z * mesh_step * rho_p2 * cp_p2)
 
         pre_int = scipy.sparse.lil_matrix((p_micros + p_board, 2 * p_micros),
                                           dtype=simulation_precision)
@@ -170,7 +178,7 @@ class ThermalModel(object):
         return pre_int, post_int, lambda_vector_int
 
     @staticmethod
-    def add_convection(p_board: int, p_one_micro: int, cpu_specification: Union[HomogeneousCpuSpecification],
+    def add_convection(p_board: int, p_one_micro: int, cpu_specification: ProcessorDefinition,
                        environment_specification: EnvironmentSpecification, simulation_precision) -> [
         scipy.sparse.lil_matrix,
         scipy.sparse.lil_matrix,
@@ -179,14 +187,16 @@ class ThermalModel(object):
         scipy.sparse.lil_matrix,
         numpy.ndarray]:
 
-        m = cpu_specification.cores_specification.number_of_cores
+        mesh_step: float = cpu_specification.measure_unit
 
-        rho_p1 = cpu_specification.board_specification.physical_properties.p
-        cp_p1 = cpu_specification.board_specification.physical_properties.c_p
+        m = len(cpu_specification.cores_definition)
 
-        h = environment_specification.convection_factor
+        rho_p1 = cpu_specification.board_definition.material.density
+        cp_p1 = cpu_specification.board_definition.material.specificHeatCapacity
 
-        lambda_convection = (h / (cpu_specification.board_specification.physical_properties.z * rho_p1 * cp_p1)) * 1000
+        h = environment_specification.environment_properties.heatTransferCoefficient
+
+        lambda_convection = (h / (cpu_specification.board_definition.dimensions.z * mesh_step * rho_p1 * cp_p1)) * 1000
 
         p_micros = p_one_micro * m
 
@@ -217,14 +227,17 @@ class ThermalModel(object):
         return pre_conv, post_conv, lambda_conv, pre_conv_air, post_conv_air, lambda_conv_air
 
     @staticmethod
-    def add_heat_by_leakage_power(p_board: int, p_one_micro: int, cpu_specification: Union[HomogeneousCpuSpecification],
-                                  simulation_precision) -> [scipy.sparse.lil_matrix,
-                                                            scipy.sparse.lil_matrix, numpy.ndarray]:
-        m = cpu_specification.cores_specification.number_of_cores
+    def add_heat_by_leakage_power(p_board: int, p_one_micro: int, cpu_specification: ProcessorDefinition,
+                                  simulation_precision) -> [scipy.sparse.lil_matrix, scipy.sparse.lil_matrix,
+                                                            numpy.ndarray]:
+        m = len(cpu_specification.cores_definition)
+
+        # We assume that we are in an homogeneous platform
+        common_core_specification = cpu_specification.cores_definition[0].core_type
 
         # The generation is equal for each place in the same processor so lambdas are equal too
-        lambda_coefficient_delta = cpu_specification.cores_specification.energy_consumption_properties.leakage_delta
-        lambda_coefficient_alpha = cpu_specification.cores_specification.energy_consumption_properties.leakage_alpha
+        lambda_coefficient_delta = common_core_specification.core_energy_consumption.leakage_delta
+        lambda_coefficient_alpha = common_core_specification.core_energy_consumption.leakage_alpha
 
         # Places and transitions for all CPUs
         p_micros = p_one_micro * m
@@ -263,8 +276,7 @@ class ThermalModel(object):
 
     @staticmethod
     @abc.abstractmethod
-    def _get_dynamic_power_consumption(cpu_specification: Union[HomogeneousCpuSpecification],
-                                       task_set: TaskSet,
+    def _get_dynamic_power_consumption(cpu_specification: ProcessorDefinition, task_set: TaskSet,
                                        clock_relative_frequencies: List[float]) -> numpy.ndarray:
         """
         Method to implement. Return an array with shape (m , n). Each place contains the weight in the
@@ -278,26 +290,32 @@ class ThermalModel(object):
         pass
 
     @classmethod
-    def __get_power_consumption_by_task(cls, cpu_specification: Union[HomogeneousCpuSpecification], task_set: TaskSet,
+    def __get_power_consumption_by_task(cls, cpu_specification: ProcessorDefinition, task_set: TaskSet,
                                         clock_relative_frequencies: List[float]):
         power_consumption = cls._get_dynamic_power_consumption(cpu_specification, task_set, clock_relative_frequencies)
-        rho = cpu_specification.cores_specification.physical_properties.p
-        cp = cpu_specification.cores_specification.physical_properties.c_p
-        v_cpu = cpu_specification.cores_specification.physical_properties.z * \
-                cpu_specification.cores_specification.physical_properties.x * \
-                cpu_specification.cores_specification.physical_properties.y / (1000 ** 3)
+
+        # We assume that we are in an homogeneous platform
+        common_core_specification = cpu_specification.cores_definition[0].core_type
+
+        mesh_step: float = cpu_specification.measure_unit
+
+        rho = common_core_specification.material.density
+        cp = common_core_specification.material.specificHeatCapacity
+
+        v_cpu = common_core_specification.dimensions.x * common_core_specification.dimensions.y * \
+                common_core_specification.dimensions.z * (mesh_step ** 3)
         dynamic_power_consumption = power_consumption / (v_cpu * rho * cp)
         dynamic_power_consumption = scipy.sparse.csr_matrix(dynamic_power_consumption).tolil()
         return dynamic_power_consumption, power_consumption
 
     @classmethod
-    def __add_heat_by_dynamic_power(cls, p_board: int, p_one_micro: int,
-                                    cpu_specification: Union[HomogeneousCpuSpecification],
-                                    task_set: TaskSet,
-                                    simulation_precision) \
+    def add_heat_by_dynamic_power(cls, p_board: int, p_one_micro: int,
+                                  cpu_specification: ProcessorDefinition,
+                                  task_set: TaskSet,
+                                  simulation_precision) \
             -> [scipy.sparse.lil_matrix, scipy.sparse.lil_matrix, numpy.ndarray, numpy.ndarray]:
         n = len(task_set.periodic_tasks) + len(task_set.aperiodic_tasks)
-        m = cpu_specification.cores_specification.number_of_cores
+        m = len(cpu_specification.cores_definition)
 
         # Places and transitions for all CPUs
         p_micros = p_one_micro * m
@@ -321,11 +339,13 @@ class ThermalModel(object):
         post_gen[p_board + p_micros + 1 + 1:p_board + p_micros + 1 + 1 + number_of_transitions, :] = \
             scipy.sparse.identity(number_of_transitions, dtype=simulation_precision, format="lil")
 
+        # We assume that we are in an homogeneous platform
+        common_core_specification = cpu_specification.cores_definition[0].core_type
+
         # Relative frequencies
         # Actual set clock frequencies
-        clock_base_frequency = max(cpu_specification.cores_specification.available_frequencies)
-        clock_relative_frequencies = [i / clock_base_frequency for i in
-                                      cpu_specification.cores_specification.available_frequencies]
+        clock_base_frequency = max(common_core_specification.available_frequencies)
+        clock_relative_frequencies = [i / clock_base_frequency for i in common_core_specification.available_frequencies]
 
         # Get power consumption by task in cpu
         dynamic_power_consumption, power_consumption = cls.__get_power_consumption_by_task(cpu_specification,
@@ -333,7 +353,6 @@ class ThermalModel(object):
                                                                                            clock_relative_frequencies)
 
         # Transitions from exec to core places
-
         post_gen[p_board: p_board + p_micros, :] = scipy.sparse.block_diag([
             scipy.sparse.vstack(p_one_micro * [scipy.sparse.lil_matrix(dynamic_power_consumption[i, :])]) for i in
             range(dynamic_power_consumption.shape[0])])
@@ -345,10 +364,10 @@ class ThermalModel(object):
 
     @classmethod
     def __change_frequency(cls, frequency_vector: List[float], post: numpy.ndarray, lambda_vector: numpy.ndarray,
-                           cpu_specification: Union[HomogeneousCpuSpecification], task_set: TaskSet, p_board: int,
+                           cpu_specification: ProcessorDefinition, task_set: TaskSet, p_board: int,
                            p_one_micro: int, simulation_precision) \
             -> [scipy.sparse.lil_matrix, numpy.ndarray, numpy.ndarray]:
-        m = cpu_specification.cores_specification.number_of_cores
+        m = len(cpu_specification.cores_definition)
 
         # Get power consumption by task in cpu
         dynamic_power_consumption, power_consumption = cls.__get_power_consumption_by_task(cpu_specification,
@@ -371,20 +390,30 @@ class ThermalModel(object):
 
         return post, lambda_vector, power_consumption
 
-    def __init__(self, cpu_specification: Union[HomogeneousCpuSpecification],
+    def __init__(self, cpu_specification: ProcessorDefinition,
                  environment_specification: EnvironmentSpecification,
                  task_set: TaskSet,
-                 simulation_precision,
-                 mesh_step):
+                 simulation_precision):
 
-        m = cpu_specification.cores_specification.number_of_cores
+        m = len(cpu_specification.cores_definition)
+
+        # We assume that we are in an homogeneous platform
+        common_core_specification = cpu_specification.cores_definition[0].core_type
+
+        mesh_step = cpu_specification.measure_unit
 
         # Board and micros conductivity
         pre_board_cond, post_board_cond, lambda_board_cond = self.simple_conductivity(
-            cpu_specification.board_specification.physical_properties, simulation_precision, mesh_step)
+            cpu_specification.board_definition.dimensions,
+            cpu_specification.board_definition.material,
+            mesh_step,
+            simulation_precision)
 
         pre_micro_cond, post_micro_cond, lambda_micro_cond = self.simple_conductivity(
-            cpu_specification.cores_specification.physical_properties, simulation_precision, mesh_step)
+            common_core_specification.dimensions,
+            common_core_specification.material,
+            mesh_step,
+            simulation_precision)
 
         # Number of places for the board
         p_board = pre_board_cond.shape[0]
@@ -413,7 +442,6 @@ class ThermalModel(object):
         # Add transitions between micro and board
         # Connections between micro places and board places
         pre_int, post_int, lambda_vector_int = self.add_interactions_layer(p_board, p_one_micro, cpu_specification,
-                                                                           mesh_step,
                                                                            simulation_precision)
 
         # Convection
@@ -430,11 +458,11 @@ class ThermalModel(object):
 
         # Heat generation dynamic
         pre_heat_dynamic, post_heat_dynamic, lambda_vector_heat_dynamic, power_consumption = \
-            self.__add_heat_by_dynamic_power(p_board,
-                                             p_one_micro,
-                                             cpu_specification,
-                                             task_set,
-                                             simulation_precision)
+            self.add_heat_by_dynamic_power(p_board,
+                                           p_one_micro,
+                                           cpu_specification,
+                                           task_set,
+                                           simulation_precision)
 
         # Thermal model generation
         zero_11 = scipy.sparse.lil_matrix((1, t_board + t_one_micro * m + 2 * p_one_micro * m + p_board),

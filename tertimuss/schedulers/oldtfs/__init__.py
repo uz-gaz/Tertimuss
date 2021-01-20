@@ -1,1 +1,1 @@
-from _scheduler_definition import *
+from ._scheduler_definition import OLDTFSScheduler
