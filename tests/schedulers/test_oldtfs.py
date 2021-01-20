@@ -30,8 +30,7 @@ class OLDTFSTest(unittest.TestCase):
             self.__create_implicit_deadline_periodic_task_h_rt(2, 7000, 10.0),
             self.__create_implicit_deadline_periodic_task_h_rt(3, 7000, 10.0),
             self.__create_implicit_deadline_periodic_task_h_rt(4, 7000, 10.0),
-            self.__create_implicit_deadline_periodic_task_h_rt(5, 14000, 20.0),
-            self.__create_implicit_deadline_periodic_task_h_rt(6, 3000, 5.0)
+            self.__create_implicit_deadline_periodic_task_h_rt(5, 14000, 20.0)
         ]
 
         number_of_cores = 5
@@ -48,7 +47,7 @@ class OLDTFSTest(unittest.TestCase):
             processor_definition=generate_default_cpu(number_of_cores, available_frequencies, 0, 0),
             environment_specification=default_environment_specification(),
             simulation_options=SimulationOptionsSpecification(id_debug=True),
-            scheduler=OLDTFSScheduler(240)
+            scheduler=OLDTFSScheduler(240, simulate_thermal=False)
         )
 
         # Correct execution

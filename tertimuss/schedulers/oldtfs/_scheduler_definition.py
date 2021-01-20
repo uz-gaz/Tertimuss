@@ -20,6 +20,8 @@ class OLDTFSScheduler(CentralizedAbstractScheduler):
     """
     Implements the OLDTFS scheduler
 
+    Warning: Work in process. The implementation is not accurate and have some errors
+
     References:
         DOI: 10.1109/WODES.2016.7497860
     """
@@ -407,7 +409,7 @@ class OLDTFSScheduler(CentralizedAbstractScheduler):
         self.__m_exec_accumulated = numpy.zeros(n * m)
         self.__quantum = quantum
 
-        self.__tcpn_mo = tcpn_mo
+        self.__tcpn_mo = tcpn_mo.reshape(-1)
 
         self.__m = m
         self.__n = n
@@ -434,14 +436,15 @@ class OLDTFSScheduler(CentralizedAbstractScheduler):
         for q_time in range(steps_in_quantum):
             # Obtain m_busy mark
             m_busy = numpy.concatenate([
-                self.__tcpn_mo[2 * self.__n + (2 * self.__n + 1) * i: 2 * self.__n + (2 * self.__n + 1) * i + self.__n,
-                0].reshape(-1) for i in range(self.__m)])
+                self.__tcpn_mo[
+                2 * self.__n + (2 * self.__n + 1) * i: 2 * self.__n + (2 * self.__n + 1) * i + self.__n].reshape(-1) for
+                i in range(self.__m)])
 
             # Obtain m_exec mark
             m_exec = numpy.concatenate([
                 self.__tcpn_mo[
-                2 * self.__n + (2 * self.__n + 1) * i + self.__n: 2 * self.__n + (2 * self.__n + 1) * i + 2 * self.__n,
-                0].reshape(-1) for i in range(self.__m)])
+                2 * self.__n + (2 * self.__n + 1) * i + self.__n: 2 * self.__n + (
+                        2 * self.__n + 1) * i + 2 * self.__n].reshape(-1) for i in range(self.__m)])
 
             # Obtain the thermal fluid execution error
             e_i_fsc_j = self.__j_fsc_i * (global_time + (q_time / cores_frequency)) - m_exec
@@ -461,14 +464,14 @@ class OLDTFSScheduler(CentralizedAbstractScheduler):
             new_control[self.__n:self.__n + self.__m * self.__n] = w_alloc
 
             self.__tcpn_simulator.set_control(new_control)
-            self.__tcpn_mo = self.__tcpn_simulator.simulate_step(self.__tcpn_mo)
+            self.__tcpn_mo = self.__tcpn_simulator.simulate_step(self.__tcpn_mo, dt=self.__quantum)
 
         # Discretization
         # Obtain m_exec mark
         m_exec = numpy.concatenate([
             self.__tcpn_mo[
-            2 * self.__n + (2 * self.__n + 1) * i + self.__n: 2 * self.__n + (2 * self.__n + 1) * i + 2 * self.__n,
-            0].reshape(-1) for i in range(self.__m)])
+            2 * self.__n + (2 * self.__n + 1) * i + self.__n: 2 * self.__n + (
+                        2 * self.__n + 1) * i + 2 * self.__n].reshape(-1) for i in range(self.__m)])
 
         # Remaining jobs execution Re_tau(j,i) calculation
         fsc = self.__j_fsc_i * actual_deadline
