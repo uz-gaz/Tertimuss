@@ -1,7 +1,0 @@
-14458 pts/1    Sl+    2:03      0    52 5654267 1141000 13.9 /home/achils/opt/MATLAB/bin/glnxa64/MATLAB -prefersoftwareopengl
-14458 pts/1    Sl+    2:04      0    52 5654267 1141464 13.9 /home/achils/opt/MATLAB/bin/glnxa64/MATLAB -prefersoftwareopengl
-14458 pts/1    Sl+    2:10      0    52 5719743 1170152 14.3 /home/achils/opt/MATLAB/bin/glnxa64/MATLAB -prefersoftwareopengl
-14458 pts/1    Sl+    2:17      0    52 5785283 1220156 14.9 /home/achils/opt/MATLAB/bin/glnxa64/MATLAB -prefersoftwareopengl
-14458 pts/1    Sl+    2:25      0    52 5785283 1276912 15.6 /home/achils/opt/MATLAB/bin/glnxa64/MATLAB -prefersoftwareopengl
-14458 pts/1    Sl+    2:29      0    52 5916355 1296764 15.8 /home/achils/opt/MATLAB/bin/glnxa64/MATLAB -prefersoftwareopengl
-14458 pts/1    Sl+    2:29      0    52 5916355 1296764 15.8 /home/achils/opt/MATLAB/bin/glnxa64/MATLAB -prefersoftwareopengl

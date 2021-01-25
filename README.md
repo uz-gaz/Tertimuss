@@ -13,7 +13,7 @@ It has an easy interface to define a new scheduler and a set of pre-loaded sched
 
 ## Project components
 
-![Project components](./doc/diagrams/basic_components/SimulatorComponents.png)
+![Project components](./docs/development/diagrams/TertimussArchitecture.svg)
 
 ## System requirements
 
