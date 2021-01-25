@@ -1,3 +1,9 @@
+"""
+==========================================
+Reduction to Uniprocessor Scheduler (RUN)
+==========================================
+"""
+
 from typing import Set, Dict, Optional, Tuple, List
 
 import numpy
@@ -311,6 +317,16 @@ class RUNScheduler(CentralizedAbstractScheduler):
     def check_schedulability(self, processor_definition: ProcessorDefinition,
                              environment_specification: EnvironmentSpecification, task_set: TaskSet) -> [bool,
                                                                                                          Optional[str]]:
+        """
+        Return true if the scheduler can be able to schedule the system. In negative case, it can return a reason.
+        In example, an scheduler that only can work with periodic tasks with phase=0, can return
+         [false, "Only can schedule tasks with phase=0"]
+
+        :param environment_specification: Specification of the environment
+        :param processor_definition: Specification of the cpu
+        :param task_set: Tasks in the system
+        :return CPU frequency
+        """
         only_0_phase = all(i.phase is None or i.phase == 0 for i in task_set.periodic_tasks)
 
         only_periodic_tasks = len(task_set.sporadic_tasks) + len(task_set.aperiodic_tasks) == 0
@@ -390,23 +406,23 @@ class RUNScheduler(CentralizedAbstractScheduler):
                         cores_frequency: int, cores_max_temperature: Optional[Dict[int, float]]) \
             -> Tuple[Dict[int, int], Optional[int], Optional[int]]:
         """
-                Method to implement with the actual scheduler police
+        Method to implement with the actual scheduler police
 
-                :param global_time: Time in seconds since the simulation starts
-                :param jobs_being_executed_id: Ids of the jobs that are currently executed on the system. The dictionary has as
-                 key the CPU id (it goes from 0 to number of CPUs - 1), and as value the job id.
-                :param active_jobs_id: Identifications of the jobs that are currently active
-                 (look in :ref:..system_definition.DeadlineCriteria for more info) and can be executed.
-                :param cores_frequency: Frequencies of cores on the scheduler invocation in Hz.
-                :param cores_max_temperature: Max temperature of each core. The dictionary has as
-                 key the CPU id, and as value the temperature in Kelvin degrees.
-                :return: Tuple of [
-                 Jobs CPU assignation. The dictionary has as key the CPU id, and as value the job id,
-                 Cycles to execute until the next invocation of the scheduler. If None, it won't be executed until a system
-                 event trigger its invocation,
-                 CPU frequency. If None, it will maintain the last used frequency (cores_frequency)
-                ]
-                """
+        :param global_time: Time in seconds since the simulation starts
+        :param jobs_being_executed_id: Ids of the jobs that are currently executed on the system. The dictionary has as
+         key the CPU id (it goes from 0 to number of CPUs - 1), and as value the job id.
+        :param active_jobs_id: Identifications of the jobs that are currently active
+         (look in :ref:..system_definition.DeadlineCriteria for more info) and can be executed.
+        :param cores_frequency: Frequencies of cores on the scheduler invocation in Hz.
+        :param cores_max_temperature: Max temperature of each core. The dictionary has as
+         key the CPU id, and as value the temperature in Kelvin degrees.
+        :return: Tuple of [
+         Jobs CPU assignation. The dictionary has as key the CPU id, and as value the job id,
+         Cycles to execute until the next invocation of the scheduler. If None, it won't be executed until a system
+         event trigger its invocation,
+         CPU frequency. If None, it will maintain the last used frequency (cores_frequency)
+        ]
+        """
         actual_execution_cycle = round(global_time * cores_frequency) % round(self.__major_cycle * cores_frequency)
 
         next_scheduling_point = next(i for i in sorted(self.__scheduling_points.keys()) +

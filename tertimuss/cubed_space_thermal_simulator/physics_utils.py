@@ -1,7 +1,7 @@
 from typing import List, Tuple
 
-from tertimuss.cubed_space_thermal_simulator import TemperatureLocatedCube, LocatedCube, SolidMaterial, \
-    ExternalTemperatureBoosterLocatedCube
+from tertimuss.cubed_space_thermal_simulator._basic_types import SolidMaterial, LocatedCube, \
+    ExternalTemperatureBoosterLocatedCube, TemperatureLocatedCube
 
 
 def create_energy_applicator(located_cube: Tuple[SolidMaterial, LocatedCube], cube_edge_size: float,

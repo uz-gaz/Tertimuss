@@ -3,8 +3,8 @@ from typing import Optional
 from matplotlib.animation import FuncAnimation
 
 from tertimuss.cubed_space_thermal_simulator import generate_video_2d_heat_map, obtain_min_temperature, \
-    generate_video_3d_heat_map
-from tertimuss.simulation_lib.simulator import RawSimulationResult, obtain_max_temperature
+    generate_video_3d_heat_map, obtain_max_temperature
+from tertimuss.simulation_lib.simulator import RawSimulationResult
 
 
 def generate_board_temperature_evolution_2d_video(schedule_result: RawSimulationResult,

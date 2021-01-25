@@ -1,5 +1,5 @@
 from tertimuss.cubed_space_thermal_simulator.materials_pack import AirForcedEnvironmentProperties
-from ....simulation_lib.system_definition import EnvironmentSpecification
+from .._environment_specification import EnvironmentSpecification
 
 
 def default_environment_specification() -> EnvironmentSpecification:

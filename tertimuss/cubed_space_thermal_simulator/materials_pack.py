@@ -1,4 +1,4 @@
-from tertimuss.cubed_space_thermal_simulator import FluidEnvironmentProperties, SolidMaterial
+from tertimuss.cubed_space_thermal_simulator._basic_types import FluidEnvironmentProperties, SolidMaterial
 
 
 class AirFreeEnvironmentProperties(FluidEnvironmentProperties):

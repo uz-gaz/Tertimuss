@@ -2,7 +2,7 @@ import unittest
 
 from ._generate_simulation_result import get_simulation_result
 
-from tertimuss.plot_generator import generate_accumulate_execution_plot, \
+from tertimuss.visualization_generator import generate_accumulate_execution_plot, \
     generate_job_accumulate_execution_plot
 
 

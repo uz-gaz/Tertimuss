@@ -4,17 +4,18 @@ from matplotlib import pyplot, patches
 from matplotlib.figure import Figure
 
 from ._color_palette_generator import AbstractColorPaletteGenerator, DefaultColorPaletteGenerator
-from ..simulation_lib.simulator import RawSimulationResult, calculate_major_cycle
+from ..simulation_lib.simulator import RawSimulationResult
 from ..simulation_lib.system_definition import TaskSet, Job
+from ..simulation_lib.system_definition.utils import calculate_major_cycle
 
 
-def generate_task_assignation_plot(
+def generate_task_execution_plot(
         task_set: TaskSet, schedule_result: RawSimulationResult, start_time: float = 0,
         end_time: Optional[float] = None, title: Optional[str] = None,
         outline_boxes: bool = False,
         color_palette_generator: AbstractColorPaletteGenerator = DefaultColorPaletteGenerator()) -> Figure:
     """
-    Generate tasks to CPUs assignation plot
+    Generate tasks execution plot
     :param color_palette_generator: color palette applied to the plot
     :param outline_boxes: If true will outline the boxes
     :param task_set: Task set
@@ -24,27 +25,31 @@ def generate_task_assignation_plot(
     :param title: Plot title
     :return: plot
     """
-    num_colors = len(task_set.tasks())
+    cpu_color_id: Dict[int, int] = {j: i for i, j in enumerate(sorted(schedule_result.job_sections_execution.keys()))}
 
-    tasks_color_id: Dict[int, int] = {j.identification: i for i, j in enumerate(task_set.tasks())}
+    color_palette = color_palette_generator.obtain_color_palette(len(cpu_color_id))
+    task_set.tasks()
+    tasks_ids: List[int] = sorted([i.identification for i in task_set.tasks()])
 
-    color_palette = color_palette_generator.obtain_color_palette(num_colors)
+    tasks_to_lines_assignation: Dict[int, int] = {j: i for i, j in enumerate(tasks_ids)}
 
     fig, ax = pyplot.subplots()
 
     for cpu_id, sections_list in schedule_result.job_sections_execution.items():
         for section in sections_list:
-            ax.barh(cpu_id, width=section.execution_end_time - section.execution_start_time,
-                    left=section.execution_start_time, color=color_palette[tasks_color_id[section.task_id]],
+            ax.barh(tasks_to_lines_assignation[section.task_id],
+                    width=section.execution_end_time - section.execution_start_time,
+                    left=section.execution_start_time,
+                    color=color_palette[cpu_color_id[cpu_id]],
                     edgecolor='black' if outline_boxes else None)
 
-    ax.set_yticks(range(len(schedule_result.job_sections_execution)))
-    ax.set_yticklabels([f'CPU {i}' for i in schedule_result.job_sections_execution.keys()])
+    ax.set_yticks(range(len(tasks_ids)))
+    ax.set_yticklabels([f'Task {i}' for i in tasks_ids])
 
-    tasks_legend = [patches.Patch(color=color_palette[j], label=f'Task {i}') for i, j in
-                    sorted(tasks_color_id.items(), key=lambda k: k[0])]
+    cpus_legend = [patches.Patch(color=color_palette[j], label=f'CPU {i}') for i, j in
+                   sorted(cpu_color_id.items(), key=lambda k: k[0])]
 
-    ax.legend(handles=tasks_legend, bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
+    ax.legend(handles=cpus_legend, bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
 
     end_time = end_time if end_time is not None else calculate_major_cycle(task_set)
 
@@ -63,13 +68,13 @@ def generate_task_assignation_plot(
     return fig
 
 
-def generate_job_assignation_plot(
+def generate_job_execution_plot(
         task_set: TaskSet, jobs: List[Job], schedule_result: RawSimulationResult,
         start_time: float = 0, end_time: Optional[float] = None,
         title: Optional[str] = None, outline_boxes: bool = False,
         color_palette_generator: AbstractColorPaletteGenerator = DefaultColorPaletteGenerator()) -> Figure:
     """
-    Generate jobs to CPUs assignation plot
+    Generate jobs execution plot
     :param color_palette_generator: color palette applied to the plot
     :param outline_boxes: If true will outline the boxes
     :param task_set: Task set
@@ -80,27 +85,31 @@ def generate_job_assignation_plot(
     :param title: Plot title
     :return: plot
     """
-    num_colors = len(jobs)
+    cpu_color_id: Dict[int, int] = {j: i for i, j in enumerate(schedule_result.job_sections_execution.keys())}
 
-    jobs_color_id: Dict[int, int] = {j.identification: i for i, j in enumerate(jobs)}
+    color_palette = color_palette_generator.obtain_color_palette(len(cpu_color_id))
 
-    color_palette = color_palette_generator.obtain_color_palette(num_colors)
+    jobs_ids: List[int] = sorted([i.identification for i in jobs])
+
+    jobs_to_lines_assignation: Dict[int, int] = {j: i for i, j in enumerate(jobs_ids)}
 
     fig, ax = pyplot.subplots()
 
     for cpu_id, sections_list in schedule_result.job_sections_execution.items():
         for section in sections_list:
-            ax.barh(cpu_id, width=section.execution_end_time - section.execution_start_time,
-                    left=section.execution_start_time, color=color_palette[jobs_color_id[section.job_id]],
+            ax.barh(jobs_to_lines_assignation[section.job_id],
+                    width=section.execution_end_time - section.execution_start_time,
+                    left=section.execution_start_time,
+                    color=color_palette[cpu_color_id[cpu_id]],
                     edgecolor='black' if outline_boxes else None)
 
-    ax.set_yticks(range(len(schedule_result.job_sections_execution)))
-    ax.set_yticklabels([f'CPU {i}' for i in schedule_result.job_sections_execution.keys()])
+    ax.set_yticks(range(len(jobs_ids)))
+    ax.set_yticklabels([f'Jobs {i}' for i in jobs_ids])
 
-    jobs_legend = [patches.Patch(color=color_palette[j], label=f'Job {i}') for i, j in
-                   sorted(jobs_color_id.items(), key=lambda k: k[0])]
+    cpus_legend = [patches.Patch(color=color_palette[j], label=f'CPU {i}') for i, j in
+                   sorted(cpu_color_id.items(), key=lambda k: k[0])]
 
-    ax.legend(handles=jobs_legend, bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
+    ax.legend(handles=cpus_legend, bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
 
     end_time = end_time if end_time is not None else calculate_major_cycle(task_set)
 

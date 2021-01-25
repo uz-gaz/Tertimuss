@@ -7,12 +7,11 @@ from matplotlib import cm, colors, animation
 from matplotlib.animation import FuncAnimation
 from matplotlib.figure import Figure
 
-from tertimuss.cubed_space_thermal_simulator import TemperatureLocatedCube, obtain_min_temperature, \
-    obtain_max_temperature, \
-    ThermalUnits
-
 # This import registers the 3D projection, but is otherwise unused.
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
+
+from tertimuss.cubed_space_thermal_simulator._basic_types import TemperatureLocatedCube, ThermalUnits
+from tertimuss.cubed_space_thermal_simulator._cubed_space import obtain_min_temperature, obtain_max_temperature
 
 
 def __obtain_3d_heat_map(heatmap_cube_list: Dict[int, TemperatureLocatedCube],
@@ -152,7 +151,7 @@ def generate_video_3d_heat_map(
     :param max_temperature: Max temperature in the model
     :param color_map: Model color map
     :param units: Thermal units
-    :return:
+    :return: Resultant figure animation
     """
     min_x = min(
         [min([i.location.x for i in heatmap_cube_list.values()]) for heatmap_cube_list in
@@ -235,9 +234,8 @@ def generate_video_3d_heat_map(
 
         return ax.voxels(voxels, facecolors=voxels_colors)
 
-    anim = animation.FuncAnimation(fig, animate, frames=number_of_frames, interval=delay_between_frames_ms, blit=False,
+    return animation.FuncAnimation(fig, animate, frames=number_of_frames, interval=delay_between_frames_ms, blit=False,
                                    repeat=False)
-    return anim
 
 
 def __obtain_2d_heat_matrix(heatmap_cube_list: Dict[int, TemperatureLocatedCube],
@@ -249,7 +247,7 @@ def __obtain_2d_heat_matrix(heatmap_cube_list: Dict[int, TemperatureLocatedCube]
     :param location_in_axis: Location in the axis
     :param axis: Axis to plot
     :param heatmap_cube_list: List with model temperature
-    :return: Resultant figure
+    :return: Resultant figure representation
     """
     # Obtain surrounded cube
     min_x = min([i.location.x for i in heatmap_cube_list.values()])
@@ -400,7 +398,7 @@ def generate_video_2d_heat_map(
     :param max_temperature: Max temperature in the model
     :param color_map: Model color map
     :param units: Thermal units
-    :return: Resultant figure
+    :return: Resultant figure animation
     """
 
     sorted_times = sorted(heatmap_cube_list_dict.keys())
@@ -453,7 +451,5 @@ def generate_video_2d_heat_map(
 
         return quad
 
-    anim = animation.FuncAnimation(fig, animate, frames=number_of_frames, interval=delay_between_frames_ms, blit=False,
+    return animation.FuncAnimation(fig, animate, frames=number_of_frames, interval=delay_between_frames_ms, blit=False,
                                    repeat=False)
-
-    return anim

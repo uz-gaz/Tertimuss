@@ -1,8 +1,9 @@
 import unittest
 from typing import Set, Dict, Optional, Tuple, List
 
+from tertimuss.simulation_lib.schedulers_definition import CentralizedAbstractScheduler
 from tertimuss.simulation_lib.simulator import SimulationOptionsSpecification, \
-    CentralizedAbstractScheduler, JobSectionExecution, CPUUsedFrequency, \
+    JobSectionExecution, CPUUsedFrequency, \
     execute_scheduler_simulation, execute_scheduler_simulation_simple
 from tertimuss.simulation_lib.system_definition import PeriodicTask, PreemptiveExecution, Criticality, \
     EnvironmentSpecification, ProcessorDefinition, Job, TaskSet

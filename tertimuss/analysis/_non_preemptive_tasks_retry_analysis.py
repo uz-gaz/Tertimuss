@@ -51,10 +51,10 @@ def obtain_non_preemptive_tasks_retries_analysis(task_set: TaskSet, jobs: List[J
         -> NonPreemptiveTasksRetryAnalysis:
     """
     Retries analysis of non preemptive tasks
-    :param task_set:
-    :param jobs:
-    :param schedule_result:
-    :return:
+    :param task_set: task set
+    :param jobs: jobs of the task set
+    :param schedule_result: simulation result
+    :return: non preemptive tasks retries analysis
     """
     tasks: List[Task] = task_set.periodic_tasks + task_set.aperiodic_tasks + task_set.sporadic_tasks
 

@@ -3,8 +3,9 @@ from typing import Optional, List
 from matplotlib import pyplot
 from matplotlib.figure import Figure
 
-from ..simulation_lib.simulator import RawSimulationResult, calculate_major_cycle
+from ..simulation_lib.simulator import RawSimulationResult
 from ..simulation_lib.system_definition import TaskSet, Job
+from ..simulation_lib.system_definition.utils import calculate_major_cycle
 
 
 def generate_accumulate_execution_plot(task_set: TaskSet, schedule_result: RawSimulationResult, start_time: float = 0,

@@ -1,3 +1,9 @@
+"""
+==========================================
+Allocation and Execution Control Scheduler (ALECS)
+==========================================
+"""
+
 import functools
 import heapq
 import math
@@ -152,9 +158,19 @@ class ALECSScheduler(CentralizedAbstractScheduler):
         """
         return self.__scheduling_points
 
-    def check_schedulability(self, cpu_specification: ProcessorDefinition,
+    def check_schedulability(self, processor_definition: ProcessorDefinition,
                              environment_specification: EnvironmentSpecification, task_set: TaskSet) \
             -> [bool, Optional[str]]:
+        """
+        Return true if the scheduler can be able to schedule the system. In negative case, it can return a reason.
+        In example, an scheduler that only can work with periodic tasks with phase=0, can return
+         [false, "Only can schedule tasks with phase=0"]
+
+        :param environment_specification: Specification of the environment
+        :param processor_definition: Specification of the cpu
+        :param task_set: Tasks in the system
+        :return CPU frequency
+        """
         only_0_phase = all(i.phase is None or i.phase == 0 for i in task_set.periodic_tasks)
 
         only_periodic_tasks = len(task_set.sporadic_tasks) + len(task_set.aperiodic_tasks) == 0
@@ -167,10 +183,10 @@ class ALECSScheduler(CentralizedAbstractScheduler):
         if not (only_0_phase and only_periodic_tasks and only_implicit_deadline and only_fully_preemptive):
             return False, "Error: Only implicit deadline, fully preemptive, 0 phase periodic tasks are allowed"
 
-        m = len(cpu_specification.cores_definition)
+        m = len(processor_definition.cores_definition)
 
         clock_available_frequencies = list(Set.intersection(*[i.core_type.available_frequencies for i
-                                                              in cpu_specification.cores_definition.values()]))
+                                                              in processor_definition.cores_definition.values()]))
 
         # Calculate F start
         major_cycle = list_float_lcm([i.relative_deadline for i in task_set.periodic_tasks])
@@ -255,20 +271,21 @@ class ALECSScheduler(CentralizedAbstractScheduler):
 
         return tasks_to_execute
 
-    def offline_stage(self, cpu_specification: ProcessorDefinition, environment_specification: EnvironmentSpecification,
+    def offline_stage(self, processor_definition: ProcessorDefinition,
+                      environment_specification: EnvironmentSpecification,
                       task_set: TaskSet) -> int:
         """
         Method to implement with the offline stage scheduler tasks
 
         :param environment_specification: Specification of the environment
-        :param cpu_specification: Specification of the cpu
+        :param processor_definition: Specification of the cpu
         :param task_set: Tasks in the system
         :return CPU frequency
         """
-        m = len(cpu_specification.cores_definition)
+        m = len(processor_definition.cores_definition)
 
         clock_available_frequencies = list(Set.intersection(*[i.core_type.available_frequencies for i
-                                                              in cpu_specification.cores_definition.values()]))
+                                                              in processor_definition.cores_definition.values()]))
 
         # Calculate F start
         major_cycle = list_float_lcm([i.relative_deadline for i in task_set.periodic_tasks])

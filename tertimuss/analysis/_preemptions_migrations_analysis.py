@@ -56,10 +56,10 @@ def obtain_preemptions_migrations_analysis(task_set: TaskSet, jobs: List[Job],
                                            schedule_result: RawSimulationResult) -> PreemptionsMigrationsAnalysis:
     """
     Preemptions and migrations analysis of fully preemptive tasks
-    :param task_set:
-    :param jobs:
-    :param schedule_result:
-    :return:
+    :param task_set: task set
+    :param jobs: jobs of the task set
+    :param schedule_result: simulation result
+    :return: preemptions and migrations analysis of fully preemptive tasks
     """
     tasks: List[Task] = task_set.periodic_tasks + task_set.aperiodic_tasks + task_set.sporadic_tasks
 

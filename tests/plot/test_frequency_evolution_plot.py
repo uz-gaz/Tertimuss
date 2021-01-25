@@ -1,6 +1,6 @@
 import unittest
 
-from tertimuss.plot_generator import generate_frequency_evolution_plot
+from tertimuss.visualization_generator import generate_frequency_evolution_plot
 from ._generate_simulation_result import get_simulation_result
 
 

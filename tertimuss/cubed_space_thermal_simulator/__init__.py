@@ -27,6 +27,9 @@ For the thermal simulation is used the model proposed by:
  2014. 2135-2140. 10.1109/CCA.2014.6981618.
 """
 
-from ._basic_types import *
-from ._cubed_space import *
-from ._result_plotter import *
+from ._basic_types import UnitLocation, UnitDimensions, LocatedCube, TemperatureLocatedCube, \
+    ExternalTemperatureBoosterLocatedCube, InternalTemperatureBoosterLocatedCube, ThermalUnits, \
+    ModelTemperatureMatrix, SolidMaterial, FluidEnvironmentProperties
+from ._cubed_space import CubedSpaceState, CubedSpace, obtain_min_temperature, obtain_max_temperature
+from ._result_plotter import plot_3d_heat_map_temperature, generate_video_3d_heat_map, plot_2d_heat_map, \
+    generate_video_2d_heat_map

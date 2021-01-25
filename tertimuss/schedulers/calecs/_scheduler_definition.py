@@ -37,6 +37,16 @@ class CALECSScheduler(CentralizedAbstractScheduler):
     def check_schedulability(self, processor_definition: ProcessorDefinition,
                              environment_specification: EnvironmentSpecification, task_set: TaskSet) -> [bool,
                                                                                                          Optional[str]]:
+        """
+        Return true if the scheduler can be able to schedule the system. In negative case, it can return a reason.
+        In example, an scheduler that only can work with periodic tasks with phase=0, can return
+         [false, "Only can schedule tasks with phase=0"]
+
+        :param environment_specification: Specification of the environment
+        :param processor_definition: Specification of the cpu
+        :param task_set: Tasks in the system
+        :return CPU frequency
+        """
         only_0_phase = all(i.phase is None or i.phase == 0 for i in task_set.periodic_tasks)
 
         only_periodic_tasks = len(task_set.sporadic_tasks) + len(task_set.aperiodic_tasks) == 0
@@ -71,6 +81,14 @@ class CALECSScheduler(CentralizedAbstractScheduler):
 
     def offline_stage(self, processor_definition: ProcessorDefinition,
                       environment_specification: EnvironmentSpecification, task_set: TaskSet) -> int:
+        """
+        Method to implement with the offline stage scheduler tasks
+
+        :param environment_specification: Specification of the environment
+        :param processor_definition: Specification of the cpu
+        :param task_set: Tasks in the system
+        :return CPU frequency
+        """
         m = len(processor_definition.cores_definition)
 
         clock_available_frequencies = Set.intersection(*[i.core_type.available_frequencies for i
@@ -160,7 +178,7 @@ class CALECSScheduler(CentralizedAbstractScheduler):
                                          sporadic_tasks=[])
 
                 local_scheduler = ALECSScheduler(self.is_debug)
-                local_scheduler.offline_stage(cpu_specification=local_processor_definition,
+                local_scheduler.offline_stage(processor_definition=local_processor_definition,
                                               task_set=local_task_set,
                                               environment_specification=environment_specification)
                 scheduling_points = local_scheduler.get_scheduling_points()

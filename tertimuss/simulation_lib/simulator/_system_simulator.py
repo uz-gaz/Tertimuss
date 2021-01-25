@@ -6,6 +6,8 @@ from typing import List, Tuple, Dict, Optional, Set, Literal, Union
 from tertimuss.cubed_space_thermal_simulator import TemperatureLocatedCube, LocatedCube, UnitLocation, UnitDimensions, \
     CubedSpace, CubedSpaceState, InternalTemperatureBoosterLocatedCube, ExternalTemperatureBoosterLocatedCube, \
     obtain_max_temperature
+from tertimuss.cubed_space_thermal_simulator.physics_utils import create_energy_applicator
+
 from ._simulation_result import RawSimulationResult, JobSectionExecution, CPUUsedFrequency, \
     SimulationStackTraceHardRTDeadlineMissed
 from ..math_utils import list_int_lcm
@@ -13,7 +15,6 @@ from ..schedulers_definition import CentralizedAbstractScheduler
 from ..system_definition import Job, TaskSet, EnvironmentSpecification, Criticality, PreemptiveExecution, \
     ProcessorDefinition
 from ..system_definition.utils import calculate_major_cycle
-from ...cubed_space_thermal_simulator.physics_utils import create_energy_applicator
 
 
 @dataclass

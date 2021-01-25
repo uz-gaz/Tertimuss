@@ -1,10 +1,10 @@
-from typing import List
+from typing import List, Optional
 
 from matplotlib import pyplot
 from matplotlib.figure import Figure
 
-from ..simulation_lib.simulator import RawSimulationResult, obtain_max_temperature
-from ..simulation_lib.system_definition import Optional
+from tertimuss.cubed_space_thermal_simulator import obtain_max_temperature
+from ..simulation_lib.simulator import RawSimulationResult
 
 
 def generate_component_hotspots_plot(schedule_result: RawSimulationResult, start_time: float = 0,

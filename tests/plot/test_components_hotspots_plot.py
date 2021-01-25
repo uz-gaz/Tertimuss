@@ -1,6 +1,6 @@
 import unittest
 
-from tertimuss.plot_generator._component_hotspots_plot import generate_component_hotspots_plot
+from tertimuss.visualization_generator import generate_component_hotspots_plot
 from tests.plot._generate_simulation_result import get_simulation_result
 
 

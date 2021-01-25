@@ -1,6 +1,6 @@
 import unittest
 
-from tertimuss.plot_generator import generate_task_assignation_plot, generate_job_assignation_plot
+from tertimuss.visualization_generator import generate_task_assignation_plot, generate_job_assignation_plot
 from ._generate_simulation_result import get_simulation_result
 
 

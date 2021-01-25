@@ -55,10 +55,10 @@ def obtain_deadline_misses_analysis(task_set: TaskSet, jobs: List[Job],
                                     schedule_result: RawSimulationResult) -> DeadlineMissedAnalysis:
     """
     Deadline missed analysis
-    :param task_set:
-    :param jobs:
-    :param schedule_result:
-    :return:
+    :param task_set: task set
+    :param jobs: jobs of the task set
+    :param schedule_result: simulation result
+    :return: deadline missed analysis
     """
     tasks: List[Task] = task_set.periodic_tasks + task_set.aperiodic_tasks + task_set.sporadic_tasks
 

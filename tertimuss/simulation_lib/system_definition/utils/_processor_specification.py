@@ -1,9 +1,10 @@
 import math
 from typing import Set, Dict
 
-from ....cubed_space_thermal_simulator.materials_pack import SiliconSolidMaterial, CooperSolidMaterial
-from ....simulation_lib.system_definition import ProcessorDefinition, CoreEnergyConsumption, CoreTypeDefinition, \
-    UnitDimensions, BoardDefinition, UnitLocation, CoreDefinition
+from tertimuss.cubed_space_thermal_simulator.materials_pack import SiliconSolidMaterial, CooperSolidMaterial
+from tertimuss.cubed_space_thermal_simulator import UnitDimensions, UnitLocation
+from .._processor_specification import ProcessorDefinition, CoreEnergyConsumption, CoreTypeDefinition, \
+    BoardDefinition, CoreDefinition
 
 
 def generate_default_cpu(number_of_cores: int, available_frequencies: Set[int], preemption_cost: int = 0,

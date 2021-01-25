@@ -1,19 +1,31 @@
 import itertools
-from typing import List, Optional, Tuple, Set, Literal
+from typing import List, Optional, Tuple, Set, Literal, Dict
 
+import numpy
 import scipy.sparse
 
+from tertimuss.cubed_space_thermal_simulator import LocatedCube, ExternalTemperatureBoosterLocatedCube, \
+    InternalTemperatureBoosterLocatedCube
+from tertimuss.cubed_space_thermal_simulator._basic_types import SolidMaterial, FluidEnvironmentProperties, \
+    TemperatureLocatedCube
 from tertimuss.tcpn_simulator import TCPNSimulatorVariableStepRK, AbstractTCPNSimulatorVariableStep, \
     TCPNSimulatorVariableStepEuler
-from ._basic_types import *
 
 
 class CubedSpaceState(object):
+    """
+    State of a cubed space
+    """
+
     def __init__(self, places_mo_vector: numpy.ndarray):
         self.places_mo_vector = places_mo_vector
 
 
 class CubedSpace(object):
+    """
+    Representation of a physical object by cubes
+    """
+
     def __init__(self, material_cubes: Dict[int, Tuple[SolidMaterial, LocatedCube]], cube_edge_size: float,
                  environment_properties: Optional[FluidEnvironmentProperties] = None,
                  external_temperature_booster_points: Optional[Dict[int, ExternalTemperatureBoosterLocatedCube]] = None,
@@ -596,7 +608,7 @@ class CubedSpace(object):
         """
         This function apply energy over the cubedSpace and return the transformed cubedSpace.
 
-        :param actual_state: 
+        :param actual_state: previous state
         :param external_energy_application_points: Points where the energy is applied. If the list is empty, none energy
          will be applied, however the energy transfer between cubes will be simulated. Each cube will have defined it's
          dimensions in unit units, it's position in units and the amount of energy to be applied.
@@ -604,6 +616,7 @@ class CubedSpace(object):
          will be applied, however the energy transfer between cubes will be simulated. Each cube will have defined it's
          dimensions in unit units, it's position in units and the amount of energy to be applied.
         :param amount_of_time: Amount of time in seconds while the energy is being applied
+        :return cubed space resultant of the application of energy over a previous state
         """
         # Fill fields if null
         external_energy_application_points = external_energy_application_points \
@@ -665,11 +678,12 @@ class CubedSpace(object):
                              material_cubes_temperatures: Optional[Dict[int, float]] = None,
                              environment_temperature: Optional[float] = None) -> CubedSpaceState:
         """
+        Create initial cubed space state
 
-        :param default_temperature:
+        :param default_temperature: default temperature for the cubed space
         :param material_cubes_temperatures: List of [material cube id, material cube temperature (Kelvin)]
         :param environment_temperature: Environment temperature (Kelvin)
-        :return:
+        :return: created cubed space
         """
         places_temperature = []
         for i, v in self.__mo_index.items():
@@ -697,8 +711,18 @@ class CubedSpace(object):
 
 
 def obtain_min_temperature(heatmap_cube_list: Dict[int, TemperatureLocatedCube]) -> Dict[int, float]:
+    """
+    Obtain the minimum temperature in a list of cubed spaces components
+    :param heatmap_cube_list: List of cubed space component with identification in each one
+    :return: the minimum temperature in each component
+    """
     return {i: j.temperatureMatrix.min() for i, j in heatmap_cube_list.items()}
 
 
 def obtain_max_temperature(heatmap_cube_list: Dict[int, TemperatureLocatedCube]) -> Dict[int, float]:
+    """
+    Obtain the maximum temperature in a list of cubed spaces components
+    :param heatmap_cube_list: List of cubed space component with identification in each one
+    :return: the maximum temperature in each component
+    """
     return {i: j.temperatureMatrix.max() for i, j in heatmap_cube_list.items()}

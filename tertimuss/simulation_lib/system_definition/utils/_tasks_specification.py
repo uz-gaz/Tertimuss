@@ -1,5 +1,5 @@
-from ....simulation_lib.math_utils import list_float_lcm
-from ....simulation_lib.system_definition import TaskSet
+from ...math_utils import list_float_lcm
+from .._tasks_specification import TaskSet
 
 
 def calculate_major_cycle(task_set: TaskSet):
