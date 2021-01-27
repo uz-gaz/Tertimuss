@@ -30,4 +30,4 @@ class UniformIntegerDeadlineGenerator(AbstractDeadlineGenerator):
         :return: List of deadlines
         """
         possible_deadlines = [int(i) for i in _divisor_generator(int(major_cycle)) if min_deadline <= i <= max_deadline]
-        return random.choices(possible_deadlines, k=number_of_tasks - 1)
+        return random.choices(possible_deadlines, k=number_of_tasks)
