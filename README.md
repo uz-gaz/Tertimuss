@@ -37,9 +37,12 @@ Once it is installed you can try your first simulation with Tertimuss:
 ```Python
 # Import libraries
 from tertimuss.schedulers.alecs import ALECSScheduler
-from tertimuss.simulation_lib.simulator import execute_scheduler_simulation_simple, SimulationOptionsSpecification
-from tertimuss.simulation_lib.system_definition import TaskSet, PeriodicTask, PreemptiveExecution, Criticality
-from tertimuss.simulation_lib.system_definition.utils import generate_default_cpu, default_environment_specification
+from tertimuss.simulation_lib.simulator import execute_scheduler_simulation_simple, \
+    SimulationOptionsSpecification
+from tertimuss.simulation_lib.system_definition import TaskSet, PeriodicTask, \
+    PreemptiveExecution, Criticality
+from tertimuss.simulation_lib.system_definition.utils import generate_default_cpu, \
+    default_environment_specification
 from tertimuss.tasks_generator.deadline_generator import UniformIntegerDeadlineGenerator
 from tertimuss.tasks_generator.periodic_tasks.implicit_deadlines import UUniFastDiscard
 from tertimuss.visualization_generator import generate_task_execution_plot
