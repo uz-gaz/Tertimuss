@@ -32,6 +32,7 @@ $ pip install .
 ```
 
 ## Usage
+
 Once it is installed you can try your first simulation with Tertimuss:
 
 ```Python
@@ -106,7 +107,6 @@ This specification generate automatically 9 periodic tasks that will run over 4 
 The diagram saved is the following:
 ![Execution example](./docs/images/readme/execution_example.svg)
 
-
 Please, go to the tutorials page in the wiki to view more usage examples.
 
 Also you can visit the reference page in the wiki to view the reference of all the functions and classes available. The same information can be accessed using the help command in a Python terminal (e.g. import tertimuss; help(tertimuss))
@@ -133,5 +133,5 @@ If you want to use tertimuss in your papers, you can cite it as:
 ```
 
 ## License
-
 The code in this repository, unless otherwise noted, is GNU GPLv3 licensed. See the `LICENSE` file in this repository.
+
