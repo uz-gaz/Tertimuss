@@ -7,11 +7,9 @@ Tertimuss is a real-time scheduler evaluation tool. It allows the evaluation of 
 Using Tertimuss you can execute simulations using a proposed scheduler implementation (or one of the implemented schedulers) of multiprocessor with a customizable CPU definition as well as a customizable task set (it can be automatically generated too using common task generation algorithms). The simulation result can be numerical and graphical analyzed with some tools provided too.
 
 ## Installation
-A Python 3.7 or greater version is required.
+A Python version 3.8 or greater is required.
 
 The recommended way to use Tertimuss is installing it in a Python virtual environment and using it as a library.
-
-First, you will need a Python 3.7 or greater version installed on your computer.
 
 To create a virtual environment (with name .venv) and activate it use the following commands:
 
