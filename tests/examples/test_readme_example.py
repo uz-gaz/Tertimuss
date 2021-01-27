@@ -60,4 +60,4 @@ class ReadmeExampleTest(unittest.TestCase):
         fig = generate_task_execution_plot(task_set=task_set, schedule_result=simulation_result,
                                            title="Task execution",
                                            outline_boxes=True)
-        fig.savefig("execution.svg")
+        # fig.show()

@@ -3,9 +3,8 @@ from typing import List
 import numpy
 import scipy.sparse
 
-from tertimuss.cubed_space_thermal_simulator import UnitDimensions, UnitLocation
-from tertimuss.simulation_lib.system_definition import TaskSet, EnvironmentSpecification, SolidMaterial, \
-    ProcessorDefinition
+from tertimuss.cubed_space_thermal_simulator import UnitDimensions, UnitLocation, SolidMaterial
+from tertimuss.simulation_lib.system_definition import TaskSet, EnvironmentSpecification, ProcessorDefinition
 
 
 class ThermalModel(object):
