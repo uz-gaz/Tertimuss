@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 from typing import Dict, List, Set
 
-from ..simulation_lib.simulator import RawSimulationResult, PreemptiveExecution, Criticality
-from ..simulation_lib.system_definition import TaskSet, Job, Task
+from ..simulation_lib.simulator import RawSimulationResult
+from ..simulation_lib.system_definition import TaskSet, Job, Task, PreemptiveExecution, Criticality
 
 
 @dataclass(frozen=True)
