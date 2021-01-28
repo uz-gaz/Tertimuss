@@ -4,7 +4,7 @@
 ![Python package](https://github.com/AbelChT/Tertimuss-Dev/workflows/Python%20package/badge.svg)
 
 Tertimuss is a real-time scheduler evaluation tool. It allows the evaluation of the behavior of a scheduler with an easy interface to implement it. It is primarily designed for a first design phase of a scheduling algorithm where some computer architectural restrictions can be obviated.  
-Using Tertimuss you can execute simulations using a proposed scheduler implementation (or one of the implemented schedulers) of multiprocessor with a customizable CPU definition as well as a customizable task set (it can be automatically generated too using common task generation algorithms). The simulation result can be numerical and graphical analyzed with some tools provided too.
+Using Tertimuss you can execute simulations using a proposed scheduler implementation (or one of the implemented schedulers) of multiprocessor with a customizable CPU definition as well as a customizable task set (it can be automatically generated using common task generation algorithms). The simulation result can be numerical and graphical analyzed with some tools provided too.
 
 ## Installation
 A Python version 3.8 or greater is required.
@@ -100,26 +100,23 @@ fig = generate_task_execution_plot(task_set=task_set, schedule_result=simulation
 fig.savefig("execution.svg")
 ```
 
-This specification generate automatically 9 periodic tasks that will run over 4 cores using the scheduling algorithm ALECS and will save a diagram of the execution.
+This specification generates  automatically 9 periodic tasks that will run over 4 cores using the scheduling algorithm ALECS and will save a diagram of the execution.
 
 The diagram saved is the following:
 ![Execution example](./docs/images/readme/execution_example.svg)
 
 Please, go to the tutorials page in the wiki to view more usage examples.
 
-Also you can visit the reference page in the wiki to view the reference of all the functions and classes available. The same information can be accessed using the help command in a Python terminal (e.g. import tertimuss; help(tertimuss))
+Also, you can visit the reference page in the wiki to view the reference of all the functions and classes available. The same information can be accessed using the help command in a Python terminal (e.g. import tertimuss; help(tertimuss))
 
 ## Contributing
-You can contribute either adding your own scheduler implementation, adding new features to the framework or proposing new features.
-
+You can contribute either by adding your scheduler implementation, adding new features to the framework, or proposing new features.
 In case that you want to add a new scheduler implementation or a new feature, fork this repository and implement the new features in the development branch. Then send a pull request from your development branch to the development branch in this repository.
-
-For more detailed explanation of the architecture of Tertimuss as well as some development guides, visit the development page in the wiki.
-
+For a more detailed explanation of the architecture of Tertimuss as well as some development guides, visit the development page in the wiki.
 In case that you only want to propose a new feature or reporting a bug, use the issues section. 
 
-## Citing
-If you want to use tertimuss in your papers, you can cite it as:
+## Cite us
+If you want to use Tertimuss in your papers, you can cite it as:  
 
 ```biblex
 @misc{tertimuss,

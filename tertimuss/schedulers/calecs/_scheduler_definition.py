@@ -8,6 +8,7 @@ from tertimuss.simulation_lib.schedulers_definition import CentralizedAbstractSc
 from tertimuss.simulation_lib.system_definition import ProcessorDefinition, EnvironmentSpecification, TaskSet, \
     CoreDefinition, CoreTypeDefinition, PreemptiveExecution
 from ..alecs import ALECSScheduler
+from ...simulation_lib.system_definition.utils import calculate_major_cycle
 
 
 class CALECSScheduler(CentralizedAbstractScheduler):
@@ -65,12 +66,12 @@ class CALECSScheduler(CentralizedAbstractScheduler):
                                                               in processor_definition.cores_definition.values()]))
 
         # Calculate F start
-        major_cycle = list_float_lcm([i.relative_deadline for i in task_set.periodic_tasks])
+        major_cycle = calculate_major_cycle(task_set)
 
         available_frequencies = [actual_frequency for actual_frequency in clock_available_frequencies
-                                 if sum([i.worst_case_execution_time * round(major_cycle / i.relative_deadline)
+                                 if sum([i.worst_case_execution_time * round(major_cycle / i.period)
                                          for i in task_set.periodic_tasks]) <= m * round(major_cycle * actual_frequency)
-                                 and all([i.worst_case_execution_time * round(major_cycle / i.relative_deadline)
+                                 and all([i.worst_case_execution_time * round(major_cycle / i.period)
                                           <= round(major_cycle * actual_frequency) for i in task_set.periodic_tasks])]
 
         if len(available_frequencies) == 0:
@@ -95,13 +96,13 @@ class CALECSScheduler(CentralizedAbstractScheduler):
                                                          in processor_definition.cores_definition.values()])
 
         # Calculate F start
-        major_cycle = list_float_lcm([i.relative_deadline for i in task_set.periodic_tasks])
+        major_cycle = calculate_major_cycle(task_set)
         self.__major_cycle = major_cycle
 
         available_frequencies = (actual_frequency for actual_frequency in clock_available_frequencies
-                                 if sum([i.worst_case_execution_time * round(major_cycle / i.relative_deadline)
+                                 if sum([i.worst_case_execution_time * round(major_cycle / i.period)
                                          for i in task_set.periodic_tasks]) <= m * round(major_cycle * actual_frequency)
-                                 and all([i.worst_case_execution_time * round(major_cycle / i.relative_deadline)
+                                 and all([i.worst_case_execution_time * round(major_cycle / i.period)
                                           <= round(major_cycle * actual_frequency) for i in task_set.periodic_tasks]))
 
         # F star in HZ
@@ -110,7 +111,7 @@ class CALECSScheduler(CentralizedAbstractScheduler):
         periodic_tasks_dict = {i.identification: i for i in task_set.periodic_tasks}
 
         task_set_calecs: Dict[int, ImplicitDeadlineTask] = {
-            i.identification: ImplicitDeadlineTask(i.worst_case_execution_time, round(i.relative_deadline * f_star_hz))
+            i.identification: ImplicitDeadlineTask(i.worst_case_execution_time, round(i.period * f_star_hz))
             for i in task_set.periodic_tasks}
 
         major_cycle_cycles: int = list_int_lcm([i.d for i in task_set_calecs.values()])

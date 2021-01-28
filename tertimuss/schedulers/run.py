@@ -12,6 +12,7 @@ from tertimuss.simulation_lib.math_utils import list_int_gcd, list_float_lcm, li
 from tertimuss.simulation_lib.schedulers_definition import CentralizedAbstractScheduler
 from tertimuss.simulation_lib.system_definition import ProcessorDefinition, EnvironmentSpecification, TaskSet, \
     PreemptiveExecution
+from tertimuss.simulation_lib.system_definition.utils import calculate_major_cycle
 
 
 class _RUNServer(object):
@@ -356,11 +357,11 @@ class RUNScheduler(CentralizedAbstractScheduler):
             *[i.core_type.available_frequencies for i in processor_definition.cores_definition.values()]))
 
         task_set_run = [_RUNTask(i.identification, i.worst_case_execution_time,
-                                 int(i.relative_deadline * selected_frequency)) for i in task_set.periodic_tasks]
+                                 int(i.period * selected_frequency)) for i in task_set.periodic_tasks]
 
-        major_cycle = list_float_lcm([i.relative_deadline for i in task_set.periodic_tasks])
+        major_cycle = calculate_major_cycle(task_set)
 
-        major_cycle_in_cycles = list_int_lcm([int(i.relative_deadline * selected_frequency)
+        major_cycle_in_cycles = list_int_lcm([int(i.period * selected_frequency)
                                               for i in task_set.periodic_tasks])
 
         used_cycles = sum([i.c * (major_cycle_in_cycles // i.d) for i in task_set_run])
@@ -378,7 +379,7 @@ class RUNScheduler(CentralizedAbstractScheduler):
             self.__clusters_obtained = [round(_obtain_utilization_of_run_pack_subtree(i)) for i in run_tree]
 
         # Tasks periods in cycles
-        tasks_periods_cycles: Dict[int, int] = {i.identification: int(i.relative_deadline * selected_frequency) for i in
+        tasks_periods_cycles: Dict[int, int] = {i.identification: int(i.period * selected_frequency) for i in
                                                 task_set.periodic_tasks}
 
         # Compute the schedule for a major cycle

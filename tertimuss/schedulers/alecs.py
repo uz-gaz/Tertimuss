@@ -17,6 +17,7 @@ from ..simulation_lib.math_utils import list_float_lcm, list_int_gcd
 from ..simulation_lib.schedulers_definition import CentralizedAbstractScheduler
 from ..simulation_lib.system_definition import ProcessorDefinition, EnvironmentSpecification, TaskSet, \
     PreemptiveExecution
+from ..simulation_lib.system_definition.utils import calculate_major_cycle
 
 
 class ALECSScheduler(CentralizedAbstractScheduler):
@@ -189,12 +190,12 @@ class ALECSScheduler(CentralizedAbstractScheduler):
                                                               in processor_definition.cores_definition.values()]))
 
         # Calculate F start
-        major_cycle = list_float_lcm([i.relative_deadline for i in task_set.periodic_tasks])
+        major_cycle = calculate_major_cycle(task_set)
 
         available_frequencies = [actual_frequency for actual_frequency in clock_available_frequencies
-                                 if sum([i.worst_case_execution_time * round(major_cycle / i.relative_deadline)
+                                 if sum([i.worst_case_execution_time * round(major_cycle / i.period)
                                          for i in task_set.periodic_tasks]) <= m * round(major_cycle * actual_frequency)
-                                 and all([i.worst_case_execution_time * round(major_cycle / i.relative_deadline)
+                                 and all([i.worst_case_execution_time * round(major_cycle / i.period)
                                           <= round(major_cycle * actual_frequency) for i in task_set.periodic_tasks])]
 
         if len(available_frequencies) == 0:
@@ -288,12 +289,12 @@ class ALECSScheduler(CentralizedAbstractScheduler):
                                                               in processor_definition.cores_definition.values()]))
 
         # Calculate F start
-        major_cycle = list_float_lcm([i.relative_deadline for i in task_set.periodic_tasks])
+        major_cycle = calculate_major_cycle(task_set)
 
         available_frequencies = [actual_frequency for actual_frequency in clock_available_frequencies
-                                 if sum([i.worst_case_execution_time * round(major_cycle / i.relative_deadline)
+                                 if sum([i.worst_case_execution_time * round(major_cycle / i.period)
                                          for i in task_set.periodic_tasks]) <= m * round(major_cycle * actual_frequency)
-                                 and all([i.worst_case_execution_time * round(major_cycle / i.relative_deadline)
+                                 and all([i.worst_case_execution_time * round(major_cycle / i.period)
                                           <= round(major_cycle * actual_frequency) for i in task_set.periodic_tasks])]
 
         # F star in HZ
@@ -301,7 +302,7 @@ class ALECSScheduler(CentralizedAbstractScheduler):
 
         # Number of cycles
         cci = [i.worst_case_execution_time for i in task_set.periodic_tasks]
-        tci = [int(i.relative_deadline * f_star_hz) for i in task_set.periodic_tasks]
+        tci = [int(i.period * f_star_hz) for i in task_set.periodic_tasks]
 
         # Add dummy task if needed
         major_cycle_in_cycles = int(major_cycle * f_star_hz)
