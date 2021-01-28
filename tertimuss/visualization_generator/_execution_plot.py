@@ -104,7 +104,7 @@ def generate_job_execution_plot(
                     edgecolor='black' if outline_boxes else None)
 
     ax.set_yticks(range(len(jobs_ids)))
-    ax.set_yticklabels([f'Jobs {i}' for i in jobs_ids])
+    ax.set_yticklabels([f'Job {i}' for i in jobs_ids])
 
     cpus_legend = [patches.Patch(color=color_palette[j], label=f'CPU {i}') for i, j in
                    sorted(cpu_color_id.items(), key=lambda k: k[0])]
