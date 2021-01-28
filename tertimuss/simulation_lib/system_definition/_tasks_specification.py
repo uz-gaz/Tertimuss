@@ -78,7 +78,7 @@ class Task(object):
     """
     Task specification
     """
-    # Identification of the task
+    # Unique identification for the task in the system
     identification: int
 
     # The longest execution time needed by a processor to complete the task without interruption over all possible input

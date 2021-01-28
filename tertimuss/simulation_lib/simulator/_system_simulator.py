@@ -104,15 +104,15 @@ def execute_scheduler_simulation_simple(tasks: TaskSet,
 
     major_cycle = calculate_major_cycle(tasks)
 
-    number_of_periodic_ids = sum([round(major_cycle / i.relative_deadline) for i in tasks.periodic_tasks])
+    number_of_periodic_ids = sum([round(major_cycle / i.period) for i in tasks.periodic_tasks])
     number_of_ids = number_of_periodic_ids + len(aperiodic_tasks_jobs) + len(sporadic_tasks_jobs)
 
     job_ids_stack: deque = deque(
         Set.difference({i for i in range(number_of_ids)}, Set.union({i.identification for i in aperiodic_tasks_jobs},
                                                                     {i.identification for i in sporadic_tasks_jobs})))
 
-    periodic_tasks_jobs: List[Job] = list(itertools.chain(*[[Job(job_ids_stack.pop(), i, j * i.relative_deadline)
-                                                             for j in range(round(major_cycle / i.relative_deadline))]
+    periodic_tasks_jobs: List[Job] = list(itertools.chain(*[[Job(job_ids_stack.popleft(), i, j * i.period)
+                                                             for j in range(round(major_cycle / i.period))]
                                                             for i in tasks.periodic_tasks]))
 
     return execute_scheduler_simulation(periodic_tasks_jobs + aperiodic_tasks_jobs + sporadic_tasks_jobs, tasks,
@@ -431,7 +431,7 @@ def _execute_centralized_scheduler_simulation(jobs: List[Job],
     final_lcm_cycle: int = round(simulation_end_time * lcm_frequency)
 
     # Major cycle
-    major_cycle_lcm = list_int_lcm([round(i.relative_deadline * lcm_frequency) for i in tasks.periodic_tasks])
+    major_cycle_lcm = list_int_lcm([round(i.period * lcm_frequency) for i in tasks.periodic_tasks])
 
     # Jobs to task dict
     jobs_to_task_dict = {i.identification: i.task.identification for i in jobs}

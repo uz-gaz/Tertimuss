@@ -81,7 +81,7 @@ class CALECSTest(unittest.TestCase):
 
         print("Schedulers simulation time:", end - start)
 
-        # with open("_partitioned_task_set_expected_solution.pickle", "wb") as text_file:
+        # with open("_partitioned_task_set_expected_solution_calecs.pickle", "wb") as text_file:
         #     pickle.dump((simulation_result, periodic_jobs, major_cycle), text_file)
 
         with open(os.path.join(os.path.dirname(__file__), "_partitioned_task_set_expected_solution_calecs.pickle"),
