@@ -1,27 +1,20 @@
 # Getting started
 
-This section describes the main components in Tertimuss. This provides an overview of the library, gives an example
-simulation, and present the next topics to read in order to create your own simulations.
+This section describes the main components of Tertimuss. This provides an overview of the library, gives an example simulation, and present the next topics to read to create your simulations.
 
-Tertimuss is compound of the following four components:
+Tertimuss is a compound of the following four components:
 
-- __system specification__: The system specification is the definition of the environment with which the scheduler has
-  to deal. It is formed by the task set specification (and the jobs specification), the processor specification and the
-  environment specification.
+- __system specification__: The system specification is the definition of the environment with which the scheduler has to deal. It is formed by the task set specification (and the jobs specification), the processor specification, and the environment specification.
 
-- __scheduling algorithm specification__: The scheduling algorithm specification is the implementation of the behavior
-  of the scheduling algorithm to be used.
+- __scheduling algorithm specification__: The scheduling algorithm specification is the implementation of the behavior of the scheduling algorithm to be used.
 
-- __simulation type and configuration__: The simulation type and configuration allows to configure some elements in the
-  simulation that affect its behavior, and the time it takes to simulate.
+- __simulation type and configuration__: The simulation type and configuration allows to configure some elements in the simulation that affect its behavior, and the time it takes to simulate.
 
-- __simulation result analyzer__: The simulation result analyzer is composed for a group of tools that provides an
-  analysis of the behavior of the scheduler.
+- __simulation result analyzer__: The simulation result analyzer is composed of a group of tools that provides an analysis of the behavior of the scheduler.
 
 ## Simulation definition example
 
-First we have a definition of a task set, composed by 4 fully preemptive hard real time tasks with the following
-characteristics:
+First, we have a definition of a task set, composed of 4 fully preemptive hard real-time tasks with the following characteristics:
 
 | Identification | Type      | Period (seconds) | Relative deadline (seconds) | Worst case execution time (cycles) | First arrive (seconds) |
 |----------------|-----------|------------------|-----------------------------|------------------------------------|------------------------|
@@ -98,7 +91,7 @@ task_set = TaskSet(
 )
 ```
 
-Secondly we have a processor definition with the following characteristics:
+Secondly, we have a processor definition with the following characteristics:
 
 | Number of cores       | Available frequencies    |
 |-----------------------|------|
@@ -125,9 +118,7 @@ from tertimuss.simulation_lib.system_definition.utils import generate_default_cp
 from tertimuss.visualization_generator import generate_task_execution_plot, generate_job_execution_plot
 ```
 
-We will simulate the behavior of __Global Earliest Deadline First__ scheduler over one major cycle.
-
-The next chuck of code can be used:
+We simulate the behavior of __Global Earliest Deadline First__ scheduler over one major cycle with the following code chunk:
 
 ```python
 # Execute simulation
@@ -178,7 +169,7 @@ print(periodic_tasks_jobs_association)
 | 2                  | 4                   |
 | 3                  | 5                   |
 
-And display the jobs execution
+And display the execution of the jobs:
 
 ```python
 # Display jobs execution
@@ -218,13 +209,9 @@ We can see that all jobs except 5 have only one preemption (mandatory) while job
 
 ## How to continue
 
-The following tutorials will give you a look of the simulation components in more detail:
+The following tutorials look at the simulation components in more detail:
 
 - System specification: There you learn how to define a system accordingly to your needs
-- Scheduling algorithm specification: There you will learn a bit about the out of the box provided schedulers
-  implementations, and how to define your own scheduler
-- Simulation result analyzing: There you learn about the tools provided to analyze the scheduling behavior, and how
-  you can create your own tool
-- Running multiple simulations: There you learn how to run fast a big number of simulations. This is a need when
-  you want to compare two schedulers and endorse the comparison with a statistical analysis of the schedulers behavior  
-
+- Scheduling algorithm specification: There you will learn more about the out of the box provided schedulers implementations, and how to define a new scheduler
+- Simulation result analyzing: There you learn about the tools provided to analyze the scheduling behavior, and how you can create  a new personalized tool
+- Running multiple simulations: There you learn how to run fast a big number of simulations. This is a need when you want to compare two schedulers and endorse the comparison with a statistical analysis of the behavior of the schedulers.
