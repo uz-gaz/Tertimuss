@@ -101,7 +101,7 @@ Secondly, we have a processor definition with the following characteristics:
 base_frequency = 1000
 available_frequencies = {base_frequency}
 number_of_cores = 2
-cpu_specification = generate_default_cpu(number_of_cores, available_frequencies, 0, 0)
+cpu_specification = generate_default_cpu(number_of_cores, available_frequencies)
 ```
 
 ## Running the simulation
@@ -112,7 +112,7 @@ The import need are the following:
 from tertimuss.analysis import obtain_deadline_misses_analysis, obtain_preemptions_migrations_analysis
 from tertimuss.schedulers.g_edf import GEDFScheduler
 from tertimuss.simulation_lib.simulator import execute_scheduler_simulation_simple, SimulationOptionsSpecification
-from tertimuss.simulation_lib.system_definition import PeriodicTask, PreemptiveExecution, Criticality, AperiodicTask,
+from tertimuss.simulation_lib.system_definition import PeriodicTask, PreemptiveExecution, Criticality, AperiodicTask, \
     TaskSet, Job
 from tertimuss.simulation_lib.system_definition.utils import generate_default_cpu, default_environment_specification
 from tertimuss.visualization_generator import generate_task_execution_plot, generate_job_execution_plot

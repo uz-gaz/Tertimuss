@@ -3,7 +3,7 @@ from typing import Set, Dict, Optional, Tuple, List
 from ._bpp_based_algorithms import BestFitDescendantBPPBasedPartitionAlgorithm
 from ._edf import obtain_edf_cyclic_executive
 from ._task import ImplicitDeadlineTask
-from tertimuss.simulation_lib.math_utils import list_float_lcm, list_int_lcm
+from tertimuss.simulation_lib.math_utils import list_int_lcm
 from tertimuss.simulation_lib.schedulers_definition import CentralizedAbstractScheduler
 from tertimuss.simulation_lib.system_definition import ProcessorDefinition, EnvironmentSpecification, TaskSet, \
     CoreDefinition, CoreTypeDefinition, PreemptiveExecution
@@ -159,20 +159,20 @@ class CALECSScheduler(CentralizedAbstractScheduler):
                                            material=processor_definition.cores_definition[j].core_type.material,
                                            core_energy_consumption=
                                            processor_definition.cores_definition[j].core_type.core_energy_consumption,
-                                           available_frequencies={f_star_hz},
-                                           preemption_cost=
-                                           processor_definition.cores_definition[j].core_type.preemption_cost)))
+                                           available_frequencies={f_star_hz})))
+                    # preemption_cost=
+                    # processor_definition.cores_definition[j].core_type.preemption_cost)))
                     for i, j in enumerate(local_used_cores_ids)]
 
-                migration_costs = {
-                    (i, j): processor_definition.migration_costs[(local_used_cores_ids[i], local_used_cores_ids[j])] for
-                    i in range(utilization) for j in range(utilization) if i != j}
+                # migration_costs = {
+                #     (i, j): processor_definition.migration_costs[(local_used_cores_ids[i], local_used_cores_ids[j])]
+                #     for i in range(utilization) for j in range(utilization) if i != j}
 
                 local_processor_definition = ProcessorDefinition(board_definition=processor_definition.board_definition,
                                                                  cores_definition={k: j for k, (i, j) in
                                                                                    enumerate(local_used_cores)},
-                                                                 measure_unit=processor_definition.measure_unit,
-                                                                 migration_costs=migration_costs)
+                                                                 measure_unit=processor_definition.measure_unit)
+                # migration_costs=migration_costs)
 
                 local_task_set = TaskSet(periodic_tasks=[periodic_tasks_dict[i] for i in task_set_loop if i != -1],
                                          aperiodic_tasks=[],
