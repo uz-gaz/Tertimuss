@@ -1,61 +1,14 @@
-__Work in progress__
-
-# Scheduling algorithm specification
-
-The scheduling algorithm is the primary focus of tertimuss. In this section you learn how to define them, and the
-algorithms provided out of the box.
-
-## Scheduling algorithms types
-
-Currently, in tertimuss, all schedulers must be implemented in a centralized way. That means that the scheduler can view
-the state of all cores and can change any executed task at any time it wants to. As a restriction, all cores must
-synchronize their ticks, so they must share the frequency. In a real implementation, this would be a scheduler running
-on a single core that would be able to orchestrate the workload on the remaining cores.
-
-A future version of tertimuss will allow the implementation of distributed schedulers.
-
-## Out of the box scheduling algorithms provided
-
-The following algorithms are included in tertimuss:
-
-- ALECS: Allocation and Execution Control Scheduler
-- CALECS: Clustered Allocation and Execution Control Scheduler
-- RUN: Reduction to Uniprocessor Scheduler
-- G-EDF: Global Earliest Deadline First Scheduler
-
-## How to define your own centralized scheduling algorithm
-
-TODO: comment section
-
-Class to inherit, and functions to implement:
-
-- check_schedulability
-- offline_stage
-- schedule_policy
-- on_major_cycle_start
-- on_jobs_activation
-- on_jobs_deadline_missed
-- on_job_execution_finished
-
-Type of implementation:
-
-- event driven
-- quantum based
-
-### Example: Implementing simple global earliest deadline first scheduler
-
-In this section we will implement a simple global earliest deadline first scheduler. To keep things simple it won't take
-in account affinity, it only will take care of executing the tasks with the lowest deadline.  
-Also, it will be event driven.
-
-```python
+import unittest
 from typing import Dict, Optional, Set, List, Tuple
 
 from tertimuss.simulation_lib.schedulers_definition import CentralizedAbstractScheduler
-from tertimuss.simulation_lib.system_definition import ProcessorDefinition, EnvironmentSpecification, TaskSet
+from tertimuss.simulation_lib.simulator import execute_scheduler_simulation_simple, SimulationOptionsSpecification
+from tertimuss.simulation_lib.system_definition import ProcessorDefinition, EnvironmentSpecification, TaskSet, \
+    PeriodicTask, PreemptiveExecution, Criticality, Job, AperiodicTask
+from tertimuss.simulation_lib.system_definition.utils import generate_default_cpu, default_environment_specification
 
 
-class SimpleGlobalEarliestDeadlineFirstScheduler(CentralizedAbstractScheduler):
+class _SimpleGlobalEarliestDeadlineFirstScheduler(CentralizedAbstractScheduler):
     def __init__(self):
         """
         Create a simple global EDF scheduler instance
@@ -183,10 +136,54 @@ class SimpleGlobalEarliestDeadlineFirstScheduler(CentralizedAbstractScheduler):
         for i in jobs_id:
             del self.__active_jobs_priority[i]
         return True
-```
-
-First, in the function __check_schedulability__ we check if the schedule will be capable of schedule the task set in the system provided.
-In this case, it will accept all kinds of task sets, however this checkpoint can be used for example to discard in a soft real time scheduler, task sets that contain hard real time tasks.
 
 
-TODO: Comment the remaining functions
+class SchedulingAlgorithmSpecificationTest(unittest.TestCase):
+    @staticmethod
+    def __create_implicit_deadline_periodic_task_h_rt(task_id: int, worst_case_execution_time: int,
+                                                      period: float) -> PeriodicTask:
+        # Create implicit deadline task with priority equal to identification id
+        return PeriodicTask(identification=task_id,
+                            worst_case_execution_time=worst_case_execution_time,
+                            relative_deadline=period,
+                            best_case_execution_time=None,
+                            execution_time_distribution=None,
+                            memory_footprint=None,
+                            priority=None,
+                            preemptive_execution=PreemptiveExecution.FULLY_PREEMPTIVE,
+                            deadline_criteria=Criticality.HARD,
+                            energy_consumption=None,
+                            phase=None,
+                            period=period)
+
+    def test_simple_simulation_periodic_task_set(self):
+        periodic_tasks = [
+            self.__create_implicit_deadline_periodic_task_h_rt(0, 10000, 20.0),
+            self.__create_implicit_deadline_periodic_task_h_rt(1, 5000, 10.0),
+            self.__create_implicit_deadline_periodic_task_h_rt(2, 7000, 10.0),
+            self.__create_implicit_deadline_periodic_task_h_rt(3, 7000, 10.0),
+            self.__create_implicit_deadline_periodic_task_h_rt(4, 7000, 10.0),
+            self.__create_implicit_deadline_periodic_task_h_rt(5, 14000, 20.0),
+            self.__create_implicit_deadline_periodic_task_h_rt(6, 3000, 5.0)
+        ]
+
+        number_of_cores = 5
+        available_frequencies = {1000}
+
+        simulation_result, periodic_jobs, major_cycle = execute_scheduler_simulation_simple(
+            tasks=TaskSet(
+                periodic_tasks=periodic_tasks,
+                aperiodic_tasks=[],
+                sporadic_tasks=[]
+            ),
+            aperiodic_tasks_jobs=[],
+            sporadic_tasks_jobs=[],
+            processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
+            environment_specification=default_environment_specification(),
+            simulation_options=SimulationOptionsSpecification(id_debug=True),
+            scheduler=_SimpleGlobalEarliestDeadlineFirstScheduler()
+        )
+
+        # Correct execution
+        assert simulation_result.have_been_scheduled
+        assert simulation_result.hard_real_time_deadline_missed_stack_trace is None
