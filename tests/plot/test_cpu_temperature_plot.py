@@ -2,7 +2,7 @@ import unittest
 
 from matplotlib import animation
 
-from tertimuss.visualization_generator import generate_board_temperature_evolution_2d_video, \
+from tertimuss.visualization import generate_board_temperature_evolution_2d_video, \
     generate_cpu_temperature_evolution_3d_video
 from tests.plot._generate_simulation_result import get_simulation_result
 

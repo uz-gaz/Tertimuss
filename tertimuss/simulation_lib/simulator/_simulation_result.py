@@ -22,24 +22,28 @@ class CPUUsedFrequency:
 
 @dataclass
 class SimulationStackTraceHardRTDeadlineMissed:
-    time: float
-
-    # Jobs with remaining cc and the remaining cc
-    jobs_and_cc: Dict[int, int]
+    time: float  # Time-stamp of the deadline miss
+    jobs_and_cc: Dict[int, int]  # Jobs with remaining cc and the remaining cc
 
 
 @dataclass
 class RawSimulationResult:
     # Scheduler task set acceptance
-    have_been_scheduled: bool  # This will be true if the scheduler agree to schedule the task set
-    scheduler_acceptance_error_message: Optional[str]  # Only will take value if have_been_scheduled is False. This will
-    # contain the scheduler reason
+    have_been_scheduled: bool  # This property is True if the scheduler agrees to schedule the task set in the provided
+    # system
+    scheduler_acceptance_error_message: Optional[str]  # This property only will take a value if have_been_scheduled is
+    # False. It contains the scheduler's reason for not scheduling the task set in the provided system
 
     # Simulation results
-    job_sections_execution: Dict[int, List[JobSectionExecution]]  # List of jobs executed by each core
-    cpus_frequencies: Dict[int, List[CPUUsedFrequency]]  # List of CPU frequencies used by each core
-    scheduling_points: List[float]  # Points where the scheduler have made an scheduling
-    temperature_measures: Dict[float, Dict[int, TemperatureLocatedCube]]  # Measures of temperature
-    hard_real_time_deadline_missed_stack_trace: Optional[SimulationStackTraceHardRTDeadlineMissed]  # Only will take
-    # value if a hard real time is missed
-    memory_usage_record: Optional[Dict[float, int]]  # Record of the memory usage in bytes
+    job_sections_execution: Dict[int, List[JobSectionExecution]]  # This property contains the list of jobs executed by
+    # each core
+    cpus_frequencies: Dict[int, List[CPUUsedFrequency]]  # This property contains the list of CPU frequencies used by
+    # each core
+    scheduling_points: List[float]  # This property contains the timestamps of the dynamic component of the scheduler
+    # invocation
+    temperature_measures: Dict[float, Dict[int, TemperatureLocatedCube]]  # This property contains a list with the
+    # evolution of the processors' temperature
+    hard_real_time_deadline_missed_stack_trace: Optional[SimulationStackTraceHardRTDeadlineMissed]  # This property only
+    # takes value if the system misses a hard real-time deadline. It contains a snapshot of the system when the deadline
+    # miss happens
+    memory_usage_record: Optional[Dict[float, int]]  # This property has a record of the memory usage in bytes

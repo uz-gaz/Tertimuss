@@ -153,7 +153,7 @@ class SystemSimulatorTest(unittest.TestCase):
                 sporadic_tasks=[]
             ),
             jobs=jobs_list,
-            processor_definition=generate_default_cpu(number_of_cores, available_frequencies, 0, 0),
+            processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
             environment_specification=default_environment_specification(),
             simulation_options=SimulationOptionsSpecification(id_debug=True),
             scheduler=self.__simple_priority_scheduler_definition()
@@ -216,7 +216,7 @@ class SystemSimulatorTest(unittest.TestCase):
             ),
             aperiodic_tasks_jobs=[],
             sporadic_tasks_jobs=[],
-            processor_definition=generate_default_cpu(number_of_cores, available_frequencies, 0, 0),
+            processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
             environment_specification=default_environment_specification(),
             simulation_options=SimulationOptionsSpecification(id_debug=True),
             scheduler=self.__simple_priority_scheduler_definition()
@@ -247,7 +247,7 @@ class SystemSimulatorTest(unittest.TestCase):
                 ),
                 aperiodic_tasks_jobs=[],
                 sporadic_tasks_jobs=[],
-                processor_definition=generate_default_cpu(number_of_cores, available_frequencies, 0, 0),
+                processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
                 environment_specification=default_environment_specification(),
                 simulation_options=SimulationOptionsSpecification(id_debug=True),
                 scheduler=self.__bad_behaviour_scheduler_definition()
@@ -275,7 +275,7 @@ class SystemSimulatorTest(unittest.TestCase):
             ),
             aperiodic_tasks_jobs=[],
             sporadic_tasks_jobs=[],
-            processor_definition=generate_default_cpu(number_of_cores, available_frequencies, 0, 0),
+            processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
             environment_specification=default_environment_specification(),
             simulation_options=SimulationOptionsSpecification(id_debug=True),
             scheduler=self.__simple_priority_scheduler_definition()
@@ -320,7 +320,7 @@ class SystemSimulatorTest(unittest.TestCase):
                 sporadic_tasks=[]
             ),
             jobs=jobs_list,
-            processor_definition=generate_default_cpu(number_of_cores, available_frequencies, 0, 0),
+            processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
             environment_specification=default_environment_specification(),
             simulation_options=SimulationOptionsSpecification(id_debug=True, thermal_simulation_type="DVFS",
                                                               simulate_thermal_behaviour=True),
