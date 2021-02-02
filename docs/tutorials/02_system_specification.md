@@ -9,8 +9,7 @@ All classes relatives to system specification are contained in tertimuss.simulat
 
 ## Task set specification
 
-In the task set specification, you will specify how are the tasks in your system. Even you can specify how are the jobs
-in it.
+The task set specification specifies how are the tasks and the jobs in the system.
 
 The notation in the specification of the task tries to follow as possible the notation proposed by
 the [IEEE Technical Committee on Real-Time Systems](https://site.ieee.org/tcrts/education/terminology-and-notation/).
@@ -99,7 +98,7 @@ task_set = TaskSet(periodic_tasks=[periodic_task_definition],
 
 ## Processor specification
 
-In the processor specification (ProcessorDefinition), you specify how is the platform where the tasks are running. Some
+The processor specification (ProcessorDefinition) specify how is the platform where the tasks are running. Some
 properties are only used when a thermal simulation is done.
 
 It has the following properties:
@@ -188,7 +187,7 @@ processor_definition = ProcessorDefinition(board_definition=board_definition,
 
 ## Environment specification
 
-In the environment specification (EnvironmentSpecification) you specify how is the environment where the processor is
+The environment specification (EnvironmentSpecification) specify how is the environment where the processor is
 located. It is only used in thermal simulations.
 
 Its definition has the following properties:  

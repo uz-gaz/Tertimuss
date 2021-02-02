@@ -1,17 +1,10 @@
-__Work in progress__
-
 # Scheduling algorithm specification
 
-The scheduling algorithm is the primary focus of tertimuss. In this section you learn how to define them, and the
-algorithms provided out of the box.
+The scheduling algorithm is the primary focus of tertimuss. This section describes how to define a new scheduling algorithm and the scheduling algorithms provided out of the box.
 
 ## Scheduling algorithms types
 
-Currently, in tertimuss, all schedulers must be implemented in a centralized way. That means that the scheduler can view
-the state of all cores and can change any executed task at any time it wants to. As a restriction, all cores must
-synchronize their ticks, so they must share the frequency. In a real implementation, this would be a scheduler running
-on a single core that would be able to orchestrate the workload on the remaining cores.
-
+In the current version of tertimuss all schedulers are implemented in a centralized way. That means that the scheduler can view the state of all cores and can change any executed task at any time it wants to. As a restriction, all processors must synchronize their clocks, so they must share the same frequency.  
 A future version of tertimuss will allow the implementation of distributed schedulers.
 
 ## Out of the box scheduling algorithms provided
@@ -23,12 +16,11 @@ The following algorithms are included in tertimuss:
 - RUN: Reduction to Uniprocessor Scheduler
 - G-EDF: Global Earliest Deadline First Scheduler
 
-## How to define your own centralized scheduling algorithm
+## How to define a new centralized scheduling algorithm
 
-TODO: comment section
+To define a new centralized scheduling algorithm, a class that inherits from CentralizedAbstractScheduler has to be declared.
 
-Class to inherit, and functions to implement:
-
+Also, it has to implement the following functions (they are described in the next sub-section):  
 - check_schedulability
 - offline_stage
 - schedule_policy
@@ -37,16 +29,17 @@ Class to inherit, and functions to implement:
 - on_jobs_deadline_missed
 - on_job_execution_finished
 
-Type of implementation:
 
-- event driven
-- quantum based
+The implemented schedulers there are the following approaches:  
+- event-driven: The dynamic component of the scheduler activated only by system events
+- quantum-based: The dynamic component of the scheduler is activated only from the previous invocation to it through a quantum
+- hybrid: An hybrid approach between event-driven and quantum-based
 
 ### Example: Implementing simple global earliest deadline first scheduler
 
-In this section we will implement a simple global earliest deadline first scheduler. To keep things simple it won't take
-in account affinity, it only will take care of executing the tasks with the lowest deadline.  
-Also, it will be event driven.
+This section shows a simple global earliest deadline first scheduler implementation. To keep things simple, it won't take
+in account affinity, so it only takes care of executing the tasks with the lowest deadline.  
+Also, to reduce the complexity of the implementation, it is event-driven.
 
 ```python
 from typing import Dict, Optional, Set, List, Tuple
@@ -185,8 +178,25 @@ class SimpleGlobalEarliestDeadlineFirstScheduler(CentralizedAbstractScheduler):
         return True
 ```
 
-First, in the function __check_schedulability__ we check if the schedule will be capable of schedule the task set in the system provided.
-In this case, it will accept all kinds of task sets, however this checkpoint can be used for example to discard in a soft real time scheduler, task sets that contain hard real time tasks.
+First, the function __check_schedulability__ checks if the schedule is capable of schedule the task set in the system provided.  
+In this example, the implemented scheduler accepts all kind of task sets and systems, however in the case that the scheduler only could handle some types of systems (i.e. if only could handle soft real-time tasks),
+and the restrictions have not met this function must return False and an explanatory message for the user.
 
+The function __offline_stage__ must run the static operations of the schedulers and set a frequency for the processors.
+In this example, the implementation take always the maximum available frequency.
 
-TODO: Comment the remaining functions
+The function __schedule_policy__ must run the dynamic operations of the scheduler. Its functions are to select the tasks to execute and the frequency of the processor until the next invocation, and set when the next invocation will take place.
+If the scheduler is event-driven, like this example, the number of cycles to execute until the next invocation can be __None__, which means that the scheduler won't take place until a handled event call it. If the frequency value is None, it will remain the last one used.
+In this example, the jobs with the nearest deadline are executed, and booth the frequency and the number of cycles until the next invocation are set to __None__. 
+
+The function __on_major_cycle_start__ is invoked when a major cycle start. If the scheduler returns True, the __schedule_policy__ function is called this same cycle.
+In this example, it will return true because it is an event-driven scheduler.
+
+The function __on_jobs_activation__ is invoked when a new job is activated. If the scheduler returns True, the __schedule_policy__ function is called this same cycle.
+In this example, it will return true because it is an event-driven scheduler.
+
+The function __on_job_execution_finished__ is invoked when a job finished its execution. If the scheduler returns True, the __schedule_policy__ function is called this same cycle.
+In this example, it will return true because it is an event-driven scheduler.
+
+The function __on_jobs_deadline_missed__ is invoked when a job miss its deadline. If the scheduler returns True, the __schedule_policy__ function is called this same cycle.
+In this example, it will return true because it is an event-driven scheduler.

@@ -3,15 +3,15 @@
 # Tertimuss: Simulation environment for Real-Time Multiprocessor Schedulers
 ![Python package](https://github.com/AbelChT/Tertimuss-Dev/workflows/Python%20package/badge.svg)
 
-Tertimuss is a real-time scheduler evaluation tool. It allows the evaluation of the behavior of a scheduler with an easy interface to implement it. It is primarily designed for a first design phase of a scheduling algorithm where some computer architectural restrictions can be obviated.  
-Using Tertimuss you can execute simulations using a proposed scheduler implementation (or one of the implemented schedulers) of multiprocessor with a customizable CPU definition as well as a customizable task set (it can be automatically generated using common task generation algorithms). The simulation result can be numerical and graphical analyzed with some tools provided too.
+Tertimuss is an evaluation tool for real-time multiprocessor schedulers. A user-friendly interface makes the scheduler implementation and evaluation easier. It is primarily designed for tentative design phase of a scheduling algorithm, where some computer architectural restrictions can be obviated.  
+Using Tertimuss you can execute simulations using your own scheduler implementation, or one of the RT multiprocessor schedulers already available in the framework, with a customizable CPU definition as well as a customizable task set. Task sets can be automatically generated using common task generation algorithms.Tertimuss also integrates tools for analyzing and representing simulation results.
 
 ## Installation
 A Python version 3.8 or greater is required.
 
-The recommended way to use Tertimuss is installing it in a Python virtual environment and using it as a library.
+To use Tertimuss, we recommend its installation in a Python virtual environment as a library.
 
-To create a virtual environment (with name .venv) and activate it use the following commands:
+To create and activate a virtual environment (with name .venv) use the following commands:
 
 ```bash
 $ python3 -m venv .venv --copies
@@ -23,7 +23,7 @@ $ source .venv/bin/activate
 $ .\.venv\Scripts\Activate.ps1
 ```
 
-To install Tertimuss in the created virtual environment use the following command:
+To install Tertimuss in the newly created virtual environment use the following command:
 
 ```bash
 $ pip install .
@@ -31,7 +31,7 @@ $ pip install .
 
 ## Usage
 
-Once it is installed you can try your first simulation with Tertimuss:
+Once installed, you may want to try your first simulation with Tertimuss:
 
 ```Python
 # Import libraries
@@ -100,23 +100,23 @@ fig = generate_task_execution_plot(task_set=task_set, schedule_result=simulation
 fig.savefig("execution.svg")
 ```
 
-This specification generates  automatically 9 periodic tasks that will run over 4 cores using the scheduling algorithm ALECS and will save a diagram of the execution.
+This specification generates automatically 9 periodic tasks that will run over 4 cores using the scheduling algorithm ALECS and save a diagram of the execution.
 
 The diagram saved is the following:
 ![Execution example](./docs/images/readme/execution_example.svg)
 
-Please, go to the tutorials page in the wiki to view more usage examples.
+Please visit the tutorials page in the wiki to view more usage examples.
 
-Also, you can visit the reference page in the wiki to view the reference of all the functions and classes available. The same information can be accessed using the help command in a Python terminal (e.g. import tertimuss; help(tertimuss))
+Also, you can check the reference page in the wiki to view the description of all the available functions and classes. This information can equally be accessed through the help command in a Python terminal (e.g. import tertimuss; help(tertimuss))
 
 ## Contributing
 You can contribute either by adding your scheduler implementation, adding new features to the framework, or proposing new features.
-In case that you want to add a new scheduler implementation or a new feature, fork this repository and implement the new features in the development branch. Then send a pull request from your development branch to the development branch in this repository.
+In case you want to add a new scheduler implementation or a new feature, fork this repository and implement the new features in the development branch. Then send a pull request from your development branch to the development branch in this repository.
 For a more detailed explanation of the architecture of Tertimuss as well as some development guides, visit the development page in the wiki.
-In case that you only want to propose a new feature or reporting a bug, use the issues section. 
+In case you only want to propose a new feature or reporting a bug, use the issues section. 
 
 ## Cite us
-If you want to use Tertimuss in your papers, you can cite it as:  
+If you want to use Tertimuss in your papers, please use the following citation:  
 
 ```biblex
 @misc{tertimuss,
