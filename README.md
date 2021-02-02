@@ -44,7 +44,7 @@ from tertimuss.simulation_lib.system_definition.utils import generate_default_cp
     default_environment_specification
 from tertimuss.tasks_generator.deadline_generator import UniformIntegerDeadlineGenerator
 from tertimuss.tasks_generator.periodic_tasks.implicit_deadlines import UUniFastDiscard
-from tertimuss.visualization_generator import generate_task_execution_plot
+from tertimuss.visualization import generate_task_execution_plot
 
 # Simulation configuration
 base_frequency = 1000

@@ -115,7 +115,7 @@ from tertimuss.simulation_lib.simulator import execute_scheduler_simulation_simp
 from tertimuss.simulation_lib.system_definition import PeriodicTask, PreemptiveExecution, Criticality, AperiodicTask, \
     TaskSet, Job
 from tertimuss.simulation_lib.system_definition.utils import generate_default_cpu, default_environment_specification
-from tertimuss.visualization_generator import generate_task_execution_plot, generate_job_execution_plot
+from tertimuss.visualization import generate_task_execution_plot, generate_job_execution_plot
 ```
 
 We simulate the behavior of __Global Earliest Deadline First__ scheduler over one major cycle with the following code chunk:

@@ -101,6 +101,9 @@ task_set = TaskSet(periodic_tasks=[periodic_task_definition],
 The processor specification (ProcessorDefinition) specify how is the platform where the tasks are running. Some
 properties are only used when a thermal simulation is done.
 
+The physical processor model is very simple, however the thermal model simulator can handle complex processor floor
+plans (see the tertimuss.cubed_space_thermal_simulator package). 
+
 It has the following properties:
 
 - board_definition: Definition of the CPU board (only used in thermal simulation)
