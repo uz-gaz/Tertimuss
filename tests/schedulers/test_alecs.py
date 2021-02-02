@@ -45,7 +45,7 @@ class ALECSTest(unittest.TestCase):
             ),
             aperiodic_tasks_jobs=[],
             sporadic_tasks_jobs=[],
-            processor_definition=generate_default_cpu(number_of_cores, available_frequencies, 0, 0),
+            processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
             environment_specification=default_environment_specification(),
             simulation_options=SimulationOptionsSpecification(id_debug=True),
             scheduler=ALECSScheduler(activate_debug=True)

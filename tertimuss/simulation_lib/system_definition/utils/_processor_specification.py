@@ -7,17 +7,18 @@ from .._processor_specification import ProcessorDefinition, CoreEnergyConsumptio
     BoardDefinition, CoreDefinition
 
 
-def generate_default_cpu(number_of_cores: int, available_frequencies: Set[int], preemption_cost: int = 0,
-                         migration_cost: int = 0, thermal_dissipation: float = 5) -> ProcessorDefinition:
+def generate_default_cpu(number_of_cores: int, available_frequencies: Set[int],
+                         thermal_dissipation: float = 5) -> ProcessorDefinition:
     """
     Generate a default CPU specifying the number of cores and the available frequencies
     :param number_of_cores: Number of cores in the CPU
     :param available_frequencies: Available frequencies in the CPU
-    :param preemption_cost: Cost of preemption in cycles
-    :param migration_cost: Cost of migration in cycles
     :param thermal_dissipation: Dissipation of each core in watts when they are with maximum frequency
     :return: CPU specification
     """
+    # :param preemption_cost: Cost of preemption in cycles
+    # :param migration_cost: Cost of migration in cycles
+
     max_cpu_frequency: float = max(available_frequencies)
     leakage_alpha: float = 0.001
     leakage_delta: float = 0.1
@@ -31,8 +32,8 @@ def generate_default_cpu(number_of_cores: int, available_frequencies: Set[int], 
     core_type_definition = CoreTypeDefinition(dimensions=UnitDimensions(x=10, y=10, z=2),
                                               material=SiliconSolidMaterial(),
                                               core_energy_consumption=energy_consumption_properties,
-                                              available_frequencies=available_frequencies,
-                                              preemption_cost=preemption_cost)
+                                              available_frequencies=available_frequencies)
+    #                                         preemption_cost=preemption_cost
 
     number_of_columns = math.ceil(math.sqrt(number_of_cores))
 
@@ -52,6 +53,6 @@ def generate_default_cpu(number_of_cores: int, available_frequencies: Set[int], 
 
     return ProcessorDefinition(board_definition=board_definition,
                                cores_definition=cores_definition,
-                               migration_costs={(i, j): migration_cost for i in range(number_of_cores) for j in
-                                                range(number_of_cores) if i != j},
                                measure_unit=0.001)
+    #                          migration_costs={(i, j): migration_cost for i in range(number_of_cores) for j in
+    #                                           range(number_of_cores) if i != j}

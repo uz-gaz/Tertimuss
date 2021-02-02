@@ -6,7 +6,7 @@ from tertimuss.simulation_lib.simulator import execute_scheduler_simulation_simp
 from tertimuss.simulation_lib.system_definition import PeriodicTask, PreemptiveExecution, Criticality, AperiodicTask, \
     TaskSet, Job
 from tertimuss.simulation_lib.system_definition.utils import generate_default_cpu, default_environment_specification
-from tertimuss.visualization_generator import generate_task_execution_plot, generate_job_execution_plot
+from tertimuss.visualization import generate_task_execution_plot, generate_job_execution_plot
 
 
 class GettingStartedTest(unittest.TestCase):
@@ -88,7 +88,7 @@ class GettingStartedTest(unittest.TestCase):
             tasks=task_set,
             aperiodic_tasks_jobs=aperiodic_jobs,
             sporadic_tasks_jobs=[],
-            processor_definition=generate_default_cpu(number_of_cores, available_frequencies, 0, 0),
+            processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
             environment_specification=default_environment_specification(),
             simulation_options=SimulationOptionsSpecification(id_debug=True),
             scheduler=GEDFScheduler(activate_debug=True)

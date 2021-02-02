@@ -1,6 +1,6 @@
 """
 ==========================================
-Visualization generator
+Visualization
 ==========================================
 
 This module contains the tools to generate visualizations of simulation results

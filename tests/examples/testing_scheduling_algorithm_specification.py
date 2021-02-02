@@ -1,54 +1,14 @@
-# Scheduling algorithm specification
-
-The scheduling algorithm is the primary focus of tertimuss. This section describes how to define a new scheduling algorithm and the scheduling algorithms provided out of the box.
-
-## Scheduling algorithms types
-
-In the current version of tertimuss all schedulers are implemented in a centralized way. That means that the scheduler can view the state of all cores and can change any executed task at any time it wants to. As a restriction, all processors must synchronize their clocks, so they must share the same frequency.  
-A future version of tertimuss will allow the implementation of distributed schedulers.
-
-## Out of the box scheduling algorithms provided
-
-The following algorithms are included in tertimuss:
-
-- ALECS: Allocation and Execution Control Scheduler
-- CALECS: Clustered Allocation and Execution Control Scheduler
-- RUN: Reduction to Uniprocessor Scheduler
-- G-EDF: Global Earliest Deadline First Scheduler
-
-## How to define a new centralized scheduling algorithm
-
-To define a new centralized scheduling algorithm, a class that inherits from CentralizedAbstractScheduler has to be declared.
-
-Also, it has to implement the following functions (they are described in the next sub-section):  
-- check_schedulability
-- offline_stage
-- schedule_policy
-- on_major_cycle_start
-- on_jobs_activation
-- on_jobs_deadline_missed
-- on_job_execution_finished
-
-
-The implemented schedulers there are the following approaches:  
-- event-driven: The dynamic component of the scheduler activated only by system events
-- quantum-based: The dynamic component of the scheduler is activated only from the previous invocation to it through a quantum
-- hybrid: An hybrid approach between event-driven and quantum-based
-
-### Example: Implementing simple global earliest deadline first scheduler
-
-This section shows a simple global earliest deadline first scheduler implementation. To keep things simple, it won't take
-in account affinity, so it only takes care of executing the tasks with the lowest deadline.  
-Also, to reduce the complexity of the implementation, it is event-driven.
-
-```python
+import unittest
 from typing import Dict, Optional, Set, List, Tuple
 
 from tertimuss.simulation_lib.schedulers_definition import CentralizedAbstractScheduler
-from tertimuss.simulation_lib.system_definition import ProcessorDefinition, EnvironmentSpecification, TaskSet
+from tertimuss.simulation_lib.simulator import execute_scheduler_simulation_simple, SimulationOptionsSpecification
+from tertimuss.simulation_lib.system_definition import ProcessorDefinition, EnvironmentSpecification, TaskSet, \
+    PeriodicTask, PreemptiveExecution, Criticality, Job, AperiodicTask
+from tertimuss.simulation_lib.system_definition.utils import generate_default_cpu, default_environment_specification
 
 
-class SimpleGlobalEarliestDeadlineFirstScheduler(CentralizedAbstractScheduler):
+class _SimpleGlobalEarliestDeadlineFirstScheduler(CentralizedAbstractScheduler):
     def __init__(self):
         """
         Create a simple global EDF scheduler instance
@@ -176,27 +136,54 @@ class SimpleGlobalEarliestDeadlineFirstScheduler(CentralizedAbstractScheduler):
         for i in jobs_id:
             del self.__active_jobs_priority[i]
         return True
-```
 
-First, the function __check_schedulability__ checks if the schedule is capable of schedule the task set in the system provided.  
-In this example, the implemented scheduler accepts all kind of task sets and systems, however in the case that the scheduler only could handle some types of systems (i.e. if only could handle soft real-time tasks),
-and the restrictions have not met this function must return False and an explanatory message for the user.
 
-The function __offline_stage__ must run the static operations of the schedulers and set a frequency for the processors.
-In this example, the implementation take always the maximum available frequency.
+class SchedulingAlgorithmSpecificationTest(unittest.TestCase):
+    @staticmethod
+    def __create_implicit_deadline_periodic_task_h_rt(task_id: int, worst_case_execution_time: int,
+                                                      period: float) -> PeriodicTask:
+        # Create implicit deadline task with priority equal to identification id
+        return PeriodicTask(identification=task_id,
+                            worst_case_execution_time=worst_case_execution_time,
+                            relative_deadline=period,
+                            best_case_execution_time=None,
+                            execution_time_distribution=None,
+                            memory_footprint=None,
+                            priority=None,
+                            preemptive_execution=PreemptiveExecution.FULLY_PREEMPTIVE,
+                            deadline_criteria=Criticality.HARD,
+                            energy_consumption=None,
+                            phase=None,
+                            period=period)
 
-The function __schedule_policy__ must run the dynamic operations of the scheduler. Its functions are to select the tasks to execute and the frequency of the processor until the next invocation, and set when the next invocation will take place.
-If the scheduler is event-driven, like this example, the number of cycles to execute until the next invocation can be __None__, which means that the scheduler won't take place until a handled event call it. If the frequency value is None, it will remain the last one used.
-In this example, the jobs with the nearest deadline are executed, and booth the frequency and the number of cycles until the next invocation are set to __None__. 
+    def test_simple_simulation_periodic_task_set(self):
+        periodic_tasks = [
+            self.__create_implicit_deadline_periodic_task_h_rt(0, 10000, 20.0),
+            self.__create_implicit_deadline_periodic_task_h_rt(1, 5000, 10.0),
+            self.__create_implicit_deadline_periodic_task_h_rt(2, 7000, 10.0),
+            self.__create_implicit_deadline_periodic_task_h_rt(3, 7000, 10.0),
+            self.__create_implicit_deadline_periodic_task_h_rt(4, 7000, 10.0),
+            self.__create_implicit_deadline_periodic_task_h_rt(5, 14000, 20.0),
+            self.__create_implicit_deadline_periodic_task_h_rt(6, 3000, 5.0)
+        ]
 
-The function __on_major_cycle_start__ is invoked when a major cycle start. If the scheduler returns True, the __schedule_policy__ function is called this same cycle.
-In this example, it will return true because it is an event-driven scheduler.
+        number_of_cores = 5
+        available_frequencies = {1000}
 
-The function __on_jobs_activation__ is invoked when a new job is activated. If the scheduler returns True, the __schedule_policy__ function is called this same cycle.
-In this example, it will return true because it is an event-driven scheduler.
+        simulation_result, periodic_jobs, major_cycle = execute_scheduler_simulation_simple(
+            tasks=TaskSet(
+                periodic_tasks=periodic_tasks,
+                aperiodic_tasks=[],
+                sporadic_tasks=[]
+            ),
+            aperiodic_tasks_jobs=[],
+            sporadic_tasks_jobs=[],
+            processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
+            environment_specification=default_environment_specification(),
+            simulation_options=SimulationOptionsSpecification(id_debug=True),
+            scheduler=_SimpleGlobalEarliestDeadlineFirstScheduler()
+        )
 
-The function __on_job_execution_finished__ is invoked when a job finished its execution. If the scheduler returns True, the __schedule_policy__ function is called this same cycle.
-In this example, it will return true because it is an event-driven scheduler.
-
-The function __on_jobs_deadline_missed__ is invoked when a job miss its deadline. If the scheduler returns True, the __schedule_policy__ function is called this same cycle.
-In this example, it will return true because it is an event-driven scheduler.
+        # Correct execution
+        assert simulation_result.have_been_scheduled
+        assert simulation_result.hard_real_time_deadline_missed_stack_trace is None
