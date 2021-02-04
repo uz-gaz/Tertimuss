@@ -105,14 +105,14 @@ This specification generates automatically 9 periodic tasks that will run over 4
 The diagram saved is the following:
 ![Execution example](./docs/images/readme/execution_example.svg)
 
-Please visit the tutorials page in the wiki to view more usage examples.
+Please visit the [tutorials](./docs/tutorials/index.md) to view more usage examples.
 
-Also, you can check the reference page in the wiki to view the description of all the available functions and classes. This information can equally be accessed through the help command in a Python terminal (e.g. import tertimuss; help(tertimuss))
+Also, you can check the docstrings to view the description of all the available functions and classes. This information can equally be accessed through the help command in a Python terminal (e.g. import tertimuss; help(tertimuss))
 
 ## Contributing
 You can contribute either by adding your scheduler implementation, adding new features to the framework, or proposing new features.
 In case you want to add a new scheduler implementation or a new feature, fork this repository and implement the new features in the development branch. Then send a pull request from your development branch to the development branch in this repository.
-For a more detailed explanation of the architecture of Tertimuss as well as some development guides, visit the development page in the wiki.
+For a more detailed explanation of the architecture of Tertimuss as well as some development guides, visit the [development guide](./docs/development/index.md).
 In case you only want to propose a new feature or reporting a bug, use the issues section. 
 
 ## Cite us

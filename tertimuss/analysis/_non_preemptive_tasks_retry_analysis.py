@@ -8,38 +8,52 @@ from ..simulation_lib.system_definition import TaskSet, Job, Task, PreemptiveExe
 @dataclass(frozen=True)
 class NonPreemptiveTasksRetryAnalysis:
     """
-    Retries analysis of non preemptive tasks
+    Store the result of the analysis of the retries done by non-preemptive tasks
     """
+
     # All types of tasks
-    number_of_retries: int  # Total number of retries
+    number_of_retries: int
+    """Total number of retries done by non-preemptive tasks"""
 
     # Periodic tasks
-    number_of_retries_periodic_tasks: int  # Total number of retries
+    number_of_retries_periodic_tasks: int
+    """Total number of retries by non-preemptive periodic tasks"""
 
     # Aperiodic tasks
-    number_of_retries_aperiodic_tasks: int  # Total number of retries
+    number_of_retries_aperiodic_tasks: int
+    """Total number of retries by non-preemptive aperiodic tasks"""
 
     # Sporadic tasks
-    number_of_retries_sporadic_tasks: int  # Total number of retries
+    number_of_retries_sporadic_tasks: int
+    """Total number of retries by non-preemptive sporadic tasks"""
 
     # Soft real time tasks
-    number_of_retries_soft_real_time_tasks: int  # Total number of retries
+    number_of_retries_soft_real_time_tasks: int
+    """Total number of retries by non-preemptive soft real-time tasks"""
 
     # Hard real time tasks
-    number_of_retries_hard_real_time_tasks: int  # Total number of retries
+    number_of_retries_hard_real_time_tasks: int
+    """Total number of retries by non-preemptive hard real-time tasks"""
 
     # Firm real time tasks
-    number_of_retries_firm_real_time_tasks: int  # Total number of retries
+    number_of_retries_firm_real_time_tasks: int
+    """Total number of retries by non-preemptive firm real-time tasks"""
 
     # Analysis by task
-    number_of_retries_by_task: Dict[int, int]  # Total number of retries by task id
-    number_of_used_cycles_by_task: Dict[int, int]  # Total number of cycles used by task id (counting the cycles used in
-    # the retries)
+    number_of_retries_by_task: Dict[int, int]
+    """Total number of retries by non-preemptive tasks by identifier"""
+
+    # Total number of retries by task id
+    number_of_used_cycles_by_task: Dict[int, int]
+    """Total number of cycles used in retries by non-preemptive tasks by identifier"""
 
     # Analysis by job
-    number_of_retries_by_job: Dict[int, int]  # Total number of retries by job id
-    number_of_used_cycles_by_job: Dict[int, int]  # Total number of cycles used by task id (counting the cycles used in
-    # the retries)
+    number_of_retries_by_job: Dict[int, int]
+    """Total number of retries in jobs of non-preemptive tasks by identifier"""
+
+    # Total number of retries by job id
+    number_of_used_cycles_by_job: Dict[int, int]
+    """Total number of cycles used in retries in jobs of non-preemptive tasks by identifier"""
 
 
 def __sum_items_by_condition(feature_count: Dict[int, int], allowed_actors: Set[int]) -> int:
@@ -50,11 +64,12 @@ def obtain_non_preemptive_tasks_retries_analysis(task_set: TaskSet, jobs: List[J
                                                  schedule_result: RawSimulationResult) \
         -> NonPreemptiveTasksRetryAnalysis:
     """
-    Retries analysis of non preemptive tasks
+    Do an analysis of the retries dones by non-preemptive tasks
+
     :param task_set: task set
     :param jobs: jobs of the task set
     :param schedule_result: simulation result
-    :return: non preemptive tasks retries analysis
+    :return: non-preemptive tasks retries analysis
     """
     tasks: List[Task] = task_set.periodic_tasks + task_set.aperiodic_tasks + task_set.sporadic_tasks
 
