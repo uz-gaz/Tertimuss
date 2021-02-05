@@ -1,14 +1,17 @@
 """
-==========================================
+=========================================
 Reduction to Uniprocessor Scheduler (RUN)
-==========================================
+=========================================
+
+This module provides the following class:
+- :class:`RUNScheduler`
 """
 
 from typing import Set, Dict, Optional, Tuple, List
 
 import numpy
 
-from tertimuss.simulation_lib.math_utils import list_int_gcd, list_float_lcm, list_int_lcm
+from tertimuss.simulation_lib.math_utils import list_int_gcd, list_int_lcm
 from tertimuss.simulation_lib.schedulers_definition import CentralizedAbstractScheduler
 from tertimuss.simulation_lib.system_definition import ProcessorDefinition, EnvironmentSpecification, TaskSet, \
     PreemptiveExecution
@@ -297,6 +300,7 @@ class RUNScheduler(CentralizedAbstractScheduler):
     def __init__(self, activate_debug: bool, store_clusters_obtained: bool):
         """
         Create the RUN scheduler instance
+
         :param activate_debug: True if want to communicate the scheduler to be in debug mode
         :param store_clusters_obtained: True if want to access later to the clusters obtained by the scheduler
         """
@@ -320,7 +324,7 @@ class RUNScheduler(CentralizedAbstractScheduler):
                                                                                                          Optional[str]]:
         """
         Return true if the scheduler can be able to schedule the system. In negative case, it can return a reason.
-        In example, an scheduler that only can work with periodic tasks with phase=0, can return
+        In example, a scheduler that only can work with periodic tasks with phase=0, can return
          [false, "Only can schedule tasks with phase=0"]
 
         :param environment_specification: Specification of the environment

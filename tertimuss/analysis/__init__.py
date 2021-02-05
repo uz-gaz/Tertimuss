@@ -1,7 +1,7 @@
 """
-==========================================
+==============
 Analysis tools
-==========================================
+==============
 
 Set of tools to analyze the result of the simulations done with tertimuss.
 

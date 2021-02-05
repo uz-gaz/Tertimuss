@@ -1,7 +1,10 @@
 """
-==========================================
+================================================
 Global Earliest Deadline First Scheduler (G-EDF)
-==========================================
+================================================
+
+This module provides the following class:
+- :class:`GEDFScheduler`
 """
 
 from typing import Dict, Optional, Set, List, Tuple

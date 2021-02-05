@@ -1,7 +1,7 @@
 """
-==========================================
+=============================
 Cubed space thermal simulator
-==========================================
+=============================
 
 This library  provides a thermal simulator for a mesh defined by cubes. The simulation is done using the
 **unit edge cube** as the minimal simulation unit.

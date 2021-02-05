@@ -12,9 +12,18 @@ from ...simulation_lib.system_definition.utils import calculate_major_cycle
 
 
 class CALECSScheduler(CentralizedAbstractScheduler):
+    """
+       Implements the Clustered Allocation and Execution Control Scheduler (CALECS)
+
+       The actual implementation only allows periodic tasks (the original specification allows aperiodic too)
+
+       References:
+           The article has been sent for revision
+       """
     def __init__(self, activate_debug: bool, store_clusters_obtained: bool):
         """
         Create the CALECS scheduler instance
+
         :param activate_debug: True if want to communicate the scheduler to be in debug mode
         :param store_clusters_obtained: True if want to access later to the clusters obtained by the scheduler
         """
@@ -31,6 +40,7 @@ class CALECSScheduler(CentralizedAbstractScheduler):
     def get_clusters_obtained(self) -> Optional[List[int]]:
         """
         Return the configuration of the clusters obtained
+
         :return: number of cpus in each cluster
         """
         return self.__clusters_obtained
