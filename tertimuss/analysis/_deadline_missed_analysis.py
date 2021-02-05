@@ -8,43 +8,55 @@ from ..simulation_lib.system_definition import TaskSet, Job, Task, PreemptiveExe
 @dataclass(frozen=True)
 class DeadlineMissedAnalysis:
     """
-    Deadline missed analysis
+    Store the result of a deadline missed analysis
     """
     # All types of tasks
-    number_of_missed_deadlines: int  # Total number of missed deadlines
+    number_of_missed_deadlines: int
+    """Total number of missed deadlines"""
 
     # Periodic tasks
-    number_of_missed_deadlines_periodic_tasks: int  # Total number of missed deadlines
+    number_of_missed_deadlines_periodic_tasks: int
+    """Total number of missed deadlines in periodic tasks"""
 
     # Aperiodic tasks
-    number_of_missed_deadlines_aperiodic_tasks: int  # Total number of missed deadlines
+    number_of_missed_deadlines_aperiodic_tasks: int
+    """Total number of missed deadlines in aperiodic tasks"""
 
     # Sporadic tasks
-    number_of_missed_deadlines_sporadic_tasks: int  # Total number of missed deadlines
+    number_of_missed_deadlines_sporadic_tasks: int
+    """Total number of missed deadlines in sporadic tasks"""
 
     # Soft real time tasks
-    number_of_missed_deadlines_soft_real_time_tasks: int  # Total number of missed deadlines
+    number_of_missed_deadlines_soft_real_time_tasks: int
+    """Total number of missed deadlines in soft real-time tasks"""
 
     # Hard real time tasks
-    number_of_missed_deadlines_hard_real_time_tasks: int  # Total number of missed deadlines
+    number_of_missed_deadlines_hard_real_time_tasks: int
+    """Total number of missed deadlines in hard real-time tasks"""
 
     # Firm real time tasks
-    number_of_missed_deadlines_firm_real_time_tasks: int  # Total number of missed deadlines
+    number_of_missed_deadlines_firm_real_time_tasks: int
+    """Total number of missed deadlines in firm real-time tasks"""
 
     # Fully preemptive tasks
-    number_of_missed_deadlines_fully_preemptive_tasks: int  # Total number of missed deadlines
+    number_of_missed_deadlines_fully_preemptive_tasks: int
+    """Total number of missed deadlines in fully preemptive tasks"""
 
     # Non preemptive tasks
-    number_of_missed_deadlines_non_preemptive_tasks: int  # Total number of missed deadlines
+    number_of_missed_deadlines_non_preemptive_tasks: int
+    """Total number of missed deadlines in non-preemptive tasks"""
 
     # Analysis by task
-    number_of_missed_deadlines_by_task: Dict[int, int]  # Total number of missed deadlines by task id
+    number_of_missed_deadlines_by_task: Dict[int, int]
+    """Total number of missed deadlines by task identifier"""
 
     # Analysis by job
-    has_missed_deadlines_by_job: Dict[int, bool]  # Total number of missed deadlines by job id
+    has_missed_deadlines_by_job: Dict[int, bool]
+    """Total number of missed deadlines by job identifier"""
 
     # Lately cycles in missed soft real time tasks
-    delay_in_soft_real_time_by_job: Dict[int, int]  # Cycles of delay after the deadline that the task took to finish
+    delay_in_soft_real_time_by_job: Dict[int, int]
+    """Cycles of delay after the deadline that the task took to finish"""
 
 
 def __sum_items_by_condition(feature_count: Dict[int, int], allowed_actors: Set[int]) -> int:
@@ -54,7 +66,8 @@ def __sum_items_by_condition(feature_count: Dict[int, int], allowed_actors: Set[
 def obtain_deadline_misses_analysis(task_set: TaskSet, jobs: List[Job],
                                     schedule_result: RawSimulationResult) -> DeadlineMissedAnalysis:
     """
-    Deadline missed analysis
+    Do an analysis to find deadline misses by the scheduler
+
     :param task_set: task set
     :param jobs: jobs of the task set
     :param schedule_result: simulation result
@@ -63,16 +76,16 @@ def obtain_deadline_misses_analysis(task_set: TaskSet, jobs: List[Job],
     tasks: List[Task] = task_set.periodic_tasks + task_set.aperiodic_tasks + task_set.sporadic_tasks
 
     # Analysis by job
-    has_missed_deadlines_by_job: Dict[int, bool] = {i.identification: False for i in jobs}
-    delay_in_soft_real_time_by_job: Dict[int, int] = {i.identification: 0 for i in jobs}
+    has_missed_deadlines_by_job: Dict[int, bool] = {i.identifier: False for i in jobs}
+    delay_in_soft_real_time_by_job: Dict[int, int] = {i.identifier: 0 for i in jobs}
 
     # Analysis by task
-    number_of_missed_deadlines_by_task: Dict[int, int] = {i.identification: 0 for i in tasks}
+    number_of_missed_deadlines_by_task: Dict[int, int] = {i.identifier: 0 for i in tasks}
 
     for job in [i for i in jobs if i.task.preemptive_execution == PreemptiveExecution.FULLY_PREEMPTIVE]:
         job_execution: List[JobSectionExecution] = [i for cpu_number, job_sections_execution in
                                                     schedule_result.job_sections_execution.items() for
-                                                    i in job_sections_execution if i.job_id == job.identification]
+                                                    i in job_sections_execution if i.job_id == job.identifier]
 
         job_execution = sorted(job_execution, key=lambda x: x.execution_start_time)
 
@@ -80,24 +93,24 @@ def obtain_deadline_misses_analysis(task_set: TaskSet, jobs: List[Job],
             if job.task.preemptive_execution == PreemptiveExecution.FULLY_PREEMPTIVE \
             else (job_execution[-1].number_of_executed_cycles if len(job_execution) > 0 else 0)
 
-        has_missed_deadlines_by_job[job.identification] = job.execution_time == job_executed_cycles
-        delay_in_soft_real_time_by_job[job.identification] = job.execution_time - job_executed_cycles
+        has_missed_deadlines_by_job[job.identifier] = job.execution_time == job_executed_cycles
+        delay_in_soft_real_time_by_job[job.identifier] = job.execution_time - job_executed_cycles
 
-        number_of_missed_deadlines_by_task[job.task.identification] = \
-            number_of_missed_deadlines_by_task[job.task.identification] + \
+        number_of_missed_deadlines_by_task[job.task.identifier] = \
+            number_of_missed_deadlines_by_task[job.task.identifier] + \
             (0 if job.execution_time == job_executed_cycles else 1)
 
-    periodic_tasks: Set[int] = {i.identification for i in task_set.periodic_tasks}
-    aperiodic_tasks: Set[int] = {i.identification for i in task_set.aperiodic_tasks}
-    sporadic_tasks: Set[int] = {i.identification for i in task_set.aperiodic_tasks}
+    periodic_tasks: Set[int] = {i.identifier for i in task_set.periodic_tasks}
+    aperiodic_tasks: Set[int] = {i.identifier for i in task_set.aperiodic_tasks}
+    sporadic_tasks: Set[int] = {i.identifier for i in task_set.aperiodic_tasks}
 
-    soft_rt_tasks: Set[int] = {i.identification for i in tasks if i.deadline_criteria == Criticality.SOFT}
-    hard_rt_tasks: Set[int] = {i.identification for i in tasks if i.deadline_criteria == Criticality.HARD}
-    firm_rt_tasks: Set[int] = {i.identification for i in tasks if i.deadline_criteria == Criticality.FIRM}
+    soft_rt_tasks: Set[int] = {i.identifier for i in tasks if i.deadline_criteria == Criticality.SOFT}
+    hard_rt_tasks: Set[int] = {i.identifier for i in tasks if i.deadline_criteria == Criticality.HARD}
+    firm_rt_tasks: Set[int] = {i.identifier for i in tasks if i.deadline_criteria == Criticality.FIRM}
 
-    fully_preemptive_tasks: Set[int] = {i.identification for i in tasks if
+    fully_preemptive_tasks: Set[int] = {i.identifier for i in tasks if
                                         i.preemptive_execution == PreemptiveExecution.FULLY_PREEMPTIVE}
-    non_preemptive_tasks: Set[int] = {i.identification for i in tasks if
+    non_preemptive_tasks: Set[int] = {i.identifier for i in tasks if
                                       i.preemptive_execution == PreemptiveExecution.NON_PREEMPTIVE}
 
     # All types of tasks

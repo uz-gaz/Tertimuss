@@ -29,7 +29,7 @@ class ReadmeExampleTest(unittest.TestCase):
         # Definition of the task set
         task_set = TaskSet(
             periodic_tasks=[
-                PeriodicTask(identification=i,
+                PeriodicTask(identifier=i,
                              worst_case_execution_time=j.worst_case_execution_time,
                              relative_deadline=j.deadline,
                              best_case_execution_time=None,

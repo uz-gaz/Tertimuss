@@ -16,6 +16,7 @@ def generate_task_execution_plot(
         color_palette_generator: AbstractColorPaletteGenerator = DefaultColorPaletteGenerator()) -> Figure:
     """
     Generate tasks execution plot
+
     :param color_palette_generator: color palette applied to the plot
     :param outline_boxes: If true will outline the boxes
     :param task_set: Task set
@@ -29,7 +30,7 @@ def generate_task_execution_plot(
 
     color_palette = color_palette_generator.obtain_color_palette(len(cpu_color_id))
     task_set.tasks()
-    tasks_ids: List[int] = sorted([i.identification for i in task_set.tasks()])
+    tasks_ids: List[int] = sorted([i.identifier for i in task_set.tasks()])
 
     tasks_to_lines_assignation: Dict[int, int] = {j: i for i, j in enumerate(tasks_ids)}
 
@@ -75,6 +76,7 @@ def generate_job_execution_plot(
         color_palette_generator: AbstractColorPaletteGenerator = DefaultColorPaletteGenerator()) -> Figure:
     """
     Generate jobs execution plot
+
     :param color_palette_generator: color palette applied to the plot
     :param outline_boxes: If true will outline the boxes
     :param task_set: Task set
@@ -89,7 +91,7 @@ def generate_job_execution_plot(
 
     color_palette = color_palette_generator.obtain_color_palette(len(cpu_color_id))
 
-    jobs_ids: List[int] = sorted([i.identification for i in jobs])
+    jobs_ids: List[int] = sorted([i.identifier for i in jobs])
 
     jobs_to_lines_assignation: Dict[int, int] = {j: i for i, j in enumerate(jobs_ids)}
 

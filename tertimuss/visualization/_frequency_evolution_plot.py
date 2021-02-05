@@ -11,6 +11,7 @@ def generate_frequency_evolution_plot(schedule_result: RawSimulationResult, star
                                       end_time: Optional[float] = None, title: Optional[str] = None) -> Figure:
     """
     Generate tasks execution plot
+
     :param schedule_result: Result of the simulation
     :param start_time: Plot start time in seconds
     :param end_time: Plot end time in seconds

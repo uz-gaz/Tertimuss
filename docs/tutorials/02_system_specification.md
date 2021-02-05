@@ -19,7 +19,7 @@ The tasks can be of three different types, periodic (PeriodicTask), aperiodic (A
 SporadicTask).
 
 All of them share the following properties:
-- identification: An unique identifier for the task in the system
+- identifier: An unique identifier for the task in the system
 - worst-case execution time: The longest execution time needed by a processor to complete the task without interruption
   over all possible input data in cycles
 - relative_deadline: The longest interval of time within which any job should complete its execution
@@ -41,7 +41,7 @@ Only in the case of sporadic tasks, they have the following property too:
 - minimum interarrival time: Minimum separation interval between the activation of consecutive jobs
 
 In the case of the job specification (Job), they have the following properties:
-- identification: Identification of the job
+- identifier: An unique identifier for the job in the system
 - task: Task to which the job belongs
 - activation_time: Job arrival time
 
@@ -51,7 +51,7 @@ In the case of the job specification (Job), they have the following properties:
 from tertimuss.simulation_lib.system_definition import PeriodicTask, AperiodicTask, SporadicTask, PreemptiveExecution, \
     Criticality, Job, TaskSet
 
-periodic_task_definition = PeriodicTask(identification=1,
+periodic_task_definition = PeriodicTask(identifier=1,
                                         worst_case_execution_time=600,
                                         relative_deadline=1,
                                         best_case_execution_time=None,
@@ -64,7 +64,7 @@ periodic_task_definition = PeriodicTask(identification=1,
                                         phase=None,
                                         period=1)
 
-aperiodic_task_definition = AperiodicTask(identification=1,
+aperiodic_task_definition = AperiodicTask(identifier=1,
                                           worst_case_execution_time=600,
                                           relative_deadline=1,
                                           best_case_execution_time=None,
@@ -75,7 +75,7 @@ aperiodic_task_definition = AperiodicTask(identification=1,
                                           deadline_criteria=Criticality.SOFT,
                                           energy_consumption=None)
 
-sporadic_task_definition = SporadicTask(identification=1,
+sporadic_task_definition = SporadicTask(identifier=1,
                                         worst_case_execution_time=600,
                                         relative_deadline=1,
                                         best_case_execution_time=None,
@@ -87,7 +87,7 @@ sporadic_task_definition = SporadicTask(identification=1,
                                         energy_consumption=None,
                                         minimum_interarrival_time=5)
 
-job_specification = Job(identification=0,
+job_specification = Job(identifier=0,
                         task=aperiodic_task_definition,
                         activation_time=1)
 

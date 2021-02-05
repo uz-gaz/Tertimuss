@@ -9,10 +9,11 @@ class AbstractDeadlineGenerator(metaclass=abc.ABCMeta):
                  **kwargs) -> List[float]:
         """
         Generate deadlines for tasks
+
         :param number_of_tasks: Number of tasks
-        :param min_deadline: Minimum deadline
-        :param max_deadline: Maximum deadline
-        :param major_cycle: Major cycle
+        :param min_deadline: The minimum deadline
+        :param max_deadline: The maximum deadline
+        :param major_cycle: The major cycle
         :param kwargs: Algorithm dependant arguments
         :return: List of deadlines
         """

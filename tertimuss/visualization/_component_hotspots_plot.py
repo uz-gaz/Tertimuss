@@ -9,6 +9,15 @@ from ..simulation_lib.simulator import RawSimulationResult
 
 def generate_component_hotspots_plot(schedule_result: RawSimulationResult, start_time: float = 0,
                                      end_time: Optional[float] = None, title: Optional[str] = None) -> Figure:
+    """
+    Generate a graphic with the temperature of the hotspots in the components (cores and board) over time
+
+    :param schedule_result: Result of the simulation
+    :param start_time: Plot start time in seconds
+    :param end_time: Plot end time in seconds
+    :param title: Plot title
+    :return: plot
+    """
     cpu_ids: List[int] = sorted(schedule_result.job_sections_execution.keys())
 
     fig, ax = pyplot.subplots(nrows=len(cpu_ids) + 1)

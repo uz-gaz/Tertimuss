@@ -1,4 +1,5 @@
 import itertools
+from dataclasses import dataclass
 from typing import List, Optional, Tuple, Set, Literal, Dict
 
 import numpy
@@ -12,13 +13,13 @@ from tertimuss.tcpn_simulator import TCPNSimulatorVariableStepRK, AbstractTCPNSi
     TCPNSimulatorVariableStepEuler
 
 
-class CubedSpaceState(object):
+@dataclass
+class CubedSpaceState:
     """
-    State of a cubed space
+    State of the temperature in a mesh
     """
-
-    def __init__(self, places_mo_vector: numpy.ndarray):
-        self.places_mo_vector = places_mo_vector
+    places_mo_vector: numpy.ndarray
+    """marks in places of the petri net"""
 
 
 class CubedSpace(object):
@@ -32,19 +33,19 @@ class CubedSpace(object):
                  internal_temperature_booster_points: Optional[Dict[int, InternalTemperatureBoosterLocatedCube]] = None,
                  simulation_precision: Literal["LOW", "MIDDLE", "HIGH"] = "HIGH"):
         """
-        This function create a cubedSpace
+        This function creates a cubedSpace
 
-        :param material_cubes: List of cubes that conform the space. Each cube will have defined it's dimensions in unit
+        :param material_cubes: List of cubes that conform the space. Each cube will have defined its dimensions in unit
          units, the position in units and the thermal properties of the cube. Its assumed that all material cubes are
          metals
         :param cube_edge_size: Cubes' edge size in m (each cube will have the same edge size).
         :param environment_properties: The material that will be surrounded the cube will have these properties.
          This material won't change him temperature, however it will affect to the mesh temperature.
         :param external_temperature_booster_points: This parameter is only used with optimization purposes. If is
-         not null, all of the elements of external_energy_application_points in the function apply_energy, must be in
+         not null, all the elements of external_energy_application_points in the function apply_energy, must be in
          fixed_external_energy_application_points.
         :param internal_temperature_booster_points: This parameter is only used with optimization purposes. If is
-         not null, all of the elements of internal_energy_application_points in the function apply_energy, must be in
+         not null, all the elements of internal_energy_application_points in the function apply_energy, must be in
          fixed_internal_energy_application_points.
         """
         # Fill fields if are empty
@@ -606,15 +607,15 @@ class CubedSpace(object):
                      external_energy_application_points: Optional[Set[int]] = None,
                      internal_energy_application_points: Optional[Set[int]] = None) -> CubedSpaceState:
         """
-        This function apply energy over the cubedSpace and return the transformed cubedSpace.
+        Apply energy over the cubedSpace and return the transformed cubedSpaceState
 
         :param actual_state: previous state
         :param external_energy_application_points: Points where the energy is applied. If the list is empty, none energy
-         will be applied, however the energy transfer between cubes will be simulated. Each cube will have defined it's
-         dimensions in unit units, it's position in units and the amount of energy to be applied.
+         will be applied, however the energy transfer between cubes will be simulated. Each cube will have defined its
+         dimensions in unit units, it's position in units, and the amount of energy to be applied.
         :param internal_energy_application_points: Points where the energy is applied. If the list is empty, none energy
-         will be applied, however the energy transfer between cubes will be simulated. Each cube will have defined it's
-         dimensions in unit units, it's position in units and the amount of energy to be applied.
+         will be applied, however the energy transfer between cubes will be simulated. Each cube will have defined its
+         dimensions in unit units, it's position in units, and the amount of energy to be applied.
         :param amount_of_time: Amount of time in seconds while the energy is being applied
         :return cubed space resultant of the application of energy over a previous state
         """
@@ -659,7 +660,7 @@ class CubedSpace(object):
         """
         This function return the temperature in each cube of unit edge that conform the cubedSpace
 
-        :param actual_state:
+        :param actual_state: Actual state of the temperature in the mesh
         :return: List of temperature blocks in kelvin
         """
         temperature_cubes = {}
@@ -683,7 +684,7 @@ class CubedSpace(object):
         :param default_temperature: default temperature for the cubed space
         :param material_cubes_temperatures: List of [material cube id, material cube temperature (Kelvin)]
         :param environment_temperature: Environment temperature (Kelvin)
-        :return: created cubed space
+        :return: created cubed space state
         """
         places_temperature = []
         for i, v in self.__mo_index.items():
@@ -713,6 +714,7 @@ class CubedSpace(object):
 def obtain_min_temperature(heatmap_cube_list: Dict[int, TemperatureLocatedCube]) -> Dict[int, float]:
     """
     Obtain the minimum temperature in a list of cubed spaces components
+
     :param heatmap_cube_list: List of cubed space component with identification in each one
     :return: the minimum temperature in each component
     """
@@ -722,6 +724,7 @@ def obtain_min_temperature(heatmap_cube_list: Dict[int, TemperatureLocatedCube])
 def obtain_max_temperature(heatmap_cube_list: Dict[int, TemperatureLocatedCube]) -> Dict[int, float]:
     """
     Obtain the maximum temperature in a list of cubed spaces components
+
     :param heatmap_cube_list: List of cubed space component with identification in each one
     :return: the maximum temperature in each component
     """

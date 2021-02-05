@@ -1,5 +1,5 @@
 """
-This module provide math tools
+This module provides math tools
 """
 import functools
 import math
@@ -9,6 +9,7 @@ from typing import List
 def is_equal(number_a: float, number_b: float, rtol: float = 1e-03, atol: float = 1e-05):
     """
     Check if two float number are nearly equals
+
     :param number_a: first number
     :param number_b: second number
     :param rtol: relative tolerance
@@ -21,6 +22,7 @@ def is_equal(number_a: float, number_b: float, rtol: float = 1e-03, atol: float 
 def is_less_or_equal_than(number_a: float, number_b: float, rtol: float = 1e-03, atol: float = 1e-05):
     """
     Check if number_a <= number_b being booth floats
+
     :param number_a: first number
     :param number_b: second number
     :param rtol: relative tolerance
@@ -33,6 +35,7 @@ def is_less_or_equal_than(number_a: float, number_b: float, rtol: float = 1e-03,
 def list_float_lcm(numbers: List[float], atol=1e-05) -> float:
     """
     Obtain the less common multiple of a list of floats
+
     :param numbers: number list
     :param atol: absolute tolerance
     :return: less common multiple
@@ -43,6 +46,7 @@ def list_float_lcm(numbers: List[float], atol=1e-05) -> float:
 def list_float_gcd(numbers: List[float], atol=1e-05) -> float:
     """
     Obtain the great common divisor of a list of floats
+
     :param numbers: number list
     :param atol: absolute tolerance
     :return: great common divisor
@@ -53,6 +57,7 @@ def list_float_gcd(numbers: List[float], atol=1e-05) -> float:
 def list_int_lcm(numbers: List[int]) -> int:
     """
     Obtain the less common multiple of a list of integers
+
     :param numbers: number list
     :return: less common multiple
     """
@@ -62,6 +67,7 @@ def list_int_lcm(numbers: List[int]) -> int:
 def list_int_gcd(numbers: List[int]) -> int:
     """
     Obtain the great common divisor of a list of integers
+
     :param numbers: number list
     :return: great common divisor
     """

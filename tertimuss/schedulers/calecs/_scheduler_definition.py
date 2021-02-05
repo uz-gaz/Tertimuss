@@ -12,9 +12,18 @@ from ...simulation_lib.system_definition.utils import calculate_major_cycle
 
 
 class CALECSScheduler(CentralizedAbstractScheduler):
+    """
+       Implements the Clustered Allocation and Execution Control Scheduler (CALECS)
+
+       The actual implementation only allows periodic tasks (the original specification allows aperiodic too)
+
+       References:
+           The article has been sent for revision
+       """
     def __init__(self, activate_debug: bool, store_clusters_obtained: bool):
         """
         Create the CALECS scheduler instance
+
         :param activate_debug: True if want to communicate the scheduler to be in debug mode
         :param store_clusters_obtained: True if want to access later to the clusters obtained by the scheduler
         """
@@ -31,6 +40,7 @@ class CALECSScheduler(CentralizedAbstractScheduler):
     def get_clusters_obtained(self) -> Optional[List[int]]:
         """
         Return the configuration of the clusters obtained
+
         :return: number of cpus in each cluster
         """
         return self.__clusters_obtained
@@ -108,10 +118,10 @@ class CALECSScheduler(CentralizedAbstractScheduler):
         # F star in HZ
         f_star_hz = min(available_frequencies)
 
-        periodic_tasks_dict = {i.identification: i for i in task_set.periodic_tasks}
+        periodic_tasks_dict = {i.identifier: i for i in task_set.periodic_tasks}
 
         task_set_calecs: Dict[int, ImplicitDeadlineTask] = {
-            i.identification: ImplicitDeadlineTask(i.worst_case_execution_time, round(i.period * f_star_hz))
+            i.identifier: ImplicitDeadlineTask(i.worst_case_execution_time, round(i.period * f_star_hz))
             for i in task_set.periodic_tasks}
 
         major_cycle_cycles: int = list_int_lcm([i.d for i in task_set_calecs.values()])

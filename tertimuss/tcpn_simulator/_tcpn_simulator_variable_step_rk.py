@@ -16,6 +16,7 @@ class TCPNSimulatorVariableStepRK(AbstractTCPNSimulatorVariableStep):
                  lambda_vector: numpy.ndarray, pi: Optional[scipy.sparse.csr_matrix], constant_pi: bool = True):
         """
         Define the TCPN
+
         :param pre: pre matrix
         :param post: post matrix
         :param pi: pi matrix
@@ -32,6 +33,7 @@ class TCPNSimulatorVariableStepRK(AbstractTCPNSimulatorVariableStep):
     def set_control(self, control: numpy.ndarray):
         """
         Apply a control action over transitions firing in the TCPN
+
         :param control: control
         """
         self.__control = control
