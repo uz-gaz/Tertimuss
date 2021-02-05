@@ -12,6 +12,14 @@ class UUniFastDiscard(AbstractPeriodicTaskGenerator):
     @staticmethod
     def generate(utilization: float, tasks_deadlines: List[float], processor_frequency: int, **kwargs) \
             -> List[PeriodicGeneratedTask]:
+        """
+        Generate a list of periodic tasks
+
+        :param utilization: utilization of the task set
+        :param tasks_deadlines: deadline of the tasks in seconds
+        :param processor_frequency: frequency used to calculate the worst case execution time of each task
+        :param kwargs: algorithm dependant arguments
+        """
         have_to_be_discarded = True
         task_set = []
 

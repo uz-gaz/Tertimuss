@@ -19,37 +19,43 @@ from ..system_definition.utils import calculate_major_cycle
 
 @dataclass
 class SimulationOptionsSpecification:
-    # True if is a debug simulation and debug messages should be showed
+    """
+    Definition of the simulation configuration
+    """
     id_debug: bool = False
+    """True if is a debug simulation and debug messages should be showed"""
 
-    # True if want to simulate the thermal behaviour
     simulate_thermal_behaviour: bool = False
+    """True if want to simulate the thermal behaviour"""
 
-    # If false, the system won't check if the tasks returned by the scheduler is on the available task set.
-    # It won't check if the returned frequency is correct.
-    # If you are sure that your scheduler have a good behaviour turn it off can reduce the simulation time
     scheduler_selections_check: bool = True
+    """If false, the system won't check if the tasks returned by the scheduler is on the available task set.
+    It won't check if the returned frequency is correct.
+    If you are sure that your scheduler have a good behaviour, turning it off can reduce the simulation time"""
 
     # Thermal options specification
-    thermal_simulation_type: Literal["DVFS", "TASK_CONSUMPTION_MEASURED"] = "DVFS"  # Control how the energy consumed
-    # is expressed
-    processor_mesh_division: int = 1  # Number of divisions done in each unit of the processor mesh during thermal
-    # simulation
-    thermal_simulation_precision: Literal["LOW", "MIDDLE", "HIGH"] = "HIGH"  # Precision in the thermal simulation
-    # (method used to solve the model and float precision)
+    thermal_simulation_type: Literal["DVFS", "TASK_CONSUMPTION_MEASURED"] = "DVFS"
+    """ Control how the energy consumed is expressed"""
+
+    processor_mesh_division: int = 1
+    """Number of divisions done in each unit of the processor mesh during thermal simulation"""
+
+    thermal_simulation_precision: Literal["LOW", "MIDDLE", "HIGH"] = "HIGH"
+    """Precision in the thermal simulation (method used to solve the model and float precision)"""
 
     # minimum number of thermal measures per second
     # TODO: Must be implemented in the simulation
-    thermal_measure_rate: int = 1
+    # thermal_measure_rate: int = 1
 
-    # Simulate memory occupation constraints
     simulate_memory_footprint: bool = False
+    """Simulate tasks memory occupation"""
 
 
 def _create_deadline_arrive_dict(lcm_frequency: int, jobs: List[Job]) -> Tuple[Dict[int, List[int]],
                                                                                Dict[int, List[int]]]:
     """
     Return a list ordered by arrive and by deadline of jobs containing the id of each job
+
     :param lcm_frequency: Base frequency
     :param jobs: Jobs list
     :return:
@@ -61,18 +67,18 @@ def _create_deadline_arrive_dict(lcm_frequency: int, jobs: List[Job]) -> Tuple[D
     for i in jobs:
         normalized_activation = round(i.activation_time * lcm_frequency)
         if activation_dict.__contains__(normalized_activation):
-            activation_dict[normalized_activation].append(i.identification)
+            activation_dict[normalized_activation].append(i.identifier)
         else:
-            activation_dict[normalized_activation] = [i.identification]
+            activation_dict[normalized_activation] = [i.identifier]
 
     # Dict of deadlines
     deadlines_dict: Dict[int, List[int]] = {}
     for i in jobs:
         normalized_absolute_deadline = round(i.absolute_deadline * lcm_frequency)
         if deadlines_dict.__contains__(normalized_absolute_deadline):
-            deadlines_dict[normalized_absolute_deadline].append(i.identification)
+            deadlines_dict[normalized_absolute_deadline].append(i.identifier)
         else:
-            deadlines_dict[normalized_absolute_deadline] = [i.identification]
+            deadlines_dict[normalized_absolute_deadline] = [i.identifier]
 
     return activation_dict, deadlines_dict
 
@@ -88,7 +94,8 @@ def execute_scheduler_simulation_simple(tasks: TaskSet,
                                         ) -> Tuple[RawSimulationResult, List[Job], float]:
     """
     Run a simulation without supplying the periodic jobs. It will be generated from the periodic tasks definition, and
-     the simulation will be done between time 0 and the end of the first major cycle
+     the simulation will be done between time 0, and the end of the first major cycle
+
     :param tasks: Group of tasks in the system. If None it will be the major cycle
     :param aperiodic_tasks_jobs: Aperiodic lobs in the system
     :param sporadic_tasks_jobs: Sporadic jobs in the system
@@ -108,8 +115,8 @@ def execute_scheduler_simulation_simple(tasks: TaskSet,
     number_of_ids = number_of_periodic_ids + len(aperiodic_tasks_jobs) + len(sporadic_tasks_jobs)
 
     job_ids_stack: deque = deque(
-        Set.difference({i for i in range(number_of_ids)}, Set.union({i.identification for i in aperiodic_tasks_jobs},
-                                                                    {i.identification for i in sporadic_tasks_jobs})))
+        Set.difference({i for i in range(number_of_ids)}, Set.union({i.identifier for i in aperiodic_tasks_jobs},
+                                                                    {i.identifier for i in sporadic_tasks_jobs})))
 
     periodic_tasks_jobs: List[Job] = list(itertools.chain(*[[Job(job_ids_stack.popleft(), i, j * i.period)
                                                              for j in range(round(major_cycle / i.period))]
@@ -131,6 +138,7 @@ def execute_scheduler_simulation(jobs: List[Job],
                                  simulation_end_time: Optional[float] = None) -> RawSimulationResult:
     """
     Run a simulation using a centralized scheduler
+
     :param jobs: Jobs in the system
     :param simulation_start_time: Time in seconds where the system start to make decisions. Time 0 is the start of the
      first major cycle
@@ -146,16 +154,16 @@ def execute_scheduler_simulation(jobs: List[Job],
     if len(jobs) == 0:
         raise Exception("The system mist contains at least one job to simulate")
 
-    jobs_ids = {i.identification for i in jobs}
+    jobs_ids = {i.identifier for i in jobs}
 
     # Check tasks
     if len(jobs_ids) != len(jobs):
         raise Exception("Jobs must have different ids")
 
-    tasks_ids = {i.identification for i in tasks.tasks()}
+    tasks_ids = {i.identifier for i in tasks.tasks()}
 
     # Check that all jobs have a valid task
-    if any(i.task.identification not in tasks_ids for i in jobs):
+    if any(i.task.identifier not in tasks_ids for i in jobs):
         raise Exception("Some job have a non valid task associated")
 
     # Check tasks
@@ -194,6 +202,7 @@ def _generate_cubed_space(tasks: TaskSet,
                                                           Dict[Tuple[int, int], int]]:
     """
     Generate a cubed space thermal simulator from the system specification
+
     :param tasks: Group of tasks in the system
     :param processor_definition: Definition of the CPU to use
     :param environment_specification: Specification of the environment
@@ -303,7 +312,7 @@ def _generate_cubed_space(tasks: TaskSet,
             for k in tasks.tasks():
                 generator_id = len(external_heat_generators_dynamic_energy) + \
                                len(external_heat_generators_leakage_power)
-                core_task_energy_activator_id[(i, k.identification)] = generator_id
+                core_task_energy_activator_id[(i, k.identifier)] = generator_id
                 external_heat_generators_dynamic_energy[generator_id] = create_energy_applicator(
                     (j.core_type.material,
                      LocatedCube(
@@ -349,6 +358,7 @@ def _execute_centralized_scheduler_simulation(jobs: List[Job],
                                               simulation_end_time: float) -> RawSimulationResult:
     """
     Run a simulation using a centralized scheduler
+
     :param jobs: Jobs in the system
     :param simulation_start_time: Time in seconds where the system start to make decisions. Time 0 is the start of the
      first major cycle
@@ -421,7 +431,7 @@ def _execute_centralized_scheduler_simulation(jobs: List[Job],
     activation_dict, deadlines_dict = _create_deadline_arrive_dict(lcm_frequency, jobs)
 
     # Jobs CC dict by id (this value is constant and only should be used for fast access to the original cc)
-    jobs_cc_dict: Dict[int, int] = {i.identification: i.execution_time for i in jobs}
+    jobs_cc_dict: Dict[int, int] = {i.identifier: i.execution_time for i in jobs}
 
     # Remaining jobs CC dict by id
     remaining_cc_dict: Dict[int, int] = jobs_cc_dict.copy()
@@ -434,7 +444,7 @@ def _execute_centralized_scheduler_simulation(jobs: List[Job],
     major_cycle_lcm = list_int_lcm([round(i.period * lcm_frequency) for i in tasks.periodic_tasks])
 
     # Jobs to task dict
-    jobs_to_task_dict = {i.identification: i.task.identification for i in jobs}
+    jobs_to_task_dict = {i.identifier: i.task.identifier for i in jobs}
 
     # Activate jobs set
     active_jobs = set()
@@ -446,9 +456,9 @@ def _execute_centralized_scheduler_simulation(jobs: List[Job],
     hard_real_time_deadline_missed_stack_trace: Optional[SimulationStackTraceHardRTDeadlineMissed] = None
 
     # Jobs type dict
-    hard_real_time_jobs: Set[int] = {i.identification for i in jobs if i.task.deadline_criteria == Criticality.HARD}
-    firm_real_time_jobs: Set[int] = {i.identification for i in jobs if i.task.deadline_criteria == Criticality.FIRM}
-    non_preemptive_jobs: Set[int] = {i.identification for i in jobs if
+    hard_real_time_jobs: Set[int] = {i.identifier for i in jobs if i.task.deadline_criteria == Criticality.HARD}
+    firm_real_time_jobs: Set[int] = {i.identifier for i in jobs if i.task.deadline_criteria == Criticality.FIRM}
+    non_preemptive_jobs: Set[int] = {i.identifier for i in jobs if
                                      i.task.preemptive_execution == PreemptiveExecution.NON_PREEMPTIVE}
 
     # When is set the next scheduling point by quantum
@@ -466,9 +476,9 @@ def _execute_centralized_scheduler_simulation(jobs: List[Job],
     temperature_measures: Dict[float, Dict[int, TemperatureLocatedCube]] = {}  # Measures of temperature
 
     # Jobs being executed extra information [CPU, [start time]]
-    jobs_last_section_start_time: Dict[int, float] = {i.identification: -1 for i in jobs}
-    jobs_last_cpu_used: Dict[int, int] = {i.identification: -1 for i in jobs}
-    jobs_last_preemption_remaining_cycles: Dict[int, int] = {i.identification: -1 for i in jobs}
+    jobs_last_section_start_time: Dict[int, float] = {i.identifier: -1 for i in jobs}
+    jobs_last_cpu_used: Dict[int, int] = {i.identifier: -1 for i in jobs}
+    jobs_last_preemption_remaining_cycles: Dict[int, int] = {i.identifier: -1 for i in jobs}
 
     # Last time frequency was set
     last_frequency_set_time = simulation_start_time
@@ -478,7 +488,7 @@ def _execute_centralized_scheduler_simulation(jobs: List[Job],
 
     # Available memory
     jobs_memory_consumption: Dict[int, int] = {
-        i.identification: i.task.memory_footprint if i.task.memory_footprint is not None else 0 for i in jobs
+        i.identifier: i.task.memory_footprint if i.task.memory_footprint is not None else 0 for i in jobs
     }
     memory_usage: int = 0
     memory_usage_record: Dict[float, int] = {}

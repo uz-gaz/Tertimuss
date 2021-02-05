@@ -3,7 +3,25 @@
 Simulation specification
 ==========================================
 
-This module allow to specify the simulation properties
+This module allows to specify the simulation properties
+
+This module exposes the following classes:
+- :class:`.CoreEnergyConsumption`
+- :class:`.CoreTypeDefinition`
+- :class:`.BoardDefinition`
+- :class:`.CoreDefinition`
+- :class:`.ProcessorDefinition`
+- :class:`.EnvironmentSpecification`
+- :class:`.Criticality`
+- :class:`.PreemptiveExecution`
+- :class:`.AbstractExecutionTimeDistribution`
+- :class:`.AlwaysWorstCaseExecutionTimeDistribution`
+- :class:`.Task`
+- :class:`.PeriodicTask`
+- :class:`.AperiodicTask`
+- :class:`.SporadicTask`
+- :class:`.TaskSet`
+- :class:`.Job`
 """
 from ._processor_specification import CoreEnergyConsumption, CoreTypeDefinition, BoardDefinition, CoreDefinition, \
     ProcessorDefinition

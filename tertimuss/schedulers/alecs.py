@@ -1,7 +1,10 @@
 """
-==========================================
+==================================================
 Allocation and Execution Control Scheduler (ALECS)
-==========================================
+==================================================
+
+This module provides the following class:
+- :class:`ALECSScheduler`
 """
 
 import functools
@@ -34,6 +37,7 @@ class ALECSScheduler(CentralizedAbstractScheduler):
     def __init__(self, activate_debug: bool) -> None:
         """
         Create an ALECS scheduler instance
+
         :param activate_debug:  True if want to communicate the scheduler to be in debug mode
         """
         super().__init__(activate_debug)
@@ -52,6 +56,7 @@ class ALECSScheduler(CentralizedAbstractScheduler):
             -> Optional[Tuple[List[int], List[List[int]]]]:
         """
         Solves the linear programing problem
+
         :param ci: execution cycles of each task
         :param ti: period in cycles of each task
         :param number_of_cpus: number of cpus
@@ -155,7 +160,8 @@ class ALECSScheduler(CentralizedAbstractScheduler):
     def get_scheduling_points(self) -> Dict[int, Dict[int, int]]:
         """
         Return the calculated scheduling points
-        :return:
+
+        :return: scheduling points
         """
         return self.__scheduling_points
 
@@ -164,7 +170,7 @@ class ALECSScheduler(CentralizedAbstractScheduler):
             -> [bool, Optional[str]]:
         """
         Return true if the scheduler can be able to schedule the system. In negative case, it can return a reason.
-        In example, an scheduler that only can work with periodic tasks with phase=0, can return
+        In example, a scheduler that only can work with periodic tasks with phase=0, can return
          [false, "Only can schedule tasks with phase=0"]
 
         :param environment_specification: Specification of the environment
@@ -209,6 +215,7 @@ class ALECSScheduler(CentralizedAbstractScheduler):
                                         cycles_in_this_interval: int, new_interval_start: bool) -> bool:
         """
         Check if a schedule is necessary
+
         :param tasks_being_executed: actual tasks in execution
         :param interval_cc_left: CC left of each task in this interval
         :param cycles_in_this_interval: Cycles left in this interval
@@ -227,6 +234,7 @@ class ALECSScheduler(CentralizedAbstractScheduler):
                               cycles_in_this_interval: int) -> List[int]:
         """
         Assign tasks to cores
+
         :param tasks_being_executed: actual tasks in execution
         :param interval_cc_left: CC left of each task in this interval
         :param cycles_in_this_interval: Cycles left in this interval
@@ -324,7 +332,7 @@ class ALECSScheduler(CentralizedAbstractScheduler):
         x = x[:-1, :] if total_used_cycles < m * major_cycle_in_cycles else x
 
         # Index to id
-        index_to_id = {i: j.identification for i, j in enumerate(task_set.periodic_tasks)}
+        index_to_id = {i: j.identifier for i, j in enumerate(task_set.periodic_tasks)}
 
         # Low the range of sd, x
         range_quantum = list_int_gcd([x[i, j] for i in range(x.shape[0]) for j in range(x.shape[1]) if x[i, j] != 0] +

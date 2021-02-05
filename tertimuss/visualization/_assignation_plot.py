@@ -16,6 +16,7 @@ def generate_task_assignation_plot(
         color_palette_generator: AbstractColorPaletteGenerator = DefaultColorPaletteGenerator()) -> Figure:
     """
     Generate tasks to CPUs assignation plot
+
     :param color_palette_generator: color palette applied to the plot
     :param outline_boxes: If true will outline the boxes
     :param task_set: Task set
@@ -27,7 +28,7 @@ def generate_task_assignation_plot(
     """
     num_colors = len(task_set.tasks())
 
-    tasks_color_id: Dict[int, int] = {j.identification: i for i, j in enumerate(task_set.tasks())}
+    tasks_color_id: Dict[int, int] = {j.identifier: i for i, j in enumerate(task_set.tasks())}
 
     color_palette = color_palette_generator.obtain_color_palette(num_colors)
 
@@ -71,6 +72,7 @@ def generate_job_assignation_plot(
         color_palette_generator: AbstractColorPaletteGenerator = DefaultColorPaletteGenerator()) -> Figure:
     """
     Generate jobs to CPUs assignation plot
+
     :param color_palette_generator: color palette applied to the plot
     :param outline_boxes: If true will outline the boxes
     :param task_set: Task set
@@ -83,7 +85,7 @@ def generate_job_assignation_plot(
     """
     num_colors = len(jobs)
 
-    jobs_color_id: Dict[int, int] = {j.identification: i for i, j in enumerate(jobs)}
+    jobs_color_id: Dict[int, int] = {j.identifier: i for i, j in enumerate(jobs)}
 
     color_palette = color_palette_generator.obtain_color_palette(num_colors)
 

@@ -8,8 +8,9 @@ def create_energy_applicator(located_cube: Tuple[SolidMaterial, LocatedCube], cu
                              watts_to_apply: float) -> ExternalTemperatureBoosterLocatedCube:
     """
     The resultant applicator will apply watts_to_apply watts distributed over the located_cube volume
+
     :param watts_to_apply: watts to apply in each region
-    :param cube_edge_size: edge size of each located cube cube
+    :param cube_edge_size: edge size of each located cuboid
     :param located_cube: cube where the energy will be applied
     :return:
     """

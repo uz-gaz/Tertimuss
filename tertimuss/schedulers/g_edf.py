@@ -1,7 +1,10 @@
 """
-==========================================
+================================================
 Global Earliest Deadline First Scheduler (G-EDF)
-==========================================
+================================================
+
+This module provides the following class:
+- :class:`GEDFScheduler`
 """
 
 from typing import Dict, Optional, Set, List, Tuple
@@ -57,7 +60,7 @@ class GEDFScheduler(CentralizedAbstractScheduler):
 
         self.__m = m
 
-        self.__tasks_relative_deadline = {i.identification: i.relative_deadline for i in
+        self.__tasks_relative_deadline = {i.identifier: i.relative_deadline for i in
                                           task_set.periodic_tasks + task_set.aperiodic_tasks +
                                           task_set.sporadic_tasks}
 

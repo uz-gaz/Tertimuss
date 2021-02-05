@@ -5,12 +5,15 @@ from typing import List
 
 @dataclass
 class PeriodicGeneratedTask:
-    # Fixed separation interval between the activation of any two consecutive jobs
+    """
+    Periodic generated task
+    """
     deadline: float
+    """Fixed separation interval between the activation of any two consecutive jobs"""
 
-    # The longest execution time needed by a processor to complete the task without interruption over all possible input
-    # data in cycles
     worst_case_execution_time: int
+    """The longest execution time needed by a processor to complete the task without interruption over all possible
+    input data in cycles"""
 
 
 class AbstractPeriodicTaskGenerator(metaclass=abc.ABCMeta):

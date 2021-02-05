@@ -1,14 +1,17 @@
 """
-==========================================
+=========================================
 Reduction to Uniprocessor Scheduler (RUN)
-==========================================
+=========================================
+
+This module provides the following class:
+- :class:`RUNScheduler`
 """
 
 from typing import Set, Dict, Optional, Tuple, List
 
 import numpy
 
-from tertimuss.simulation_lib.math_utils import list_int_gcd, list_float_lcm, list_int_lcm
+from tertimuss.simulation_lib.math_utils import list_int_gcd, list_int_lcm
 from tertimuss.simulation_lib.schedulers_definition import CentralizedAbstractScheduler
 from tertimuss.simulation_lib.system_definition import ProcessorDefinition, EnvironmentSpecification, TaskSet, \
     PreemptiveExecution
@@ -297,6 +300,7 @@ class RUNScheduler(CentralizedAbstractScheduler):
     def __init__(self, activate_debug: bool, store_clusters_obtained: bool):
         """
         Create the RUN scheduler instance
+
         :param activate_debug: True if want to communicate the scheduler to be in debug mode
         :param store_clusters_obtained: True if want to access later to the clusters obtained by the scheduler
         """
@@ -320,7 +324,7 @@ class RUNScheduler(CentralizedAbstractScheduler):
                                                                                                          Optional[str]]:
         """
         Return true if the scheduler can be able to schedule the system. In negative case, it can return a reason.
-        In example, an scheduler that only can work with periodic tasks with phase=0, can return
+        In example, a scheduler that only can work with periodic tasks with phase=0, can return
          [false, "Only can schedule tasks with phase=0"]
 
         :param environment_specification: Specification of the environment
@@ -356,7 +360,7 @@ class RUNScheduler(CentralizedAbstractScheduler):
         selected_frequency = max(Set.intersection(
             *[i.core_type.available_frequencies for i in processor_definition.cores_definition.values()]))
 
-        task_set_run = [_RUNTask(i.identification, i.worst_case_execution_time,
+        task_set_run = [_RUNTask(i.identifier, i.worst_case_execution_time,
                                  int(i.period * selected_frequency)) for i in task_set.periodic_tasks]
 
         major_cycle = calculate_major_cycle(task_set)
@@ -379,7 +383,7 @@ class RUNScheduler(CentralizedAbstractScheduler):
             self.__clusters_obtained = [round(_obtain_utilization_of_run_pack_subtree(i)) for i in run_tree]
 
         # Tasks periods in cycles
-        tasks_periods_cycles: Dict[int, int] = {i.identification: int(i.period * selected_frequency) for i in
+        tasks_periods_cycles: Dict[int, int] = {i.identifier: int(i.period * selected_frequency) for i in
                                                 task_set.periodic_tasks}
 
         # Compute the schedule for a major cycle

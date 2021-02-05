@@ -12,6 +12,7 @@ def generate_accumulate_execution_plot(task_set: TaskSet, schedule_result: RawSi
                                        end_time: Optional[float] = None, title: Optional[str] = None) -> Figure:
     """
     Generate tasks accumulative execution plot
+
     :param task_set: Task set
     :param schedule_result: Result of the simulation
     :param start_time: Plot start time in seconds
@@ -19,7 +20,7 @@ def generate_accumulate_execution_plot(task_set: TaskSet, schedule_result: RawSi
     :param title: Plot title
     :return: plot
     """
-    tasks_ids: List[int] = sorted([i.identification for i in task_set.periodic_tasks + task_set.aperiodic_tasks +
+    tasks_ids: List[int] = sorted([i.identifier for i in task_set.periodic_tasks + task_set.aperiodic_tasks +
                                    task_set.sporadic_tasks])
     cpu_ids: List[int] = sorted(schedule_result.job_sections_execution.keys())
 
@@ -27,7 +28,7 @@ def generate_accumulate_execution_plot(task_set: TaskSet, schedule_result: RawSi
 
     end_time = end_time if end_time is not None else calculate_major_cycle(task_set)
 
-    tasks_cc = {i.identification: i.worst_case_execution_time for i in task_set.periodic_tasks +
+    tasks_cc = {i.identifier: i.worst_case_execution_time for i in task_set.periodic_tasks +
                 task_set.aperiodic_tasks + task_set.sporadic_tasks}
 
     # Set content
@@ -83,6 +84,7 @@ def generate_job_accumulate_execution_plot(task_set: TaskSet, jobs: List[Job], s
                                            title: Optional[str] = None) -> Figure:
     """
     Generate jobs accumulative execution plot
+    
     :param task_set: Task set
     :param jobs: Jobs in the system
     :param schedule_result: Result of the simulation
@@ -91,7 +93,7 @@ def generate_job_accumulate_execution_plot(task_set: TaskSet, jobs: List[Job], s
     :param title: Plot title
     :return: plot
     """
-    jobs_ids: List[int] = sorted([i.identification for i in jobs])
+    jobs_ids: List[int] = sorted([i.identifier for i in jobs])
 
     cpu_ids: List[int] = sorted(schedule_result.job_sections_execution.keys())
 
@@ -99,7 +101,7 @@ def generate_job_accumulate_execution_plot(task_set: TaskSet, jobs: List[Job], s
 
     end_time = end_time if end_time is not None else calculate_major_cycle(task_set)
 
-    jobs_cc = {i.identification: i.execution_time for i in jobs}
+    jobs_cc = {i.identifier: i.execution_time for i in jobs}
 
     # Set content
     for i in range(len(cpu_ids)):
