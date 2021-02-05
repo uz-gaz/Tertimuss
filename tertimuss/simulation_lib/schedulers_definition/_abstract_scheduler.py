@@ -8,13 +8,15 @@ from typing import Optional, Set, Dict, Tuple, List
 class CentralizedAbstractScheduler(object, metaclass=abc.ABCMeta):
     """
     Base centralized scheduler.
-    It must be assume that the simulation always start in the beginning of a major cycle, but can take various major
+
+    It must be assumed that the simulation always start in the beginning of a major cycle, but can take various major
     cycles or less than one
     """
 
     def __init__(self, activate_debug: bool):
         """
         Create the centralized scheduler
+
         :param activate_debug: True if want to communicate the scheduler to be in debug mode
         """
         self.is_debug = activate_debug

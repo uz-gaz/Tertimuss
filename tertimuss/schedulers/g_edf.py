@@ -60,7 +60,7 @@ class GEDFScheduler(CentralizedAbstractScheduler):
 
         self.__m = m
 
-        self.__tasks_relative_deadline = {i.identification: i.relative_deadline for i in
+        self.__tasks_relative_deadline = {i.identifier: i.relative_deadline for i in
                                           task_set.periodic_tasks + task_set.aperiodic_tasks +
                                           task_set.sporadic_tasks}
 

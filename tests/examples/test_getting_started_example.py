@@ -19,7 +19,7 @@ class GettingStartedTest(unittest.TestCase):
 
         # Tasks definition
         periodic_tasks = [
-            PeriodicTask(identification=1,
+            PeriodicTask(identifier=1,
                          worst_case_execution_time=600,
                          relative_deadline=1,
                          best_case_execution_time=None,
@@ -31,7 +31,7 @@ class GettingStartedTest(unittest.TestCase):
                          energy_consumption=None,
                          phase=None,
                          period=1),
-            PeriodicTask(identification=2,
+            PeriodicTask(identifier=2,
                          worst_case_execution_time=1800,
                          relative_deadline=3,
                          best_case_execution_time=None,
@@ -43,7 +43,7 @@ class GettingStartedTest(unittest.TestCase):
                          energy_consumption=None,
                          phase=None,
                          period=3),
-            PeriodicTask(identification=3,
+            PeriodicTask(identifier=3,
                          worst_case_execution_time=600,
                          relative_deadline=3,
                          best_case_execution_time=None,
@@ -57,7 +57,7 @@ class GettingStartedTest(unittest.TestCase):
                          period=3)
         ]
 
-        aperiodic_task = AperiodicTask(identification=0,
+        aperiodic_task = AperiodicTask(identifier=0,
                                        worst_case_execution_time=600,
                                        relative_deadline=1,
                                        best_case_execution_time=None,
@@ -101,7 +101,7 @@ class GettingStartedTest(unittest.TestCase):
         # fig.savefig("task_execution.svg")
 
         # Obtain tasks to jobs association
-        periodic_tasks_jobs_association = [(i.task.identification, i.identification) for i in periodic_jobs]
+        periodic_tasks_jobs_association = [(i.task.identifier, i.identifier) for i in periodic_jobs]
         print(periodic_tasks_jobs_association)
 
         # Display jobs execution

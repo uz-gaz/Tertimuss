@@ -366,8 +366,8 @@ class OLDTFSScheduler(CentralizedAbstractScheduler):
                                                                   self.__max_temperature_constraint,
                                                                   self.__simulate_thermal)
 
-        self.__task_to_index = {i: j.identification for i, j in enumerate(task_set.periodic_tasks)}
-        self.__index_to_task = {j.identification: i for i, j in enumerate(task_set.periodic_tasks)}
+        self.__task_to_index = {i: j.identifier for i, j in enumerate(task_set.periodic_tasks)}
+        self.__index_to_task = {j.identifier: i for i, j in enumerate(task_set.periodic_tasks)}
 
         # Number of tasks
         n = len(task_set.periodic_tasks)

@@ -9,6 +9,7 @@ from tertimuss.simulation_lib.simulator import RawSimulationResult
 def generate_memory_usage_plot(schedule_result: RawSimulationResult, title: Optional[str] = None) -> Figure:
     """
     Generate tasks execution plot
+
     :param schedule_result: Result of the simulation
     :param title: Plot title
     :return: plot

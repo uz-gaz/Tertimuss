@@ -59,7 +59,7 @@ class SimpleGlobalEarliestDeadlineFirstScheduler(CentralizedAbstractScheduler):
         self.__active_jobs_priority: Dict[int, float] = {}
 
     def check_schedulability(self, processor_definition: ProcessorDefinition,
-                             environment_specification: EnvironmentSpecification, task_set: TaskSet) \
+                             environment_specification: EnvironmentSpecification, task_set: TaskSet)
             -> [bool, Optional[str]]:
         """
         Return true if the scheduler can be able to schedule the system. In negative case, it can return a reason.
@@ -90,7 +90,7 @@ class SimpleGlobalEarliestDeadlineFirstScheduler(CentralizedAbstractScheduler):
 
         self.__m = m
 
-        self.__tasks_relative_deadline = {i.identification: i.relative_deadline for i in
+        self.__tasks_relative_deadline = {i.identifier: i.relative_deadline for i in
                                           task_set.periodic_tasks + task_set.aperiodic_tasks +
                                           task_set.sporadic_tasks}
 
@@ -98,7 +98,7 @@ class SimpleGlobalEarliestDeadlineFirstScheduler(CentralizedAbstractScheduler):
 
     def schedule_policy(self, global_time: float, active_jobs_id: Set[int],
                         jobs_being_executed_id: Dict[int, int], cores_frequency: int,
-                        cores_max_temperature: Optional[Dict[int, float]]) \
+                        cores_max_temperature: Optional[Dict[int, float]])
             -> Tuple[Dict[int, int], Optional[int], Optional[int]]:
         """
         Method to implement with the actual scheduler police

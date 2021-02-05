@@ -74,43 +74,43 @@ def obtain_non_preemptive_tasks_retries_analysis(task_set: TaskSet, jobs: List[J
     tasks: List[Task] = task_set.periodic_tasks + task_set.aperiodic_tasks + task_set.sporadic_tasks
 
     # Analysis by task
-    number_of_retries_by_task: Dict[int, int] = {i.identification: 0 for i in tasks if
+    number_of_retries_by_task: Dict[int, int] = {i.identifier: 0 for i in tasks if
                                                  i.preemptive_execution == PreemptiveExecution.NON_PREEMPTIVE}
-    number_of_used_cycles_by_task: Dict[int, int] = {i.identification: 0 for i in tasks if
+    number_of_used_cycles_by_task: Dict[int, int] = {i.identifier: 0 for i in tasks if
                                                      i.preemptive_execution == PreemptiveExecution.NON_PREEMPTIVE}
 
     # Analysis by job
-    number_of_retries_by_job: Dict[int, int] = {i.identification: 0 for i in jobs if
+    number_of_retries_by_job: Dict[int, int] = {i.identifier: 0 for i in jobs if
                                                 i.task.preemptive_execution == PreemptiveExecution.NON_PREEMPTIVE}
-    number_of_used_cycles_by_job: Dict[int, int] = {i.identification: 0 for i in jobs if
+    number_of_used_cycles_by_job: Dict[int, int] = {i.identifier: 0 for i in jobs if
                                                     i.task.preemptive_execution == PreemptiveExecution.NON_PREEMPTIVE}
 
     for job in [i for i in jobs if i.task.preemptive_execution == PreemptiveExecution.NON_PREEMPTIVE]:
-        number_of_tries = sum(sum(1 for j in i if j.job_id == job.identification) for i in
+        number_of_tries = sum(sum(1 for j in i if j.job_id == job.identifier) for i in
                               schedule_result.job_sections_execution.values())
         number_of_used_cycles = sum(
-            sum(j.number_of_executed_cycles for j in i if j.job_id == job.identification) for i in
+            sum(j.number_of_executed_cycles for j in i if j.job_id == job.identifier) for i in
             schedule_result.job_sections_execution.values())
 
         number_of_retries = number_of_tries - 1 if number_of_tries > 0 else 0
 
-        number_of_retries_by_job[job.identification] = number_of_retries
+        number_of_retries_by_job[job.identifier] = number_of_retries
 
-        number_of_retries_by_task[job.task.identification] = number_of_retries_by_task[
-                                                                 job.task.identification] + number_of_retries
+        number_of_retries_by_task[job.task.identifier] = number_of_retries_by_task[
+                                                                 job.task.identifier] + number_of_retries
 
-        number_of_used_cycles_by_job[job.identification] = number_of_used_cycles
+        number_of_used_cycles_by_job[job.identifier] = number_of_used_cycles
 
-        number_of_used_cycles_by_task[job.task.identification] = number_of_used_cycles_by_task[
-                                                                     job.task.identification] + number_of_retries
+        number_of_used_cycles_by_task[job.task.identifier] = number_of_used_cycles_by_task[
+                                                                     job.task.identifier] + number_of_retries
 
-    periodic_tasks: Set[int] = {i.identification for i in task_set.periodic_tasks}
-    aperiodic_tasks: Set[int] = {i.identification for i in task_set.aperiodic_tasks}
-    sporadic_tasks: Set[int] = {i.identification for i in task_set.aperiodic_tasks}
+    periodic_tasks: Set[int] = {i.identifier for i in task_set.periodic_tasks}
+    aperiodic_tasks: Set[int] = {i.identifier for i in task_set.aperiodic_tasks}
+    sporadic_tasks: Set[int] = {i.identifier for i in task_set.aperiodic_tasks}
 
-    soft_rt_tasks: Set[int] = {i.identification for i in tasks if i.deadline_criteria == Criticality.SOFT}
-    hard_rt_tasks: Set[int] = {i.identification for i in tasks if i.deadline_criteria == Criticality.HARD}
-    firm_rt_tasks: Set[int] = {i.identification for i in tasks if i.deadline_criteria == Criticality.FIRM}
+    soft_rt_tasks: Set[int] = {i.identifier for i in tasks if i.deadline_criteria == Criticality.SOFT}
+    hard_rt_tasks: Set[int] = {i.identifier for i in tasks if i.deadline_criteria == Criticality.HARD}
+    firm_rt_tasks: Set[int] = {i.identifier for i in tasks if i.deadline_criteria == Criticality.FIRM}
 
     # All types of tasks
     number_of_retries: int = sum(number_of_used_cycles_by_task.values())

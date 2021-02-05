@@ -332,7 +332,7 @@ class ALECSScheduler(CentralizedAbstractScheduler):
         x = x[:-1, :] if total_used_cycles < m * major_cycle_in_cycles else x
 
         # Index to id
-        index_to_id = {i: j.identification for i, j in enumerate(task_set.periodic_tasks)}
+        index_to_id = {i: j.identifier for i, j in enumerate(task_set.periodic_tasks)}
 
         # Low the range of sd, x
         range_quantum = list_int_gcd([x[i, j] for i in range(x.shape[0]) for j in range(x.shape[1]) if x[i, j] != 0] +

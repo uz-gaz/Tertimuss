@@ -31,7 +31,7 @@ def obtain_edf_cyclic_executive(processor_frequency: int, periodic_tasks: List[P
         _LocalJob(arrive_cycle=round(j * i.relative_deadline * processor_frequency),
                   pending_cycles=i.worst_case_execution_time,
                   deadline_cycle=round((j + 1) * i.relative_deadline * processor_frequency),
-                  associated_task=i.identification)
+                  associated_task=i.identifier)
         for j in range(round(major_cycle / i.relative_deadline))] for i in periodic_tasks]))
 
     last_execution = -1

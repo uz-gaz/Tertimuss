@@ -11,6 +11,7 @@ class AbstractColorPaletteGenerator(metaclass=abc.ABCMeta):
     def obtain_color_palette(number_of_colors: int) -> List[Tuple[int, int, int, int]]:
         """
         Return a color palette
+
         :param number_of_colors: number of colors to return
         :return: the color palette generated.
                  List of colors. Each element is a tuple that represents a RGBA color.
@@ -23,6 +24,7 @@ class DefaultColorPaletteGenerator(AbstractColorPaletteGenerator):
     def obtain_color_palette(number_of_colors: int) -> List[Tuple[int, int, int, int]]:
         """
         Return a color palette
+
         :param number_of_colors: number of colors to return
         :return: the color palette generated.
                  List of colors. Each element is a tuple that represents a RGBA color.

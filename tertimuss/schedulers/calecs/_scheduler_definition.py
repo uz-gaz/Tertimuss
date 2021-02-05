@@ -118,10 +118,10 @@ class CALECSScheduler(CentralizedAbstractScheduler):
         # F star in HZ
         f_star_hz = min(available_frequencies)
 
-        periodic_tasks_dict = {i.identification: i for i in task_set.periodic_tasks}
+        periodic_tasks_dict = {i.identifier: i for i in task_set.periodic_tasks}
 
         task_set_calecs: Dict[int, ImplicitDeadlineTask] = {
-            i.identification: ImplicitDeadlineTask(i.worst_case_execution_time, round(i.period * f_star_hz))
+            i.identifier: ImplicitDeadlineTask(i.worst_case_execution_time, round(i.period * f_star_hz))
             for i in task_set.periodic_tasks}
 
         major_cycle_cycles: int = list_int_lcm([i.d for i in task_set_calecs.values()])

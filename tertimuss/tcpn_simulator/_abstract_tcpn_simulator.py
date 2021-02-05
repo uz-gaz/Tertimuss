@@ -14,6 +14,7 @@ class AbstractTCPNSimulator(object, metaclass=abc.ABCMeta):
     def set_control(self, control: numpy.ndarray):
         """
         Apply a control action over transitions firing in the Petri net
+
         :param control: control
         """
         pass
@@ -22,6 +23,7 @@ class AbstractTCPNSimulator(object, metaclass=abc.ABCMeta):
     def _calculate_pi(pre: scipy.sparse.csr_matrix, mo: numpy.ndarray) -> scipy.sparse.csr_matrix:
         """
         Calculate pi
+
         :param mo: actual marking
         :return: pi
         """

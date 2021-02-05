@@ -35,7 +35,7 @@ class SystemSimulatorTest(unittest.TestCase):
                               environment_specification: EnvironmentSpecification, task_set: TaskSet) -> int:
                 self.__m = len(cpu_specification.cores_definition)
 
-                self.__tasks_priority = {i.identification: i.priority for i in task_set.periodic_tasks +
+                self.__tasks_priority = {i.identifier: i.priority for i in task_set.periodic_tasks +
                                          task_set.aperiodic_tasks + task_set.sporadic_tasks}
 
                 clock_available_frequencies = Set.intersection(*[i.core_type.available_frequencies for i
@@ -104,7 +104,7 @@ class SystemSimulatorTest(unittest.TestCase):
     def __create_implicit_deadline_periodic_task_h_rt(task_id: int, worst_case_execution_time: int,
                                                       period: float, priority: Optional[int]) -> PeriodicTask:
         # Create implicit deadline task with priority equal to identification id
-        return PeriodicTask(identification=task_id,
+        return PeriodicTask(identifier=task_id,
                             worst_case_execution_time=worst_case_execution_time,
                             relative_deadline=period,
                             best_case_execution_time=None,
@@ -127,18 +127,18 @@ class SystemSimulatorTest(unittest.TestCase):
 
         jobs_list = [
             # Task 3
-            Job(identification=0, activation_time=0.0, task=periodic_tasks[0]),
-            Job(identification=1, activation_time=7.0, task=periodic_tasks[0]),
+            Job(identifier=0, activation_time=0.0, task=periodic_tasks[0]),
+            Job(identifier=1, activation_time=7.0, task=periodic_tasks[0]),
 
             # Task 2
-            Job(identification=2, activation_time=0.0, task=periodic_tasks[1]),
-            Job(identification=3, activation_time=7.0, task=periodic_tasks[1]),
+            Job(identifier=2, activation_time=0.0, task=periodic_tasks[1]),
+            Job(identifier=3, activation_time=7.0, task=periodic_tasks[1]),
 
             # Task 1
-            Job(identification=4, activation_time=0.0, task=periodic_tasks[2]),
+            Job(identifier=4, activation_time=0.0, task=periodic_tasks[2]),
 
             # Task 0
-            Job(identification=5, activation_time=0.0, task=periodic_tasks[3]),
+            Job(identifier=5, activation_time=0.0, task=periodic_tasks[3]),
         ]
 
         number_of_cores = 2
@@ -294,18 +294,18 @@ class SystemSimulatorTest(unittest.TestCase):
 
         jobs_list = [
             # Task 3
-            Job(identification=0, activation_time=0.0, task=periodic_tasks[0]),
-            Job(identification=1, activation_time=7.0, task=periodic_tasks[0]),
+            Job(identifier=0, activation_time=0.0, task=periodic_tasks[0]),
+            Job(identifier=1, activation_time=7.0, task=periodic_tasks[0]),
 
             # Task 2
-            Job(identification=2, activation_time=0.0, task=periodic_tasks[1]),
-            Job(identification=3, activation_time=7.0, task=periodic_tasks[1]),
+            Job(identifier=2, activation_time=0.0, task=periodic_tasks[1]),
+            Job(identifier=3, activation_time=7.0, task=periodic_tasks[1]),
 
             # Task 1
-            Job(identification=4, activation_time=0.0, task=periodic_tasks[2]),
+            Job(identifier=4, activation_time=0.0, task=periodic_tasks[2]),
 
             # Task 0
-            Job(identification=5, activation_time=0.0, task=periodic_tasks[3]),
+            Job(identifier=5, activation_time=0.0, task=periodic_tasks[3]),
         ]
 
         number_of_cores = 2

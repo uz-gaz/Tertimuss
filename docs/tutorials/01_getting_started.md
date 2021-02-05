@@ -16,7 +16,7 @@ Tertimuss is a compound of the following four components:
 
 First, we have a definition of a task set, composed of 4 fully preemptive hard real-time tasks with the following characteristics:
 
-| Identification | Type      | Period (seconds) | Relative deadline (seconds) | Worst case execution time (cycles) | First arrive (seconds) |
+| Identifier | Type      | Period (seconds) | Relative deadline (seconds) | Worst case execution time (cycles) | First arrive (seconds) |
 |----------------|-----------|------------------|-----------------------------|------------------------------------|------------------------|
 | 1              | Periodic  | 1                | 1                           | 600                                | 0                      |
 | 2              | Periodic  | 3                | 3                           | 1800                               | 0                      |
@@ -26,7 +26,7 @@ First, we have a definition of a task set, composed of 4 fully preemptive hard r
 ```python
 # Tasks definition
 periodic_tasks = [
-    PeriodicTask(identification=1,
+    PeriodicTask(identifier=1,
                  worst_case_execution_time=600,
                  relative_deadline=1,
                  best_case_execution_time=None,
@@ -38,7 +38,7 @@ periodic_tasks = [
                  energy_consumption=None,
                  phase=None,
                  period=1),
-    PeriodicTask(identification=2,
+    PeriodicTask(identifier=2,
                  worst_case_execution_time=1800,
                  relative_deadline=3,
                  best_case_execution_time=None,
@@ -50,7 +50,7 @@ periodic_tasks = [
                  energy_consumption=None,
                  phase=None,
                  period=3),
-    PeriodicTask(identification=3,
+    PeriodicTask(identifier=3,
                  worst_case_execution_time=600,
                  relative_deadline=3,
                  best_case_execution_time=None,
@@ -64,7 +64,7 @@ periodic_tasks = [
                  period=3)
 ]
 
-aperiodic_task = AperiodicTask(identification=0,
+aperiodic_task = AperiodicTask(identifier=0,
                                worst_case_execution_time=600,
                                relative_deadline=1,
                                best_case_execution_time=None,
@@ -157,11 +157,11 @@ Then we obtain the jobs to tasks association:
 
 ```python
 # Obtain tasks to jobs association
-periodic_tasks_jobs_association = [(i.task.identification, i.identification) for i in periodic_jobs]
+periodic_tasks_jobs_association = [(i.task.identifier, i.identifier) for i in periodic_jobs]
 print(periodic_tasks_jobs_association)
 ```
 
-| Task identification | Job identification |
+| Task identifier | Job identifier |
 |--------------------|---------------------|
 | 1                  | 1                   |
 | 1                  | 2                   |
@@ -195,7 +195,7 @@ print(migration_preemption_metrics.number_of_preemptions,
       migration_preemption_metrics.number_of_preemptions_by_job)
 ```
 
-| Job identification | Task identification |
+| Job identifier | Task identifier |
 |--------------------|---------------------|
 | 0                  | 1                   |
 | 1                  | 1                   |
