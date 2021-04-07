@@ -8,6 +8,7 @@ from tertimuss.simulation_lib.simulator import SimulationOptionsSpecification, \
 from tertimuss.simulation_lib.system_definition import PeriodicTask, PreemptiveExecution, Criticality, \
     EnvironmentSpecification, ProcessorDefinition, Job, TaskSet
 from tertimuss.simulation_lib.system_definition.utils import generate_default_cpu, default_environment_specification
+from tertimuss.visualization import generate_component_hotspots_plot
 
 
 class SystemSimulatorTest(unittest.TestCase):
@@ -364,3 +365,31 @@ class SystemSimulatorTest(unittest.TestCase):
         assert (simulation_result.scheduling_points == correct_scheduling_points)
 
         assert (simulation_result.hard_real_time_deadline_missed_stack_trace is None)
+
+    def test_simple_simulation_periodic_task_set_with_thermal_2(self):
+        periodic_tasks = [
+            self.__create_implicit_deadline_periodic_task_h_rt(2, 7, 10.0, 2),
+            self.__create_implicit_deadline_periodic_task_h_rt(1, 7, 10.0, 1),
+            self.__create_implicit_deadline_periodic_task_h_rt(0, 3, 5.0, 0)
+        ]
+
+        number_of_cores = 2
+        available_frequencies = {1}
+
+        simulation_result, _, _ = execute_scheduler_simulation_simple(tasks=TaskSet(
+            periodic_tasks=periodic_tasks,
+            aperiodic_tasks=[],
+            sporadic_tasks=[]
+        ),
+            aperiodic_tasks_jobs=[],
+            sporadic_tasks_jobs=[],
+            processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
+            environment_specification=default_environment_specification(),
+            simulation_options=SimulationOptionsSpecification(id_debug=True, thermal_simulation_type="DVFS",
+                                                              simulate_thermal_behaviour=True),
+            scheduler=self.__simple_priority_scheduler_definition()
+        )
+
+        fig = generate_component_hotspots_plot(schedule_result=simulation_result, title="Components hotspots")
+
+        # fig.show()

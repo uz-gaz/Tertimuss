@@ -143,7 +143,7 @@ class SchedulingAlgorithmSpecificationTest(unittest.TestCase):
     def __create_implicit_deadline_periodic_task_h_rt(task_id: int, worst_case_execution_time: int,
                                                       period: float) -> PeriodicTask:
         # Create implicit deadline task with priority equal to identification id
-        return PeriodicTask(identification=task_id,
+        return PeriodicTask(identifier=task_id,
                             worst_case_execution_time=worst_case_execution_time,
                             relative_deadline=period,
                             best_case_execution_time=None,
