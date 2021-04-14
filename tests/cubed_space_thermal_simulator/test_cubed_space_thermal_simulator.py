@@ -145,6 +145,61 @@ class CubedSpaceThermalSimulatorTest(unittest.TestCase):
         assert (min_temperature_one <= min_temperature_half
                 and max_temperature_one <= max_temperature_half)
 
+    def test_heat_conservation_simple(self):
+        # Dimensions of the cubes
+        cubes_dimensions = UnitDimensions(x=3, z=3, y=3)
+
+        # Cube material
+        cuboid_material = SiliconSolidMaterial()
+
+        # Cuboid initial temperature
+        system_initial_temperature = 273.15 + 45
+
+        # Definition of the CPU shape and materials
+        scene_definition = {
+            # Cube
+            0: (cuboid_material,
+                LocatedCube(
+                    location=UnitLocation(x=0, z=0, y=0),
+                    dimensions=cubes_dimensions)
+                )
+        }
+
+        # Edge size pf 1 mm
+        cube_edge_size = 0.001
+
+        cubed_space = CubedSpace(
+            material_cubes=scene_definition,
+            cube_edge_size=cube_edge_size,
+            environment_properties=None,
+            simulation_precision="HIGH")
+
+        initial_state = cubed_space.create_initial_state(
+            default_temperature=system_initial_temperature,
+            environment_temperature=None
+        )
+
+        # Apply energy over the cubed space
+        initial_state = cubed_space.apply_energy(actual_state=initial_state, amount_of_time=0.5)
+        temperature_over_before_half_second = cubed_space.obtain_temperature(actual_state=initial_state)
+
+        # Apply energy over the cubed space
+        initial_state = cubed_space.apply_energy(actual_state=initial_state, amount_of_time=0.5)
+        temperature_over_before_one_second = cubed_space.obtain_temperature(actual_state=initial_state)
+
+        # Half second
+        min_temperature_half = obtain_min_temperature(temperature_over_before_half_second)
+        max_temperature_half = obtain_max_temperature(temperature_over_before_half_second)
+
+        # One second
+        min_temperature_one = obtain_min_temperature(temperature_over_before_one_second)
+        max_temperature_one = obtain_max_temperature(temperature_over_before_one_second)
+
+        assert (self.float_equal(min(min_temperature_half.values()), system_initial_temperature, error=0.1))
+        assert (self.float_equal(max(max_temperature_half.values()), system_initial_temperature, error=0.1))
+        assert (self.float_equal(min(min_temperature_one.values()), system_initial_temperature, error=0.1))
+        assert (self.float_equal(max(max_temperature_one.values()), system_initial_temperature, error=0.1))
+
     def test_external_conduction_with_convection(self):
         # Dimensions of the cubes
         cubes_dimensions = UnitDimensions(x=4, z=4, y=4)
@@ -212,7 +267,7 @@ class CubedSpaceThermalSimulatorTest(unittest.TestCase):
         assert (environment_temperature <= min_temperature_one_second <= cube_0_initial_temperature and
                 self.float_equal(min_temperature_one_second, max_temperature_one_second, 1))
 
-    def test_processor_heat_conservation(self):
+    def test_processor_heat_conservation_processor(self):
         # Dimensions of the core
         core_dimensions = UnitDimensions(x=10, z=2, y=10)
 

@@ -1,11 +1,12 @@
 import unittest
+from typing import Dict
 
 from matplotlib import animation
 
 from tertimuss.cubed_space_thermal_simulator import UnitDimensions, UnitLocation, \
     CubedSpace, obtain_min_temperature, obtain_max_temperature, plot_3d_heat_map_temperature, \
     InternalTemperatureBoosterLocatedCube, plot_2d_heat_map, generate_video_2d_heat_map, generate_video_3d_heat_map, \
-    LocatedCube
+    LocatedCube, TemperatureLocatedCube
 
 from tertimuss.cubed_space_thermal_simulator.materials_pack import CooperSolidMaterial, SiliconSolidMaterial, \
     AirFreeEnvironmentProperties, AirForcedEnvironmentProperties
@@ -507,6 +508,120 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
         max_temperature = obtain_max_temperature(temperature_over_before_one_second)
 
         print("Temperature before 1 second: min", min_temperature, ", max", max_temperature)
+
+    @unittest.skip("Manual visualization test")
+    def test_external_conduction_plot_3d_stacked(self):
+        # Configuration
+        # Size of the simulation step
+        simulation_step = 0.1
+
+        # Major cycle in seconds
+        major_cycle = 1.0
+
+        # Temperature of the system (Celsius degrees)
+        system_temperature = 45
+
+        number_of_cores = 1
+
+        # Dimensions of the core
+        core_dimensions = UnitDimensions(x=10, z=2, y=10)
+
+        # Material of the core
+        core_material = SiliconSolidMaterial()
+
+        # Material of the board
+        board_material = CooperSolidMaterial()
+
+        # Environment initial temperature
+        environment_temperature = 273.15 + system_temperature
+
+        # CPU distribution
+        # XXXXXXX
+        # XX0X3XX
+        # XX1X4XX
+        # XX2X5XX
+        # XXXXXXX
+
+        # Definition of the CPU shape and materials
+        cpu_definition = {
+            # Cores
+            0: (core_material,
+                LocatedCube(
+                    location=UnitLocation(x=20, z=2, y=10),
+                    dimensions=core_dimensions)
+                ),
+
+            # Board
+            1: (board_material,
+                LocatedCube(
+                    location=UnitLocation(x=0, z=0, y=0),
+                    dimensions=UnitDimensions(x=70, z=2, y=70))
+                )
+        }
+
+        # Edge size pf 0.5 mm
+        cube_edge_size = 0.001
+
+        # Environment properties
+        environment_properties = AirFreeEnvironmentProperties()
+
+        external_heat_generators_dynamic_power = {
+            0: create_energy_applicator((core_material,
+                                         LocatedCube(
+                                             location=UnitLocation(x=20, z=0, y=10),
+                                             dimensions=UnitDimensions(x=10, z=2, y=10))
+                                         ),
+                                        watts_to_apply=10,
+                                        cube_edge_size=cube_edge_size
+                                        )
+        }
+
+        # Generate cubed space
+        cubed_space = CubedSpace(
+            material_cubes=cpu_definition,
+            cube_edge_size=cube_edge_size,
+            external_temperature_booster_points=external_heat_generators_dynamic_power,
+            internal_temperature_booster_points={},
+            environment_properties=environment_properties,
+            simulation_precision="HIGH")
+
+        initial_state = cubed_space.create_initial_state(
+            default_temperature=environment_temperature,
+            environment_temperature=environment_temperature
+        )
+
+        # Initial temperatures
+        temperature_measures: Dict[float, Dict[int, TemperatureLocatedCube]] = {}
+        temperature_over_before_zero_seconds = cubed_space.obtain_temperature(actual_state=initial_state)
+
+        temperature_measures[0.0] = temperature_over_before_zero_seconds
+
+        actual_applied_externally_energy_points = {0}
+
+        # Apply energy over the cubed space
+        for i in range(round(major_cycle / simulation_step)):
+            print(f"{i}/ {round(major_cycle / simulation_step)}")
+
+            initial_state = cubed_space.apply_energy(actual_state=initial_state,
+                                                     external_energy_application_points=
+                                                     actual_applied_externally_energy_points,
+                                                     internal_energy_application_points=set(),
+                                                     amount_of_time=simulation_step)
+            temperature = cubed_space.obtain_temperature(actual_state=initial_state)
+            temperature_measures[i * simulation_step] = temperature
+
+        # Display temperatures
+        for i in range(round(major_cycle / simulation_step)):
+            time_to_display = i * simulation_step
+
+            min_temperature = min(obtain_min_temperature(temperature_measures[time_to_display]).values())
+            max_temperature = max(obtain_max_temperature(temperature_measures[time_to_display]).values())
+
+            plot_3d = plot_3d_heat_map_temperature(temperature_measures[time_to_display],
+                                                   min_temperature=min_temperature,
+                                                   max_temperature=max_temperature)
+
+            plot_3d.show()
 
 
 if __name__ == '__main__':
