@@ -1,3 +1,6 @@
 matplotlib~=3.4.1
 ortools~=8.2.8487
 scipy~=1.6.2
+
+numpy~=1.20.2
+jsonschema~=3.2.0

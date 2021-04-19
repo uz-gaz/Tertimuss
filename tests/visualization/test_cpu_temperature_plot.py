@@ -8,7 +8,7 @@ from ._generate_simulation_result import get_simulation_result
 
 
 class CpuTemperaturePlotTest(unittest.TestCase):
-    #@unittest.skip("Manual visualization test")
+    @unittest.skip("Manual visualization test")
     def test_board_temperature_evolution_2d_plot(self):
         tasks, _, simulation_result = get_simulation_result()
 

@@ -179,26 +179,24 @@ class CubedSpaceThermalSimulatorTest(unittest.TestCase):
             environment_temperature=None
         )
 
-        # Apply energy over the cubed space
-        initial_state = cubed_space.apply_energy(actual_state=initial_state, amount_of_time=0.5)
-        temperature_over_before_half_second = cubed_space.obtain_temperature(actual_state=initial_state)
+        max_temperature_vector = []
+        min_temperature_vector = []
 
-        # Apply energy over the cubed space
-        initial_state = cubed_space.apply_energy(actual_state=initial_state, amount_of_time=0.5)
-        temperature_over_before_one_second = cubed_space.obtain_temperature(actual_state=initial_state)
+        number_of_iterations = 10000
 
-        # Half second
-        min_temperature_half = obtain_min_temperature(temperature_over_before_half_second)
-        max_temperature_half = obtain_max_temperature(temperature_over_before_half_second)
+        for i in range(number_of_iterations):
+            # Apply energy over the cubed space
+            initial_state = cubed_space.apply_energy(actual_state=initial_state, amount_of_time=0.001)
+            temperature_over_energy_application = cubed_space.obtain_temperature(actual_state=initial_state)
 
-        # One second
-        min_temperature_one = obtain_min_temperature(temperature_over_before_one_second)
-        max_temperature_one = obtain_max_temperature(temperature_over_before_one_second)
+            min_temperature_one = min(obtain_min_temperature(temperature_over_energy_application).values())
+            max_temperature_one = max(obtain_max_temperature(temperature_over_energy_application).values())
 
-        assert (self.float_equal(min(min_temperature_half.values()), system_initial_temperature, error=0.1))
-        assert (self.float_equal(max(max_temperature_half.values()), system_initial_temperature, error=0.1))
-        assert (self.float_equal(min(min_temperature_one.values()), system_initial_temperature, error=0.1))
-        assert (self.float_equal(max(max_temperature_one.values()), system_initial_temperature, error=0.1))
+            min_temperature_vector.append(min_temperature_one)
+            max_temperature_vector.append(max_temperature_one)
+
+        assert (self.float_equal(min(min_temperature_vector), system_initial_temperature, error=0.1))
+        assert (self.float_equal(max(max_temperature_vector), system_initial_temperature, error=0.1))
 
     def test_external_conduction_with_convection(self):
         # Dimensions of the cubes
@@ -267,7 +265,7 @@ class CubedSpaceThermalSimulatorTest(unittest.TestCase):
         assert (environment_temperature <= min_temperature_one_second <= cube_0_initial_temperature and
                 self.float_equal(min_temperature_one_second, max_temperature_one_second, 1))
 
-    def test_processor_heat_conservation_processor(self):
+    def test_processor_heat_conservation(self):
         # Dimensions of the core
         core_dimensions = UnitDimensions(x=10, z=2, y=10)
 
@@ -358,9 +356,9 @@ class CubedSpaceThermalSimulatorTest(unittest.TestCase):
         min_max_temperatures_vector.append((0.0, min(min_temperature.values()), max(max_temperature.values())))
 
         # Apply energy over the cubed space
-        number_of_iterations = 6
+        number_of_iterations = 100
         for i in range(number_of_iterations):
-            initial_state = cubed_space.apply_energy(actual_state=initial_state, amount_of_time=0.5)
+            initial_state = cubed_space.apply_energy(actual_state=initial_state, amount_of_time=0.001)
             temperature = cubed_space.obtain_temperature(actual_state=initial_state)
             min_temperature = obtain_min_temperature(temperature)
             max_temperature = obtain_max_temperature(temperature)

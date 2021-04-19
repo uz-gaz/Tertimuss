@@ -394,9 +394,9 @@ class SystemSimulatorTest(unittest.TestCase):
 
         fig = generate_component_hotspots_plot(schedule_result=simulation_result, title="Components hotspots")
 
-        fig.show()
+        # fig.show()
 
         heat_map_2d_video = generate_board_temperature_evolution_2d_video(schedule_result=simulation_result,
                                                                           title="Temperature evolution video")
         writer = animation.FFMpegWriter()
-        heat_map_2d_video.save("2d_generation.mp4", writer=writer)
+        # heat_map_2d_video.save("2d_generation.mp4", writer=writer)
