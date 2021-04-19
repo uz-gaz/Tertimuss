@@ -1,11 +1,10 @@
 import unittest
 
 from tertimuss.visualization import generate_component_hotspots_plot
-from tests.plot._generate_simulation_result import get_simulation_result
+from tests.visualization._generate_simulation_result import get_simulation_result
 
 
 class ComponentsHotspotsPlotTest(unittest.TestCase):
-    # @unittest.skip("Manual visualization test")
     def test_component_hotspots_plot(self):
         tasks, _, simulation_result = get_simulation_result()
 
