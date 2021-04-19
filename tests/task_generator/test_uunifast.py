@@ -11,6 +11,6 @@ class UUnifastTest(unittest.TestCase):
                                                                    major_cycle=24)
         x = UUniFast.generate(utilization=1, tasks_deadlines=tasks_deadlines, processor_frequency=cpu_frequency)
 
-        assert (0.99 <= sum([i.worst_case_execution_time / (i.deadline * cpu_frequency) for i in x]) <= 1)
+        assert (0.98 <= sum([i.worst_case_execution_time / (i.deadline * cpu_frequency) for i in x]) <= 1)
         assert (all(i.worst_case_execution_time <= i.deadline * cpu_frequency for i in x))
         assert (all(i.worst_case_execution_time >= 0 for i in x))

@@ -24,7 +24,7 @@ def generate_board_temperature_evolution_2d_video(schedule_result: RawSimulation
     return generate_video_2d_heat_map(
         schedule_result.temperature_measures,
         min_temperature=min_simulation_value,
-        max_temperature=max_simulation_value, axis="Z", location_in_axis=0, delay_between_frames_ms=100)
+        max_temperature=max_simulation_value, axis="Z", location_in_axis=1, delay_between_frames_ms=100)
 
 
 def generate_cpu_temperature_evolution_3d_video(schedule_result: RawSimulationResult,

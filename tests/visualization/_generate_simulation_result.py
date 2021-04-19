@@ -5,8 +5,11 @@ import os
 import pickle
 from typing import Optional, Tuple, List
 
-from tertimuss.simulation_lib.simulator import RawSimulationResult
+from tertimuss.schedulers.g_edf import GEDFScheduler
+from tertimuss.simulation_lib.simulator import RawSimulationResult, execute_scheduler_simulation_simple, \
+    execute_scheduler_simulation, SimulationOptionsSpecification
 from tertimuss.simulation_lib.system_definition import PeriodicTask, PreemptiveExecution, Criticality, TaskSet, Job
+from tertimuss.simulation_lib.system_definition.utils import default_environment_specification, generate_default_cpu
 
 
 def create_implicit_deadline_periodic_task_h_rt(task_id: int, worst_case_execution_time: int,
@@ -56,7 +59,20 @@ def get_simulation_result() -> Tuple[TaskSet, List[Job], RawSimulationResult]:
         sporadic_tasks=[]
     )
 
-    with open(os.path.dirname(os.path.realpath(__file__)) + '/simulation_result.pyobj', 'rb') as simulation_result_file:
-        simulation_result = pickle.load(simulation_result_file)
+    simulation_result = execute_scheduler_simulation(tasks=TaskSet(
+        periodic_tasks=periodic_tasks,
+        aperiodic_tasks=[],
+        sporadic_tasks=[]
+    ),
+        jobs=jobs_list,
+        processor_definition=generate_default_cpu(2, {1000}),
+        environment_specification=default_environment_specification(),
+        simulation_options=SimulationOptionsSpecification(id_debug=True, thermal_simulation_type="DVFS",
+                                                          simulate_thermal_behaviour=True),
+        scheduler=GEDFScheduler(True)
+    )
+
+    # with open(os.path.dirname(os.path.realpath(__file__)) + '/simulation_result.pyobj', 'rb') as simulation_result_file:
+    #     simulation_result = pickle.load(simulation_result_file)
 
     return tasks, jobs_list, simulation_result

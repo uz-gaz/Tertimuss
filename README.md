@@ -29,6 +29,8 @@ To install Tertimuss in the newly created virtual environment use the following 
 $ pip install .
 ```
 
+Also, the library FFmpeg must be installed in order to generate thermal maps.
+
 ## Usage
 
 Once installed, you may want to try your first simulation with Tertimuss:
