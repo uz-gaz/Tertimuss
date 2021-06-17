@@ -1,6 +1,6 @@
 import unittest
-from tertimuss.schedulers.alecs import ALECSScheduler
-from tertimuss.simulation_lib.simulator import execute_scheduler_simulation_simple, SimulationOptionsSpecification
+from tertimuss.schedulers.alecs import SALECS
+from tertimuss.simulation_lib.simulator import execute_scheduler_simulation_simple, SimulationConfiguration
 from tertimuss.simulation_lib.system_definition import TaskSet
 from tertimuss.simulation_lib.system_definition.utils import generate_default_cpu, default_environment_specification
 from tests.schedulers._common_scheduler_tests_utils import create_implicit_deadline_periodic_task_h_rt
@@ -31,8 +31,8 @@ class ALECSTest(unittest.TestCase):
             sporadic_tasks_jobs=[],
             processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
             environment_specification=default_environment_specification(),
-            simulation_options=SimulationOptionsSpecification(id_debug=True),
-            scheduler=ALECSScheduler(activate_debug=True)
+            simulation_options=SimulationConfiguration(id_debug=True),
+            scheduler=SALECS(activate_debug=True)
         )
 
         # Correct execution

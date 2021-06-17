@@ -2,10 +2,10 @@ from random import uniform
 from typing import List
 
 from tertimuss.simulation_lib.math_utils import list_float_lcm
-from .._abstract_periodic_task_generator import PeriodicGeneratedTask, AbstractPeriodicTaskGenerator
+from .._abstract_periodic_task_generator import PeriodicGeneratedTask, PeriodicTaskGenerator
 
 
-class UUniFast(AbstractPeriodicTaskGenerator):
+class PTGUUniFast(PeriodicTaskGenerator):
     """
     UUniFast task generation algorithm
     """

@@ -5,7 +5,7 @@ from ._processor_model import ProcessorModel
 from ._tasks_model import TasksModel
 from ._thermal_model import ThermalModel
 from ._thermal_model_selector import ThermalModelSelector
-from tertimuss.simulation_lib.system_definition import ProcessorDefinition, EnvironmentSpecification, TaskSet
+from tertimuss.simulation_lib.system_definition import Processor, Environment, TaskSet
 
 
 class GlobalModel(object):
@@ -13,8 +13,8 @@ class GlobalModel(object):
     Encapsulate all TCPN which represent the global model of the simulation
     """
 
-    def __init__(self, cpu_specification: ProcessorDefinition,
-                 environment_specification: EnvironmentSpecification,
+    def __init__(self, cpu_specification: Processor,
+                 environment_specification: Environment,
                  task_set: TaskSet,
                  simulate_thermal=True,
                  simulation_precision=numpy.float64,

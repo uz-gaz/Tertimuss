@@ -1,1 +1,1 @@
-from ._scheduler_definition import OLDTFSScheduler
+from ._scheduler_definition import SOLDTFS

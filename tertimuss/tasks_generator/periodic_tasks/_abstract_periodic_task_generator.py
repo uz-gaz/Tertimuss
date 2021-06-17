@@ -16,7 +16,7 @@ class PeriodicGeneratedTask:
     input data in cycles"""
 
 
-class AbstractPeriodicTaskGenerator(metaclass=abc.ABCMeta):
+class PeriodicTaskGenerator(metaclass=abc.ABCMeta):
     """
     Task generator algorithm interface
     """

@@ -1,13 +1,11 @@
 """
 This file pretends to define an example simulation result that can be used to test the plotting packages
 """
-import os
-import pickle
 from typing import Optional, Tuple, List
 
-from tertimuss.schedulers.g_edf import GEDFScheduler
-from tertimuss.simulation_lib.simulator import RawSimulationResult, execute_scheduler_simulation_simple, \
-    execute_scheduler_simulation, SimulationOptionsSpecification
+from tertimuss.schedulers.g_edf import SGEDF
+from tertimuss.simulation_lib.simulator import RawSimulationResult, \
+    execute_scheduler_simulation, SimulationConfiguration
 from tertimuss.simulation_lib.system_definition import PeriodicTask, PreemptiveExecution, Criticality, TaskSet, Job
 from tertimuss.simulation_lib.system_definition.utils import default_environment_specification, generate_default_cpu
 
@@ -67,12 +65,9 @@ def get_simulation_result() -> Tuple[TaskSet, List[Job], RawSimulationResult]:
         jobs=jobs_list,
         processor_definition=generate_default_cpu(2, {1000}),
         environment_specification=default_environment_specification(),
-        simulation_options=SimulationOptionsSpecification(id_debug=True, thermal_simulation_type="DVFS",
-                                                          simulate_thermal_behaviour=True),
-        scheduler=GEDFScheduler(True)
+        simulation_options=SimulationConfiguration(id_debug=True, thermal_simulation_type="DVFS",
+                                                   simulate_thermal_behaviour=True),
+        scheduler=SGEDF(True)
     )
-
-    # with open(os.path.dirname(os.path.realpath(__file__)) + '/simulation_result.pyobj', 'rb') as simulation_result_file:
-    #     simulation_result = pickle.load(simulation_result_file)
 
     return tasks, jobs_list, simulation_result

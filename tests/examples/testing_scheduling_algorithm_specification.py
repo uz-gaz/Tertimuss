@@ -1,14 +1,14 @@
 import unittest
 from typing import Dict, Optional, Set, List, Tuple
 
-from tertimuss.simulation_lib.schedulers_definition import CentralizedAbstractScheduler
-from tertimuss.simulation_lib.simulator import execute_scheduler_simulation_simple, SimulationOptionsSpecification
-from tertimuss.simulation_lib.system_definition import ProcessorDefinition, EnvironmentSpecification, TaskSet, \
-    PeriodicTask, PreemptiveExecution, Criticality, Job, AperiodicTask
+from tertimuss.simulation_lib.schedulers_definition import CentralizedScheduler
+from tertimuss.simulation_lib.simulator import execute_scheduler_simulation_simple, SimulationConfiguration
+from tertimuss.simulation_lib.system_definition import Processor, Environment, TaskSet, \
+    PeriodicTask, PreemptiveExecution, Criticality
 from tertimuss.simulation_lib.system_definition.utils import generate_default_cpu, default_environment_specification
 
 
-class _SimpleGlobalEarliestDeadlineFirstScheduler(CentralizedAbstractScheduler):
+class _SimpleGlobalEarliestDeadlineFirstScheduler(CentralizedScheduler):
     def __init__(self):
         """
         Create a simple global EDF scheduler instance
@@ -18,8 +18,8 @@ class _SimpleGlobalEarliestDeadlineFirstScheduler(CentralizedAbstractScheduler):
         self.__tasks_relative_deadline: Dict[int, float] = {}
         self.__active_jobs_priority: Dict[int, float] = {}
 
-    def check_schedulability(self, processor_definition: ProcessorDefinition,
-                             environment_specification: EnvironmentSpecification, task_set: TaskSet) \
+    def check_schedulability(self, processor_definition: Processor,
+                             environment_specification: Environment, task_set: TaskSet) \
             -> [bool, Optional[str]]:
         """
         Return true if the scheduler can be able to schedule the system. In negative case, it can return a reason.
@@ -33,8 +33,8 @@ class _SimpleGlobalEarliestDeadlineFirstScheduler(CentralizedAbstractScheduler):
         """
         return True, None
 
-    def offline_stage(self, processor_definition: ProcessorDefinition,
-                      environment_specification: EnvironmentSpecification, task_set: TaskSet) -> int:
+    def offline_stage(self, processor_definition: Processor,
+                      environment_specification: Environment, task_set: TaskSet) -> int:
         """
           Method to implement with the offline stage scheduler tasks
 
@@ -180,7 +180,7 @@ class SchedulingAlgorithmSpecificationTest(unittest.TestCase):
             sporadic_tasks_jobs=[],
             processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
             environment_specification=default_environment_specification(),
-            simulation_options=SimulationOptionsSpecification(id_debug=True),
+            simulation_options=SimulationConfiguration(id_debug=True),
             scheduler=_SimpleGlobalEarliestDeadlineFirstScheduler()
         )
 

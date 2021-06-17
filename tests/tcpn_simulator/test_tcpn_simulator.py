@@ -94,7 +94,7 @@ class TCPNSimulatorTest(unittest.TestCase):
 
         lambda_vector = numpy.asarray([eta, 1, eta, 1])
 
-        mo = numpy.asarray([3, 0, 0, 1, 3, 0, 0]).reshape((-1, 1))
+        mo: numpy.ndarray = numpy.asarray([3, 0, 0, 1, 3, 0, 0]).reshape((-1, 1))
 
         tcpn_simulator: SVSEuler = SVSEuler(scipy.sparse.csr_matrix(pre),
                                             scipy.sparse.csr_matrix(post),

@@ -510,7 +510,7 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
 
         print("Temperature before 1 second: min", min_temperature, ", max", max_temperature)
 
-    # @unittest.skip("Manual visualization test")
+    @unittest.skip("Manual visualization test")
     def test_external_conduction_plot_3d_stacked(self):
         # Configuration
         # Size of the simulation step

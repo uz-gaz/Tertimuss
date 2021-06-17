@@ -12,8 +12,8 @@ from typing import Set, Dict, Optional, Tuple, List
 import numpy
 
 from tertimuss.simulation_lib.math_utils import list_int_gcd, list_int_lcm
-from tertimuss.simulation_lib.schedulers_definition import CentralizedAbstractScheduler
-from tertimuss.simulation_lib.system_definition import ProcessorDefinition, EnvironmentSpecification, TaskSet, \
+from tertimuss.simulation_lib.schedulers_definition import CentralizedScheduler
+from tertimuss.simulation_lib.system_definition import Processor, Environment, TaskSet, \
     PreemptiveExecution
 from tertimuss.simulation_lib.system_definition.utils import calculate_major_cycle
 
@@ -287,7 +287,7 @@ def _obtain_utilization_of_run_pack_subtree(run_pack: _RUNPack) -> float:
          run_pack.content])
 
 
-class RUNScheduler(CentralizedAbstractScheduler):
+class SRUN(CentralizedScheduler):
     """
     Implements the Reduction to Uniprocessor Scheduler (RUN)
 
@@ -319,9 +319,9 @@ class RUNScheduler(CentralizedAbstractScheduler):
         """
         return self.__clusters_obtained
 
-    def check_schedulability(self, processor_definition: ProcessorDefinition,
-                             environment_specification: EnvironmentSpecification, task_set: TaskSet) -> [bool,
-                                                                                                         Optional[str]]:
+    def check_schedulability(self, processor_definition: Processor,
+                             environment_specification: Environment, task_set: TaskSet) -> [bool,
+                                                                                            Optional[str]]:
         """
         Return true if the scheduler can be able to schedule the system. In negative case, it can return a reason.
         In example, a scheduler that only can work with periodic tasks with phase=0, can return
@@ -346,8 +346,8 @@ class RUNScheduler(CentralizedAbstractScheduler):
 
         return True, None
 
-    def offline_stage(self, processor_definition: ProcessorDefinition,
-                      environment_specification: EnvironmentSpecification, task_set: TaskSet) -> int:
+    def offline_stage(self, processor_definition: Processor,
+                      environment_specification: Environment, task_set: TaskSet) -> int:
         """
         Method to implement with the offline stage scheduler tasks
 

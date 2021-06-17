@@ -9,11 +9,11 @@ This module provides the following class:
 
 from typing import Dict, Optional, Set, List, Tuple
 
-from ..simulation_lib.schedulers_definition import CentralizedAbstractScheduler
-from ..simulation_lib.system_definition import ProcessorDefinition, EnvironmentSpecification, TaskSet
+from ..simulation_lib.schedulers_definition import CentralizedScheduler
+from ..simulation_lib.system_definition import Processor, Environment, TaskSet
 
 
-class GEDFScheduler(CentralizedAbstractScheduler):
+class SGEDF(CentralizedScheduler):
     """
     Implements the Global Earliest Deadline First Scheduler (G-EDF)
     """
@@ -28,8 +28,8 @@ class GEDFScheduler(CentralizedAbstractScheduler):
         self.__tasks_relative_deadline: Dict[int, float] = {}
         self.__active_jobs_priority: Dict[int, float] = {}
 
-    def check_schedulability(self, processor_definition: ProcessorDefinition,
-                             environment_specification: EnvironmentSpecification, task_set: TaskSet) \
+    def check_schedulability(self, processor_definition: Processor,
+                             environment_specification: Environment, task_set: TaskSet) \
             -> [bool, Optional[str]]:
         """
         Return true if the scheduler can be able to schedule the system. In negative case, it can return a reason.
@@ -43,8 +43,8 @@ class GEDFScheduler(CentralizedAbstractScheduler):
         """
         return True, None
 
-    def offline_stage(self, processor_definition: ProcessorDefinition,
-                      environment_specification: EnvironmentSpecification, task_set: TaskSet) -> int:
+    def offline_stage(self, processor_definition: Processor,
+                      environment_specification: Environment, task_set: TaskSet) -> int:
         """
           Method to implement with the offline stage scheduler tasks
 

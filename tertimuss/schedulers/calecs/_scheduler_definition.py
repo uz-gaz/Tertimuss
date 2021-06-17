@@ -4,14 +4,14 @@ from ._bpp_based_algorithms import BestFitDescendantBPPBasedPartitionAlgorithm
 from ._edf import obtain_edf_cyclic_executive
 from ._task import ImplicitDeadlineTask
 from tertimuss.simulation_lib.math_utils import list_int_lcm
-from tertimuss.simulation_lib.schedulers_definition import CentralizedAbstractScheduler
-from tertimuss.simulation_lib.system_definition import ProcessorDefinition, EnvironmentSpecification, TaskSet, \
-    CoreDefinition, CoreTypeDefinition, PreemptiveExecution
-from ..alecs import ALECSScheduler
+from tertimuss.simulation_lib.schedulers_definition import CentralizedScheduler
+from tertimuss.simulation_lib.system_definition import Processor, Environment, TaskSet, \
+    Core, CoreModel, PreemptiveExecution
+from ..alecs import SALECS
 from ...simulation_lib.system_definition.utils import calculate_major_cycle
 
 
-class CALECSScheduler(CentralizedAbstractScheduler):
+class SCALECS(CentralizedScheduler):
     """
        Implements the Clustered Allocation and Execution Control Scheduler (CALECS)
 
@@ -45,9 +45,9 @@ class CALECSScheduler(CentralizedAbstractScheduler):
         """
         return self.__clusters_obtained
 
-    def check_schedulability(self, processor_definition: ProcessorDefinition,
-                             environment_specification: EnvironmentSpecification, task_set: TaskSet) -> [bool,
-                                                                                                         Optional[str]]:
+    def check_schedulability(self, processor_definition: Processor,
+                             environment_specification: Environment, task_set: TaskSet) -> [bool,
+                                                                                            Optional[str]]:
         """
         Return true if the scheduler can be able to schedule the system. In negative case, it can return a reason.
         In example, an scheduler that only can work with periodic tasks with phase=0, can return
@@ -90,8 +90,8 @@ class CALECSScheduler(CentralizedAbstractScheduler):
         # All tests passed
         return True, None
 
-    def offline_stage(self, processor_definition: ProcessorDefinition,
-                      environment_specification: EnvironmentSpecification, task_set: TaskSet) -> int:
+    def offline_stage(self, processor_definition: Processor,
+                      environment_specification: Environment, task_set: TaskSet) -> int:
         """
         Method to implement with the offline stage scheduler tasks
 
@@ -163,8 +163,8 @@ class CALECSScheduler(CentralizedAbstractScheduler):
                     processor_frequency=f_star_hz)
             else:
                 local_used_cores = [
-                    (i, CoreDefinition(location=processor_definition.cores_definition[j].location,
-                                       core_type=CoreTypeDefinition(
+                    (i, Core(location=processor_definition.cores_definition[j].location,
+                             core_type=CoreModel(
                                            dimensions=processor_definition.cores_definition[j].core_type.dimensions,
                                            material=processor_definition.cores_definition[j].core_type.material,
                                            core_energy_consumption=
@@ -178,17 +178,17 @@ class CALECSScheduler(CentralizedAbstractScheduler):
                 #     (i, j): processor_definition.migration_costs[(local_used_cores_ids[i], local_used_cores_ids[j])]
                 #     for i in range(utilization) for j in range(utilization) if i != j}
 
-                local_processor_definition = ProcessorDefinition(board_definition=processor_definition.board_definition,
-                                                                 cores_definition={k: j for k, (i, j) in
+                local_processor_definition = Processor(board_definition=processor_definition.board_definition,
+                                                       cores_definition={k: j for k, (i, j) in
                                                                                    enumerate(local_used_cores)},
-                                                                 measure_unit=processor_definition.measure_unit)
+                                                       measure_unit=processor_definition.measure_unit)
                 # migration_costs=migration_costs)
 
                 local_task_set = TaskSet(periodic_tasks=[periodic_tasks_dict[i] for i in task_set_loop if i != -1],
                                          aperiodic_tasks=[],
                                          sporadic_tasks=[])
 
-                local_scheduler = ALECSScheduler(self.is_debug)
+                local_scheduler = SALECS(self.is_debug)
                 local_scheduler.offline_stage(processor_definition=local_processor_definition,
                                               task_set=local_task_set,
                                               environment_specification=environment_specification)

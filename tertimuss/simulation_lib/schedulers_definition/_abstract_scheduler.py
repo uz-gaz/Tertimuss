@@ -1,11 +1,18 @@
 import abc
 
-from ..system_definition import ProcessorDefinition, TaskSet, EnvironmentSpecification
+from ..system_definition import Processor, TaskSet, Environment
 
 from typing import Optional, Set, Dict, Tuple, List
 
 
-class CentralizedAbstractScheduler(object, metaclass=abc.ABCMeta):
+class Scheduler(object, metaclass=abc.ABCMeta):
+    """
+    Base scheduler
+    """
+    pass
+
+
+class CentralizedScheduler(Scheduler, metaclass=abc.ABCMeta):
     """
     Base centralized scheduler.
 
@@ -22,8 +29,8 @@ class CentralizedAbstractScheduler(object, metaclass=abc.ABCMeta):
         self.is_debug = activate_debug
 
     @abc.abstractmethod
-    def check_schedulability(self, processor_definition: ProcessorDefinition,
-                             environment_specification: EnvironmentSpecification,
+    def check_schedulability(self, processor_definition: Processor,
+                             environment_specification: Environment,
                              task_set: TaskSet) -> [bool, Optional[str]]:
         """
         Return true if the scheduler can be able to schedule the system. In negative case, it can return a reason.
@@ -38,8 +45,8 @@ class CentralizedAbstractScheduler(object, metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def offline_stage(self, processor_definition: ProcessorDefinition,
-                      environment_specification: EnvironmentSpecification,
+    def offline_stage(self, processor_definition: Processor,
+                      environment_specification: Environment,
                       task_set: TaskSet) -> int:
         """
         Method to implement with the offline stage scheduler tasks

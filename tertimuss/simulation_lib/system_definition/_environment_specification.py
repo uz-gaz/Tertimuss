@@ -4,7 +4,7 @@ from tertimuss.cubed_space_thermal_simulator import FluidEnvironment
 
 
 @dataclass(frozen=True)
-class EnvironmentSpecification:
+class Environment:
     """
     Specification of the environment
     """

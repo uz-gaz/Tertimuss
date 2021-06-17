@@ -7,4 +7,4 @@ This module provides the following class:
 - :class:`CALECSScheduler`
 """
 
-from ._scheduler_definition import CALECSScheduler
+from ._scheduler_definition import SCALECS

@@ -14,9 +14,9 @@ It also exposes the following classes related with the previous functions:
 - :class:`.CPUUsedFrequency`
 - :class:`.SimulationStackTraceHardRTDeadlineMissed`
 - :class:`.RawSimulationResult`
-- :class:`.SimulationOptionsSpecification`
+- :class:`.SimulationConfiguration`
 """
 from ._simulation_result import JobSectionExecution, CPUUsedFrequency, SimulationStackTraceHardRTDeadlineMissed, \
     RawSimulationResult
-from ._system_simulator import SimulationOptionsSpecification, execute_scheduler_simulation_simple, \
+from ._system_simulator import SimulationConfiguration, execute_scheduler_simulation_simple, \
     execute_scheduler_simulation

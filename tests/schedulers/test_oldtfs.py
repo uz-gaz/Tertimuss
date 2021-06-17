@@ -1,6 +1,6 @@
 import unittest
-from tertimuss.schedulers._oldtfs import OLDTFSScheduler
-from tertimuss.simulation_lib.simulator import execute_scheduler_simulation_simple, SimulationOptionsSpecification
+from tertimuss.schedulers._oldtfs import SOLDTFS
+from tertimuss.simulation_lib.simulator import execute_scheduler_simulation_simple, SimulationConfiguration
 from tertimuss.simulation_lib.system_definition import TaskSet
 from tertimuss.simulation_lib.system_definition.utils import generate_default_cpu, default_environment_specification
 from tests.schedulers._common_scheduler_tests_utils import create_implicit_deadline_periodic_task_h_rt
@@ -31,8 +31,8 @@ class OLDTFSTest(unittest.TestCase):
             sporadic_tasks_jobs=[],
             processor_definition=generate_default_cpu(number_of_cores, available_frequencies, 0, 0),
             environment_specification=default_environment_specification(),
-            simulation_options=SimulationOptionsSpecification(id_debug=True),
-            scheduler=OLDTFSScheduler(240, simulate_thermal=False)
+            simulation_options=SimulationConfiguration(id_debug=True),
+            scheduler=SOLDTFS(240, simulate_thermal=False)
         )
 
         # Correct execution
