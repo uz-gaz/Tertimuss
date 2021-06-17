@@ -3,22 +3,22 @@ from collections import deque
 from dataclasses import dataclass
 from typing import List, Tuple, Dict, Optional, Set, Literal, Union
 
-from tertimuss.cubed_space_thermal_simulator import TemperatureLocatedCube, LocatedCube, UnitLocation, UnitDimensions, \
-    CubedSpace, CubedSpaceState, InternalTemperatureBoosterLocatedCube, ExternalTemperatureBoosterLocatedCube, \
+from tertimuss.cubed_space_thermal_simulator import PhysicalCuboid, Cuboid, Location, Dimensions, \
+    Model, SimulationState, TMInternal, TMExternal, \
     obtain_max_temperature
 from tertimuss.cubed_space_thermal_simulator.physics_utils import create_energy_applicator
 
 from ._simulation_result import RawSimulationResult, JobSectionExecution, CPUUsedFrequency, \
     SimulationStackTraceHardRTDeadlineMissed
 from ..math_utils import list_int_lcm
-from ..schedulers_definition import CentralizedAbstractScheduler
-from ..system_definition import Job, TaskSet, EnvironmentSpecification, Criticality, PreemptiveExecution, \
-    ProcessorDefinition
+from ..schedulers_definition import CentralizedScheduler
+from ..system_definition import Job, TaskSet, Environment, Criticality, PreemptiveExecution, \
+    Processor
 from ..system_definition.utils import calculate_major_cycle
 
 
 @dataclass
-class SimulationOptionsSpecification:
+class SimulationConfiguration:
     """
     Definition of the simulation configuration
     """
@@ -86,11 +86,11 @@ def _create_deadline_arrive_dict(lcm_frequency: int, jobs: List[Job]) -> Tuple[D
 def execute_scheduler_simulation_simple(tasks: TaskSet,
                                         aperiodic_tasks_jobs: List[Job],
                                         sporadic_tasks_jobs: List[Job],
-                                        processor_definition: ProcessorDefinition,
-                                        environment_specification: EnvironmentSpecification,
-                                        scheduler: Union[CentralizedAbstractScheduler],
-                                        simulation_options: SimulationOptionsSpecification
-                                        = SimulationOptionsSpecification()
+                                        processor_definition: Processor,
+                                        environment_specification: Environment,
+                                        scheduler: Union[CentralizedScheduler],
+                                        simulation_options: SimulationConfiguration
+                                        = SimulationConfiguration()
                                         ) -> Tuple[RawSimulationResult, List[Job], float]:
     """
     Run a simulation without supplying the periodic jobs. It will be generated from the periodic tasks definition, and
@@ -129,11 +129,11 @@ def execute_scheduler_simulation_simple(tasks: TaskSet,
 
 def execute_scheduler_simulation(jobs: List[Job],
                                  tasks: TaskSet,
-                                 processor_definition: ProcessorDefinition,
-                                 environment_specification: EnvironmentSpecification,
-                                 scheduler: Union[CentralizedAbstractScheduler],
-                                 simulation_options: SimulationOptionsSpecification
-                                 = SimulationOptionsSpecification(),
+                                 processor_definition: Processor,
+                                 environment_specification: Environment,
+                                 scheduler: Union[CentralizedScheduler],
+                                 simulation_options: SimulationConfiguration
+                                 = SimulationConfiguration(),
                                  simulation_start_time: float = 0,
                                  simulation_end_time: Optional[float] = None) -> RawSimulationResult:
     """
@@ -186,7 +186,7 @@ def execute_scheduler_simulation(jobs: List[Job],
         raise Exception("Start time must be lowest than end time")
 
     # Check scheduler
-    if isinstance(scheduler, CentralizedAbstractScheduler):
+    if isinstance(scheduler, CentralizedScheduler):
         return _execute_centralized_scheduler_simulation(jobs, tasks, processor_definition, environment_specification,
                                                          scheduler, simulation_options, simulation_start_time,
                                                          simulation_end_time)
@@ -195,10 +195,10 @@ def execute_scheduler_simulation(jobs: List[Job],
 
 
 def _generate_cubed_space(tasks: TaskSet,
-                          processor_definition: ProcessorDefinition,
-                          environment_specification: EnvironmentSpecification,
-                          simulation_options: SimulationOptionsSpecification,
-                          board_thermal_id: int) -> Tuple[CubedSpace, CubedSpaceState, Dict[Tuple[int, int], int],
+                          processor_definition: Processor,
+                          environment_specification: Environment,
+                          simulation_options: SimulationConfiguration,
+                          board_thermal_id: int) -> Tuple[Model, SimulationState, Dict[Tuple[int, int], int],
                                                           Dict[Tuple[int, int], int]]:
     """
     Generate a cubed space thermal simulator from the system specification
@@ -220,26 +220,26 @@ def _generate_cubed_space(tasks: TaskSet,
 
     scene_definition = {
         i: (j.core_type.material,
-            LocatedCube(
-                location=UnitLocation(x=j.location.x * simulation_options.processor_mesh_division,
-                                      y=j.location.y * simulation_options.processor_mesh_division,
-                                      z=j.location.z * simulation_options.processor_mesh_division),
-                dimensions=UnitDimensions(x=j.core_type.dimensions.x * simulation_options.processor_mesh_division,
-                                          y=j.core_type.dimensions.y * simulation_options.processor_mesh_division,
-                                          z=j.core_type.dimensions.z * simulation_options.processor_mesh_division))
+            Cuboid(
+                location=Location(x=j.location.x * simulation_options.processor_mesh_division,
+                                  y=j.location.y * simulation_options.processor_mesh_division,
+                                  z=j.location.z * simulation_options.processor_mesh_division),
+                dimensions=Dimensions(x=j.core_type.dimensions.x * simulation_options.processor_mesh_division,
+                                      y=j.core_type.dimensions.y * simulation_options.processor_mesh_division,
+                                      z=j.core_type.dimensions.z * simulation_options.processor_mesh_division))
             ) for i, j in processor_definition.cores_definition.items()
     }
     # Board
     scene_definition[board_thermal_id] = (processor_definition.board_definition.material,
-                                          LocatedCube(
-                                              location=UnitLocation(
+                                          Cuboid(
+                                              location=Location(
                                                   x=processor_definition.board_definition.location.x *
                                                     simulation_options.processor_mesh_division,
                                                   y=processor_definition.board_definition.location.y *
                                                     simulation_options.processor_mesh_division,
                                                   z=processor_definition.board_definition.location.z *
                                                     simulation_options.processor_mesh_division),
-                                              dimensions=UnitDimensions(
+                                              dimensions=Dimensions(
                                                   x=processor_definition.board_definition.dimensions.x *
                                                     simulation_options.processor_mesh_division,
                                                   y=processor_definition.board_definition.dimensions.y *
@@ -250,12 +250,12 @@ def _generate_cubed_space(tasks: TaskSet,
     # Leakage power energy generators
     external_heat_generators_leakage_power = {
         i: create_energy_applicator((j.core_type.material,
-                                     LocatedCube(
-                                         location=UnitLocation(
+                                     Cuboid(
+                                         location=Location(
                                              x=j.location.x * simulation_options.processor_mesh_division,
                                              y=j.location.y * simulation_options.processor_mesh_division,
                                              z=j.location.z * simulation_options.processor_mesh_division),
-                                         dimensions=UnitDimensions(
+                                         dimensions=Dimensions(
                                              x=j.core_type.dimensions.x * simulation_options.processor_mesh_division,
                                              y=j.core_type.dimensions.y * simulation_options.processor_mesh_division,
                                              z=j.core_type.dimensions.z * simulation_options.processor_mesh_division))
@@ -266,15 +266,16 @@ def _generate_cubed_space(tasks: TaskSet,
     }
 
     internal_heat_generators_leakage_power = {
-        i: InternalTemperatureBoosterLocatedCube(
-            location=UnitLocation(
-                x=j.location.x * simulation_options.processor_mesh_division,
-                y=j.location.y * simulation_options.processor_mesh_division,
-                z=j.location.z * simulation_options.processor_mesh_division),
-            dimensions=UnitDimensions(
-                x=j.core_type.dimensions.x * simulation_options.processor_mesh_division,
-                y=j.core_type.dimensions.y * simulation_options.processor_mesh_division,
-                z=j.core_type.dimensions.z * simulation_options.processor_mesh_division),
+        i: TMInternal(
+            cuboid=Cuboid(
+                location=Location(
+                    x=j.location.x * simulation_options.processor_mesh_division,
+                    y=j.location.y * simulation_options.processor_mesh_division,
+                    z=j.location.z * simulation_options.processor_mesh_division),
+                dimensions=Dimensions(
+                    x=j.core_type.dimensions.x * simulation_options.processor_mesh_division,
+                    y=j.core_type.dimensions.y * simulation_options.processor_mesh_division,
+                    z=j.core_type.dimensions.z * simulation_options.processor_mesh_division)),
             boostRateMultiplier=j.core_type.core_energy_consumption.leakage_delta
         ) for i, j in processor_definition.cores_definition.items()
     }
@@ -284,7 +285,7 @@ def _generate_cubed_space(tasks: TaskSet,
     core_task_energy_activator_id: Dict[Tuple[int, int], int] = {}
 
     if simulation_options.thermal_simulation_type == "DVFS":
-        external_heat_generators_dynamic_energy: Dict[int, ExternalTemperatureBoosterLocatedCube] = {}
+        external_heat_generators_dynamic_energy: Dict[int, TMExternal] = {}
         for i, j in processor_definition.cores_definition.items():
             for f in j.core_type.available_frequencies:
                 generator_id = len(external_heat_generators_dynamic_energy) + \
@@ -292,12 +293,12 @@ def _generate_cubed_space(tasks: TaskSet,
                 core_frequency_energy_activator_id[(i, f)] = generator_id
                 external_heat_generators_dynamic_energy[generator_id] = create_energy_applicator(
                     (j.core_type.material,
-                     LocatedCube(
-                         location=UnitLocation(
+                     Cuboid(
+                         location=Location(
                              x=j.location.x * simulation_options.processor_mesh_division,
                              y=j.location.y * simulation_options.processor_mesh_division,
                              z=j.location.z * simulation_options.processor_mesh_division),
-                         dimensions=UnitDimensions(
+                         dimensions=Dimensions(
                              x=j.core_type.dimensions.x * simulation_options.processor_mesh_division,
                              y=j.core_type.dimensions.y * simulation_options.processor_mesh_division,
                              z=j.core_type.dimensions.z * simulation_options.processor_mesh_division))
@@ -307,7 +308,7 @@ def _generate_cubed_space(tasks: TaskSet,
                     cube_edge_size=cube_edge_size
                 )
     elif simulation_options.thermal_simulation_type == "TASK_CONSUMPTION_MEASURED":
-        external_heat_generators_dynamic_energy: Dict[int, ExternalTemperatureBoosterLocatedCube] = {}
+        external_heat_generators_dynamic_energy: Dict[int, TMExternal] = {}
         for i, j in processor_definition.cores_definition.items():
             for k in tasks.tasks():
                 generator_id = len(external_heat_generators_dynamic_energy) + \
@@ -315,12 +316,12 @@ def _generate_cubed_space(tasks: TaskSet,
                 core_task_energy_activator_id[(i, k.identifier)] = generator_id
                 external_heat_generators_dynamic_energy[generator_id] = create_energy_applicator(
                     (j.core_type.material,
-                     LocatedCube(
-                         location=UnitLocation(
+                     Cuboid(
+                         location=Location(
                              x=j.location.x * simulation_options.processor_mesh_division,
                              y=j.location.y * simulation_options.processor_mesh_division,
                              z=j.location.z * simulation_options.processor_mesh_division),
-                         dimensions=UnitDimensions(
+                         dimensions=Dimensions(
                              x=j.core_type.dimensions.x * simulation_options.processor_mesh_division,
                              y=j.core_type.dimensions.y * simulation_options.processor_mesh_division,
                              z=j.core_type.dimensions.z * simulation_options.processor_mesh_division))
@@ -329,9 +330,9 @@ def _generate_cubed_space(tasks: TaskSet,
                     cube_edge_size=cube_edge_size
                 )
     else:
-        external_heat_generators_dynamic_energy: Dict[int, ExternalTemperatureBoosterLocatedCube] = {}
+        external_heat_generators_dynamic_energy: Dict[int, TMExternal] = {}
 
-    cubed_space = CubedSpace(
+    cubed_space = Model(
         material_cubes=scene_definition,
         cube_edge_size=cube_edge_size,
         external_temperature_booster_points={**external_heat_generators_leakage_power,
@@ -350,10 +351,10 @@ def _generate_cubed_space(tasks: TaskSet,
 
 def _execute_centralized_scheduler_simulation(jobs: List[Job],
                                               tasks: TaskSet,
-                                              processor_definition: ProcessorDefinition,
-                                              environment_specification: EnvironmentSpecification,
-                                              scheduler: CentralizedAbstractScheduler,
-                                              simulation_options: SimulationOptionsSpecification,
+                                              processor_definition: Processor,
+                                              environment_specification: Environment,
+                                              scheduler: CentralizedScheduler,
+                                              simulation_options: SimulationConfiguration,
                                               simulation_start_time: float,
                                               simulation_end_time: float) -> RawSimulationResult:
     """
@@ -473,7 +474,7 @@ def _execute_centralized_scheduler_simulation(jobs: List[Job],
     cpus_frequencies: Dict[int, List[CPUUsedFrequency]] = {i: [] for i in range(
         number_of_cpus)}  # List of CPU frequencies used by each core
     scheduling_points: List[float] = []  # Points where the scheduler have made an scheduling
-    temperature_measures: Dict[float, Dict[int, TemperatureLocatedCube]] = {}  # Measures of temperature
+    temperature_measures: Dict[float, Dict[int, PhysicalCuboid]] = {}  # Measures of temperature
 
     # Jobs being executed extra information [CPU, [start time]]
     jobs_last_section_start_time: Dict[int, float] = {i.identifier: -1 for i in jobs}
@@ -494,8 +495,8 @@ def _execute_centralized_scheduler_simulation(jobs: List[Job],
     memory_usage_record: Dict[float, int] = {}
 
     # Energy management objects
-    cubed_space: Optional[CubedSpace] = None
-    initial_state: Optional[CubedSpaceState] = None
+    cubed_space: Optional[Model] = None
+    initial_state: Optional[SimulationState] = None
     core_frequency_energy_activator: Optional[Dict[Tuple[int, int], int]] = None
     core_task_energy_activator: Optional[Dict[Tuple[int, int], int]] = None
 

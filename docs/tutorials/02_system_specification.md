@@ -29,12 +29,12 @@ All of them share the following properties:
 - memory footprint: Maximum memory space required to run the task in Bytes
 - priority: A number expressing the relative importance of a task to the other tasks in the system
 - preemptive execution: Establishes if the task can be preempted (fully preemptive), or it can't be (non-preemptive).
-  Partially preemptive tasks are not allowed in this model
+  This model doesn't allow Partially preemptive tasks
 - deadline criteria: A property specifying the consequence for the whole system of missing the task timing constraints
 - energy consumption: Energy consumption of each job of the task in Jules
 
 Only in the case of periodic tasks, they have the following properties too:
-- phase: The time at which the first job is activated
+- phase: The activation time of the first job
 - period: Fixed separation interval between the activation of any two consecutive jobs
 
 Only in the case of sporadic tasks, they have the following property too:
@@ -143,10 +143,9 @@ The total power consumption is the sum of dynamic power consumption and leakage 
 ```python
 import math
 from typing import Set, Dict
-from tertimuss.simulation_lib.system_definition import ProcessorDefinition, CoreEnergyConsumption, CoreTypeDefinition, \
-    BoardDefinition, CoreDefinition
-from tertimuss.cubed_space_thermal_simulator.materials_pack import SiliconSolidMaterial, CooperSolidMaterial
-from tertimuss.cubed_space_thermal_simulator import UnitDimensions, UnitLocation
+from tertimuss.simulation_lib.system_definition import Processor, EnergyConsumption, CoreModel, Board, Core
+from tertimuss.cubed_space_thermal_simulator.materials_pack import SMSilicon, SMCooper
+from tertimuss.cubed_space_thermal_simulator import Dimensions, Location
 
 number_of_cores: int = 4
 available_frequencies: Set[int] = {500, 1000}
@@ -158,34 +157,34 @@ leakage_delta: float = 0.1
 dynamic_beta: float = 2
 dynamic_alpha: float = (thermal_dissipation - dynamic_beta) * max_cpu_frequency ** -3
 
-energy_consumption_properties = CoreEnergyConsumption(leakage_alpha=leakage_alpha, leakage_delta=leakage_delta,
-                                                      dynamic_alpha=dynamic_alpha,
-                                                      dynamic_beta=dynamic_beta)
+energy_consumption_properties = EnergyConsumption(leakage_alpha=leakage_alpha, leakage_delta=leakage_delta,
+                                                  dynamic_alpha=dynamic_alpha,
+                                                  dynamic_beta=dynamic_beta)
 
-core_type_definition = CoreTypeDefinition(dimensions=UnitDimensions(x=10, y=10, z=2),
-                                          material=SiliconSolidMaterial(),
-                                          core_energy_consumption=energy_consumption_properties,
-                                          available_frequencies=available_frequencies)
+core_type_definition = CoreModel(dimensions=Dimensions(x=10, y=10, z=2),
+                                 material=SMSilicon(),
+                                 core_energy_consumption=energy_consumption_properties,
+                                 available_frequencies=available_frequencies)
 
 number_of_columns = math.ceil(math.sqrt(number_of_cores))
 
 lateral_size = number_of_columns * (3 + 10 + 3)
 
-board_definition = BoardDefinition(dimensions=UnitDimensions(x=lateral_size, y=lateral_size, z=1),
-                                   material=CooperSolidMaterial(),
-                                   location=UnitLocation(x=0, y=0, z=0))
+board_definition = Board(dimensions=Dimensions(x=lateral_size, y=lateral_size, z=1),
+                         material=SMCooper(),
+                         location=Location(x=0, y=0, z=0))
 
-cores_definition: Dict[int, CoreDefinition] = {}
+cores_definition: Dict[int, Core] = {}
 
 for i in range(number_of_cores):
-    x_position = (3 + 10 + 3) * (i % number_of_columns) + 3
-    y_position = (3 + 10 + 3) * (i // number_of_columns) + 3
-    cores_definition[i] = CoreDefinition(core_type=core_type_definition,
-                                         location=UnitLocation(x=x_position, y=y_position, z=2))
+  x_position = (3 + 10 + 3) * (i % number_of_columns) + 3
+  y_position = (3 + 10 + 3) * (i // number_of_columns) + 3
+  cores_definition[i] = Core(core_type=core_type_definition,
+                             location=Location(x=x_position, y=y_position, z=2))
 
-processor_definition = ProcessorDefinition(board_definition=board_definition,
-                                           cores_definition=cores_definition,
-                                           measure_unit=0.001)
+processor_definition = Processor(board_definition=board_definition,
+                                 cores_definition=cores_definition,
+                                 measure_unit=0.001)
 ```
 
 ## Environment specification
@@ -203,10 +202,10 @@ The fluid environment has the following property:
 ### Example
 
 ```python
-from tertimuss.cubed_space_thermal_simulator.materials_pack import AirForcedEnvironmentProperties
-from tertimuss.simulation_lib.system_definition import EnvironmentSpecification
+from tertimuss.cubed_space_thermal_simulator.materials_pack import FEAirForced
+from tertimuss.simulation_lib.system_definition import Environment
 
-environment_specification = EnvironmentSpecification(environment_properties=AirForcedEnvironmentProperties(),
-                                                     temperature=45 + 273.15)
+environment_specification = Environment(environment_properties=FEAirForced(),
+                                        temperature=45 + 273.15)
 ```
 

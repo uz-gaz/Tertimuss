@@ -1,7 +1,7 @@
 import numpy
 import scipy.sparse
 
-from tertimuss.simulation_lib.system_definition import TaskSet, ProcessorDefinition
+from tertimuss.simulation_lib.system_definition import TaskSet, Processor
 
 
 class ProcessorModel(object):
@@ -9,7 +9,7 @@ class ProcessorModel(object):
     Create the TCPN that represents the processor model
     """
 
-    def __init__(self, cpu_specification: ProcessorDefinition,
+    def __init__(self, cpu_specification: Processor,
                  task_set: TaskSet,
                  simulation_precision):
         n = len(task_set.periodic_tasks) + len(task_set.aperiodic_tasks)

@@ -24,3 +24,4 @@ from ._frequency_evolution_plot import generate_frequency_evolution_plot
 from ._component_hotspots_plot import generate_component_hotspots_plot
 from ._cpu_temperature_plot import generate_board_temperature_evolution_2d_video, \
     generate_cpu_temperature_evolution_3d_video
+from ._color_palette_generator import AbstractColorPaletteGenerator, DefaultColorPaletteGenerator

@@ -37,15 +37,12 @@ Once installed, you may want to try your first simulation with Tertimuss:
 
 ```Python
 # Import libraries
-from tertimuss.schedulers.alecs import ALECSScheduler
-from tertimuss.simulation_lib.simulator import execute_scheduler_simulation_simple, \
-    SimulationOptionsSpecification
-from tertimuss.simulation_lib.system_definition import TaskSet, PeriodicTask, \
-    PreemptiveExecution, Criticality
-from tertimuss.simulation_lib.system_definition.utils import generate_default_cpu, \
-    default_environment_specification
+from tertimuss.schedulers.alecs import SALECS
+from tertimuss.simulation_lib.simulator import execute_scheduler_simulation_simple, SimulationConfiguration
+from tertimuss.simulation_lib.system_definition import TaskSet, PeriodicTask, PreemptiveExecution, Criticality
+from tertimuss.simulation_lib.system_definition.utils import generate_default_cpu, default_environment_specification
 from tertimuss.tasks_generator.deadline_generator import UniformIntegerDeadlineGenerator
-from tertimuss.tasks_generator.periodic_tasks.implicit_deadlines import UUniFastDiscard
+from tertimuss.tasks_generator.periodic_tasks.implicit_deadlines import PTGUUniFastDiscard
 from tertimuss.visualization import generate_task_execution_plot
 
 # Simulation configuration
@@ -56,28 +53,28 @@ number_of_tasks = 9
 
 # Task generation
 tasks_deadlines = UniformIntegerDeadlineGenerator.generate(number_of_tasks=number_of_tasks,
-                                                            min_deadline=2,
-                                                            max_deadline=12,
-                                                            major_cycle=24)
-x = UUniFastDiscard.generate(utilization=number_of_cores,
+                                                           min_deadline=2,
+                                                           max_deadline=12,
+                                                           major_cycle=24)
+x = PTGUUniFastDiscard.generate(utilization=number_of_cores,
                                 tasks_deadlines=tasks_deadlines,
                                 processor_frequency=base_frequency)
 
 # Definition of the task set
 task_set = TaskSet(
     periodic_tasks=[
-        PeriodicTask(identification=i,
-                        worst_case_execution_time=j.worst_case_execution_time,
-                        relative_deadline=j.deadline,
-                        best_case_execution_time=None,
-                        execution_time_distribution=None,
-                        memory_footprint=None,
-                        priority=None,
-                        preemptive_execution=PreemptiveExecution.FULLY_PREEMPTIVE,
-                        deadline_criteria=Criticality.HARD,
-                        energy_consumption=None,
-                        phase=None,
-                        period=j.deadline) for i, j in enumerate(x)],
+        PeriodicTask(identifier=i,
+                     worst_case_execution_time=j.worst_case_execution_time,
+                     relative_deadline=j.deadline,
+                     best_case_execution_time=None,
+                     execution_time_distribution=None,
+                     memory_footprint=None,
+                     priority=None,
+                     preemptive_execution=PreemptiveExecution.FULLY_PREEMPTIVE,
+                     deadline_criteria=Criticality.HARD,
+                     energy_consumption=None,
+                     phase=None,
+                     period=j.deadline) for i, j in enumerate(x)],
     aperiodic_tasks=[],
     sporadic_tasks=[]
 )
@@ -87,16 +84,16 @@ simulation_result, periodic_jobs, major_cycle = execute_scheduler_simulation_sim
     tasks=task_set,
     aperiodic_tasks_jobs=[],
     sporadic_tasks_jobs=[],
-    processor_definition=generate_default_cpu(number_of_cores, available_frequencies, 0, 0),
+    processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
     environment_specification=default_environment_specification(),
-    simulation_options=SimulationOptionsSpecification(id_debug=False),
-    scheduler=ALECSScheduler(activate_debug=False)
+    simulation_options=SimulationConfiguration(id_debug=False),
+    scheduler=SALECS(activate_debug=False)
 )
 
 # Display execution
 fig = generate_task_execution_plot(task_set=task_set, schedule_result=simulation_result,
-                                    title="Task execution",
-                                    outline_boxes=True)
+                                   title="Task execution",
+                                   outline_boxes=True)
 
 # Save execution in a file named "execution.svg"
 fig.savefig("execution.svg")
@@ -124,8 +121,7 @@ If you want to use Tertimuss in your papers, please use the following citation:
 @misc{tertimuss,
   title = {{Tertimuss: Simulation environment for Real-Time Multiprocessor Schedulers}},
   year = {2019},
-  note = {\url{https://webdiis.unizar.es/gaz/repositories/tertimuss}},
-  urldate = {2021-01-27}
+  note = {\url{https://webdiis.unizar.es/gaz/repositories/tertimuss}}
 }
 ```
 

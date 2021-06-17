@@ -1,10 +1,10 @@
 import unittest
-from tertimuss.schedulers.alecs import ALECSScheduler
-from tertimuss.simulation_lib.simulator import execute_scheduler_simulation_simple, SimulationOptionsSpecification
+from tertimuss.schedulers.alecs import SALECS
+from tertimuss.simulation_lib.simulator import execute_scheduler_simulation_simple, SimulationConfiguration
 from tertimuss.simulation_lib.system_definition import TaskSet, PeriodicTask, PreemptiveExecution, Criticality
 from tertimuss.simulation_lib.system_definition.utils import generate_default_cpu, default_environment_specification
 from tertimuss.tasks_generator.deadline_generator import UniformIntegerDeadlineGenerator
-from tertimuss.tasks_generator.periodic_tasks.implicit_deadlines import UUniFastDiscard
+from tertimuss.tasks_generator.periodic_tasks.implicit_deadlines import PTGUUniFastDiscard
 from tertimuss.visualization import generate_task_execution_plot
 
 
@@ -22,9 +22,9 @@ class ReadmeExampleTest(unittest.TestCase):
                                                                    min_deadline=2,
                                                                    max_deadline=12,
                                                                    major_cycle=24)
-        x = UUniFastDiscard.generate(utilization=number_of_cores,
-                                     tasks_deadlines=tasks_deadlines,
-                                     processor_frequency=base_frequency)
+        x = PTGUUniFastDiscard.generate(utilization=number_of_cores,
+                                        tasks_deadlines=tasks_deadlines,
+                                        processor_frequency=base_frequency)
 
         # Definition of the task set
         task_set = TaskSet(
@@ -52,8 +52,8 @@ class ReadmeExampleTest(unittest.TestCase):
             sporadic_tasks_jobs=[],
             processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
             environment_specification=default_environment_specification(),
-            simulation_options=SimulationOptionsSpecification(id_debug=True),
-            scheduler=ALECSScheduler(activate_debug=True)
+            simulation_options=SimulationConfiguration(id_debug=True),
+            scheduler=SALECS(activate_debug=True)
         )
 
         # Display execution

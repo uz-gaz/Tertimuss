@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List, Dict, Optional
 
-from tertimuss.cubed_space_thermal_simulator import TemperatureLocatedCube
+from tertimuss.cubed_space_thermal_simulator import PhysicalCuboid
 
 
 @dataclass
@@ -75,7 +75,7 @@ class RawSimulationResult:
     scheduling_points: List[float]
     """This property contains the timestamps of the dynamic component of the scheduler invocation"""
 
-    temperature_measures: Dict[float, Dict[int, TemperatureLocatedCube]]
+    temperature_measures: Dict[float, Dict[int, PhysicalCuboid]]
     """This property contains a list with the evolution of the processors' temperature"""
 
     hard_real_time_deadline_missed_stack_trace: Optional[SimulationStackTraceHardRTDeadlineMissed]

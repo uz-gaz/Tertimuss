@@ -3,12 +3,12 @@ from typing import Set, Dict, Optional, Tuple, List
 
 from matplotlib import animation
 
-from tertimuss.simulation_lib.schedulers_definition import CentralizedAbstractScheduler
-from tertimuss.simulation_lib.simulator import SimulationOptionsSpecification, \
+from tertimuss.simulation_lib.schedulers_definition import CentralizedScheduler
+from tertimuss.simulation_lib.simulator import SimulationConfiguration, \
     JobSectionExecution, CPUUsedFrequency, \
     execute_scheduler_simulation, execute_scheduler_simulation_simple
 from tertimuss.simulation_lib.system_definition import PeriodicTask, PreemptiveExecution, Criticality, \
-    EnvironmentSpecification, ProcessorDefinition, Job, TaskSet
+    Environment, Processor, Job, TaskSet
 from tertimuss.simulation_lib.system_definition.utils import generate_default_cpu, default_environment_specification
 from tertimuss.visualization import generate_component_hotspots_plot, generate_board_temperature_evolution_2d_video
 
@@ -16,17 +16,17 @@ from tertimuss.visualization import generate_component_hotspots_plot, generate_b
 class SystemSimulatorTest(unittest.TestCase):
 
     @staticmethod
-    def __simple_priority_scheduler_definition() -> CentralizedAbstractScheduler:
+    def __simple_priority_scheduler_definition() -> CentralizedScheduler:
         # This scheduler will do the schedule based on the priority given by te user to each task
-        class SimplePriorityScheduler(CentralizedAbstractScheduler):
+        class SimplePriorityScheduler(CentralizedScheduler):
             def __init__(self):
                 super().__init__(True)
                 self.__m = 0
                 self.__tasks_priority: Dict[int, int] = {}
                 self.__active_jobs_priority: Dict[int, int] = {}
 
-            def check_schedulability(self, cpu_specification: ProcessorDefinition,
-                                     environment_specification: EnvironmentSpecification, task_set: TaskSet) \
+            def check_schedulability(self, cpu_specification: Processor,
+                                     environment_specification: Environment, task_set: TaskSet) \
                     -> [bool, Optional[str]]:
                 is_schedulable = all((i.priority is not None for i in task_set.periodic_tasks)) and all(
                     (i.priority is not None for i in task_set.aperiodic_tasks)) and all(
@@ -34,8 +34,8 @@ class SystemSimulatorTest(unittest.TestCase):
 
                 return is_schedulable, None if is_schedulable else "All task must have priority"
 
-            def offline_stage(self, cpu_specification: ProcessorDefinition,
-                              environment_specification: EnvironmentSpecification, task_set: TaskSet) -> int:
+            def offline_stage(self, cpu_specification: Processor,
+                              environment_specification: Environment, task_set: TaskSet) -> int:
                 self.__m = len(cpu_specification.cores_definition)
 
                 self.__tasks_priority = {i.identifier: i.priority for i in task_set.periodic_tasks +
@@ -74,19 +74,19 @@ class SystemSimulatorTest(unittest.TestCase):
         return SimplePriorityScheduler()
 
     @staticmethod
-    def __bad_behaviour_scheduler_definition() -> CentralizedAbstractScheduler:
+    def __bad_behaviour_scheduler_definition() -> CentralizedScheduler:
         # This scheduler will do the schedule based on the priority given by te user to each task
-        class SchedulerWithBadBehaviour(CentralizedAbstractScheduler):
+        class SchedulerWithBadBehaviour(CentralizedScheduler):
             def __init__(self):
                 super().__init__(True)
 
-            def check_schedulability(self, cpu_specification: ProcessorDefinition,
-                                     environment_specification: EnvironmentSpecification, task_set: TaskSet) \
+            def check_schedulability(self, cpu_specification: Processor,
+                                     environment_specification: Environment, task_set: TaskSet) \
                     -> [bool, Optional[str]]:
                 return True, None
 
-            def offline_stage(self, cpu_specification: ProcessorDefinition,
-                              environment_specification: EnvironmentSpecification, task_set: TaskSet) -> int:
+            def offline_stage(self, cpu_specification: Processor,
+                              environment_specification: Environment, task_set: TaskSet) -> int:
                 clock_available_frequencies = Set.intersection(*[i.core_type.available_frequencies for i
                                                                  in cpu_specification.cores_definition.values()])
 
@@ -158,7 +158,7 @@ class SystemSimulatorTest(unittest.TestCase):
             jobs=jobs_list,
             processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
             environment_specification=default_environment_specification(),
-            simulation_options=SimulationOptionsSpecification(id_debug=True),
+            simulation_options=SimulationConfiguration(id_debug=True),
             scheduler=self.__simple_priority_scheduler_definition()
         )
 
@@ -221,7 +221,7 @@ class SystemSimulatorTest(unittest.TestCase):
             sporadic_tasks_jobs=[],
             processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
             environment_specification=default_environment_specification(),
-            simulation_options=SimulationOptionsSpecification(id_debug=True),
+            simulation_options=SimulationConfiguration(id_debug=True),
             scheduler=self.__simple_priority_scheduler_definition()
         )
 
@@ -252,7 +252,7 @@ class SystemSimulatorTest(unittest.TestCase):
                 sporadic_tasks_jobs=[],
                 processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
                 environment_specification=default_environment_specification(),
-                simulation_options=SimulationOptionsSpecification(id_debug=True),
+                simulation_options=SimulationConfiguration(id_debug=True),
                 scheduler=self.__bad_behaviour_scheduler_definition()
             )
             assert False
@@ -280,7 +280,7 @@ class SystemSimulatorTest(unittest.TestCase):
             sporadic_tasks_jobs=[],
             processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
             environment_specification=default_environment_specification(),
-            simulation_options=SimulationOptionsSpecification(id_debug=True),
+            simulation_options=SimulationConfiguration(id_debug=True),
             scheduler=self.__simple_priority_scheduler_definition()
         )
 
@@ -325,8 +325,8 @@ class SystemSimulatorTest(unittest.TestCase):
             jobs=jobs_list,
             processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
             environment_specification=default_environment_specification(),
-            simulation_options=SimulationOptionsSpecification(id_debug=True, thermal_simulation_type="DVFS",
-                                                              simulate_thermal_behaviour=True),
+            simulation_options=SimulationConfiguration(id_debug=True, thermal_simulation_type="DVFS",
+                                                       simulate_thermal_behaviour=True),
             scheduler=self.__simple_priority_scheduler_definition()
         )
 
@@ -367,36 +367,3 @@ class SystemSimulatorTest(unittest.TestCase):
         assert (simulation_result.scheduling_points == correct_scheduling_points)
 
         assert (simulation_result.hard_real_time_deadline_missed_stack_trace is None)
-
-    def test_simple_simulation_periodic_task_set_with_thermal_2(self):
-        periodic_tasks = [
-            self.__create_implicit_deadline_periodic_task_h_rt(2, 7, 10.0, 2),
-            self.__create_implicit_deadline_periodic_task_h_rt(1, 7, 10.0, 1),
-            self.__create_implicit_deadline_periodic_task_h_rt(0, 3, 5.0, 0)
-        ]
-
-        number_of_cores = 2
-        available_frequencies = {1}
-
-        simulation_result, _, _ = execute_scheduler_simulation_simple(tasks=TaskSet(
-            periodic_tasks=periodic_tasks,
-            aperiodic_tasks=[],
-            sporadic_tasks=[]
-        ),
-            aperiodic_tasks_jobs=[],
-            sporadic_tasks_jobs=[],
-            processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
-            environment_specification=default_environment_specification(),
-            simulation_options=SimulationOptionsSpecification(id_debug=True, thermal_simulation_type="DVFS",
-                                                              simulate_thermal_behaviour=True),
-            scheduler=self.__simple_priority_scheduler_definition()
-        )
-
-        fig = generate_component_hotspots_plot(schedule_result=simulation_result, title="Components hotspots")
-
-        # fig.show()
-
-        heat_map_2d_video = generate_board_temperature_evolution_2d_video(schedule_result=simulation_result,
-                                                                          title="Temperature evolution video")
-        writer = animation.FFMpegWriter()
-        # heat_map_2d_video.save("2d_generation.mp4", writer=writer)

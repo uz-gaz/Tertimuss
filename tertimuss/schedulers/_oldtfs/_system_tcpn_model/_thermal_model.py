@@ -3,8 +3,8 @@ from typing import List
 import numpy
 import scipy.sparse
 
-from tertimuss.cubed_space_thermal_simulator import UnitDimensions, UnitLocation, SolidMaterial
-from tertimuss.simulation_lib.system_definition import TaskSet, EnvironmentSpecification, ProcessorDefinition
+from tertimuss.cubed_space_thermal_simulator import Dimensions, Location, SolidMaterial
+from tertimuss.simulation_lib.system_definition import TaskSet, Environment, Processor
 
 
 class ThermalModel(object):
@@ -13,7 +13,7 @@ class ThermalModel(object):
     """
 
     @staticmethod
-    def simple_conductivity(cuboid_dimensions: UnitDimensions, cuboid_material: SolidMaterial, mesh_step: float,
+    def simple_conductivity(cuboid_dimensions: Dimensions, cuboid_material: SolidMaterial, mesh_step: float,
                             simulation_precision) -> [scipy.sparse.lil_matrix,
                                                       scipy.sparse.lil_matrix,
                                                       numpy.ndarray]:
@@ -83,7 +83,7 @@ class ThermalModel(object):
         return pre, post, lambda_vector
 
     @staticmethod
-    def __get_cpu_coordinates(origin: UnitLocation, cpu_dimensions: UnitDimensions, board_dimensions: UnitDimensions) \
+    def __get_cpu_coordinates(origin: Location, cpu_dimensions: Dimensions, board_dimensions: Dimensions) \
             -> List[int]:
         x: int = cpu_dimensions.x
         y: int = cpu_dimensions.y
@@ -114,7 +114,7 @@ class ThermalModel(object):
         return places
 
     @staticmethod
-    def add_interactions_layer(p_board: int, p_one_micro: int, cpu_specification: ProcessorDefinition,
+    def add_interactions_layer(p_board: int, p_one_micro: int, cpu_specification: Processor,
                                simulation_precision) -> [scipy.sparse.lil_matrix,
                                                          scipy.sparse.lil_matrix,
                                                          numpy.ndarray]:
@@ -177,8 +177,8 @@ class ThermalModel(object):
         return pre_int, post_int, lambda_vector_int
 
     @staticmethod
-    def add_convection(p_board: int, p_one_micro: int, cpu_specification: ProcessorDefinition,
-                       environment_specification: EnvironmentSpecification, simulation_precision) -> [
+    def add_convection(p_board: int, p_one_micro: int, cpu_specification: Processor,
+                       environment_specification: Environment, simulation_precision) -> [
         scipy.sparse.lil_matrix,
         scipy.sparse.lil_matrix,
         numpy.ndarray,
@@ -226,7 +226,7 @@ class ThermalModel(object):
         return pre_conv, post_conv, lambda_conv, pre_conv_air, post_conv_air, lambda_conv_air
 
     @staticmethod
-    def add_heat_by_leakage_power(p_board: int, p_one_micro: int, cpu_specification: ProcessorDefinition,
+    def add_heat_by_leakage_power(p_board: int, p_one_micro: int, cpu_specification: Processor,
                                   simulation_precision) -> [scipy.sparse.lil_matrix, scipy.sparse.lil_matrix,
                                                             numpy.ndarray]:
         m = len(cpu_specification.cores_definition)
@@ -275,7 +275,7 @@ class ThermalModel(object):
 
     @staticmethod
     @abc.abstractmethod
-    def _get_dynamic_power_consumption(cpu_specification: ProcessorDefinition, task_set: TaskSet,
+    def _get_dynamic_power_consumption(cpu_specification: Processor, task_set: TaskSet,
                                        clock_relative_frequencies: List[float]) -> numpy.ndarray:
         """
         Method to implement. Return an array with shape (m , n). Each place contains the weight in the
@@ -289,7 +289,7 @@ class ThermalModel(object):
         pass
 
     @classmethod
-    def __get_power_consumption_by_task(cls, cpu_specification: ProcessorDefinition, task_set: TaskSet,
+    def __get_power_consumption_by_task(cls, cpu_specification: Processor, task_set: TaskSet,
                                         clock_relative_frequencies: List[float]):
         power_consumption = cls._get_dynamic_power_consumption(cpu_specification, task_set, clock_relative_frequencies)
 
@@ -309,7 +309,7 @@ class ThermalModel(object):
 
     @classmethod
     def add_heat_by_dynamic_power(cls, p_board: int, p_one_micro: int,
-                                  cpu_specification: ProcessorDefinition,
+                                  cpu_specification: Processor,
                                   task_set: TaskSet,
                                   simulation_precision) \
             -> [scipy.sparse.lil_matrix, scipy.sparse.lil_matrix, numpy.ndarray, numpy.ndarray]:
@@ -363,7 +363,7 @@ class ThermalModel(object):
 
     @classmethod
     def __change_frequency(cls, frequency_vector: List[float], post: numpy.ndarray, lambda_vector: numpy.ndarray,
-                           cpu_specification: ProcessorDefinition, task_set: TaskSet, p_board: int,
+                           cpu_specification: Processor, task_set: TaskSet, p_board: int,
                            p_one_micro: int, simulation_precision) \
             -> [scipy.sparse.lil_matrix, numpy.ndarray, numpy.ndarray]:
         m = len(cpu_specification.cores_definition)
@@ -389,8 +389,8 @@ class ThermalModel(object):
 
         return post, lambda_vector, power_consumption
 
-    def __init__(self, cpu_specification: ProcessorDefinition,
-                 environment_specification: EnvironmentSpecification,
+    def __init__(self, cpu_specification: Processor,
+                 environment_specification: Environment,
                  task_set: TaskSet,
                  simulation_precision):
 

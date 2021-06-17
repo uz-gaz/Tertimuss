@@ -5,8 +5,8 @@ import numpy
 
 import scipy.sparse
 
-from tertimuss.tcpn_simulator import TCPNSimulatorVariableStepEuler
-from tertimuss.tcpn_simulator import TCPNSimulatorVariableStepRK
+from tertimuss.tcpn_simulator import SVSEuler
+from tertimuss.tcpn_simulator import SVSRungeKutta
 
 
 class TCPNSimulatorTest(unittest.TestCase):
@@ -42,9 +42,9 @@ class TCPNSimulatorTest(unittest.TestCase):
 
         mo: numpy.ndarray = numpy.asarray([3, 0, 0, 1, 3, 0, 0]).reshape((-1, 1))
 
-        tcpn_simulator: TCPNSimulatorVariableStepRK = TCPNSimulatorVariableStepRK(scipy.sparse.csr_matrix(pre),
-                                                                                  scipy.sparse.csr_matrix(post),
-                                                                                  lambda_vector, None, True)
+        tcpn_simulator: SVSRungeKutta = SVSRungeKutta(scipy.sparse.csr_matrix(pre),
+                                                      scipy.sparse.csr_matrix(post),
+                                                      lambda_vector, None, True)
 
         for i in range(3):
             # 2 transitions for 1
@@ -94,11 +94,11 @@ class TCPNSimulatorTest(unittest.TestCase):
 
         lambda_vector = numpy.asarray([eta, 1, eta, 1])
 
-        mo = numpy.asarray([3, 0, 0, 1, 3, 0, 0]).reshape((-1, 1))
+        mo: numpy.ndarray = numpy.asarray([3, 0, 0, 1, 3, 0, 0]).reshape((-1, 1))
 
-        tcpn_simulator: TCPNSimulatorVariableStepEuler = TCPNSimulatorVariableStepEuler(scipy.sparse.csr_matrix(pre),
-                                                                                        scipy.sparse.csr_matrix(post),
-                                                                                        lambda_vector, None, 64, True)
+        tcpn_simulator: SVSEuler = SVSEuler(scipy.sparse.csr_matrix(pre),
+                                            scipy.sparse.csr_matrix(post),
+                                            lambda_vector, None, 64, True)
 
         for i in range(3):
             # 2 transitions for 1

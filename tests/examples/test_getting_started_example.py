@@ -1,8 +1,8 @@
 import unittest
 
 from tertimuss.analysis import obtain_deadline_misses_analysis, obtain_preemptions_migrations_analysis
-from tertimuss.schedulers.g_edf import GEDFScheduler
-from tertimuss.simulation_lib.simulator import execute_scheduler_simulation_simple, SimulationOptionsSpecification
+from tertimuss.schedulers.g_edf import SGEDF
+from tertimuss.simulation_lib.simulator import execute_scheduler_simulation_simple, SimulationConfiguration
 from tertimuss.simulation_lib.system_definition import PeriodicTask, PreemptiveExecution, Criticality, AperiodicTask, \
     TaskSet, Job
 from tertimuss.simulation_lib.system_definition.utils import generate_default_cpu, default_environment_specification
@@ -90,8 +90,8 @@ class GettingStartedTest(unittest.TestCase):
             sporadic_tasks_jobs=[],
             processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
             environment_specification=default_environment_specification(),
-            simulation_options=SimulationOptionsSpecification(id_debug=True),
-            scheduler=GEDFScheduler(activate_debug=True)
+            simulation_options=SimulationConfiguration(id_debug=True),
+            scheduler=SGEDF(activate_debug=True)
         )
 
         # Display tasks execution
@@ -102,7 +102,7 @@ class GettingStartedTest(unittest.TestCase):
 
         # Obtain tasks to jobs association
         periodic_tasks_jobs_association = [(i.task.identifier, i.identifier) for i in periodic_jobs]
-        print(periodic_tasks_jobs_association)
+        # print(periodic_tasks_jobs_association)
 
         # Display jobs execution
         fig = generate_job_execution_plot(task_set=task_set, schedule_result=simulation_result,
@@ -116,11 +116,11 @@ class GettingStartedTest(unittest.TestCase):
                                                                               schedule_result=simulation_result,
                                                                               jobs=periodic_jobs + aperiodic_jobs)
 
-        print(migration_preemption_metrics.number_of_preemptions,
-              migration_preemption_metrics.number_of_preemptions_by_job)
+        # print(migration_preemption_metrics.number_of_preemptions,
+        #       migration_preemption_metrics.number_of_preemptions_by_job)
 
         # Obtain deadline misses analysis
         deadlines_misses_metrics = obtain_deadline_misses_analysis(task_set=task_set,
                                                                    schedule_result=simulation_result,
                                                                    jobs=periodic_jobs + aperiodic_jobs)
-        print(deadlines_misses_metrics.number_of_missed_deadlines)
+        # print(deadlines_misses_metrics.number_of_missed_deadlines)
