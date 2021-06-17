@@ -32,23 +32,23 @@ This module provides the following functions that allows the visualization of th
 - :function:`.generate_video_2d_heat_map`
 
 It also exposes the following classes:
-- :class:`.UnitLocation`
-- :class:`.UnitDimensions`
-- :class:`.LocatedCube`
-- :class:`.TemperatureLocatedCube`
-- :class:`.ExternalTemperatureBoosterLocatedCube`
-- :class:`.InternalTemperatureBoosterLocatedCube`
+- :class:`.Location`
+- :class:`.Dimensions`
+- :class:`.Cuboid`
+- :class:`.CuboidTemperature`
+- :class:`.TMInternal`
+- :class:`.TMExternal`
 - :class:`.ThermalUnits`
-- :class:`.ModelTemperatureMatrix`
+- :class:`.PhysicalCuboid`
 - :class:`.SolidMaterial`
-- :class:`.FluidEnvironmentProperties`
-- :class:`.CubedSpaceState`
-- :class:`.CubedSpace`
+- :class:`.FluidEnvironment`
+- :class:`.Model`
+- :class:`.SimulationState`
 """
 
-from ._basic_types import UnitLocation, UnitDimensions, LocatedCube, TemperatureLocatedCube, \
-    ExternalTemperatureBoosterLocatedCube, InternalTemperatureBoosterLocatedCube, ThermalUnits, \
-    ModelTemperatureMatrix, SolidMaterial, FluidEnvironmentProperties
-from ._cubed_space import CubedSpaceState, CubedSpace, obtain_min_temperature, obtain_max_temperature
+from ._basic_types import Location, Dimensions, Cuboid, CuboidTemperature, \
+    TMInternal, TMExternal, ThermalUnits, \
+    PhysicalCuboid, SolidMaterial, FluidEnvironment
+from ._cubed_space import Model, SimulationState, obtain_min_temperature, obtain_max_temperature
 from ._result_plotter import plot_3d_heat_map_temperature, generate_video_3d_heat_map, plot_2d_heat_map, \
     generate_video_2d_heat_map

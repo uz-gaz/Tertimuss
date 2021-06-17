@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from tertimuss.cubed_space_thermal_simulator import FluidEnvironmentProperties
+from tertimuss.cubed_space_thermal_simulator import FluidEnvironment
 
 
 @dataclass(frozen=True)
@@ -8,7 +8,7 @@ class EnvironmentSpecification:
     """
     Specification of the environment
     """
-    environment_properties: FluidEnvironmentProperties
+    environment_properties: FluidEnvironment
     """Environment properties"""
 
     temperature: float

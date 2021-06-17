@@ -10,11 +10,11 @@ from matplotlib.figure import Figure
 # This import registers the 3D projection, but is otherwise unused.
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
 
-from tertimuss.cubed_space_thermal_simulator._basic_types import TemperatureLocatedCube, ThermalUnits
+from tertimuss.cubed_space_thermal_simulator._basic_types import PhysicalCuboid, ThermalUnits
 from tertimuss.cubed_space_thermal_simulator._cubed_space import obtain_min_temperature, obtain_max_temperature
 
 
-def __obtain_3d_heat_map(heatmap_cube_list: Dict[int, TemperatureLocatedCube],
+def __obtain_3d_heat_map(heatmap_cube_list: Dict[int, PhysicalCuboid],
                          min_temperature: Optional[float],
                          max_temperature: Optional[float],
                          color_map: str):
@@ -27,13 +27,13 @@ def __obtain_3d_heat_map(heatmap_cube_list: Dict[int, TemperatureLocatedCube],
     :return: Resultant figure representation
     """
     # Obtain surrounded cube
-    min_x = min([i.location.x for i in heatmap_cube_list.values()])
-    min_y = min([i.location.y for i in heatmap_cube_list.values()])
-    min_z = min([i.location.z for i in heatmap_cube_list.values()])
+    min_x = min([i.cuboid.location.x for i in heatmap_cube_list.values()])
+    min_y = min([i.cuboid.location.y for i in heatmap_cube_list.values()])
+    min_z = min([i.cuboid.location.z for i in heatmap_cube_list.values()])
 
-    max_x = max([i.location.x + i.dimensions.x for i in heatmap_cube_list.values()])
-    max_y = max([i.location.y + i.dimensions.y for i in heatmap_cube_list.values()])
-    max_z = max([i.location.z + i.dimensions.z for i in heatmap_cube_list.values()])
+    max_x = max([i.cuboid.location.x + i.cuboid.dimensions.x for i in heatmap_cube_list.values()])
+    max_y = max([i.cuboid.location.y + i.cuboid.dimensions.y for i in heatmap_cube_list.values()])
+    max_z = max([i.cuboid.location.z + i.cuboid.dimensions.z for i in heatmap_cube_list.values()])
 
     # prepare some coordinates
     x, y, z = numpy.indices((max_x - min_x, max_y - min_y, max_z - min_z))
@@ -47,13 +47,13 @@ def __obtain_3d_heat_map(heatmap_cube_list: Dict[int, TemperatureLocatedCube],
     color_mappable = cm.ScalarMappable(norm=colors.Normalize(min_temperature, max_temperature), cmap=color_map)
 
     for i in heatmap_cube_list.values():
-        local_min_x = i.location.x
-        local_min_y = i.location.y
-        local_min_z = i.location.z
+        local_min_x = i.cuboid.location.x
+        local_min_y = i.cuboid.location.y
+        local_min_z = i.cuboid.location.z
 
-        local_max_x = i.location.x + i.dimensions.x
-        local_max_y = i.location.y + i.dimensions.y
-        local_max_z = i.location.z + i.dimensions.z
+        local_max_x = i.cuboid.location.x + i.cuboid.dimensions.x
+        local_max_y = i.cuboid.location.y + i.cuboid.dimensions.y
+        local_max_z = i.cuboid.location.z + i.cuboid.dimensions.z
 
         cube = (local_min_x <= x) & (local_min_y <= y) & (local_min_z <= z) & (x < local_max_x) & (y < local_max_y) & (
                 z < local_max_z)
@@ -62,9 +62,9 @@ def __obtain_3d_heat_map(heatmap_cube_list: Dict[int, TemperatureLocatedCube],
         for local_x in range(local_min_x, local_max_x):
             for local_y in range(local_min_y, local_max_y):
                 for local_z in range(local_min_z, local_max_z):
-                    temperature = i.temperatureMatrix[
-                        (local_x - local_min_x) + (local_y - local_min_y) * i.dimensions.x + (
-                                local_z - local_min_z) * i.dimensions.y * i.dimensions.x]
+                    temperature = i.temperature.temperatureMatrix[
+                        (local_x - local_min_x) + (local_y - local_min_y) * i.cuboid.dimensions.x + (
+                                local_z - local_min_z) * i.cuboid.dimensions.y * i.cuboid.dimensions.x]
 
                     # Obtain color
                     rgb_color = color_mappable.to_rgba(temperature)
@@ -78,7 +78,7 @@ def __obtain_3d_heat_map(heatmap_cube_list: Dict[int, TemperatureLocatedCube],
     return voxels, voxels_colors, min_x, max_x, min_y, max_y, min_z, max_z
 
 
-def plot_3d_heat_map_temperature(heatmap_cube_list: Dict[int, TemperatureLocatedCube],
+def plot_3d_heat_map_temperature(heatmap_cube_list: Dict[int, PhysicalCuboid],
                                  min_temperature: Optional[float] = None,
                                  max_temperature: Optional[float] = None,
                                  color_map: str = "plasma",
@@ -105,7 +105,8 @@ def plot_3d_heat_map_temperature(heatmap_cube_list: Dict[int, TemperatureLocated
 
     # Plot everything
     fig = plt.figure()
-    ax = fig.gca(projection='3d')
+    ax = fig.add_subplot(projection='3d')
+    # ax = fig.gca(projection='3d')
     ax.set(xlabel='x', ylabel='y', zlabel='z')
 
     ax.voxels(voxels, facecolors=voxels_colors)
@@ -136,7 +137,7 @@ def plot_3d_heat_map_temperature(heatmap_cube_list: Dict[int, TemperatureLocated
 
 
 def generate_video_3d_heat_map(
-        heatmap_cube_list_dict: Dict[float, Dict[int, TemperatureLocatedCube]],
+        heatmap_cube_list_dict: Dict[float, Dict[int, PhysicalCuboid]],
         delay_between_frames_ms: int,
         min_temperature: Optional[float] = None,
         max_temperature: Optional[float] = None,
@@ -154,29 +155,30 @@ def generate_video_3d_heat_map(
     :return: Resultant figure animation
     """
     min_x = min(
-        [min([i.location.x for i in heatmap_cube_list.values()]) for heatmap_cube_list in
+        [min([i.cuboid.location.x for i in heatmap_cube_list.values()]) for heatmap_cube_list in
          heatmap_cube_list_dict.values()])
     min_y = min(
-        [min([i.location.y for i in heatmap_cube_list.values()]) for heatmap_cube_list in
+        [min([i.cuboid.location.y for i in heatmap_cube_list.values()]) for heatmap_cube_list in
          heatmap_cube_list_dict.values()])
     min_z = min(
-        [min([i.location.z for i in heatmap_cube_list.values()]) for heatmap_cube_list in
+        [min([i.cuboid.location.z for i in heatmap_cube_list.values()]) for heatmap_cube_list in
          heatmap_cube_list_dict.values()])
 
     max_x = max(
-        [max([i.location.x + i.dimensions.x for i in heatmap_cube_list.values()]) for heatmap_cube_list in
+        [max([i.cuboid.location.x + i.cuboid.dimensions.x for i in heatmap_cube_list.values()]) for heatmap_cube_list in
          heatmap_cube_list_dict.values()])
     max_y = max(
-        [max([i.location.y + i.dimensions.y for i in heatmap_cube_list.values()]) for heatmap_cube_list in
+        [max([i.cuboid.location.y + i.cuboid.dimensions.y for i in heatmap_cube_list.values()]) for heatmap_cube_list in
          heatmap_cube_list_dict.values()])
     max_z = max(
-        [max([i.location.z + i.dimensions.z for i in heatmap_cube_list.values()]) for heatmap_cube_list in
+        [max([i.cuboid.location.z + i.cuboid.dimensions.z for i in heatmap_cube_list.values()]) for heatmap_cube_list in
          heatmap_cube_list_dict.values()])
 
-    min_temperature = min([obtain_min_temperature(heatmap_cube_list) for heatmap_cube_list in
-                           heatmap_cube_list_dict.values()]) if min_temperature is None else min_temperature
-    max_temperature = max([obtain_max_temperature(heatmap_cube_list) for heatmap_cube_list in
-                           heatmap_cube_list_dict.values()]) if max_temperature is None else max_temperature
+    min_temperature = min([i for heatmap_cube_list in heatmap_cube_list_dict.values() for i in
+                           obtain_min_temperature(heatmap_cube_list)]) if min_temperature is None else min_temperature
+
+    max_temperature = max([i for heatmap_cube_list in heatmap_cube_list_dict.values() for i in
+                           obtain_max_temperature(heatmap_cube_list)]) if max_temperature is None else max_temperature
 
     sorted_times = sorted(heatmap_cube_list_dict.keys())
 
@@ -194,7 +196,7 @@ def generate_video_3d_heat_map(
 
     # Plot everything
     fig = plt.figure()
-    ax = fig.gca(projection='3d')
+    ax = fig.add_subplot(projection='3d')
     ax.set(xlabel='x', ylabel='y', zlabel='z')
 
     max_range = max([max_x - min_x, max_y - min_y, max_z - min_z])
@@ -238,7 +240,7 @@ def generate_video_3d_heat_map(
                                    repeat=False)
 
 
-def __obtain_2d_heat_matrix(heatmap_cube_list: Dict[int, TemperatureLocatedCube],
+def __obtain_2d_heat_matrix(heatmap_cube_list: Dict[int, PhysicalCuboid],
                             axis: Literal["X", "Y", "Z"],
                             location_in_axis: int) -> Optional[Tuple[numpy.ndarray, float, float, float, float]]:
     """
@@ -250,13 +252,13 @@ def __obtain_2d_heat_matrix(heatmap_cube_list: Dict[int, TemperatureLocatedCube]
     :return: Resultant figure representation
     """
     # Obtain surrounded cube
-    min_x = min([i.location.x for i in heatmap_cube_list.values()])
-    min_y = min([i.location.y for i in heatmap_cube_list.values()])
-    min_z = min([i.location.z for i in heatmap_cube_list.values()])
+    min_x = min([i.cuboid.location.x for i in heatmap_cube_list.values()])
+    min_y = min([i.cuboid.location.y for i in heatmap_cube_list.values()])
+    min_z = min([i.cuboid.location.z for i in heatmap_cube_list.values()])
 
-    max_x = max([i.location.x + i.dimensions.x for i in heatmap_cube_list.values()])
-    max_y = max([i.location.y + i.dimensions.y for i in heatmap_cube_list.values()])
-    max_z = max([i.location.z + i.dimensions.z for i in heatmap_cube_list.values()])
+    max_x = max([i.cuboid.location.x + i.cuboid.dimensions.x for i in heatmap_cube_list.values()])
+    max_y = max([i.cuboid.location.y + i.cuboid.dimensions.y for i in heatmap_cube_list.values()])
+    max_z = max([i.cuboid.location.z + i.cuboid.dimensions.z for i in heatmap_cube_list.values()])
 
     is_location_correct: bool = (axis == "X" and min_x <= location_in_axis <= max_x) or (
             axis == "Y" and min_y <= location_in_axis <= max_y) or (
@@ -275,24 +277,24 @@ def __obtain_2d_heat_matrix(heatmap_cube_list: Dict[int, TemperatureLocatedCube]
         mask = numpy.ones((plane_max_y - plane_min_y, plane_max_x - plane_min_x))
 
         for i in heatmap_cube_list.values():
-            local_min_x = i.location.x
-            local_min_y = i.location.y
-            local_min_z = i.location.z
+            local_min_x = i.cuboid.location.x
+            local_min_y = i.cuboid.location.y
+            local_min_z = i.cuboid.location.z
 
-            local_max_x = i.location.x + i.dimensions.x
-            local_max_y = i.location.y + i.dimensions.y
-            local_max_z = i.location.z + i.dimensions.z
+            local_max_x = i.cuboid.location.x + i.cuboid.dimensions.x
+            local_max_y = i.cuboid.location.y + i.cuboid.dimensions.y
+            local_max_z = i.cuboid.location.z + i.cuboid.dimensions.z
 
-            representation_x_offset = i.location.x - min_x
-            representation_y_offset = i.location.y - min_y
-            representation_z_offset = i.location.z - min_z
+            representation_x_offset = i.cuboid.location.x - min_x
+            representation_y_offset = i.cuboid.location.y - min_y
+            representation_z_offset = i.cuboid.location.z - min_z
 
             if axis == "X" and local_min_x <= location_in_axis < local_max_x:
-                local_x = location_in_axis - i.location.x
-                for local_z in range(0, i.dimensions.z):
-                    for local_y in range(0, i.dimensions.y):
-                        temperature_value = i.temperatureMatrix[
-                            local_x + local_y * i.dimensions.x + local_z * i.dimensions.y * i.dimensions.x]
+                local_x = location_in_axis - i.cuboid.location.x
+                for local_z in range(0, i.cuboid.dimensions.z):
+                    for local_y in range(0, i.cuboid.dimensions.y):
+                        temperature_value = i.temperature.temperatureMatrix[
+                            local_x + local_y * i.cuboid.dimensions.x + local_z * i.cuboid.dimensions.y * i.cuboid.dimensions.x]
 
                         heat_matrix[
                             representation_z_offset + local_z, representation_y_offset + local_y] = temperature_value
@@ -300,11 +302,11 @@ def __obtain_2d_heat_matrix(heatmap_cube_list: Dict[int, TemperatureLocatedCube]
                         mask[representation_z_offset + local_z, representation_y_offset + local_y] = False
 
             elif axis == "Y" and local_min_y <= location_in_axis < local_max_y:
-                local_y = location_in_axis - i.location.y
-                for local_z in range(0, i.dimensions.z):
-                    for local_x in range(0, i.dimensions.x):
-                        temperature_value = i.temperatureMatrix[
-                            local_x + local_y * i.dimensions.x + local_z * i.dimensions.y * i.dimensions.x]
+                local_y = location_in_axis - i.cuboid.location.y
+                for local_z in range(0, i.cuboid.dimensions.z):
+                    for local_x in range(0, i.cuboid.dimensions.x):
+                        temperature_value = i.temperature.temperatureMatrix[
+                            local_x + local_y * i.cuboid.dimensions.x + local_z * i.cuboid.dimensions.y * i.cuboid.dimensions.x]
 
                         heat_matrix[
                             representation_z_offset + local_z, representation_x_offset + local_x] = temperature_value
@@ -312,11 +314,11 @@ def __obtain_2d_heat_matrix(heatmap_cube_list: Dict[int, TemperatureLocatedCube]
                         mask[representation_z_offset + local_z, representation_x_offset + local_x] = False
 
             elif axis == "Z" and local_min_z <= location_in_axis < local_max_z:
-                local_z = location_in_axis - i.location.z
-                for local_y in range(0, i.dimensions.y):
-                    for local_x in range(0, i.dimensions.x):
-                        temperature_value = i.temperatureMatrix[
-                            local_x + local_y * i.dimensions.x + local_z * i.dimensions.y * i.dimensions.x]
+                local_z = location_in_axis - i.cuboid.location.z
+                for local_y in range(0, i.cuboid.dimensions.y):
+                    for local_x in range(0, i.cuboid.dimensions.x):
+                        temperature_value = i.temperature.temperatureMatrix[
+                            local_x + local_y * i.cuboid.dimensions.x + local_z * i.cuboid.dimensions.y * i.cuboid.dimensions.x]
 
                         heat_matrix[
                             representation_y_offset + local_y, representation_x_offset + local_x] = temperature_value
@@ -327,7 +329,7 @@ def __obtain_2d_heat_matrix(heatmap_cube_list: Dict[int, TemperatureLocatedCube]
         return None
 
 
-def plot_2d_heat_map(heatmap_cube_list: Dict[int, TemperatureLocatedCube],
+def plot_2d_heat_map(heatmap_cube_list: Dict[int, PhysicalCuboid],
                      axis: Literal["X", "Y", "Z"],
                      location_in_axis: int,
                      min_temperature: Optional[float] = None,
@@ -379,7 +381,7 @@ def plot_2d_heat_map(heatmap_cube_list: Dict[int, TemperatureLocatedCube],
 
 
 def generate_video_2d_heat_map(
-        heatmap_cube_list_dict: Dict[float, Dict[int, TemperatureLocatedCube]],
+        heatmap_cube_list_dict: Dict[float, Dict[int, PhysicalCuboid]],
         axis: Literal["X", "Y", "Z"],
         location_in_axis: int,
         delay_between_frames_ms: int,

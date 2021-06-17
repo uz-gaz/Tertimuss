@@ -143,10 +143,11 @@ The total power consumption is the sum of dynamic power consumption and leakage 
 ```python
 import math
 from typing import Set, Dict
-from tertimuss.simulation_lib.system_definition import ProcessorDefinition, CoreEnergyConsumption, CoreTypeDefinition, \
-    BoardDefinition, CoreDefinition
-from tertimuss.cubed_space_thermal_simulator.materials_pack import SiliconSolidMaterial, CooperSolidMaterial
-from tertimuss.cubed_space_thermal_simulator import UnitDimensions, UnitLocation
+from tertimuss.simulation_lib.system_definition import ProcessorDefinition, CoreEnergyConsumption, CoreTypeDefinition,
+
+BoardDefinition, CoreDefinition
+from tertimuss.cubed_space_thermal_simulator.materials_pack import SMSilicon, SMCooper
+from tertimuss.cubed_space_thermal_simulator import Dimensions, Location
 
 number_of_cores: int = 4
 available_frequencies: Set[int] = {500, 1000}
@@ -162,8 +163,8 @@ energy_consumption_properties = CoreEnergyConsumption(leakage_alpha=leakage_alph
                                                       dynamic_alpha=dynamic_alpha,
                                                       dynamic_beta=dynamic_beta)
 
-core_type_definition = CoreTypeDefinition(dimensions=UnitDimensions(x=10, y=10, z=2),
-                                          material=SiliconSolidMaterial(),
+core_type_definition = CoreTypeDefinition(dimensions=Dimensions(x=10, y=10, z=2),
+                                          material=SMSilicon(),
                                           core_energy_consumption=energy_consumption_properties,
                                           available_frequencies=available_frequencies)
 
@@ -171,17 +172,17 @@ number_of_columns = math.ceil(math.sqrt(number_of_cores))
 
 lateral_size = number_of_columns * (3 + 10 + 3)
 
-board_definition = BoardDefinition(dimensions=UnitDimensions(x=lateral_size, y=lateral_size, z=1),
-                                   material=CooperSolidMaterial(),
-                                   location=UnitLocation(x=0, y=0, z=0))
+board_definition = BoardDefinition(dimensions=Dimensions(x=lateral_size, y=lateral_size, z=1),
+                                   material=SMCooper(),
+                                   location=Location(x=0, y=0, z=0))
 
 cores_definition: Dict[int, CoreDefinition] = {}
 
 for i in range(number_of_cores):
-    x_position = (3 + 10 + 3) * (i % number_of_columns) + 3
-    y_position = (3 + 10 + 3) * (i // number_of_columns) + 3
-    cores_definition[i] = CoreDefinition(core_type=core_type_definition,
-                                         location=UnitLocation(x=x_position, y=y_position, z=2))
+  x_position = (3 + 10 + 3) * (i % number_of_columns) + 3
+  y_position = (3 + 10 + 3) * (i // number_of_columns) + 3
+  cores_definition[i] = CoreDefinition(core_type=core_type_definition,
+                                       location=Location(x=x_position, y=y_position, z=2))
 
 processor_definition = ProcessorDefinition(board_definition=board_definition,
                                            cores_definition=cores_definition,
@@ -203,10 +204,10 @@ The fluid environment has the following property:
 ### Example
 
 ```python
-from tertimuss.cubed_space_thermal_simulator.materials_pack import AirForcedEnvironmentProperties
+from tertimuss.cubed_space_thermal_simulator.materials_pack import FEAirForced
 from tertimuss.simulation_lib.system_definition import EnvironmentSpecification
 
-environment_specification = EnvironmentSpecification(environment_properties=AirForcedEnvironmentProperties(),
+environment_specification = EnvironmentSpecification(environment_properties=FEAirForced(),
                                                      temperature=45 + 273.15)
 ```
 

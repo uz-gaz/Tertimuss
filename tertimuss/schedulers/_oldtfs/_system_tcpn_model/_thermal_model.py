@@ -3,7 +3,7 @@ from typing import List
 import numpy
 import scipy.sparse
 
-from tertimuss.cubed_space_thermal_simulator import UnitDimensions, UnitLocation, SolidMaterial
+from tertimuss.cubed_space_thermal_simulator import Dimensions, Location, SolidMaterial
 from tertimuss.simulation_lib.system_definition import TaskSet, EnvironmentSpecification, ProcessorDefinition
 
 
@@ -13,7 +13,7 @@ class ThermalModel(object):
     """
 
     @staticmethod
-    def simple_conductivity(cuboid_dimensions: UnitDimensions, cuboid_material: SolidMaterial, mesh_step: float,
+    def simple_conductivity(cuboid_dimensions: Dimensions, cuboid_material: SolidMaterial, mesh_step: float,
                             simulation_precision) -> [scipy.sparse.lil_matrix,
                                                       scipy.sparse.lil_matrix,
                                                       numpy.ndarray]:
@@ -83,7 +83,7 @@ class ThermalModel(object):
         return pre, post, lambda_vector
 
     @staticmethod
-    def __get_cpu_coordinates(origin: UnitLocation, cpu_dimensions: UnitDimensions, board_dimensions: UnitDimensions) \
+    def __get_cpu_coordinates(origin: Location, cpu_dimensions: Dimensions, board_dimensions: Dimensions) \
             -> List[int]:
         x: int = cpu_dimensions.x
         y: int = cpu_dimensions.y

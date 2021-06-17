@@ -8,7 +8,7 @@ import scipy.sparse.linalg
 import scipy.linalg
 import scipy.optimize
 
-from tertimuss.tcpn_simulator import TCPNSimulatorVariableStepRK
+from tertimuss.tcpn_simulator import SVSRungeKutta
 from tertimuss.simulation_lib.math_utils import list_float_lcm, list_int_gcd
 from ._system_tcpn_model import ThermalModelSelector, TasksModel, ProcessorModel, ThermalModelFrequencyAware, \
     ThermalModelEnergy
@@ -395,11 +395,11 @@ class OLDTFSScheduler(CentralizedAbstractScheduler):
         tcpn_pre, tcpn_post, tcpn_pi, tcpn_lambda, tcpn_mo = self.__obtain_tasks_processors_tcpn_model(
             cpu_specification, task_set, self.__simulation_precision)
 
-        self.__tcpn_simulator = TCPNSimulatorVariableStepRK(tcpn_pre,
-                                                            tcpn_post,
-                                                            tcpn_lambda,
-                                                            tcpn_pi,
-                                                            True)
+        self.__tcpn_simulator = SVSRungeKutta(tcpn_pre,
+                                              tcpn_post,
+                                              tcpn_lambda,
+                                              tcpn_pi,
+                                              True)
         self.__tcpn_lambda_len = tcpn_lambda.shape[0]
 
         # Set of deadlines

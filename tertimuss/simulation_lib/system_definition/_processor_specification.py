@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Set, Dict
 
-from tertimuss.cubed_space_thermal_simulator import UnitDimensions, SolidMaterial, UnitLocation
+from tertimuss.cubed_space_thermal_simulator import Dimensions, SolidMaterial, Location
 
 
 @dataclass(frozen=True)
@@ -29,7 +29,7 @@ class CoreTypeDefinition:
     """
     Specification of a type of core
     """
-    dimensions: UnitDimensions
+    dimensions: Dimensions
     """Dimensions of the core type in units (the units are defined in the ProcessorDefinition class)"""
 
     material: SolidMaterial
@@ -49,13 +49,13 @@ class BoardDefinition:
     """
     Specification of the board where cores are placed
     """
-    dimensions: UnitDimensions
+    dimensions: Dimensions
     """Dimensions of the board"""
 
     material: SolidMaterial
     """Material of the board"""
 
-    location: UnitLocation
+    location: Location
     """Location of the board"""
 
 
@@ -67,7 +67,7 @@ class CoreDefinition:
     core_type: CoreTypeDefinition
     """Core type of the core"""
 
-    location: UnitLocation
+    location: Location
     """Location of the board"""
 
 

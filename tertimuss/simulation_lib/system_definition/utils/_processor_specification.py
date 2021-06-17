@@ -1,8 +1,8 @@
 import math
 from typing import Set, Dict
 
-from tertimuss.cubed_space_thermal_simulator.materials_pack import SiliconSolidMaterial, CooperSolidMaterial
-from tertimuss.cubed_space_thermal_simulator import UnitDimensions, UnitLocation
+from tertimuss.cubed_space_thermal_simulator.materials_pack import SMSilicon, SMCooper
+from tertimuss.cubed_space_thermal_simulator import Dimensions, Location
 from .._processor_specification import ProcessorDefinition, CoreEnergyConsumption, CoreTypeDefinition, \
     BoardDefinition, CoreDefinition
 
@@ -29,8 +29,8 @@ def generate_default_cpu(number_of_cores: int, available_frequencies: Set[int],
                                                           dynamic_alpha=dynamic_alpha,
                                                           dynamic_beta=dynamic_beta)
 
-    core_type_definition = CoreTypeDefinition(dimensions=UnitDimensions(x=10, y=10, z=2),
-                                              material=SiliconSolidMaterial(),
+    core_type_definition = CoreTypeDefinition(dimensions=Dimensions(x=10, y=10, z=2),
+                                              material=SMSilicon(),
                                               core_energy_consumption=energy_consumption_properties,
                                               available_frequencies=available_frequencies)
     #                                         preemption_cost=preemption_cost
@@ -39,9 +39,9 @@ def generate_default_cpu(number_of_cores: int, available_frequencies: Set[int],
 
     lateral_size = number_of_columns * (3 + 10 + 3)
 
-    board_definition = BoardDefinition(dimensions=UnitDimensions(x=lateral_size, y=lateral_size, z=1),
-                                       material=CooperSolidMaterial(),
-                                       location=UnitLocation(x=0, y=0, z=0))
+    board_definition = BoardDefinition(dimensions=Dimensions(x=lateral_size, y=lateral_size, z=1),
+                                       material=SMCooper(),
+                                       location=Location(x=0, y=0, z=0))
 
     cores_definition: Dict[int, CoreDefinition] = {}
 
@@ -49,7 +49,7 @@ def generate_default_cpu(number_of_cores: int, available_frequencies: Set[int],
         x_position = (3 + 10 + 3) * (i % number_of_columns) + 3
         y_position = (3 + 10 + 3) * (i // number_of_columns) + 3
         cores_definition[i] = CoreDefinition(core_type=core_type_definition,
-                                             location=UnitLocation(x=x_position, y=y_position, z=2))
+                                             location=Location(x=x_position, y=y_position, z=2))
 
     return ProcessorDefinition(board_definition=board_definition,
                                cores_definition=cores_definition,

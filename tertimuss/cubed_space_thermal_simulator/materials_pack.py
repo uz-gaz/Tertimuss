@@ -1,7 +1,7 @@
-from tertimuss.cubed_space_thermal_simulator._basic_types import FluidEnvironmentProperties, SolidMaterial
+from tertimuss.cubed_space_thermal_simulator._basic_types import FluidEnvironment, SolidMaterial
 
 
-class AirFreeEnvironmentProperties(FluidEnvironmentProperties):
+class FEAirFree(FluidEnvironment):
     """
     Free air properties
     src: https://www.sciencedirect.com/topics/engineering/convection-heat-transfer-coefficient
@@ -11,7 +11,7 @@ class AirFreeEnvironmentProperties(FluidEnvironmentProperties):
         super().__init__(heatTransferCoefficient=25)
 
 
-class AirForcedEnvironmentProperties(FluidEnvironmentProperties):
+class FEAirForced(FluidEnvironment):
     """
     Forced air properties
     src: https://www.sciencedirect.com/topics/engineering/convection-heat-transfer-coefficient
@@ -21,7 +21,7 @@ class AirForcedEnvironmentProperties(FluidEnvironmentProperties):
         super().__init__(heatTransferCoefficient=500)
 
 
-class CooperSolidMaterial(SolidMaterial):
+class SMCooper(SolidMaterial):
     """
     Cooper isotropic properties
     src: https://ieeexplore.ieee.org/document/6981618 (DOI 10.1109/CCA.2014.6981618)
@@ -31,7 +31,7 @@ class CooperSolidMaterial(SolidMaterial):
         super().__init__(density=8933, specificHeatCapacity=385, thermalConductivity=400)
 
 
-class SiliconSolidMaterial(SolidMaterial):
+class SMSilicon(SolidMaterial):
     """
     Silicon isotropic properties
     src: https://ieeexplore.ieee.org/document/6981618 (DOI 10.1109/CCA.2014.6981618)

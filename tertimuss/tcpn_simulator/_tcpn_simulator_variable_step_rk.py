@@ -4,10 +4,10 @@ import numpy
 import scipy.sparse
 from scipy.integrate import solve_ivp
 
-from ._abstract_tcpn_simulator import AbstractTCPNSimulatorVariableStep
+from ._tcpn_simulator import SVariableStep
 
 
-class TCPNSimulatorVariableStepRK(AbstractTCPNSimulatorVariableStep):
+class SVSRungeKutta(SVariableStep):
     """
     Time continuous Petri net simulator based on the Runge-Kutta method
     """
