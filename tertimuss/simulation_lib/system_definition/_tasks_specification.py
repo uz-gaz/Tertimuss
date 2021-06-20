@@ -45,7 +45,7 @@ class PreemptiveExecution(Enum):
     """A task is non-preemptive if it cannot be interrupted during its execution"""
 
 
-class AbstractExecutionTimeDistribution(object, metaclass=abc.ABCMeta):
+class ExecutionTimeDistribution(object, metaclass=abc.ABCMeta):
     """
     Abstract probability distribution of task execution times over all possible input data
     """
@@ -63,7 +63,7 @@ class AbstractExecutionTimeDistribution(object, metaclass=abc.ABCMeta):
         pass
 
 
-class AlwaysWorstCaseExecutionTimeDistribution(AbstractExecutionTimeDistribution):
+class ETDAlwaysWorstCase(ExecutionTimeDistribution):
     """
     Execution time distribution where the execution time is always the worst case
     """
@@ -99,7 +99,7 @@ class Task(object):
     """The shortest execution time needed by a processor to complete the task without interruption over all possible
     input data in cycles"""
 
-    execution_time_distribution: Optional[AbstractExecutionTimeDistribution]
+    execution_time_distribution: Optional[ExecutionTimeDistribution]
     """Probability distribution of task execution times over all possible input data"""
 
     memory_footprint: Optional[int]

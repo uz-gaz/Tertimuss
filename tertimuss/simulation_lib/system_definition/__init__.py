@@ -6,16 +6,16 @@ Simulation specification
 This module allows to specify the simulation properties
 
 This module exposes the following classes:
-- :class:`.CoreEnergyConsumption`
-- :class:`.CoreTypeDefinition`
-- :class:`.BoardDefinition`
-- :class:`.CoreDefinition`
-- :class:`.ProcessorDefinition`
-- :class:`.EnvironmentSpecification`
+- :class:`.EnergyConsumption`
+- :class:`.CoreModel`
+- :class:`.Board`
+- :class:`.Core`
+- :class:`.Processor`
+- :class:`.Environment`
 - :class:`.Criticality`
 - :class:`.PreemptiveExecution`
-- :class:`.AbstractExecutionTimeDistribution`
-- :class:`.AlwaysWorstCaseExecutionTimeDistribution`
+- :class:`.ExecutionTimeDistribution`
+- :class:`.ETDAlwaysWorstCase`
 - :class:`.Task`
 - :class:`.PeriodicTask`
 - :class:`.AperiodicTask`
@@ -23,8 +23,8 @@ This module exposes the following classes:
 - :class:`.TaskSet`
 - :class:`.Job`
 """
-from ._processor_specification import CoreEnergyConsumption, CoreTypeDefinition, BoardDefinition, CoreDefinition, \
-    ProcessorDefinition
-from ._environment_specification import EnvironmentSpecification
-from ._tasks_specification import Criticality, PreemptiveExecution, AbstractExecutionTimeDistribution, \
-    AlwaysWorstCaseExecutionTimeDistribution, Task, PeriodicTask, AperiodicTask, SporadicTask, TaskSet, Job
+from ._processor_specification import EnergyConsumption, CoreModel, Board, Core, \
+    Processor
+from ._environment_specification import Environment
+from ._tasks_specification import Criticality, PreemptiveExecution, ExecutionTimeDistribution, \
+    ETDAlwaysWorstCase, Task, PeriodicTask, AperiodicTask, SporadicTask, TaskSet, Job

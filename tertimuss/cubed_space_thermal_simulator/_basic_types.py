@@ -21,7 +21,7 @@ class SolidMaterial:
 
 
 @dataclass
-class FluidEnvironmentProperties:
+class FluidEnvironment:
     """
     Specification of the environment
     """
@@ -30,9 +30,9 @@ class FluidEnvironmentProperties:
 
 
 @dataclass
-class UnitLocation:
+class Location:
     """
-    Location in unit units
+    Location in A units
     """
     x: int
     """Location in the x-axis"""
@@ -45,9 +45,9 @@ class UnitLocation:
 
 
 @dataclass
-class UnitDimensions:
+class Dimensions:
     """
-    Dimensions in unit units
+    Dimensions in A units
     """
     x: int
     """Dimension in the x-axis"""
@@ -60,28 +60,51 @@ class UnitDimensions:
 
 
 @dataclass
-class LocatedCube:
+class Cuboid:
     """
-    Cube with location
+    Cube with location in A units
     """
-    dimensions: UnitDimensions
+    dimensions: Dimensions
     """Dimensions of the cuboid"""
 
-    location: UnitLocation
+    location: Location
     """Location of the cuboid"""
 
 
 @dataclass
-class TemperatureLocatedCube(LocatedCube):
+class CuboidTemperature:
     """
-    Cube with temperature and location
+    Temperature of a cuboid
     """
     temperatureMatrix: numpy.ndarray
-    """Temperature in each unit cube of the cuboid"""
+    """3D matrix (x , y, z) that contains the temperature in each cube of the cuboid"""
 
 
 @dataclass
-class ExternalTemperatureBoosterLocatedCube(LocatedCube):
+class PhysicalCuboid:
+    """
+    Cuboid with physical properties
+    """
+    temperature: CuboidTemperature
+    """Temperature of the cuboid"""
+
+    material: SolidMaterial
+    """Material of the cuboid"""
+
+    cuboid: Cuboid
+    """Cuboid"""
+
+
+@dataclass
+class TemperatureModifier:
+    """
+    Modify the temperature of the space enclosed in the cuboid
+    """
+    cuboid: Cuboid
+
+
+@dataclass
+class TMExternal(TemperatureModifier):
     """
     Increase the temperature of all the cubes that are located inside the locatedCube by a rate of
     boostRate kelvin / second
@@ -91,7 +114,7 @@ class ExternalTemperatureBoosterLocatedCube(LocatedCube):
 
 
 @dataclass
-class InternalTemperatureBoosterLocatedCube(LocatedCube):
+class TMInternal(TemperatureModifier):
     """
     Increases the temperature of all cubes located in the locatedCube by a rate of
     (boostRateMultiplier * cube temperature) kelvin/second
@@ -109,12 +132,3 @@ class ThermalUnits(Enum):
 
     CELSIUS = 1
     """Celsius degrees"""
-
-
-@dataclass
-class ModelTemperatureMatrix:
-    """
-    Model temperature matrix
-    """
-    temperatureMatrix: Dict[int, numpy.ndarray]
-    """Temperature in each cuboid of the mesh"""

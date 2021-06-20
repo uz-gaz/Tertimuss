@@ -5,7 +5,7 @@ import numpy
 import scipy.sparse
 
 
-class AbstractTCPNSimulator(object, metaclass=abc.ABCMeta):
+class TCPNSimulator(object, metaclass=abc.ABCMeta):
     """
     Time continuous Petri net simulator
     """
@@ -51,7 +51,7 @@ class AbstractTCPNSimulator(object, metaclass=abc.ABCMeta):
         return pi.tocsr()
 
 
-class AbstractTCPNSimulatorFixedStep(AbstractTCPNSimulator, metaclass=abc.ABCMeta):
+class SFixedStep(TCPNSimulator, metaclass=abc.ABCMeta):
     """
     Time continuous Petri net simulator fixed step
     """
@@ -67,7 +67,7 @@ class AbstractTCPNSimulatorFixedStep(AbstractTCPNSimulator, metaclass=abc.ABCMet
         pass
 
 
-class AbstractTCPNSimulatorVariableStep(AbstractTCPNSimulator, metaclass=abc.ABCMeta):
+class SVariableStep(TCPNSimulator, metaclass=abc.ABCMeta):
     """
     Time continuous Petri net simulator fixed step
     """

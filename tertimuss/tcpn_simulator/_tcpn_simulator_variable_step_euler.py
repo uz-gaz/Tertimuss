@@ -3,10 +3,10 @@ from typing import Optional
 import numpy
 import scipy.sparse
 
-from ._abstract_tcpn_simulator import AbstractTCPNSimulatorVariableStep
+from ._tcpn_simulator import SVariableStep
 
 
-class TCPNSimulatorVariableStepEuler(AbstractTCPNSimulatorVariableStep):
+class SVSEuler(SVariableStep):
     """
     Time continuous Petri net simulator based on the Euler method
     """

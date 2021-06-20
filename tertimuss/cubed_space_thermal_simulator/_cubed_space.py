@@ -5,16 +5,13 @@ from typing import List, Optional, Tuple, Set, Literal, Dict
 import numpy
 import scipy.sparse
 
-from tertimuss.cubed_space_thermal_simulator import LocatedCube, ExternalTemperatureBoosterLocatedCube, \
-    InternalTemperatureBoosterLocatedCube
-from tertimuss.cubed_space_thermal_simulator._basic_types import SolidMaterial, FluidEnvironmentProperties, \
-    TemperatureLocatedCube
-from tertimuss.tcpn_simulator import TCPNSimulatorVariableStepRK, AbstractTCPNSimulatorVariableStep, \
-    TCPNSimulatorVariableStepEuler
+from ._basic_types import Cuboid, TMExternal, TMInternal, CuboidTemperature
+from ._basic_types import SolidMaterial, FluidEnvironment, PhysicalCuboid
+from tertimuss.tcpn_simulator import SVSRungeKutta, SVariableStep, SVSEuler
 
 
 @dataclass
-class CubedSpaceState:
+class SimulationState:
     """
     State of the temperature in a mesh
     """
@@ -22,15 +19,15 @@ class CubedSpaceState:
     """marks in places of the petri net"""
 
 
-class CubedSpace(object):
+class Model(object):
     """
     Representation of a physical object by cubes
     """
 
-    def __init__(self, material_cubes: Dict[int, Tuple[SolidMaterial, LocatedCube]], cube_edge_size: float,
-                 environment_properties: Optional[FluidEnvironmentProperties] = None,
-                 external_temperature_booster_points: Optional[Dict[int, ExternalTemperatureBoosterLocatedCube]] = None,
-                 internal_temperature_booster_points: Optional[Dict[int, InternalTemperatureBoosterLocatedCube]] = None,
+    def __init__(self, material_cubes: Dict[int, Tuple[SolidMaterial, Cuboid]], cube_edge_size: float,
+                 environment_properties: Optional[FluidEnvironment] = None,
+                 external_temperature_booster_points: Optional[Dict[int, TMExternal]] = None,
+                 internal_temperature_booster_points: Optional[Dict[int, TMInternal]] = None,
                  simulation_precision: Literal["LOW", "MIDDLE", "HIGH"] = "HIGH"):
         """
         This function creates a cubedSpace
@@ -38,7 +35,8 @@ class CubedSpace(object):
         :param material_cubes: List of cubes that conform the space. Each cube will have defined its dimensions in unit
          units, the position in units and the thermal properties of the cube. Its assumed that all material cubes are
          metals
-        :param cube_edge_size: Cubes' edge size in m (each cube will have the same edge size).
+        :param cube_edge_size: Cubes' edge size in m (each cube will have the same edge size). This variable define the
+         A unit
         :param environment_properties: The material that will be surrounded the cube will have these properties.
          This material won't change him temperature, however it will affect to the mesh temperature.
         :param external_temperature_booster_points: This parameter is only used with optimization purposes. If is
@@ -283,7 +281,7 @@ class CubedSpace(object):
             places_with_contact) if environment_properties is not None else set()
 
         # Return the convection lambda of a material
-        def _convection_lambda_of_material(_material_cube: Tuple[SolidMaterial, LocatedCube]) -> float:
+        def _convection_lambda_of_material(_material_cube: Tuple[SolidMaterial, Cuboid]) -> float:
             return environment_properties.heatTransferCoefficient / (
                     cube_edge_size * _material_cube[0].density *
                     _material_cube[0].specificHeatCapacity)
@@ -335,12 +333,12 @@ class CubedSpace(object):
         for internal_temperature_booster_point_index, internal_temperature_booster_point in \
                 internal_temperature_booster_points.items():
             places = []
-            for actual_z in range(internal_temperature_booster_point.dimensions.z):
-                for actual_y in range(internal_temperature_booster_point.dimensions.y):
-                    for actual_x in range(internal_temperature_booster_point.dimensions.x):
-                        global_z = actual_z + internal_temperature_booster_point.location.z
-                        global_y = actual_y + internal_temperature_booster_point.location.y
-                        global_x = actual_x + internal_temperature_booster_point.location.x
+            for actual_z in range(internal_temperature_booster_point.cuboid.dimensions.z):
+                for actual_y in range(internal_temperature_booster_point.cuboid.dimensions.y):
+                    for actual_x in range(internal_temperature_booster_point.cuboid.dimensions.x):
+                        global_z = actual_z + internal_temperature_booster_point.cuboid.location.z
+                        global_y = actual_y + internal_temperature_booster_point.cuboid.location.y
+                        global_x = actual_x + internal_temperature_booster_point.cuboid.location.x
 
                         if location_places_mapping.__contains__((global_x, global_y, global_z)):
                             places.append(location_places_mapping[(global_x, global_y, global_z)])
@@ -376,12 +374,12 @@ class CubedSpace(object):
         for transition_index, (external_temperature_booster_point_index, external_temperature_booster_point) in \
                 enumerate(external_temperature_booster_points.items()):
             places = []
-            for actual_z in range(external_temperature_booster_point.dimensions.z):
-                for actual_y in range(external_temperature_booster_point.dimensions.y):
-                    for actual_x in range(external_temperature_booster_point.dimensions.x):
-                        global_z = actual_z + external_temperature_booster_point.location.z
-                        global_y = actual_y + external_temperature_booster_point.location.y
-                        global_x = actual_x + external_temperature_booster_point.location.x
+            for actual_z in range(external_temperature_booster_point.cuboid.dimensions.z):
+                for actual_y in range(external_temperature_booster_point.cuboid.dimensions.y):
+                    for actual_x in range(external_temperature_booster_point.cuboid.dimensions.x):
+                        global_z = actual_z + external_temperature_booster_point.cuboid.location.z
+                        global_y = actual_y + external_temperature_booster_point.cuboid.location.y
+                        global_x = actual_x + external_temperature_booster_point.cuboid.location.x
 
                         if location_places_mapping.__contains__((global_x, global_y, global_z)):
                             places.append(location_places_mapping[(global_x, global_y, global_z)])
@@ -430,21 +428,21 @@ class CubedSpace(object):
             + lambda_vector_internal_gen + [lambda_vector_external_gen])
 
         self.__mo_index = mo_index
-        self.__material_cubes_dict = material_cubes_dict
+        self.__material_cubes_dict: Dict[int, Tuple[SolidMaterial, Cuboid]] = material_cubes_dict
 
-        self.__environment_number_of_places = len(conv_lambda_shared_material_places)
+        self.__environment_number_of_places: int = len(conv_lambda_shared_material_places)
 
         self.__simulation_precision = dtype
 
         if simulation_precision == "HIGH" or simulation_precision == "MIDDLE":
-            self.__tcpn_simulator: AbstractTCPNSimulatorVariableStep = TCPNSimulatorVariableStepRK(
+            self.__tcpn_simulator: SVariableStep = SVSRungeKutta(
                 self.__pre,
                 self.__post,
                 self.__lambda_vector,
                 self.__pi
             )
         elif simulation_precision == "LOW":
-            self.__tcpn_simulator: AbstractTCPNSimulatorVariableStep = TCPNSimulatorVariableStepEuler(
+            self.__tcpn_simulator: SVariableStep = SVSEuler(
                 self.__pre, self.__post,
                 self.__lambda_vector,
                 self.__pi, 128, True
@@ -463,9 +461,9 @@ class CubedSpace(object):
             {i for i, _ in external_temperature_booster_points.items()}
 
     @classmethod
-    def __obtain_places_in_touch(cls, material_cube_a: Tuple[SolidMaterial, LocatedCube],
+    def __obtain_places_in_touch(cls, material_cube_a: Tuple[SolidMaterial, Cuboid],
                                  material_cube_a_places_index: int,
-                                 material_cube_b: Tuple[SolidMaterial, LocatedCube],
+                                 material_cube_b: Tuple[SolidMaterial, Cuboid],
                                  material_cube_b_places_index: int) \
             -> List[Tuple[int, int]]:
         # Touch in axis y
@@ -565,9 +563,9 @@ class CubedSpace(object):
         else:
             return []
 
-    def apply_energy(self, actual_state: CubedSpaceState, amount_of_time: float,
+    def apply_energy(self, actual_state: SimulationState, amount_of_time: float,
                      external_energy_application_points: Optional[Set[int]] = None,
-                     internal_energy_application_points: Optional[Set[int]] = None) -> CubedSpaceState:
+                     internal_energy_application_points: Optional[Set[int]] = None) -> SimulationState:
         """
         Apply energy over the cubedSpace and return the transformed cubedSpaceState
 
@@ -616,9 +614,9 @@ class CubedSpace(object):
                      control, numpy.ones(number_of_external_temperature_boost_places)]))
 
         mo_next = self.__tcpn_simulator.simulate_step(mo, amount_of_time)
-        return CubedSpaceState(mo_next)
+        return SimulationState(mo_next)
 
-    def obtain_temperature(self, actual_state: CubedSpaceState) -> Dict[int, TemperatureLocatedCube]:
+    def obtain_temperature(self, actual_state: SimulationState) -> Dict[int, PhysicalCuboid]:
         """
         This function return the temperature in each cube of unit edge that conform the cubedSpace
 
@@ -632,14 +630,17 @@ class CubedSpace(object):
             number_of_occupied_places = material_cube[1].dimensions.x * material_cube[1].dimensions.y * material_cube[
                 1].dimensions.z
             temperature_places = actual_state.places_mo_vector[v: v + number_of_occupied_places]
-            temperature_cubes[i] = TemperatureLocatedCube(material_cube[1].dimensions, material_cube[1].location,
-                                                          temperature_places)
+            temperature_cubes[i] = PhysicalCuboid(
+                cuboid=Cuboid(location=material_cube[1].location, dimensions=material_cube[1].dimensions),
+                material=material_cube[0],
+                temperature=CuboidTemperature(temperature_places)
+            )
 
         return temperature_cubes
 
     def create_initial_state(self, default_temperature: float,
                              material_cubes_temperatures: Optional[Dict[int, float]] = None,
-                             environment_temperature: Optional[float] = None) -> CubedSpaceState:
+                             environment_temperature: Optional[float] = None) -> SimulationState:
         """
         Create initial cubed space state
 
@@ -669,25 +670,25 @@ class CubedSpace(object):
             places_temperature.append(environment_temperature * numpy.ones(shape=(self.__environment_number_of_places),
                                                                            dtype=self.__simulation_precision))
 
-        return CubedSpaceState(
+        return SimulationState(
             numpy.concatenate(places_temperature + [numpy.ones(len(self.__external_temperature_boost_places))]))
 
 
-def obtain_min_temperature(heatmap_cube_list: Dict[int, TemperatureLocatedCube]) -> Dict[int, float]:
+def obtain_min_temperature(heatmap_cube_list: Dict[int, PhysicalCuboid]) -> Dict[int, float]:
     """
     Obtain the minimum temperature in a list of cubed spaces components
 
     :param heatmap_cube_list: List of cubed space component with identification in each one
     :return: the minimum temperature in each component
     """
-    return {i: j.temperatureMatrix.min() for i, j in heatmap_cube_list.items()}
+    return {i: j.temperature.temperatureMatrix.min() for i, j in heatmap_cube_list.items()}
 
 
-def obtain_max_temperature(heatmap_cube_list: Dict[int, TemperatureLocatedCube]) -> Dict[int, float]:
+def obtain_max_temperature(heatmap_cube_list: Dict[int, PhysicalCuboid]) -> Dict[int, float]:
     """
     Obtain the maximum temperature in a list of cubed spaces components
 
     :param heatmap_cube_list: List of cubed space component with identification in each one
     :return: the maximum temperature in each component
     """
-    return {i: j.temperatureMatrix.max() for i, j in heatmap_cube_list.items()}
+    return {i: j.temperature.temperatureMatrix.max() for i, j in heatmap_cube_list.items()}

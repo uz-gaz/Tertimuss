@@ -1,10 +1,10 @@
 from typing import List
 
-from .._abstract_periodic_task_generator import PeriodicGeneratedTask, AbstractPeriodicTaskGenerator
-from ._uunifast import UUniFast
+from .._abstract_periodic_task_generator import PeriodicGeneratedTask, PeriodicTaskGenerator
+from ._uunifast import PTGUUniFast
 
 
-class UUniFastDiscard(AbstractPeriodicTaskGenerator):
+class PTGUUniFastDiscard(PeriodicTaskGenerator):
     """
     UUniFast Discard task generation algorithm
     """
@@ -24,7 +24,7 @@ class UUniFastDiscard(AbstractPeriodicTaskGenerator):
         task_set = []
 
         while have_to_be_discarded:
-            task_set = UUniFast.generate(utilization, tasks_deadlines.copy(), processor_frequency)
+            task_set = PTGUUniFast.generate(utilization, tasks_deadlines.copy(), processor_frequency)
             have_to_be_discarded = any([round(
                 i.deadline * processor_frequency) < i.worst_case_execution_time or i.worst_case_execution_time <= 0 for
                                         i in task_set])

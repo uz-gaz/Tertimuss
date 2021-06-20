@@ -13,7 +13,7 @@ This module exposes the following classes:
 - :class:`.TCPNSimulatorVariableStepRK`
 """
 
-from ._abstract_tcpn_simulator import AbstractTCPNSimulator, AbstractTCPNSimulatorVariableStep, \
-    AbstractTCPNSimulatorFixedStep
-from ._tcpn_simulator_variable_step_euler import TCPNSimulatorVariableStepEuler
-from ._tcpn_simulator_variable_step_rk import TCPNSimulatorVariableStepRK
+from ._tcpn_simulator import TCPNSimulator, SVariableStep, \
+    SFixedStep
+from ._tcpn_simulator_variable_step_euler import SVSEuler
+from ._tcpn_simulator_variable_step_rk import SVSRungeKutta

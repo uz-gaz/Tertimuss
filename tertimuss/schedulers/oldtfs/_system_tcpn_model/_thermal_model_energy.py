@@ -3,7 +3,7 @@ from typing import List
 import numpy
 
 from ._thermal_model import ThermalModel
-from tertimuss.simulation_lib.system_definition import ProcessorDefinition, TaskSet, Task
+from tertimuss.simulation_lib.system_definition import Processor, TaskSet, Task
 
 
 class ThermalModelEnergy(ThermalModel):
@@ -12,7 +12,7 @@ class ThermalModelEnergy(ThermalModel):
     """
 
     @staticmethod
-    def _get_dynamic_power_consumption(cpu_specification: ProcessorDefinition,
+    def _get_dynamic_power_consumption(cpu_specification: Processor,
                                        task_set: TaskSet,
                                        clock_relative_frequencies: List[float]) -> numpy.ndarray:
         """

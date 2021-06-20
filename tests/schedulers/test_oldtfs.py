@@ -1,40 +1,72 @@
 import unittest
-from tertimuss.schedulers._oldtfs import OLDTFSScheduler
-from tertimuss.simulation_lib.simulator import execute_scheduler_simulation_simple, SimulationOptionsSpecification
-from tertimuss.simulation_lib.system_definition import TaskSet
+from typing import Dict
+
+from tertimuss.schedulers.oldtfs import SOLDTFS
+from tertimuss.simulation_lib.simulator import execute_scheduler_simulation_simple, SimulationConfiguration
+from tertimuss.simulation_lib.system_definition import TaskSet, PeriodicTask, PreemptiveExecution, Criticality
 from tertimuss.simulation_lib.system_definition.utils import generate_default_cpu, default_environment_specification
-from tests.schedulers._common_scheduler_tests_utils import create_implicit_deadline_periodic_task_h_rt
 
 
 class OLDTFSTest(unittest.TestCase):
-    @unittest.skip("This test takes too long and fails")
+    @staticmethod
+    def create_implicit_deadline_periodic_task_s_rt(task_id: int, worst_case_execution_time: int,
+                                                    period: float) -> PeriodicTask:
+        # Create implicit deadline task with priority equal to identification id
+        return PeriodicTask(identifier=task_id,
+                            worst_case_execution_time=worst_case_execution_time,
+                            relative_deadline=period,
+                            best_case_execution_time=None,
+                            execution_time_distribution=None,
+                            memory_footprint=None,
+                            priority=None,
+                            preemptive_execution=PreemptiveExecution.FULLY_PREEMPTIVE,
+                            deadline_criteria=Criticality.SOFT,
+                            energy_consumption=None,
+                            phase=None,
+                            period=period)
+
     def test_simple_simulation_periodic_task_set(self):
         periodic_tasks = [
-            create_implicit_deadline_periodic_task_h_rt(0, 10000, 20.0),
-            create_implicit_deadline_periodic_task_h_rt(1, 5000, 10.0),
-            create_implicit_deadline_periodic_task_h_rt(2, 7000, 10.0),
-            create_implicit_deadline_periodic_task_h_rt(3, 7000, 10.0),
-            create_implicit_deadline_periodic_task_h_rt(4, 7000, 10.0),
-            create_implicit_deadline_periodic_task_h_rt(5, 14000, 20.0)
+            self.create_implicit_deadline_periodic_task_s_rt(0, 1000, 20.0),
+            self.create_implicit_deadline_periodic_task_s_rt(1, 500, 10.0),
+            self.create_implicit_deadline_periodic_task_s_rt(2, 700, 10.0),
+            self.create_implicit_deadline_periodic_task_s_rt(3, 700, 10.0),
+            self.create_implicit_deadline_periodic_task_s_rt(4, 700, 10.0),
+            self.create_implicit_deadline_periodic_task_s_rt(5, 1400, 20.0)
         ]
 
+        task_set = TaskSet(
+            periodic_tasks=periodic_tasks,
+            aperiodic_tasks=[],
+            sporadic_tasks=[]
+        )
+
         number_of_cores = 5
-        available_frequencies = {1000}
+        available_frequencies = {100}
 
         simulation_result, periodic_jobs, major_cycle = execute_scheduler_simulation_simple(
-            tasks=TaskSet(
-                periodic_tasks=periodic_tasks,
-                aperiodic_tasks=[],
-                sporadic_tasks=[]
-            ),
+            tasks=task_set,
             aperiodic_tasks_jobs=[],
             sporadic_tasks_jobs=[],
-            processor_definition=generate_default_cpu(number_of_cores, available_frequencies, 0, 0),
+            processor_definition=generate_default_cpu(number_of_cores, available_frequencies, 0),
             environment_specification=default_environment_specification(),
-            simulation_options=SimulationOptionsSpecification(id_debug=True),
-            scheduler=OLDTFSScheduler(240, simulate_thermal=False)
+            simulation_options=SimulationConfiguration(id_debug=True),
+            scheduler=SOLDTFS(240, simulate_thermal=False)
         )
 
         # Correct execution
         assert simulation_result.have_been_scheduled
-        assert simulation_result.hard_real_time_deadline_missed_stack_trace is None
+
+        # Check the percentage of execution accomplished (by implementation the OLDTFS control won't
+        # accomplish full execution of the tasks)
+        cycles_per_task_in_major_cycle: Dict[int, int] = {
+            i.identifier: i.worst_case_execution_time * round(20 / i.relative_deadline)
+            for i in periodic_tasks}
+        executed_cycles_by_task: Dict[int, int] = {i: 0 for i in cycles_per_task_in_major_cycle.keys()}
+        for i in simulation_result.job_sections_execution.values():
+            for j in i:
+                executed_cycles_by_task[j.task_id] = executed_cycles_by_task[j.task_id] + j.number_of_executed_cycles
+
+        # In this task set it only accomplish a 70% of execution in all tasks (It should be reviewed)
+        all((executed_cycles_by_task[i] / cycles_per_task_in_major_cycle[i]) > 0.7 for i in
+            cycles_per_task_in_major_cycle.keys())

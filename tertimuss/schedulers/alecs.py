@@ -17,13 +17,13 @@ from ortools.linear_solver import pywraplp
 import ortools
 
 from ..simulation_lib.math_utils import list_float_lcm, list_int_gcd
-from ..simulation_lib.schedulers_definition import CentralizedAbstractScheduler
-from ..simulation_lib.system_definition import ProcessorDefinition, EnvironmentSpecification, TaskSet, \
+from ..simulation_lib.schedulers_definition import CentralizedScheduler
+from ..simulation_lib.system_definition import Processor, Environment, TaskSet, \
     PreemptiveExecution
 from ..simulation_lib.system_definition.utils import calculate_major_cycle
 
 
-class ALECSScheduler(CentralizedAbstractScheduler):
+class SALECS(CentralizedScheduler):
     """
     Implements the Allocation and Execution Control Scheduler (ALECS)
 
@@ -165,8 +165,8 @@ class ALECSScheduler(CentralizedAbstractScheduler):
         """
         return self.__scheduling_points
 
-    def check_schedulability(self, processor_definition: ProcessorDefinition,
-                             environment_specification: EnvironmentSpecification, task_set: TaskSet) \
+    def check_schedulability(self, processor_definition: Processor,
+                             environment_specification: Environment, task_set: TaskSet) \
             -> [bool, Optional[str]]:
         """
         Return true if the scheduler can be able to schedule the system. In negative case, it can return a reason.
@@ -280,8 +280,8 @@ class ALECSScheduler(CentralizedAbstractScheduler):
 
         return tasks_to_execute
 
-    def offline_stage(self, processor_definition: ProcessorDefinition,
-                      environment_specification: EnvironmentSpecification,
+    def offline_stage(self, processor_definition: Processor,
+                      environment_specification: Environment,
                       task_set: TaskSet) -> int:
         """
         Method to implement with the offline stage scheduler tasks

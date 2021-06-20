@@ -8,15 +8,15 @@ import scipy.sparse.linalg
 import scipy.linalg
 import scipy.optimize
 
-from tertimuss.tcpn_simulator import TCPNSimulatorVariableStepRK
+from tertimuss.tcpn_simulator import SVSRungeKutta
 from tertimuss.simulation_lib.math_utils import list_float_lcm, list_int_gcd
 from ._system_tcpn_model import ThermalModelSelector, TasksModel, ProcessorModel, ThermalModelFrequencyAware, \
     ThermalModelEnergy
-from tertimuss.simulation_lib.schedulers_definition import CentralizedAbstractScheduler
-from tertimuss.simulation_lib.system_definition import ProcessorDefinition, EnvironmentSpecification, TaskSet
+from tertimuss.simulation_lib.schedulers_definition import CentralizedScheduler
+from tertimuss.simulation_lib.system_definition import Processor, Environment, TaskSet
 
 
-class OLDTFSScheduler(CentralizedAbstractScheduler):
+class SOLDTFS(CentralizedScheduler):
     """
     Implements the OLDTFS scheduler
 
@@ -61,14 +61,14 @@ class OLDTFSScheduler(CentralizedAbstractScheduler):
         self.__task_to_job = {}
         self.__job_to_task = {}
 
-    def check_schedulability(self, cpu_specification: ProcessorDefinition,
-                             environment_specification: EnvironmentSpecification, task_set: TaskSet) \
+    def check_schedulability(self, cpu_specification: Processor,
+                             environment_specification: Environment, task_set: TaskSet) \
             -> [bool, Optional[str]]:
         return True, ""
 
     @staticmethod
-    def __obtain_thermal_constraint(cpu_specification: ProcessorDefinition,
-                                    environment_specification: EnvironmentSpecification,
+    def __obtain_thermal_constraint(cpu_specification: Processor,
+                                    environment_specification: Environment,
                                     task_set: TaskSet,
                                     thermal_model_type: ThermalModelSelector,
                                     simulation_precision
@@ -165,8 +165,8 @@ class OLDTFSScheduler(CentralizedAbstractScheduler):
         return a.tocsc(), b.tocsc(), scipy.sparse.csc_matrix(b_star), s_t.tocsc()
 
     @classmethod
-    def __solve_linear_programing_problem(cls, cpu_specification: ProcessorDefinition,
-                                          environment_specification: EnvironmentSpecification, task_set: TaskSet,
+    def __solve_linear_programing_problem(cls, cpu_specification: Processor,
+                                          environment_specification: Environment, task_set: TaskSet,
                                           thermal_model_type: ThermalModelSelector,
                                           simulation_precision,
                                           mesh_step: float,
@@ -285,7 +285,7 @@ class OLDTFSScheduler(CentralizedAbstractScheduler):
         return j_fsc_i, quantum
 
     @staticmethod
-    def __obtain_tasks_processors_tcpn_model(cpu_specification: ProcessorDefinition,
+    def __obtain_tasks_processors_tcpn_model(cpu_specification: Processor,
                                              task_set: TaskSet, simulation_precision) -> [scipy.sparse.csr_matrix,
                                                                                           scipy.sparse.csr_matrix,
                                                                                           scipy.sparse.csr_matrix,
@@ -346,8 +346,8 @@ class OLDTFSScheduler(CentralizedAbstractScheduler):
 
         return pre, post, pi, lambda_vector, mo
 
-    def offline_stage(self, cpu_specification: ProcessorDefinition,
-                      environment_specification: EnvironmentSpecification, task_set: TaskSet) -> int:
+    def offline_stage(self, cpu_specification: Processor,
+                      environment_specification: Environment, task_set: TaskSet) -> int:
         # Obtain quantum and FSC
 
         # cpu_specification: Union[HomogeneousCpuSpecification],
@@ -395,11 +395,11 @@ class OLDTFSScheduler(CentralizedAbstractScheduler):
         tcpn_pre, tcpn_post, tcpn_pi, tcpn_lambda, tcpn_mo = self.__obtain_tasks_processors_tcpn_model(
             cpu_specification, task_set, self.__simulation_precision)
 
-        self.__tcpn_simulator = TCPNSimulatorVariableStepRK(tcpn_pre,
-                                                            tcpn_post,
-                                                            tcpn_lambda,
-                                                            tcpn_pi,
-                                                            True)
+        self.__tcpn_simulator = SVSRungeKutta(tcpn_pre,
+                                              tcpn_post,
+                                              tcpn_lambda,
+                                              tcpn_pi,
+                                              True)
         self.__tcpn_lambda_len = tcpn_lambda.shape[0]
 
         # Set of deadlines

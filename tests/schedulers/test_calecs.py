@@ -1,7 +1,7 @@
 import time
 import unittest
-from tertimuss.schedulers.calecs import CALECSScheduler
-from tertimuss.simulation_lib.simulator import execute_scheduler_simulation_simple, SimulationOptionsSpecification
+from tertimuss.schedulers.calecs import SCALECS
+from tertimuss.simulation_lib.simulator import execute_scheduler_simulation_simple, SimulationConfiguration
 from tertimuss.simulation_lib.system_definition import TaskSet
 from tertimuss.simulation_lib.system_definition.utils import generate_default_cpu, default_environment_specification
 from tests.schedulers._common_scheduler_tests_utils import create_implicit_deadline_periodic_task_h_rt, \
@@ -33,8 +33,8 @@ class CALECSTest(unittest.TestCase):
             sporadic_tasks_jobs=[],
             processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
             environment_specification=default_environment_specification(),
-            simulation_options=SimulationOptionsSpecification(id_debug=True),
-            scheduler=CALECSScheduler(activate_debug=True, store_clusters_obtained=True)
+            simulation_options=SimulationConfiguration(id_debug=True),
+            scheduler=SCALECS(activate_debug=True, store_clusters_obtained=True)
         )
 
         # Correct execution
@@ -50,21 +50,15 @@ class CALECSTest(unittest.TestCase):
         number_of_cores = 4
         available_frequencies = {1000}
 
-        start = time.time()
-
         simulation_result, periodic_jobs, major_cycle = execute_scheduler_simulation_simple(
             tasks=task_set,
             aperiodic_tasks_jobs=[],
             sporadic_tasks_jobs=[],
             processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
             environment_specification=default_environment_specification(),
-            simulation_options=SimulationOptionsSpecification(id_debug=True),
-            scheduler=CALECSScheduler(activate_debug=True, store_clusters_obtained=True)
+            simulation_options=SimulationConfiguration(id_debug=True),
+            scheduler=SCALECS(activate_debug=True, store_clusters_obtained=True)
         )
-
-        end = time.time()
-
-        print("Schedulers simulation time:", end - start)
 
         # Correct execution
         assert simulation_result.have_been_scheduled

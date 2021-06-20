@@ -1,11 +1,11 @@
 from dataclasses import dataclass
 from typing import Set, Dict
 
-from tertimuss.cubed_space_thermal_simulator import UnitDimensions, SolidMaterial, UnitLocation
+from tertimuss.cubed_space_thermal_simulator import Dimensions, SolidMaterial, Location
 
 
 @dataclass(frozen=True)
-class CoreEnergyConsumption:
+class EnergyConsumption:
     """Specification of the energy consumption
      Leakage power consumption = current temperature * 2 * leakage_delta + leakage_alpha
      Dynamic power consumption = dynamic_alpha * F^3 + dynamic_beta
@@ -25,64 +25,60 @@ class CoreEnergyConsumption:
 
 
 @dataclass(frozen=True)
-class CoreTypeDefinition:
+class CoreModel:
     """
     Specification of a type of core
     """
-    dimensions: UnitDimensions
+    dimensions: Dimensions
     """Dimensions of the core type in units (the units are defined in the ProcessorDefinition class)"""
 
     material: SolidMaterial
     """Material of the core type"""
 
-    core_energy_consumption: CoreEnergyConsumption
+    core_energy_consumption: EnergyConsumption
     """Core energy consumption properties"""
 
     available_frequencies: Set[int]
     """Cores available frequencies in Hz"""
 
-    # preemption_cost: int  # Preemption cost in cycles
-
 
 @dataclass(frozen=True)
-class BoardDefinition:
+class Board:
     """
     Specification of the board where cores are placed
     """
-    dimensions: UnitDimensions
+    dimensions: Dimensions
     """Dimensions of the board"""
 
     material: SolidMaterial
     """Material of the board"""
 
-    location: UnitLocation
+    location: Location
     """Location of the board"""
 
 
 @dataclass(frozen=True)
-class CoreDefinition:
+class Core:
     """
     Specification of a core in the system
     """
-    core_type: CoreTypeDefinition
+    core_type: CoreModel
     """Core type of the core"""
 
-    location: UnitLocation
+    location: Location
     """Location of the board"""
 
 
 @dataclass(frozen=True)
-class ProcessorDefinition:
+class Processor:
     """
     Specification of the processor
     """
-    board_definition: BoardDefinition
+    board_definition: Board
     """Definition of the CPU board"""
 
-    cores_definition: Dict[int, CoreDefinition]
+    cores_definition: Dict[int, Core]
     """Definition of each core. The key is the CPU id and the value the definition"""
-
-    # migration_costs: Dict[Tuple[int, int], int]  # Cost of migrations in cycles. key = (core from, core to)
 
     measure_unit: float
     """The measure unit in metres"""

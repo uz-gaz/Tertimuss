@@ -3,13 +3,13 @@ from typing import Dict
 
 from matplotlib import animation
 
-from tertimuss.cubed_space_thermal_simulator import UnitDimensions, UnitLocation, \
-    CubedSpace, obtain_min_temperature, obtain_max_temperature, plot_3d_heat_map_temperature, \
-    InternalTemperatureBoosterLocatedCube, plot_2d_heat_map, generate_video_2d_heat_map, generate_video_3d_heat_map, \
-    LocatedCube, TemperatureLocatedCube
+from tertimuss.cubed_space_thermal_simulator import Dimensions, Location, \
+    Model, obtain_min_temperature, obtain_max_temperature, plot_3d_heat_map_temperature, \
+    plot_2d_heat_map, generate_video_2d_heat_map, generate_video_3d_heat_map, \
+    Cuboid, TMInternal, PhysicalCuboid
 
-from tertimuss.cubed_space_thermal_simulator.materials_pack import CooperSolidMaterial, SiliconSolidMaterial, \
-    AirFreeEnvironmentProperties, AirForcedEnvironmentProperties
+from tertimuss.cubed_space_thermal_simulator.materials_pack import SMCooper, SMSilicon, \
+    FEAirFree, FEAirForced
 from tertimuss.cubed_space_thermal_simulator.physics_utils import create_energy_applicator
 
 
@@ -17,13 +17,13 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
     @unittest.skip("Manual visualization test")
     def test_processor_heat_generation_plot(self):
         # Dimensions of the core
-        core_dimensions = UnitDimensions(x=10, z=2, y=10)
+        core_dimensions = Dimensions(x=10, z=2, y=10)
 
         # Material of the core
-        core_material = SiliconSolidMaterial()
+        core_material = SMSilicon()
 
         # Material of the board
-        board_material = CooperSolidMaterial()
+        board_material = SMCooper()
 
         # Core initial temperature
         # core_initial_temperature = 273.15 + 65
@@ -46,31 +46,31 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
         cpu_definition = {
             # Cores
             0: (core_material,
-                LocatedCube(
-                    location=UnitLocation(x=10, z=2, y=10),
+                Cuboid(
+                    location=Location(x=10, z=2, y=10),
                     dimensions=core_dimensions)
                 ),
             1: (core_material,
-                LocatedCube(
-                    location=UnitLocation(x=30, z=2, y=10),
+                Cuboid(
+                    location=Location(x=30, z=2, y=10),
                     dimensions=core_dimensions)
                 ),
             2: (core_material,
-                LocatedCube(
-                    location=UnitLocation(x=10, z=2, y=30),
+                Cuboid(
+                    location=Location(x=10, z=2, y=30),
                     dimensions=core_dimensions)
                 ),
             3: (core_material,
-                LocatedCube(
-                    location=UnitLocation(x=30, z=2, y=30),
+                Cuboid(
+                    location=Location(x=30, z=2, y=30),
                     dimensions=core_dimensions)
                 ),
 
             # Board
             4: (board_material,
-                LocatedCube(
-                    location=UnitLocation(x=0, z=0, y=0),
-                    dimensions=UnitDimensions(x=50, z=2, y=50))
+                Cuboid(
+                    location=Location(x=0, z=0, y=0),
+                    dimensions=Dimensions(x=50, z=2, y=50))
                 )
         }
 
@@ -78,7 +78,7 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
         cube_edge_size = 0.001
 
         # Environment properties
-        environment_properties = AirFreeEnvironmentProperties()
+        environment_properties = FEAirFree()
 
         # CPU energy consumption configuration
         #  Dynamic power = dynamic_alpha * F^3 + dynamic_beta
@@ -96,8 +96,8 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
         external_heat_generators = {
             # Dynamic power
             0: create_energy_applicator((core_material,
-                                         LocatedCube(
-                                             location=UnitLocation(x=10, z=2, y=10),
+                                         Cuboid(
+                                             location=Location(x=10, z=2, y=10),
                                              dimensions=core_dimensions)
                                          ),
                                         watts_to_apply=watts_to_apply,
@@ -106,32 +106,32 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
 
             # Leakage power
             1: create_energy_applicator((core_material,
-                                         LocatedCube(
-                                             location=UnitLocation(x=10, z=2, y=10),
+                                         Cuboid(
+                                             location=Location(x=10, z=2, y=10),
                                              dimensions=core_dimensions)
                                          ),
                                         watts_to_apply=leakage_alpha,
                                         cube_edge_size=cube_edge_size
                                         ),
             2: create_energy_applicator((core_material,
-                                         LocatedCube(
-                                             location=UnitLocation(x=30, z=2, y=10),
+                                         Cuboid(
+                                             location=Location(x=30, z=2, y=10),
                                              dimensions=core_dimensions)
                                          ),
                                         watts_to_apply=leakage_alpha,
                                         cube_edge_size=cube_edge_size
                                         ),
             3: create_energy_applicator((core_material,
-                                         LocatedCube(
-                                             location=UnitLocation(x=10, z=2, y=30),
+                                         Cuboid(
+                                             location=Location(x=10, z=2, y=30),
                                              dimensions=core_dimensions)
                                          ),
                                         watts_to_apply=leakage_alpha,
                                         cube_edge_size=cube_edge_size
                                         ),
             4: create_energy_applicator((core_material,
-                                         LocatedCube(
-                                             location=UnitLocation(x=30, z=2, y=30),
+                                         Cuboid(
+                                             location=Location(x=30, z=2, y=30),
                                              dimensions=core_dimensions)
                                          ),
                                         watts_to_apply=leakage_alpha,
@@ -141,30 +141,31 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
 
         # Internal heat generators
         internal_heat_generators = {
-            0: InternalTemperatureBoosterLocatedCube(
-                location=UnitLocation(x=10, z=2, y=10),
-                dimensions=core_dimensions,
+            0: TMInternal(
+                cuboid=Cuboid(
+                    location=Location(x=10, z=2, y=10),
+                    dimensions=core_dimensions),
                 boostRateMultiplier=leakage_delta
             ),
-            1: InternalTemperatureBoosterLocatedCube(
-                location=UnitLocation(x=30, z=2, y=10),
-                dimensions=core_dimensions,
+            1: TMInternal(
+                cuboid=Cuboid(location=Location(x=30, z=2, y=10),
+                              dimensions=core_dimensions),
                 boostRateMultiplier=leakage_delta
             ),
-            2: InternalTemperatureBoosterLocatedCube(
-                location=UnitLocation(x=10, z=2, y=30),
-                dimensions=core_dimensions,
+            2: TMInternal(
+                cuboid=Cuboid(location=Location(x=10, z=2, y=30),
+                              dimensions=core_dimensions),
                 boostRateMultiplier=leakage_delta
             ),
-            3: InternalTemperatureBoosterLocatedCube(
-                location=UnitLocation(x=30, z=2, y=30),
-                dimensions=core_dimensions,
+            3: TMInternal(
+                cuboid=Cuboid(location=Location(x=30, z=2, y=30),
+                              dimensions=core_dimensions),
                 boostRateMultiplier=leakage_delta
             )
         }
 
         # Generate cubed space
-        cubed_space = CubedSpace(
+        cubed_space = Model(
             material_cubes=cpu_definition,
             cube_edge_size=cube_edge_size,
             external_temperature_booster_points=external_heat_generators,
@@ -221,13 +222,13 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
     @unittest.skip("Manual visualization test")
     def test_external_conduction_plot(self):
         # Dimensions of the cubes
-        cubes_dimensions = UnitDimensions(x=4, z=4, y=4)
+        cubes_dimensions = Dimensions(x=4, z=4, y=4)
 
         # Cube 0 material
-        cube_0_material = SiliconSolidMaterial()
+        cube_0_material = SMSilicon()
 
         # Cube 1 material
-        cube_1_material = CooperSolidMaterial()
+        cube_1_material = SMCooper()
 
         # Core initial temperature
         cube_0_initial_temperature = 273.15 + 65
@@ -244,13 +245,13 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
         scene_definition = {
             # Cores
             0: (cube_0_material,
-                LocatedCube(
-                    location=UnitLocation(x=0, z=0, y=0),
+                Cuboid(
+                    location=Location(x=0, z=0, y=0),
                     dimensions=cubes_dimensions)
                 ),
             1: (cube_1_material,
-                LocatedCube(
-                    location=UnitLocation(x=cubes_dimensions.x, z=0, y=0),
+                Cuboid(
+                    location=Location(x=cubes_dimensions.x, z=0, y=0),
                     dimensions=cubes_dimensions)
                 )
         }
@@ -259,9 +260,9 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
         cube_edge_size = 0.001
 
         # Environment properties
-        environment_properties = AirForcedEnvironmentProperties()
+        environment_properties = FEAirForced()
 
-        cubed_space = CubedSpace(
+        cubed_space = Model(
             material_cubes=scene_definition,
             cube_edge_size=cube_edge_size,
             environment_properties=environment_properties,
@@ -332,13 +333,13 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
     @unittest.skip("Manual visualization test")
     def test_external_conduction_plot_2d_3d_animation_generation(self):
         # Dimensions of the cubes
-        cubes_dimensions = UnitDimensions(x=4, z=4, y=4)
+        cubes_dimensions = Dimensions(x=4, z=4, y=4)
 
         # Cube 0 material
-        cube_0_material = SiliconSolidMaterial()
+        cube_0_material = SMSilicon()
 
         # Cube 1 material
-        cube_1_material = CooperSolidMaterial()
+        cube_1_material = SMCooper()
 
         # Core initial temperature
         cube_0_initial_temperature = 273.15 + 65
@@ -355,13 +356,13 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
         scene_definition = {
             # Cores
             0: (cube_0_material,
-                LocatedCube(
-                    location=UnitLocation(x=0, z=0, y=0),
+                Cuboid(
+                    location=Location(x=0, z=0, y=0),
                     dimensions=cubes_dimensions)
                 ),
             1: (cube_1_material,
-                LocatedCube(
-                    location=UnitLocation(x=cubes_dimensions.x, z=0, y=0),
+                Cuboid(
+                    location=Location(x=cubes_dimensions.x, z=0, y=0),
                     dimensions=cubes_dimensions)
                 )
         }
@@ -370,9 +371,9 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
         cube_edge_size = 0.001
 
         # Environment properties
-        environment_properties = AirForcedEnvironmentProperties()
+        environment_properties = FEAirForced()
 
-        cubed_space = CubedSpace(
+        cubed_space = Model(
             material_cubes=scene_definition,
             cube_edge_size=cube_edge_size,
             environment_properties=environment_properties,
@@ -423,10 +424,10 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
     @unittest.skip("Manual visualization test")
     def test_internal_conduction_plot(self):
         # Dimensions of the cubes
-        cubes_dimensions = UnitDimensions(x=2, z=2, y=2)
+        cubes_dimensions = Dimensions(x=2, z=2, y=2)
 
         # Cube 0 material
-        cube_0_material = CooperSolidMaterial()
+        cube_0_material = SMCooper()
 
         # Core initial temperature
         cube_0_initial_temperature = 273.15 + 65
@@ -442,8 +443,8 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
         scene_definition = {
             # Cores
             0: (cube_0_material,
-                LocatedCube(
-                    location=UnitLocation(x=0, z=0, y=0),
+                Cuboid(
+                    location=Location(x=0, z=0, y=0),
                     dimensions=cubes_dimensions)
                 )
         }
@@ -452,9 +453,9 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
         cube_edge_size = 0.001
 
         # Environment properties
-        environment_properties = AirForcedEnvironmentProperties()
+        environment_properties = FEAirForced()
 
-        cubed_space = CubedSpace(
+        cubed_space = Model(
             material_cubes=scene_definition,
             cube_edge_size=cube_edge_size,
             environment_properties=environment_properties,
@@ -524,13 +525,13 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
         number_of_cores = 1
 
         # Dimensions of the core
-        core_dimensions = UnitDimensions(x=10, z=2, y=10)
+        core_dimensions = Dimensions(x=10, z=2, y=10)
 
         # Material of the core
-        core_material = SiliconSolidMaterial()
+        core_material = SMSilicon()
 
         # Material of the board
-        board_material = CooperSolidMaterial()
+        board_material = SMCooper()
 
         # Environment initial temperature
         environment_temperature = 273.15 + system_temperature
@@ -546,16 +547,16 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
         cpu_definition = {
             # Cores
             0: (core_material,
-                LocatedCube(
-                    location=UnitLocation(x=20, z=2, y=10),
+                Cuboid(
+                    location=Location(x=20, z=2, y=10),
                     dimensions=core_dimensions)
                 ),
 
             # Board
             1: (board_material,
-                LocatedCube(
-                    location=UnitLocation(x=0, z=0, y=0),
-                    dimensions=UnitDimensions(x=70, z=2, y=70))
+                Cuboid(
+                    location=Location(x=0, z=0, y=0),
+                    dimensions=Dimensions(x=70, z=2, y=70))
                 )
         }
 
@@ -563,13 +564,13 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
         cube_edge_size = 0.001
 
         # Environment properties
-        environment_properties = AirFreeEnvironmentProperties()
+        environment_properties = FEAirFree()
 
         external_heat_generators_dynamic_power = {
             0: create_energy_applicator((core_material,
-                                         LocatedCube(
-                                             location=UnitLocation(x=20, z=0, y=10),
-                                             dimensions=UnitDimensions(x=10, z=2, y=10))
+                                         Cuboid(
+                                             location=Location(x=20, z=0, y=10),
+                                             dimensions=Dimensions(x=10, z=2, y=10))
                                          ),
                                         watts_to_apply=10,
                                         cube_edge_size=cube_edge_size
@@ -577,7 +578,7 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
         }
 
         # Generate cubed space
-        cubed_space = CubedSpace(
+        cubed_space = Model(
             material_cubes=cpu_definition,
             cube_edge_size=cube_edge_size,
             external_temperature_booster_points=external_heat_generators_dynamic_power,
@@ -591,7 +592,7 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
         )
 
         # Initial temperatures
-        temperature_measures: Dict[float, Dict[int, TemperatureLocatedCube]] = {}
+        temperature_measures: Dict[float, Dict[int, PhysicalCuboid]] = {}
         temperature_over_before_zero_seconds = cubed_space.obtain_temperature(actual_state=initial_state)
 
         temperature_measures[0.0] = temperature_over_before_zero_seconds
@@ -600,8 +601,6 @@ class CubedSpaceThermalSimulatorPlotTest(unittest.TestCase):
 
         # Apply energy over the cubed space
         for i in range(round(major_cycle / simulation_step)):
-            print(f"{i}/ {round(major_cycle / simulation_step)}")
-
             initial_state = cubed_space.apply_energy(actual_state=initial_state,
                                                      external_energy_application_points=
                                                      actual_applied_externally_energy_points,
