@@ -1,9 +1,7 @@
 import unittest
 from typing import Dict
 
-from matplotlib import pyplot as plt
-
-from tertimuss.schedulers._oldtfs import SOLDTFS
+from tertimuss.schedulers.oldtfs import SOLDTFS
 from tertimuss.simulation_lib.simulator import execute_scheduler_simulation_simple, SimulationConfiguration
 from tertimuss.simulation_lib.system_definition import TaskSet, PeriodicTask, PreemptiveExecution, Criticality
 from tertimuss.simulation_lib.system_definition.utils import generate_default_cpu, default_environment_specification
