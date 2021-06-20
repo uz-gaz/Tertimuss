@@ -9,7 +9,8 @@ class UUnifastDiscardTest(unittest.TestCase):
         cpu_frequency = 100
         tasks_deadlines = UniformIntegerDeadlineGenerator.generate(number_of_tasks=10, min_deadline=2, max_deadline=12,
                                                                    major_cycle=24)
-        x = PTGUUniFastDiscard.generate(utilization=4, tasks_deadlines=tasks_deadlines, processor_frequency=cpu_frequency)
+        x = PTGUUniFastDiscard.generate(utilization=4, tasks_deadlines=tasks_deadlines,
+                                        processor_frequency=cpu_frequency)
 
         assert (3.90 <= sum([i.worst_case_execution_time / (i.deadline * cpu_frequency) for i in x]) <= 4)
         assert (all(i.worst_case_execution_time <= i.deadline * cpu_frequency for i in x))
