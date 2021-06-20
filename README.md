@@ -1,7 +1,7 @@
 ![Tertimuss logo](./docs/images/logo/logo_background.svg)
 
 # Tertimuss: Simulation environment for Real-Time Multiprocessor Schedulers
-![Python package](https://github.com/AbelChT/Tertimuss-Dev/workflows/Python%20package/badge.svg)
+![Python package](https://github.com/uz-gaz/Tertimuss/workflows/Python%20package/badge.svg)
 
 Tertimuss is an evaluation tool for real-time multiprocessor schedulers. A user-friendly interface makes the scheduler implementation and evaluation easier. It is primarily designed for tentative design phase of a scheduling algorithm, where some computer architectural restrictions can be obviated.  
 Using Tertimuss you can execute simulations using your own scheduler implementation, or one of the RT multiprocessor schedulers already available in the framework, with a customizable CPU definition as well as a customizable task set. Task sets can be automatically generated using common task generation algorithms.Tertimuss also integrates tools for analyzing and representing simulation results.
