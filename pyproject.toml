@@ -13,4 +13,4 @@ authors = ["AbelChT"]
 python = ">=3.8"
 scipy = "~1.6.2"
 matplotlib = "~3.4.1"
-ortools = "~8.2.8487" # ortools = "7.8.7959"
+ortools = "~8.2.8487"
