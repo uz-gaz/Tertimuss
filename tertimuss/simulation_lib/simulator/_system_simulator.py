@@ -623,7 +623,8 @@ def _execute_centralized_scheduler_simulation(jobs: List[Job],
                     (0 <= i < number_of_cpus for i in jobs_being_executed_id_next.keys())) and all(
                     (i in active_jobs for i in jobs_being_executed_id_next.values())) and (
                                                        cycles_until_next_scheduler_invocation is None or
-                                                       cycles_until_next_scheduler_invocation > 0))
+                                                       cycles_until_next_scheduler_invocation > 0) and (
+                    len(jobs_being_executed_id.values()) == len(set(jobs_being_executed_id.values()))))
 
                 if bad_scheduler_behaviour:
                     exception_message = "Error due to bad scheduler behaviour\n" + \
