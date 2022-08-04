@@ -31,6 +31,7 @@ class SimulationConfiguration:
     scheduler_selections_check: bool = True
     """If false, the system won't check if the tasks returned by the scheduler is on the available task set.
     It won't check if the returned frequency is correct.
+    It won't check if any job execution is being parallelized.
     If you are sure that your scheduler have a good behaviour, turning it off can reduce the simulation time"""
 
     # Thermal options specification
