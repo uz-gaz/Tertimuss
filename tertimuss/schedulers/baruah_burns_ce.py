@@ -3,7 +3,7 @@ This module provides the following class:
 - :class:`SBaruahBurnsCE`
 """
 
-from typing import List, Optional, Tuple, Dict, Set
+from typing import List, Optional, Tuple, Dict, Set, Union
 
 from ortools.linear_solver import pywraplp
 
@@ -28,17 +28,23 @@ class SBaruahBurnsCE(CentralizedScheduler):
         Calvin Deutschbein, Tom Fleming, Alan Burns, Sanjoy Baruah
     """
 
-    def __init__(self, activate_debug: bool, preemptive_ce: bool) -> None:
+    def __init__(self, activate_debug: bool, preemptive_ce: bool, use_mcnaughton_rule: bool = False) -> None:
         """
         Create an scheduler instance
 
         :param activate_debug:  True if want to communicate the scheduler to be in debug mode
         :param preemptive_ce: True if preemption is allowed in the schedule
+        :param use_mcnaughton_rule: True if, when preemption is not allowed, want to use the McNaughton's rule for assigning
+                                    the cores instead of directly using the assignation specified in the LPP solution
+
+                                    NOTE: if preemptive_ce is True, this value is ignored (because only McNaughton's rule can
+                                    be used for the assignation)
         """
         super().__init__(activate_debug)
 
         # Scheduling behaviour (all of them are booleans)
         self.preemptive_ce: bool = preemptive_ce
+        self.use_mcnaughton_rule: bool = use_mcnaughton_rule
 
         # Problem related variables (all of them are integers)
         self.N: int = None
@@ -71,12 +77,16 @@ class SBaruahBurnsCE(CentralizedScheduler):
         only_0_phase = all(i.phase is None or i.phase == 0 for i in task_set.periodic_tasks)
         only_periodic_tasks = len(task_set.sporadic_tasks) + len(task_set.aperiodic_tasks) == 0
         only_implicit_deadline = all(i.relative_deadline == i.period for i in task_set.periodic_tasks)
+        # Only exact values are allowed for the periods of the tasks
+        only_exact_period_values = all(task.period.is_integer() for task in task_set.periodic_tasks)
 
         # NOTE: the LPP feasibility can only be verified by attempting to resolve it, so that checking is deferred until the
         # offline stage
 
         if not (only_0_phase and only_periodic_tasks and only_implicit_deadline):
             return False, "Error: Only implicit deadline, 0 phase periodic tasks are allowed"
+        elif not only_exact_period_values:
+            return False, "Error: Only exact period values are allowed. In order to get them, use submultiples of the time units and consider that it will directly affect to the frequency units of the results"
 
         # --------------------------------
         # All tests passed
@@ -147,7 +157,8 @@ class SBaruahBurnsCE(CentralizedScheduler):
         # Discretize the continuos values obtained from the LP solution
         jobs_execution_in_frame, f_discretized = (self.accumulate_discretize_lp_solution(jobs, jobs_in_frame, x, f)
                                                   if self.preemptive_ce
-                                                  else self.just_discretize_lp_solution(jobs, jobs_in_frame, x, f))
+                                                  else self.just_discretize_lp_solution(jobs, jobs_in_frame, x, f,
+                                                                                        not self.use_mcnaughton_rule))
 
         # --------------------------------
         # Obtain the CPUs frequency value using the discretized value of f
@@ -176,8 +187,8 @@ class SBaruahBurnsCE(CentralizedScheduler):
         # --------------------------------
         # Apply McNaughton's rule (preemptive case) or obtain the schedule directly (no-preemptive case) depending on the
         # preemption model which was specified
-        self.scheduling_points, self.cycles_to_sleep = (self.mcnaughton_assignation(jobs_execution_in_frame, f_frequency_compliant)
-                                                        if self.preemptive_ce
+        self.scheduling_points, self.cycles_to_sleep = (self.mcnaughton_assignation(jobs_execution_in_frame, f_frequency_compliant, self.preemptive_ce)
+                                                        if self.preemptive_ce or self.use_mcnaughton_rule
                                                         else self.direct_assignation(jobs_execution_in_frame, f_frequency_compliant))
 
         # Return the frequency used to obtain the scheduling points
@@ -475,11 +486,11 @@ class SBaruahBurnsCE(CentralizedScheduler):
 
     # -----------------------------------------------------------------
     def just_discretize_lp_solution(self, jobs: List[Job], jobs_in_frame: Dict[int, Set[int]],
-                                    x: Dict[Tuple[int, int, int], float], f: float) \
-            -> Tuple[List[Dict[int, List[Tuple[int, int]]]], int]:
+                                    x: Dict[Tuple[int, int, int], float], f: float, keep_cores_assignation: bool) \
+            -> Tuple[Union[List[Dict[int, List[Tuple[int, int]]]], List[Dict[int, int]]], int]:
         """
-        Discretizes the amount of execution assigned to each job during each frame in the LP solution, keeping also the core
-        number to which they were assigned
+        Discretizes the amount of execution assigned to each job during each frame in the LP solution, and allows keeping also
+        the core number to which they were assigned
 
         NOTE: this method will only be invoked for no-preemptive cyclic executives
 
@@ -487,48 +498,68 @@ class SBaruahBurnsCE(CentralizedScheduler):
         :param jobs_in_frame: dictionary which associates each frame with the jobs active in it
         :param x: a dictionary which associates to an integer tuple (i,j,k) the x_ijk LP variable's value in the solution
         :param f: the f LP variable's value in the solution
-        :return: 1 -> a list of dictionaries, one per each frame. Each dictionary has as keys the available cores, and as value
+        :param keep_cores_assignation: True if want to keep the core number to which each job was assigned in the LPP solution
+        :return: 1 -> if keep_cores_assignation is True:
+                      a list of dictionaries, one per each frame. Each dictionary has as keys the available cores, and as value
                       a list of tuples; the first element of the tuple is a number of job which will be executed in that core
                       during that frame, and the second is the discretized amount of execution which that job has assigned
                       (which will be the whole execution of the job, because preemption is not allowed)
+                      otherwise:
+                      a list of dictionaries, one per each frame. Each dictionary has as keys the jobs identifiers which must
+                      be executed in that frame, and as value the discretized amount of execution which each one has assigned
+
+                      NOTE: if keep_cores_assignation is False, the return type is exactly the same than the
+                      "accumulate_discretize_lp_solution" method's, and their values are exchangables
                  2 -> the result of discretizing the value of the f variable of the LP
         """
 
         f_discretized = math.ceil(f)  # f should be already an exact value
-        jobs_execution_in_frame: List[Dict[int, List[Tuple[int, int]]]] = [{core: list()
-                                                                            for core in range(self.m)}
-                                                                           for frame in range(self.number_of_frames)]
+        if keep_cores_assignation:
+            jobs_execution_in_frame: List[Dict[int, List[Tuple[int, int]]]] = [{core: list()
+                                                                                for core in range(self.m)}
+                                                                               for frame in range(self.number_of_frames)]
+        else:
+            jobs_execution_in_frame: List[Dict[int, int]] = [dict() for frame in range(self.number_of_frames)]
 
         for frame in range(self.number_of_frames):
             for core in range(self.m):
-                jobs_execution: List[Tuple[int, int]] = list()
+                if keep_cores_assignation:
+                    jobs_execution: List[Tuple[int, int]] = list()
                 for job in jobs_in_frame[frame]:
                     if x[(job, core, frame)]:
-                        jobs_execution.append((job, jobs[job].execution_time))
-                jobs_execution_in_frame[frame][core] = jobs_execution
+                        if keep_cores_assignation:
+                            jobs_execution.append((job, jobs[job].execution_time))
+                        else:
+                            jobs_execution_in_frame[frame][job] = jobs[job].execution_time
+                if keep_cores_assignation:
+                    jobs_execution_in_frame[frame][core] = jobs_execution
 
         # <DEBUG>
         if self.is_debug:
             print("f :\t current = ", f_discretized, ",\t original = ", f, sep='')
             print("---------------------------------------")
-            self.__print_lp_solution_after_discretization(jobs_execution_in_frame, f_discretized)
+            if keep_cores_assignation:
+                self.__print_lp_solution_after_discretization(jobs_execution_in_frame, f_discretized)
+            else:
+                self.__print_lp_solution_after_accumulation_discretization(jobs_execution_in_frame, f_discretized)
         # </DEBUG>
 
         return jobs_execution_in_frame, f_discretized
 
     # -----------------------------------------------------------------
-    def mcnaughton_assignation(self, jobs_execution_in_frame: List[Dict[int, int]], f: int) \
+    def mcnaughton_assignation(self, jobs_execution_in_frame: List[Dict[int, int]], f: int, preemption_allowed: bool) \
             -> Tuple[Dict[int, Dict[int, int]], Dict[int, int]]:
         """
         Calculates the scheduling points and the amount of cycles that the scheduler must sleep between them, using for it the
         McNaughton's rule over the amount of execution assigned to each job during each frame
 
-        NOTE: this method will only be invoked for preemptive cyclic executives
+        NOTE: this method will be invoked for both preemptive and no-preemptive cyclic executives
 
         :param jobs_execution_in_frame: a list of dictionaries, one per each frame. Each dictionary has as keys the jobs
                                         identifiers which must be executed in that frame, and as value the discretized amount
                                         of execution which each one has assigned
         :param f: the result of discretizing the value of the f variable of the LP
+        :param preemption_allowed: True if job's execution can be splitted between multiple cores during the frame
         :return: 1 -> the scheduling points (a dictionary which has as key the number of cycle in the hyper-period and as
                       value another dictionary which has as key the number of core and as value the identifier of the job
                       which has to be executed there until the next scheduling point)
@@ -557,15 +588,21 @@ class SBaruahBurnsCE(CentralizedScheduler):
             for job, job_execution in jobs_execution.items():
                 # Check whether the job fits into the core
                 if frame_ending - assignation_border < job_execution:
-                    # As preemtion is allowed, the job's execution is splited between the current processor and the following
                     if assignation_border not in scheduling_points:
                         scheduling_points[assignation_border] = {}
-                    scheduling_points[assignation_border][assignation_processor] = job
-                    if frame_ending not in scheduling_points:
-                        scheduling_points[frame_ending] = {}
-                    scheduling_points[frame_ending][assignation_processor] = None  # necessary for knowing that the core is left empty
+                    # If preemtion is allowed, the job's execution is splited between the current processor and the following
+                    if preemption_allowed:
+                        scheduling_points[assignation_border][assignation_processor] = job
+                        if frame_ending not in scheduling_points:
+                            scheduling_points[frame_ending] = {}
+                        scheduling_points[frame_ending][assignation_processor] = None  # necessary for knowing that the core is left empty
+                    # If preemtion is not allowed, the job's execution is entirely deferred to the following processor
+                    else:
+                        scheduling_points[assignation_border][assignation_processor] = None  # necessary for knowing that the core is left empty
                     # Update the assignation variables properly
-                    job_execution -= (frame_ending - assignation_border)
+                    if preemption_allowed:
+                        # Job execution only must be updated if its execution has been splitted
+                        job_execution -= (frame_ending - assignation_border)
                     assignation_border = frame_beginning
                     assignation_processor += 1
                 # The job fits into the current processor
