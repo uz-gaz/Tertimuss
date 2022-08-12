@@ -709,6 +709,11 @@ class SBaruahBurnsCE(CentralizedScheduler):
         # scheduler has to sleep until its next activation
         cycles_to_sleep: Dict[int, int] = {}
 
+        # Add a first scheduling point at major cycle's start if it doesn't exist
+        if 0 not in scheduling_points:
+            # Just keep empties all the cores
+            scheduling_points[0] = {core: None for core in range(self.m)}
+
         # Obtain a list with the scheduling points sorted in increasing order
         scheduling_points_cycles = sorted(scheduling_points.keys())
 
@@ -720,8 +725,7 @@ class SBaruahBurnsCE(CentralizedScheduler):
                 # Assign no job to the core
                 scheduling_points[point][core] = None
         # # Complete the rest of the scheduling points taking the previous as reference
-        for index in range(1, len(scheduling_points_cycles)):
-            point = scheduling_points_cycles[index]
+        for index, point in enumerate(scheduling_points_cycles[1:], start=1):
             for core in range(self.m):
                 if core not in scheduling_points[point]:
                     # Assign the same job which was assigned to this core in the previous scheduling point
@@ -745,9 +749,9 @@ class SBaruahBurnsCE(CentralizedScheduler):
         # Make the last cycle's sleep time Tertimuss-compatible, assigning None to it. This way, the next invocation of the
         # "schedule_policy" will be made by "on_major_cycle_start"
         if f * self.number_of_frames in scheduling_points_cycles:
-            cycles_to_sleep[scheduling_points_cycles[-2]] = None
-        else:
-            cycles_to_sleep[scheduling_points_cycles[-1]] = None
+            assert(scheduling_points_cycles.index(f * self.number_of_frames) == len(scheduling_points_cycles) - 1)
+            scheduling_points_cycles.pop()  # delete the last element of the list
+        cycles_to_sleep[scheduling_points_cycles[-1]] = None
 
         # Make the scheduling points Tertimuss-compatible, deleting from them the CPUs which have None as job assigned
         for point in scheduling_points:
@@ -762,6 +766,28 @@ class SBaruahBurnsCE(CentralizedScheduler):
             print("---------------------------------------")
             self.__print_cycles_to_sleep(cycles_to_sleep)
         # </DEBUG>
+
+        # <HARDCODED>
+        # NOTE: at this point, the scheduling points and the number of cycles to sleep between them are well calculated.
+        # Nevertheless, due to simulator's behaviour, when there are no active jobs (it means, either there wasn't any
+        # activation of the tasks or the currently active jobs's execution has been completed) the scheduler_policy method
+        # won't be invoked by the simulator despite of having indicated it
+        # The solution found is removing the scheduling points which consist of leaving all the cores empty, so that the
+        # scheduler intervention is deferred until the following calculated scheduling point. By doing it, in the no-preemptive
+        # case, the scenario exposed before is prevented, because that's the case in which there are no active jobs and it
+        # exists an scheduling point which won't be invoked. Nevertheless, that can't be ensured for the preemptive case, as a
+        # scheduling point which leaves the cores empty could just be deferring a part a currently active job's execution for a
+        # following frame
+        if not self.preemptive_ce:
+            for index, point in enumerate(scheduling_points_cycles[1:], start=1):
+                if not scheduling_points[point]:  # check whether assignation is leaving all the cores empty
+                    # Remove that scheduling point
+                    scheduling_points.pop(point)
+                    # Update the number of cycles to sleep of the previous scheduling point
+                    previous_point = scheduling_points_cycles[index-1]
+                    cycles_to_sleep[previous_point] += cycles_to_sleep[point] if cycles_to_sleep[point] is not None else 0
+                    cycles_to_sleep.pop(point)
+        # </HARDCODED>
 
         return cycles_to_sleep
 

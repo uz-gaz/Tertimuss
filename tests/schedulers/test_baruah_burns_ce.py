@@ -1438,6 +1438,246 @@ class BaruahBurnsCETest(unittest.TestCase):
         assert simulation_result.hard_real_time_deadline_missed_stack_trace is None
 
     # --------------------------------------------------------------------------
+    # Existing scheduling point but no schedule_policy invocation because there are no active jobs
+
+    def test_artifacts_experiment0_nonpreemptive(self):
+        '''
+        - Preemption model:
+            no preemptive (LPP solution for cores assignation)
+        - Number of cores:
+            2
+        - Available frequencies (Hz):
+            1000
+        - Task set:
+            Task 0 : period = 15.0, WCET =  5130
+	        Task 1 : period = 10.0, WCET =  4180
+	        Task 2 : period =  3.0, WCET =  1227
+	        Task 3 : period =  3.0, WCET =   411
+	        Task 4 : period = 10.0, WCET =  1070
+	        Task 5 : period = 60.0, WCET = 10080
+	        Task 6 : period =  1.0, WCET =   316
+	        Task 7 : period = 60.0, WCET =  6180
+        - Commentaries for this test:
+            In the frame 39, after executing all the jobs assigned (jobs 96 and 23), it exists an scheduling point in which all
+            the cores must be left empty. Nevertheless, as there are no active jobs, the simulator will miss the invocation to
+            the scheduler, so that scheduling point must be supressed of the list in order the simulation to work as expected
+
+            NOTE: the task set used in this test has been obtained from the first experiment of the artifacts of the paper
+            "Accounting for Preemption and Migration Costs in the Calculation of Hard Real-Time Cyclic Executives for MPSoCs",
+            which can be found here https://ieeexplore.ieee.org/document/9807417
+        '''
+        periodic_tasks = [
+            create_implicit_deadline_periodic_task_h_rt(0, 5130, 15.0),
+            create_implicit_deadline_periodic_task_h_rt(1, 4180, 10.0),
+            create_implicit_deadline_periodic_task_h_rt(2, 1227, 3.0),
+            create_implicit_deadline_periodic_task_h_rt(3, 411, 3.0),
+            create_implicit_deadline_periodic_task_h_rt(4, 1070, 10.0),
+            create_implicit_deadline_periodic_task_h_rt(5, 10080, 60.0),
+            create_implicit_deadline_periodic_task_h_rt(6, 316, 1.0),
+            create_implicit_deadline_periodic_task_h_rt(7, 6180, 60.0)
+        ]
+
+        number_of_cores = 2
+        available_frequencies = {1000, 10080}
+
+        simulation_result, periodic_jobs, major_cycle = execute_scheduler_simulation_simple(
+            tasks=TaskSet(
+                periodic_tasks=periodic_tasks,
+                aperiodic_tasks=[],
+                sporadic_tasks=[]
+            ),
+            aperiodic_tasks_jobs=[],
+            sporadic_tasks_jobs=[],
+            processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
+            environment_specification=default_environment_specification(),
+            simulation_options=SimulationConfiguration(id_debug=True),
+            scheduler=SBaruahBurnsCE(activate_debug=True, preemptive_ce=False)
+        )
+
+        # Correct execution
+        assert simulation_result.have_been_scheduled
+        assert simulation_result.hard_real_time_deadline_missed_stack_trace is None
+
+    # -------------------------------------
+    def test_artifacts_experiment0_nonpreemptive_mcnaughton(self):
+        '''
+        - Preemption model:
+            no preemptive (McNaugthon's rule for cores assignation)
+        - Number of cores:
+            2
+        - Available frequencies (Hz):
+            1000
+        - Task set:
+            Task 0 : period = 15.0, WCET =  5130
+	        Task 1 : period = 10.0, WCET =  4180
+	        Task 2 : period =  3.0, WCET =  1227
+	        Task 3 : period =  3.0, WCET =   411
+	        Task 4 : period = 10.0, WCET =  1070
+	        Task 5 : period = 60.0, WCET = 10080
+	        Task 6 : period =  1.0, WCET =   316
+	        Task 7 : period = 60.0, WCET =  6180
+        - Commentaries for this test:
+            In the frame 39, after executing all the jobs assigned (jobs 96 and 23), it exists an scheduling point in which all
+            the cores must be left empty. Nevertheless, as there are no active jobs, the simulator will miss the invocation to
+            the scheduler, so that scheduling point must be supressed of the list in order the simulation to work as expected
+
+            NOTE: the task set used in this test has been obtained from the first experiment of the artifacts of the paper
+            "Accounting for Preemption and Migration Costs in the Calculation of Hard Real-Time Cyclic Executives for MPSoCs",
+            which can be found here https://ieeexplore.ieee.org/document/9807417
+        '''
+        periodic_tasks = [
+            create_implicit_deadline_periodic_task_h_rt(0, 5130, 15.0),
+            create_implicit_deadline_periodic_task_h_rt(1, 4180, 10.0),
+            create_implicit_deadline_periodic_task_h_rt(2, 1227, 3.0),
+            create_implicit_deadline_periodic_task_h_rt(3, 411, 3.0),
+            create_implicit_deadline_periodic_task_h_rt(4, 1070, 10.0),
+            create_implicit_deadline_periodic_task_h_rt(5, 10080, 60.0),
+            create_implicit_deadline_periodic_task_h_rt(6, 316, 1.0),
+            create_implicit_deadline_periodic_task_h_rt(7, 6180, 60.0)
+        ]
+
+        number_of_cores = 2
+        available_frequencies = {1000, 10080}
+
+        simulation_result, periodic_jobs, major_cycle = execute_scheduler_simulation_simple(
+            tasks=TaskSet(
+                periodic_tasks=periodic_tasks,
+                aperiodic_tasks=[],
+                sporadic_tasks=[]
+            ),
+            aperiodic_tasks_jobs=[],
+            sporadic_tasks_jobs=[],
+            processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
+            environment_specification=default_environment_specification(),
+            simulation_options=SimulationConfiguration(id_debug=True),
+            scheduler=SBaruahBurnsCE(activate_debug=True, preemptive_ce=False, use_mcnaughton_rule=True)
+        )
+
+        # Correct execution
+        assert simulation_result.have_been_scheduled
+        assert simulation_result.hard_real_time_deadline_missed_stack_trace is None
+
+    # --------------------------------------------------------------------------
+    # No scheduling point at major cycle start
+
+    def test_artifacts_experiment6_nonpreemptive(self):
+        '''
+        - Preemption model:
+            no preemptive (LPP solution for cores assignation)
+        - Number of cores:
+            2
+        - Available frequencies (Hz):
+            1000
+        - Task set:
+        	Task 0 : period = 12.0, WCET = 4812
+	        Task 1 : period = 15.0, WCET = 8445
+	        Task 2 : period = 20.0, WCET = 4820
+	        Task 3 : period = 30.0, WCET = 1500
+	        Task 4 : period = 15.0, WCET =  675
+	        Task 5 : period = 15.0, WCET = 6045
+	        Task 6 : period =  2.0, WCET =  322
+	        Task 7 : period = 15.0, WCET = 2040
+        - Commentaries for this test:
+            In the frame 0, there is no execution asssigned for any of the jobs, so that the first scheduling point does not
+            match the starting of the major cycle. That's why it must be explicitly added an scheduling point at cycle 0 in
+            order the simulation to work as expected
+
+            NOTE: the task set used in this test has been obtained from the seventh experiment of the artifacts of the paper
+            "Accounting for Preemption and Migration Costs in the Calculation of Hard Real-Time Cyclic Executives for MPSoCs",
+            which can be found here https://ieeexplore.ieee.org/document/9807417
+        '''
+        periodic_tasks = [
+            create_implicit_deadline_periodic_task_h_rt(0, 4812, 12.0),
+            create_implicit_deadline_periodic_task_h_rt(1, 8445, 15.0),
+            create_implicit_deadline_periodic_task_h_rt(2, 4820, 20.0),
+            create_implicit_deadline_periodic_task_h_rt(3, 1500, 30.0),
+            create_implicit_deadline_periodic_task_h_rt(4, 675, 15.0),
+            create_implicit_deadline_periodic_task_h_rt(5, 6045, 15.0),
+            create_implicit_deadline_periodic_task_h_rt(6, 322, 2.0),
+            create_implicit_deadline_periodic_task_h_rt(7, 2040, 15.0)
+        ]
+
+        number_of_cores = 2
+        available_frequencies = {1000, 8445}
+
+        simulation_result, periodic_jobs, major_cycle = execute_scheduler_simulation_simple(
+            tasks=TaskSet(
+                periodic_tasks=periodic_tasks,
+                aperiodic_tasks=[],
+                sporadic_tasks=[]
+            ),
+            aperiodic_tasks_jobs=[],
+            sporadic_tasks_jobs=[],
+            processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
+            environment_specification=default_environment_specification(),
+            simulation_options=SimulationConfiguration(id_debug=True),
+            scheduler=SBaruahBurnsCE(activate_debug=True, preemptive_ce=False)
+        )
+
+        # Correct execution
+        assert simulation_result.have_been_scheduled
+        assert simulation_result.hard_real_time_deadline_missed_stack_trace is None
+
+    # -------------------------------------
+    def test_artifacts_experiment6_nonpreemptive_mcnaughton(self):
+        '''
+        - Preemption model:
+            no preemptive (McNaugthon's rule for cores assignation)
+        - Number of cores:
+            2
+        - Available frequencies (Hz):
+            1000
+        - Task set:
+        	Task 0 : period = 12.0, WCET = 4812
+	        Task 1 : period = 15.0, WCET = 8445
+	        Task 2 : period = 20.0, WCET = 4820
+	        Task 3 : period = 30.0, WCET = 1500
+	        Task 4 : period = 15.0, WCET =  675
+	        Task 5 : period = 15.0, WCET = 6045
+	        Task 6 : period =  2.0, WCET =  322
+	        Task 7 : period = 15.0, WCET = 2040
+        - Commentaries for this test:
+            In the frame 0, there is no execution asssigned for any of the jobs, so that the first scheduling point does not
+            match the starting of the major cycle. That's why it must be explicitly added an scheduling point at cycle 0 in
+            order the simulation to work as expected
+
+            NOTE: the task set used in this test has been obtained from the seventh experiment of the artifacts of the paper
+            "Accounting for Preemption and Migration Costs in the Calculation of Hard Real-Time Cyclic Executives for MPSoCs",
+            which can be found here https://ieeexplore.ieee.org/document/9807417
+        '''
+        periodic_tasks = [
+            create_implicit_deadline_periodic_task_h_rt(0, 4812, 12.0),
+            create_implicit_deadline_periodic_task_h_rt(1, 8445, 15.0),
+            create_implicit_deadline_periodic_task_h_rt(2, 4820, 20.0),
+            create_implicit_deadline_periodic_task_h_rt(3, 1500, 30.0),
+            create_implicit_deadline_periodic_task_h_rt(4, 675, 15.0),
+            create_implicit_deadline_periodic_task_h_rt(5, 6045, 15.0),
+            create_implicit_deadline_periodic_task_h_rt(6, 322, 2.0),
+            create_implicit_deadline_periodic_task_h_rt(7, 2040, 15.0)
+        ]
+
+        number_of_cores = 2
+        available_frequencies = {1000, 8445}
+
+        simulation_result, periodic_jobs, major_cycle = execute_scheduler_simulation_simple(
+            tasks=TaskSet(
+                periodic_tasks=periodic_tasks,
+                aperiodic_tasks=[],
+                sporadic_tasks=[]
+            ),
+            aperiodic_tasks_jobs=[],
+            sporadic_tasks_jobs=[],
+            processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
+            environment_specification=default_environment_specification(),
+            simulation_options=SimulationConfiguration(id_debug=True),
+            scheduler=SBaruahBurnsCE(activate_debug=True, preemptive_ce=False, use_mcnaughton_rule=True)
+        )
+
+        # Correct execution
+        assert simulation_result.have_been_scheduled
+        assert simulation_result.hard_real_time_deadline_missed_stack_trace is None
+
+    # --------------------------------------------------------------------------
     # Available frequencies are insufficient (the minimal necessary is greater)
 
     def test_nonpreemptive_insufficient_frequency(self):
