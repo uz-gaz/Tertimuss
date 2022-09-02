@@ -6,6 +6,8 @@ This module provides the following class:
 from typing import List, Optional, Tuple, Dict, Set, Union
 
 from ortools.linear_solver import pywraplp
+import ortools
+from packaging import version
 
 import time
 import math
@@ -45,6 +47,9 @@ class SBaruahBurnsCE(CentralizedScheduler):
         # Scheduling behaviour (all of them are booleans)
         self.preemptive_ce: bool = preemptive_ce
         self.use_mcnaughton_rule: bool = use_mcnaughton_rule
+        # # Gurobi backend can only be used from ortools if it's natively installed in your system. For further information,
+        # # please refer to the following guides: https://www.gurobi.com/documentation/quickstart.html
+        self.use_gurobi_solvers: bool = False  # by default, the Google solvers included in ortools are used
 
         # Problem related variables (all of them are integers)
         self.N: int = None
@@ -302,7 +307,19 @@ class SBaruahBurnsCE(CentralizedScheduler):
         # LP PROBLEM DEFINITION
 
         # Create the linear solver with the proper backend
-        solver = pywraplp.Solver.CreateSolver('GLOP') if self.preemptive_ce else pywraplp.Solver.CreateSolver('SCIP')
+        solver = ((pywraplp.Solver.CreateSolver('GUROBI_LP') if self.preemptive_ce else pywraplp.Solver.CreateSolver('GUROBI_MIP'))
+                  if self.use_gurobi_solvers
+                  else (pywraplp.Solver.CreateSolver('GLOP') if self.preemptive_ce else pywraplp.Solver.CreateSolver('SCIP')))
+
+        # Check whether ortools was able to find the Gurobi solvers
+        if self.use_gurobi_solvers and solver is None:
+            print("Error on scheduler's offline stage: unable to use the Gurobi solvers. ", end='')
+            # Consider the version of ortools as a possible cause of the error (https://github.com/google/or-tools/issues/3293)
+            if version.parse(ortools.__version__) < version.parse('9.4'):
+                print("Updating 'ortools' to a version greater or equal than 9.4 might solve the problem")
+            else:
+                print("Please, check your Gurobi installation")
+            assert(False)
 
         # ----------------------
         # Declare the variables
