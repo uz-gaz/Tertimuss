@@ -6,7 +6,8 @@ from tertimuss.simulation_lib.simulator import execute_scheduler_simulation_simp
 from tertimuss.simulation_lib.system_definition import PeriodicTask, PreemptiveExecution, Criticality, AperiodicTask, \
     TaskSet, Job
 from tertimuss.simulation_lib.system_definition.utils import generate_default_cpu, default_environment_specification
-from tertimuss.visualization import generate_task_execution_plot, generate_job_execution_plot
+from tertimuss.visualization import generate_task_execution_plot, generate_job_execution_plot, \
+    generate_task_assignation_plot, generate_job_assignation_plot
 
 
 class GettingStartedTest(unittest.TestCase):
@@ -100,6 +101,12 @@ class GettingStartedTest(unittest.TestCase):
                                            outline_boxes=True)
         # fig.savefig("task_execution.svg")
 
+        # Display tasks assignation
+        fig = generate_task_assignation_plot(task_set=task_set, schedule_result=simulation_result,
+                                             title="Task assignation",
+                                             outline_boxes=True)
+        # fig.savefig("task_assignation.svg")
+
         # Obtain tasks to jobs association
         periodic_tasks_jobs_association = [(i.task.identifier, i.identifier) for i in periodic_jobs]
         # print(periodic_tasks_jobs_association)
@@ -107,9 +114,16 @@ class GettingStartedTest(unittest.TestCase):
         # Display jobs execution
         fig = generate_job_execution_plot(task_set=task_set, schedule_result=simulation_result,
                                           jobs=periodic_jobs + aperiodic_jobs,
-                                          title="Task execution",
+                                          title="Jobs execution",
                                           outline_boxes=True)
         # fig.savefig("jobs_execution.svg")
+
+        # Display jobs assignation
+        fig = generate_job_assignation_plot(task_set=task_set, schedule_result=simulation_result,
+                                            jobs=periodic_jobs + aperiodic_jobs,
+                                            title="Jobs assignation",
+                                            outline_boxes=True)
+        # fig.savefig("jobs_assignation.svg")
 
         # Obtain migrations and preemption metrics
         migration_preemption_metrics = obtain_preemptions_migrations_analysis(task_set=task_set,

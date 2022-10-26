@@ -201,7 +201,7 @@ As we did before for the tasks, we can plot the assignment of jobs to the CPU co
 # Display jobs assignation
 fig = generate_job_assignation_plot(task_set=task_set, schedule_result=simulation_result,
                                     jobs=periodic_jobs + aperiodic_jobs,
-                                    title="Jobs execution",
+                                    title="Jobs assignation",
                                     outline_boxes=True)
 fig.show()
 ```
