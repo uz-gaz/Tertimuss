@@ -114,7 +114,7 @@ from tertimuss.schedulers.g_edf import SGEDF
 from tertimuss.simulation_lib.simulator import execute_scheduler_simulation_simple, SimulationConfiguration
 from tertimuss.simulation_lib.system_definition import PeriodicTask, PreemptiveExecution, Criticality, AperiodicTask, TaskSet, Job
 from tertimuss.simulation_lib.system_definition.utils import generate_default_cpu, default_environment_specification
-from tertimuss.visualization import generate_task_execution_plot, generate_job_execution_plot
+from tertimuss.visualization import generate_task_execution_plot, generate_job_execution_plot, generate_task_assignation_plot, generate_job_assignation_plot
 ```
 
 We simulate the behavior of __Global Earliest Deadline First__ scheduler over one major cycle with the following code chunk:
@@ -127,8 +127,8 @@ simulation_result, periodic_jobs, major_cycle = execute_scheduler_simulation_sim
     sporadic_tasks_jobs=[],
     processor_definition=cpu_specification,
     environment_specification=default_environment_specification(),
-    simulation_options=SimulationOptionsSpecification(id_debug=False),
-    scheduler=GEDFScheduler(activate_debug=False)
+    simulation_options=SimulationConfiguration(id_debug=False),
+    scheduler=SGEDF(activate_debug=False)
 )
 ```
 
@@ -152,6 +152,18 @@ fig.show()
 
 ![Task execution example](../images/tutorials/getting_started/task_execution.svg)
 
+We can also plot the assignment of tasks to the CPU cores by the following way:
+
+```python
+# Display tasks assignation
+fig = generate_task_assignation_plot(task_set=task_set, schedule_result=simulation_result,
+                                     title="Task assignation",
+                                     outline_boxes=True)
+fig.show()
+```
+
+![Task assignation example](../images/tutorials/getting_started/task_assignation.svg)
+
 Then we obtain the jobs to tasks association:
 
 ```python
@@ -174,7 +186,7 @@ And display the execution of the jobs:
 # Display jobs execution
 fig = generate_job_execution_plot(task_set=task_set, schedule_result=simulation_result,
                                   jobs=periodic_jobs + aperiodic_jobs,
-                                  title="Task execution",
+                                  title="Jobs execution",
                                   outline_boxes=True)
 fig.show()
 ```
@@ -182,6 +194,19 @@ fig.show()
 ![Jobs execution example](../images/tutorials/getting_started/jobs_execution.svg)
 
 We can see that Job 5 has a preemption after the first second of execution.
+
+As we did before for the tasks, we can plot the assignment of jobs to the CPU cores:
+
+```python
+# Display jobs assignation
+fig = generate_job_assignation_plot(task_set=task_set, schedule_result=simulation_result,
+                                    jobs=periodic_jobs + aperiodic_jobs,
+                                    title="Jobs assignation",
+                                    outline_boxes=True)
+fig.show()
+```
+
+![Jobs assignation example](../images/tutorials/getting_started/jobs_assignation.svg)
 
 Then, we can obtain the number of preemptions of each job:
 ```python
