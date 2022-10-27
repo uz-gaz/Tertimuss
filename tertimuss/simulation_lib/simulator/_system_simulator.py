@@ -31,8 +31,10 @@ class SimulationConfiguration:
     scheduler_selections_check: bool = True
     """If false, the system won't check if the tasks returned by the scheduler is on the available task set.
     It won't check if the returned frequency is correct.
-    It won't check if any job execution is being parallelized.
     If you are sure that your scheduler have a good behaviour, turning it off can reduce the simulation time"""
+
+    nonparallelization_check: bool = False
+    """If true, the system will check if any job execution is being parallelized."""
 
     # Thermal options specification
     thermal_simulation_type: Literal["DVFS", "TASK_CONSUMPTION_MEASURED"] = "DVFS"
@@ -619,16 +621,30 @@ def _execute_centralized_scheduler_simulation(jobs: List[Job],
                 cores_frequency_next = cpu_frequency
 
             # Scheduler result checks
+            # # Check if the tasks returned by the scheduler is on the available task set
             if simulation_options.scheduler_selections_check:
                 bad_scheduler_behaviour = not (available_frequencies.__contains__(cores_frequency_next) and all(
                     (0 <= i < number_of_cpus for i in jobs_being_executed_id_next.keys())) and all(
                     (i in active_jobs for i in jobs_being_executed_id_next.values())) and (
                                                        cycles_until_next_scheduler_invocation is None or
-                                                       cycles_until_next_scheduler_invocation > 0) and (
-                    len(jobs_being_executed_id.values()) == len(set(jobs_being_executed_id.values()))))
+                                                       cycles_until_next_scheduler_invocation > 0))
 
                 if bad_scheduler_behaviour:
                     exception_message = "Error due to bad scheduler behaviour\n" + \
+                                        "\t Jobs to CPU assignation: " + str(jobs_being_executed_id_next) + "\n" + \
+                                        "\t Active jobs: " + str(active_jobs) + "\n" + \
+                                        "\t Selected frequency: " + str(cores_frequency_next) + "\n" + \
+                                        "\t Available frequencies: " + \
+                                        str(available_frequencies) + "\n" + \
+                                        "\t Actual time: " + str(actual_time_seconds)
+                    raise Exception(exception_message)
+
+            # # Check if any job execution is being parallelized
+            if simulation_options.nonparallelization_check:
+                parallelized_jobs = len(jobs_being_executed_id_next.values()) != len(set(jobs_being_executed_id_next.values()))
+
+                if parallelized_jobs:
+                    exception_message = "Error due to jobs parallelization\n" + \
                                         "\t Jobs to CPU assignation: " + str(jobs_being_executed_id_next) + "\n" + \
                                         "\t Active jobs: " + str(active_jobs) + "\n" + \
                                         "\t Selected frequency: " + str(cores_frequency_next) + "\n" + \
