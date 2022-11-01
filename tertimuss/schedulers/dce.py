@@ -1,6 +1,6 @@
 """
 This module provides the following class:
-- :class:`SBaruahBurnsCE`
+- :class:`SDeutschbeinCE`
 """
 
 from typing import List, Optional, Tuple, Dict, Set, Union
@@ -17,7 +17,7 @@ from ..simulation_lib.system_definition import Processor, Environment, TaskSet, 
 from ..simulation_lib.system_definition.utils import calculate_major_cycle, calculate_minor_cycle
 
 
-class SBaruahBurnsCE(CentralizedScheduler):
+class SDeutschbeinCE(CentralizedScheduler):
     """
     Implementation of the scheduler proposed in the paper (see references)
 
