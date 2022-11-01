@@ -140,7 +140,7 @@ class SDeutschbeinCE(CentralizedScheduler):
                                 )
                             )
                 id += 1
-        assert(len(jobs) == self.n)
+        assert (len(jobs) == self.n)
 
         # Auxiliar variable which allows consulting the active jobs in a concrete frame number
         jobs_in_frame: Dict[int, Set[int]] = {k: set() for k in range(self.number_of_frames)}
@@ -153,10 +153,10 @@ class SDeutschbeinCE(CentralizedScheduler):
         status, x, f = self.solve_lpp(jobs, jobs_in_frame)
 
         try:
-            assert(status == pywraplp.Solver.OPTIMAL or status == pywraplp.Solver.FEASIBLE)
+            assert (status == pywraplp.Solver.OPTIMAL or status == pywraplp.Solver.FEASIBLE)
         except AssertionError:
             print("Error on scheduler's offline stage: the solver could not solve the linear programming problem")
-            assert(False)
+            assert (False)
 
         # --------------------------------
         # Discretize the continuos values obtained from the LP solution
@@ -174,7 +174,7 @@ class SDeutschbeinCE(CentralizedScheduler):
                                default=None)
         if not chosen_frequency:
             print("Error on scheduler's offline stage: the avaliable frequencies don't fit the problem's solution requirements (it's needed a frequency greater or equal than ", minimal_frequency, " Hz)", sep='')
-            assert(False)
+            assert (False)
 
         # Get the f value to use for obtaining the scheduling points
         f_frequency_compliant = chosen_frequency * self.F
@@ -271,7 +271,7 @@ class SDeutschbeinCE(CentralizedScheduler):
 
         # This should never happen
         print("Error on scheduler's simulation stage: the jobs", jobs_id, "didn't finish before their deadline")
-        assert(False)
+        assert (False)
         return False
 
     # -----------------------------------------------------------------
@@ -319,7 +319,7 @@ class SDeutschbeinCE(CentralizedScheduler):
                 print("Updating 'ortools' to a version greater or equal than 9.4 might solve the problem")
             else:
                 print("Please, check your Gurobi installation")
-            assert(False)
+            assert (False)
 
         # ----------------------
         # Declare the variables
@@ -332,7 +332,7 @@ class SDeutschbeinCE(CentralizedScheduler):
                     x[(i, j, k)] = (solver.NumVar(0, 1, "x_" + str(i+1) + "_" + str(j+1) + "_" + str(k+1))
                                     if self.preemptive_ce
                                     else solver.IntVar(0, 1, "x_" + str(i+1) + "_" + str(j+1) + "_" + str(k+1)))
-        assert(solver.NumVariables() == self.N * self.m * self.number_of_frames)
+        assert (solver.NumVariables() == self.N * self.m * self.number_of_frames)
         # <DEBUG>
         if self.is_debug:
             self.__print_variables(x, self.n)
@@ -350,20 +350,20 @@ class SDeutschbeinCE(CentralizedScheduler):
             solver.Add(sum([sum([x[(i, j, k)]
                             for k in range(int(jobs[i].activation_time//self.F), int(jobs[i].absolute_deadline//self.F))])
                             for j in range(self.m)]) == 1)
-        assert(solver.NumConstraints() == self.n)
+        assert (solver.NumConstraints() == self.n)
 
         # Second constraint: each processor may be assigned no more than f units of execution during each minor cycle
         for j in range(self.m):
             for k in range(self.number_of_frames):
                 solver.Add(sum([x[(i, j, k)] * jobs[i].execution_time for i in jobs_in_frame[k]]) <= f)
-        assert(solver.NumConstraints() == (self.n + self.m * self.number_of_frames))
+        assert (solver.NumConstraints() == (self.n + self.m * self.number_of_frames))
 
         # Third constraint: each job may be assigned no more than f units of execution during each minor cycle
         if self.preemptive_ce:  # only defined if preemption is allowed
             for i in range(self.n):
                 for k in range(int(jobs[i].activation_time//self.F), int(jobs[i].absolute_deadline//self.F)):
                     solver.Add(sum([x[(i, j, k)] * jobs[i].execution_time for j in range(self.m)]) <= f)
-            assert(solver.NumConstraints() == (self.n + (self.m + self.N) * self.number_of_frames))
+            assert (solver.NumConstraints() == (self.n + (self.m + self.N) * self.number_of_frames))
 
         # <DEBUG>
         if self.is_debug:
@@ -466,19 +466,19 @@ class SDeutschbeinCE(CentralizedScheduler):
                 # Ensure the third constraint is still satisfied by incrementing the value of f
                 if job_execution > f_discretized:
                     f_discretized += (job_execution - f_discretized)
-                assert(job_execution <= f_discretized)
+                assert (job_execution <= f_discretized)
                 # Add the job to the frame only if it has execution time assigned in it
                 if job_execution != 0:
                     jobs_execution_in_frame[k][i] = job_execution
         for yet_not_assigned in not_assigned_execution.values():
-            assert(yet_not_assigned == 0)
+            assert (yet_not_assigned == 0)
 
         for k in range(self.number_of_frames):
             # Ensure the second constraint is still satisfied by incrementing the value of f
             jobs_execution = sum(jobs_execution_in_frame[k].values())
             if jobs_execution > self.m * f_discretized:
                 f_discretized += (jobs_execution - self.m * f_discretized)
-            assert(jobs_execution <= self.m * f_discretized)
+            assert (jobs_execution <= self.m * f_discretized)
 
         for job in jobs:
             # Ensure the first constraint is satisfied
@@ -490,7 +490,7 @@ class SDeutschbeinCE(CentralizedScheduler):
             if self.is_debug:
                 print("j", job.identifier+1, ":\t current = ", execution_assigned_to_job, ",\t original = ", job.execution_time, sep='')
             # </DEBUG>
-            assert(execution_assigned_to_job == job.execution_time)
+            assert (execution_assigned_to_job == job.execution_time)
 
         # <DEBUG>
         if self.is_debug:
@@ -754,7 +754,7 @@ class SDeutschbeinCE(CentralizedScheduler):
                                                                   if index != len(scheduling_points_cycles)
                                                                   else f * self.number_of_frames - scheduling_points_cycles[index-1])
         for point in cycles_to_sleep:
-            assert(point + cycles_to_sleep[point] in scheduling_points or point + cycles_to_sleep[point] == f * self.number_of_frames)
+            assert (point + cycles_to_sleep[point] in scheduling_points or point + cycles_to_sleep[point] == f * self.number_of_frames)
 
         # Remove the last scheduling point from both dictionaries, because it will never be used (it coincides whith the major
         # cycle start, so 0 must be used instead)
@@ -766,7 +766,7 @@ class SDeutschbeinCE(CentralizedScheduler):
         # Make the last cycle's sleep time Tertimuss-compatible, assigning None to it. This way, the next invocation of the
         # "schedule_policy" will be made by "on_major_cycle_start"
         if f * self.number_of_frames in scheduling_points_cycles:
-            assert(scheduling_points_cycles.index(f * self.number_of_frames) == len(scheduling_points_cycles) - 1)
+            assert (scheduling_points_cycles.index(f * self.number_of_frames) == len(scheduling_points_cycles) - 1)
             scheduling_points_cycles.pop()  # delete the last element of the list
         cycles_to_sleep[scheduling_points_cycles[-1]] = None
 
