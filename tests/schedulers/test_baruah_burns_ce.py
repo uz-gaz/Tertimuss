@@ -55,7 +55,7 @@ class BaruahBurnsCETest(unittest.TestCase):
             sporadic_tasks_jobs=[],
             processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
             environment_specification=default_environment_specification(),
-            simulation_options=SimulationConfiguration(id_debug=True),
+            simulation_options=SimulationConfiguration(id_debug=True, nonparallelization_check=True),
             scheduler=SBaruahBurnsCE(activate_debug=True, preemptive_ce=False)
         )
 
@@ -104,7 +104,7 @@ class BaruahBurnsCETest(unittest.TestCase):
             sporadic_tasks_jobs=[],
             processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
             environment_specification=default_environment_specification(),
-            simulation_options=SimulationConfiguration(id_debug=True),
+            simulation_options=SimulationConfiguration(id_debug=True, nonparallelization_check=True),
             scheduler=SBaruahBurnsCE(activate_debug=True, preemptive_ce=False, use_mcnaughton_rule=True)
         )
 
@@ -153,7 +153,7 @@ class BaruahBurnsCETest(unittest.TestCase):
             sporadic_tasks_jobs=[],
             processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
             environment_specification=default_environment_specification(),
-            simulation_options=SimulationConfiguration(id_debug=True),
+            simulation_options=SimulationConfiguration(id_debug=True, nonparallelization_check=True),
             scheduler=SBaruahBurnsCE(activate_debug=True, preemptive_ce=True)
         )
 
@@ -204,7 +204,7 @@ class BaruahBurnsCETest(unittest.TestCase):
             sporadic_tasks_jobs=[],
             processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
             environment_specification=default_environment_specification(),
-            simulation_options=SimulationConfiguration(id_debug=True),
+            simulation_options=SimulationConfiguration(id_debug=True, nonparallelization_check=True),
             scheduler=SBaruahBurnsCE(activate_debug=True, preemptive_ce=False)
         )
 
@@ -253,7 +253,7 @@ class BaruahBurnsCETest(unittest.TestCase):
             sporadic_tasks_jobs=[],
             processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
             environment_specification=default_environment_specification(),
-            simulation_options=SimulationConfiguration(id_debug=True),
+            simulation_options=SimulationConfiguration(id_debug=True, nonparallelization_check=True),
             scheduler=SBaruahBurnsCE(activate_debug=True, preemptive_ce=False, use_mcnaughton_rule=True)
         )
 
@@ -302,7 +302,7 @@ class BaruahBurnsCETest(unittest.TestCase):
             sporadic_tasks_jobs=[],
             processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
             environment_specification=default_environment_specification(),
-            simulation_options=SimulationConfiguration(id_debug=True),
+            simulation_options=SimulationConfiguration(id_debug=True, nonparallelization_check=True),
             scheduler=SBaruahBurnsCE(activate_debug=True, preemptive_ce=True)
         )
 
@@ -357,7 +357,7 @@ class BaruahBurnsCETest(unittest.TestCase):
             sporadic_tasks_jobs=[],
             processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
             environment_specification=default_environment_specification(),
-            simulation_options=SimulationConfiguration(id_debug=True),
+            simulation_options=SimulationConfiguration(id_debug=True, nonparallelization_check=True),
             scheduler=SBaruahBurnsCE(activate_debug=True, preemptive_ce=False)
         )
 
@@ -410,7 +410,7 @@ class BaruahBurnsCETest(unittest.TestCase):
             sporadic_tasks_jobs=[],
             processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
             environment_specification=default_environment_specification(),
-            simulation_options=SimulationConfiguration(id_debug=True),
+            simulation_options=SimulationConfiguration(id_debug=True, nonparallelization_check=True),
             scheduler=SBaruahBurnsCE(activate_debug=True, preemptive_ce=False, use_mcnaughton_rule=True)
         )
 
@@ -463,7 +463,7 @@ class BaruahBurnsCETest(unittest.TestCase):
             sporadic_tasks_jobs=[],
             processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
             environment_specification=default_environment_specification(),
-            simulation_options=SimulationConfiguration(id_debug=True),
+            simulation_options=SimulationConfiguration(id_debug=True, nonparallelization_check=True),
             scheduler=SBaruahBurnsCE(activate_debug=True, preemptive_ce=True)
         )
 
@@ -523,7 +523,7 @@ class BaruahBurnsCETest(unittest.TestCase):
             sporadic_tasks_jobs=[],
             processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
             environment_specification=default_environment_specification(),
-            simulation_options=SimulationConfiguration(id_debug=True),
+            simulation_options=SimulationConfiguration(id_debug=True, nonparallelization_check=True),
             scheduler=SBaruahBurnsCE(activate_debug=True, preemptive_ce=False)
         )
 
@@ -581,7 +581,7 @@ class BaruahBurnsCETest(unittest.TestCase):
             sporadic_tasks_jobs=[],
             processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
             environment_specification=default_environment_specification(),
-            simulation_options=SimulationConfiguration(id_debug=True),
+            simulation_options=SimulationConfiguration(id_debug=True, nonparallelization_check=True),
             scheduler=SBaruahBurnsCE(activate_debug=True, preemptive_ce=False, use_mcnaughton_rule=True)
         )
 
@@ -639,7 +639,7 @@ class BaruahBurnsCETest(unittest.TestCase):
             sporadic_tasks_jobs=[],
             processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
             environment_specification=default_environment_specification(),
-            simulation_options=SimulationConfiguration(id_debug=True),
+            simulation_options=SimulationConfiguration(id_debug=True, nonparallelization_check=True),
             scheduler=SBaruahBurnsCE(activate_debug=True, preemptive_ce=True)
         )
 
@@ -695,7 +695,7 @@ class BaruahBurnsCETest(unittest.TestCase):
             sporadic_tasks_jobs=[],
             processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
             environment_specification=default_environment_specification(),
-            simulation_options=SimulationConfiguration(id_debug=True),
+            simulation_options=SimulationConfiguration(id_debug=True, nonparallelization_check=True),
             scheduler=SBaruahBurnsCE(activate_debug=True, preemptive_ce=False)
         )
 
@@ -749,7 +749,7 @@ class BaruahBurnsCETest(unittest.TestCase):
             sporadic_tasks_jobs=[],
             processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
             environment_specification=default_environment_specification(),
-            simulation_options=SimulationConfiguration(id_debug=True),
+            simulation_options=SimulationConfiguration(id_debug=True, nonparallelization_check=True),
             scheduler=SBaruahBurnsCE(activate_debug=True, preemptive_ce=False, use_mcnaughton_rule=True)
         )
 
@@ -803,7 +803,7 @@ class BaruahBurnsCETest(unittest.TestCase):
             sporadic_tasks_jobs=[],
             processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
             environment_specification=default_environment_specification(),
-            simulation_options=SimulationConfiguration(id_debug=True),
+            simulation_options=SimulationConfiguration(id_debug=True, nonparallelization_check=True),
             scheduler=SBaruahBurnsCE(activate_debug=True, preemptive_ce=True)
         )
 
@@ -855,7 +855,7 @@ class BaruahBurnsCETest(unittest.TestCase):
             sporadic_tasks_jobs=[],
             processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
             environment_specification=default_environment_specification(),
-            simulation_options=SimulationConfiguration(id_debug=True),
+            simulation_options=SimulationConfiguration(id_debug=True, nonparallelization_check=True),
             scheduler=SBaruahBurnsCE(activate_debug=True, preemptive_ce=False)
         )
 
@@ -905,7 +905,7 @@ class BaruahBurnsCETest(unittest.TestCase):
             sporadic_tasks_jobs=[],
             processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
             environment_specification=default_environment_specification(),
-            simulation_options=SimulationConfiguration(id_debug=True),
+            simulation_options=SimulationConfiguration(id_debug=True, nonparallelization_check=True),
             scheduler=SBaruahBurnsCE(activate_debug=True, preemptive_ce=False, use_mcnaughton_rule=True)
         )
 
@@ -955,7 +955,7 @@ class BaruahBurnsCETest(unittest.TestCase):
             sporadic_tasks_jobs=[],
             processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
             environment_specification=default_environment_specification(),
-            simulation_options=SimulationConfiguration(id_debug=True),
+            simulation_options=SimulationConfiguration(id_debug=True, nonparallelization_check=True),
             scheduler=SBaruahBurnsCE(activate_debug=True, preemptive_ce=True)
         )
 
@@ -1016,7 +1016,7 @@ class BaruahBurnsCETest(unittest.TestCase):
             sporadic_tasks_jobs=[],
             processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
             environment_specification=default_environment_specification(),
-            simulation_options=SimulationConfiguration(id_debug=True),
+            simulation_options=SimulationConfiguration(id_debug=True, nonparallelization_check=True),
             scheduler=SBaruahBurnsCE(activate_debug=True, preemptive_ce=False)
         )
 
@@ -1075,7 +1075,7 @@ class BaruahBurnsCETest(unittest.TestCase):
             sporadic_tasks_jobs=[],
             processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
             environment_specification=default_environment_specification(),
-            simulation_options=SimulationConfiguration(id_debug=True),
+            simulation_options=SimulationConfiguration(id_debug=True, nonparallelization_check=True),
             scheduler=SBaruahBurnsCE(activate_debug=True, preemptive_ce=False, use_mcnaughton_rule=True)
         )
 
@@ -1134,7 +1134,7 @@ class BaruahBurnsCETest(unittest.TestCase):
             sporadic_tasks_jobs=[],
             processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
             environment_specification=default_environment_specification(),
-            simulation_options=SimulationConfiguration(id_debug=True),
+            simulation_options=SimulationConfiguration(id_debug=True, nonparallelization_check=True),
             scheduler=SBaruahBurnsCE(activate_debug=True, preemptive_ce=True)
         )
 
@@ -1197,7 +1197,7 @@ class BaruahBurnsCETest(unittest.TestCase):
             sporadic_tasks_jobs=[],
             processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
             environment_specification=default_environment_specification(),
-            simulation_options=SimulationConfiguration(id_debug=True),
+            simulation_options=SimulationConfiguration(id_debug=True, nonparallelization_check=True),
             scheduler=SBaruahBurnsCE(activate_debug=True, preemptive_ce=False)
         )
 
@@ -1258,7 +1258,7 @@ class BaruahBurnsCETest(unittest.TestCase):
             sporadic_tasks_jobs=[],
             processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
             environment_specification=default_environment_specification(),
-            simulation_options=SimulationConfiguration(id_debug=True),
+            simulation_options=SimulationConfiguration(id_debug=True, nonparallelization_check=True),
             scheduler=SBaruahBurnsCE(activate_debug=True, preemptive_ce=False, use_mcnaughton_rule=True)
         )
 
@@ -1319,7 +1319,7 @@ class BaruahBurnsCETest(unittest.TestCase):
             sporadic_tasks_jobs=[],
             processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
             environment_specification=default_environment_specification(),
-            simulation_options=SimulationConfiguration(id_debug=True),
+            simulation_options=SimulationConfiguration(id_debug=True, nonparallelization_check=True),
             scheduler=SBaruahBurnsCE(activate_debug=True, preemptive_ce=True)
         )
 
@@ -1357,7 +1357,7 @@ class BaruahBurnsCETest(unittest.TestCase):
             sporadic_tasks_jobs=[],
             processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
             environment_specification=default_environment_specification(),
-            simulation_options=SimulationConfiguration(id_debug=True),
+            simulation_options=SimulationConfiguration(id_debug=True, nonparallelization_check=True),
             scheduler=SBaruahBurnsCE(activate_debug=True, preemptive_ce=False)
         )
 
@@ -1393,7 +1393,7 @@ class BaruahBurnsCETest(unittest.TestCase):
             sporadic_tasks_jobs=[],
             processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
             environment_specification=default_environment_specification(),
-            simulation_options=SimulationConfiguration(id_debug=True),
+            simulation_options=SimulationConfiguration(id_debug=True, nonparallelization_check=True),
             scheduler=SBaruahBurnsCE(activate_debug=True, preemptive_ce=False, use_mcnaughton_rule=True)
         )
 
@@ -1429,7 +1429,7 @@ class BaruahBurnsCETest(unittest.TestCase):
             sporadic_tasks_jobs=[],
             processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
             environment_specification=default_environment_specification(),
-            simulation_options=SimulationConfiguration(id_debug=True),
+            simulation_options=SimulationConfiguration(id_debug=True, nonparallelization_check=True),
             scheduler=SBaruahBurnsCE(activate_debug=True, preemptive_ce=True)
         )
 
@@ -1490,7 +1490,7 @@ class BaruahBurnsCETest(unittest.TestCase):
             sporadic_tasks_jobs=[],
             processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
             environment_specification=default_environment_specification(),
-            simulation_options=SimulationConfiguration(id_debug=True),
+            simulation_options=SimulationConfiguration(id_debug=True, nonparallelization_check=True),
             scheduler=SBaruahBurnsCE(activate_debug=True, preemptive_ce=False)
         )
 
@@ -1549,7 +1549,7 @@ class BaruahBurnsCETest(unittest.TestCase):
             sporadic_tasks_jobs=[],
             processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
             environment_specification=default_environment_specification(),
-            simulation_options=SimulationConfiguration(id_debug=True),
+            simulation_options=SimulationConfiguration(id_debug=True, nonparallelization_check=True),
             scheduler=SBaruahBurnsCE(activate_debug=True, preemptive_ce=False, use_mcnaughton_rule=True)
         )
 
@@ -1610,7 +1610,7 @@ class BaruahBurnsCETest(unittest.TestCase):
             sporadic_tasks_jobs=[],
             processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
             environment_specification=default_environment_specification(),
-            simulation_options=SimulationConfiguration(id_debug=True),
+            simulation_options=SimulationConfiguration(id_debug=True, nonparallelization_check=True),
             scheduler=SBaruahBurnsCE(activate_debug=True, preemptive_ce=False)
         )
 
@@ -1669,7 +1669,7 @@ class BaruahBurnsCETest(unittest.TestCase):
             sporadic_tasks_jobs=[],
             processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
             environment_specification=default_environment_specification(),
-            simulation_options=SimulationConfiguration(id_debug=True),
+            simulation_options=SimulationConfiguration(id_debug=True, nonparallelization_check=True),
             scheduler=SBaruahBurnsCE(activate_debug=True, preemptive_ce=False, use_mcnaughton_rule=True)
         )
 
@@ -1723,7 +1723,7 @@ class BaruahBurnsCETest(unittest.TestCase):
                 sporadic_tasks_jobs=[],
                 processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
                 environment_specification=default_environment_specification(),
-                simulation_options=SimulationConfiguration(id_debug=True),
+                simulation_options=SimulationConfiguration(id_debug=True, nonparallelization_check=True),
                 scheduler=SBaruahBurnsCE(activate_debug=True, preemptive_ce=False)
             )
             # Error due to no error detection
@@ -1776,7 +1776,7 @@ class BaruahBurnsCETest(unittest.TestCase):
                 sporadic_tasks_jobs=[],
                 processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
                 environment_specification=default_environment_specification(),
-                simulation_options=SimulationConfiguration(id_debug=True),
+                simulation_options=SimulationConfiguration(id_debug=True, nonparallelization_check=True),
                 scheduler=SBaruahBurnsCE(activate_debug=True, preemptive_ce=False, use_mcnaughton_rule=True)
             )
             # Error due to no error detection
@@ -1829,7 +1829,7 @@ class BaruahBurnsCETest(unittest.TestCase):
                 sporadic_tasks_jobs=[],
                 processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
                 environment_specification=default_environment_specification(),
-                simulation_options=SimulationConfiguration(id_debug=True),
+                simulation_options=SimulationConfiguration(id_debug=True, nonparallelization_check=True),
                 scheduler=SBaruahBurnsCE(activate_debug=True, preemptive_ce=True)
             )
             # Error due to no error detection
@@ -1884,7 +1884,7 @@ class BaruahBurnsCETest(unittest.TestCase):
             sporadic_tasks_jobs=[],
             processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
             environment_specification=default_environment_specification(),
-            simulation_options=SimulationConfiguration(id_debug=True),
+            simulation_options=SimulationConfiguration(id_debug=True, nonparallelization_check=True),
             scheduler=SBaruahBurnsCE(activate_debug=True, preemptive_ce=False)
         )
 
@@ -1936,7 +1936,7 @@ class BaruahBurnsCETest(unittest.TestCase):
             sporadic_tasks_jobs=[],
             processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
             environment_specification=default_environment_specification(),
-            simulation_options=SimulationConfiguration(id_debug=True),
+            simulation_options=SimulationConfiguration(id_debug=True, nonparallelization_check=True),
             scheduler=SBaruahBurnsCE(activate_debug=True, preemptive_ce=False, use_mcnaughton_rule=True)
         )
 
@@ -1988,7 +1988,7 @@ class BaruahBurnsCETest(unittest.TestCase):
             sporadic_tasks_jobs=[],
             processor_definition=generate_default_cpu(number_of_cores, available_frequencies),
             environment_specification=default_environment_specification(),
-            simulation_options=SimulationConfiguration(id_debug=True),
+            simulation_options=SimulationConfiguration(id_debug=True, nonparallelization_check=True),
             scheduler=SBaruahBurnsCE(activate_debug=True, preemptive_ce=True)
         )
 
