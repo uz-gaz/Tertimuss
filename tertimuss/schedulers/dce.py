@@ -776,11 +776,6 @@ class SDeutschbeinCE(CentralizedScheduler):
                 if scheduling_points[point][core] is None:
                     scheduling_points[point].pop(core)
 
-        # Ensure that the third constraint is still satisfied at the scheduling points by checking that the same job is not
-        # assigned to more than one CPU
-        for point in scheduling_points:
-            assert len(scheduling_points[point].values()) == len(set(scheduling_points[point].values()))
-
         # <DEBUG>
         if self.is_debug:
             print("---------------------------------------")
